@@ -1,0 +1,45 @@
+{
+  "name": "antigravity-multi-agent-orchestrator",
+  "version": "1.0.0",
+  "description": "Multi-Agent Orchestrator for Google Antigravity with specialized PM, Frontend, Backend, Mobile, and QA agents",
+  "main": "orchestrator.ts",
+  "scripts": {
+    "orchestrate": "ts-node orchestrator.ts",
+    "orchestrate:dev": "ts-node orchestrator.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup": "npm install && npm run setup:antigravity",
+    "setup:antigravity": "echo 'Please ensure Google Antigravity is installed: https://antigravity.google/download'",
+    "setup:serena": "antigravity mcp add serena",
+    "clean": "rm -rf .gemini/antigravity/brain/* .agent/plan.json",
+    "validate": "npm run validate:skills",
+    "validate:skills": "node -e \"const fs = require('fs'); const skills = ['orchestrator', 'pm-agent', 'frontend-agent', 'backend-agent', 'mobile-agent', 'qa-agent']; skills.forEach(s => { const path = `.agent/skills/${s}/SKILL.md`; if (!fs.existsSync(path)) { console.error(`Missing: ${path}`); process.exit(1); } }); console.log('✅ All skills validated');\""
+  },
+  "keywords": [
+    "antigravity",
+    "multi-agent",
+    "orchestrator",
+    "ai",
+    "gemini",
+    "code-generation",
+    "pm",
+    "frontend",
+    "backend",
+    "mobile",
+    "qa"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/antigravity-multi-agent-orchestrator"
+  }
+}
