@@ -1,481 +1,384 @@
-# Antigravity Multi-Agent Orchestrator
+# Antigravity Multi-Agent Skills
 
-A comprehensive multi-agent system for Google Antigravity that orchestrates specialized agents (PM, Frontend, Backend, Mobile, QA) to collaboratively build software projects.
+Professional agent skills for Google Antigravity IDE featuring specialized PM, Frontend, Backend, Mobile, and QA agents that work together seamlessly through Antigravity's Agent Manager.
 
-## Overview
+## What Is This?
 
-This project implements a sophisticated agent orchestration system using Google Antigravity's native Skills feature. Instead of a single monolithic AI agent, work is distributed across five specialized agents, each expert in their domain:
+This is a **collection of specialized Antigravity Skills** that enable collaborative multi-agent development workflows. Instead of a single AI doing everything, work is distributed across expert agents:
 
+- **Workflow Guide**: Coordinates complex multi-agent projects
 - **PM Agent**: Requirements analysis, task decomposition, architecture planning
 - **Frontend Agent**: React/Next.js UI implementation, TypeScript, Tailwind CSS
-- **Backend Agent**: FastAPI/Node.js APIs, database design, authentication
+- **Backend Agent**: FastAPI APIs, database design, JWT authentication
 - **Mobile Agent**: Flutter cross-platform mobile development
-- **QA Agent**: Security audits, performance testing, accessibility compliance
+- **QA Agent**: Security audits (OWASP Top 10), performance testing, accessibility (WCAG 2.1 AA)
 
-## Key Features
+## How It Works
 
-- **Native Antigravity Skills**: Uses `.agent/skills/` directory structure
-- **Parallel Execution**: Independent tasks run concurrently for efficiency
-- **Dependency Management**: Automatic task ordering based on dependencies
-- **Knowledge Base**: All decisions and outputs stored in `.gemini/antigravity/brain/`
-- **Serena MCP Integration**: Code analysis and efficient modifications
-- **Comprehensive QA**: Security (OWASP Top 10), performance, accessibility
+### Progressive Disclosure (Automatic Skill Loading)
+
+You **don't** manually select skills. Antigravity automatically:
+1. Scans your chat request
+2. Matches it against skill descriptions in `.agent/skills/`
+3. Loads the relevant skill into context **only when needed**
+4. Saves tokens by loading just the skill metadata until required
+
+### Agent Manager UI (Parallel Execution)
+
+For complex projects, use Antigravity's **Agent Manager** (Mission Control dashboard):
+1. Spawn multiple agents working on different tasks
+2. Assign each agent its own workspace
+3. Monitor progress via inbox notifications
+4. Coordinate integration using Knowledge Base outputs
+
+## Quick Start
+
+### 1. Installation
+
+```bash
+# Clone this repository
+git clone <repository-url>
+cd subagent-orchestrator
+
+# Open in Antigravity IDE
+antigravity open .
+```
+
+That's it! Antigravity automatically detects skills in `.agent/skills/`.
+
+### 2. Usage
+
+Just **chat in Antigravity IDE**:
+
+**Simple request** (single skill):
+```
+"Create a login form component with Tailwind CSS and form validation"
+```
+→ frontend-agent automatically activates
+
+**Complex request** (multiple skills):
+```
+"Build a TODO app with user authentication"
+```
+→ workflow-guide activates and guides you through multi-agent orchestration
+
+### 3. For Complex Projects: Use Agent Manager
+
+The workflow-guide will instruct you:
+
+1. **PM Agent plans** → Creates task breakdown
+2. **You spawn agents in Agent Manager**:
+   - Backend Agent (auth API)
+   - Frontend Agent (login UI)
+   - Mobile Agent (if needed)
+3. **Agents work in parallel** → Save outputs to Knowledge Base
+4. **You coordinate** → Review `.gemini/antigravity/brain/` for integration
+5. **QA Agent reviews** → Final security/performance audit
+
+See [USAGE.md](./USAGE.md) for detailed examples and workflows.
 
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────┐
-│                  Orchestrator                        │
-│  (orchestrator.ts - coordinates all agents)          │
-└──────────────────────────────────────────────────────┘
-                         │
-         ┌───────────────┼───────────────┐
-         │               │               │
-         ▼               ▼               ▼
-    ┌────────┐     ┌─────────┐     ┌─────────┐
-    │PM Agent│────>│ Frontend│     │ Backend │
-    └────────┘     │  Agent  │     │  Agent  │
-         │         └─────────┘     └─────────┘
-         │               │               │
-         │               └───────┬───────┘
-         ▼                       ▼
-    ┌─────────┐           ┌──────────┐
-    │ Mobile  │           │QA Agent  │
-    │  Agent  │           │(Reviews) │
-    └─────────┘           └──────────┘
+User in Antigravity IDE Chat
+       ↓
+[Progressive Disclosure matches request to skills]
+       ↓
+Simple task? → Single Agent (Frontend/Backend/Mobile/QA)
+       ↓
+Complex task? → Workflow Guide activated
+       ↓
+┌─────────────────────────────────────┐
+│     Workflow Guide (coordinates)    │
+└─────────────────────────────────────┘
+       ↓
+┌─────────────────────────────────────┐
+│  PM Agent (creates plan)            │
+│  Output: .agent/plan.json           │
+└─────────────────────────────────────┘
+       ↓
+User spawns agents in Agent Manager UI:
+       ↓
+┌──────────┬──────────┬──────────┐
+│ Backend  │ Frontend │  Mobile  │  ← Work in parallel
+│  Agent   │  Agent   │  Agent   │
+└──────────┴──────────┴──────────┘
+       ↓
+All outputs → .gemini/antigravity/brain/
+       ↓
+┌─────────────────────────────────────┐
+│  QA Agent (final review)            │
+│  Output: qa-report.md               │
+└─────────────────────────────────────┘
+       ↓
+User fixes critical issues → Re-spawn agents
 ```
-
-## Installation
-
-### Prerequisites
-
-1. **Google Antigravity** (2026+)
-   ```bash
-   # Download from https://antigravity.google/download
-   # Or install via package manager
-   brew install google-antigravity  # macOS
-   ```
-
-2. **Node.js** 18+
-   ```bash
-   node --version  # Should be >= 18
-   ```
-
-3. **Serena MCP** (Optional but recommended)
-   ```bash
-   pip install git+https://github.com/oraios/serena
-   ```
-
-### Setup
-
-1. Clone and install dependencies:
-   ```bash
-   git clone <repository-url>
-   cd subagent-orchestrator
-   npm install
-   ```
-
-2. Configure Serena MCP (optional):
-   ```bash
-   npm run setup:serena
-   # Or manually: antigravity mcp add serena
-   ```
-
-3. Validate installation:
-   ```bash
-   npm run validate
-   ```
 
 ## Project Structure
 
 ```
 .
 ├── .agent/
-│   ├── skills/                    # Antigravity Skills
-│   │   ├── orchestrator/
-│   │   │   └── SKILL.md          # Main orchestrator skill
-│   │   ├── pm-agent/
-│   │   │   ├── SKILL.md          # PM agent skill
-│   │   │   └── resources/
-│   │   │       └── task-template.json
-│   │   ├── frontend-agent/
+│   ├── skills/                     # Antigravity Skills (auto-detected)
+│   │   ├── workflow-guide/         # Multi-agent coordination guide
+│   │   │   └── SKILL.md
+│   │   ├── pm-agent/               # Product manager
+│   │   │   ├── SKILL.md
+│   │   │   └── resources/task-template.json
+│   │   ├── frontend-agent/         # React/Next.js specialist
 │   │   │   ├── SKILL.md
 │   │   │   └── resources/
-│   │   │       ├── component-template.tsx
-│   │   │       └── tailwind-rules.md
-│   │   ├── backend-agent/
+│   │   ├── backend-agent/          # FastAPI specialist
 │   │   │   ├── SKILL.md
 │   │   │   └── resources/
-│   │   │       └── api-template.py
-│   │   ├── mobile-agent/
+│   │   ├── mobile-agent/           # Flutter specialist
 │   │   │   ├── SKILL.md
 │   │   │   └── resources/
-│   │   │       └── screen-template.dart
-│   │   └── qa-agent/
+│   │   └── qa-agent/               # Security & QA specialist
 │   │       ├── SKILL.md
-│   │       └── resources/
-│   │           └── checklist.md
-│   ├── mcp.json                  # Serena MCP configuration
-│   └── plan.json                 # Generated task plan (created at runtime)
+│   │       └── resources/checklist.md
+│   ├── mcp.json                    # Serena MCP config (optional)
+│   └── plan.json                   # Generated by PM Agent (runtime)
 ├── .gemini/
 │   └── antigravity/
-│       └── brain/                # Knowledge Base (outputs stored here)
-├── orchestrator.ts               # Main orchestration script
+│       └── brain/                  # Knowledge Base (agent outputs)
+├── .gitignore
 ├── package.json
-├── tsconfig.json
-└── README.md
+├── README.md                       # This file
+└── USAGE.md                        # Detailed usage guide
 ```
 
-## Usage
+## Skills Overview
 
-### Basic Usage
+### workflow-guide
+**Activates when**: Complex multi-domain requests
+**Purpose**: Guides you through coordinating PM, Frontend, Backend, Mobile, and QA agents using Agent Manager
+**Output**: Step-by-step instructions for spawning and coordinating agents
 
-```bash
-npm run orchestrate "Build a TODO app with user authentication"
-```
+### pm-agent
+**Activates when**: "plan this project", "break down", "what should we build"
+**Tech expertise**: Architecture, tech stack selection, task decomposition
+**Output**: JSON plan with tasks, priorities, dependencies, API contracts
 
-### Example Requests
-
-```bash
-# Simple CRUD application
-npm run orchestrate "Create a blog platform with posts and comments"
-
-# Full-stack with auth
-npm run orchestrate "Build an e-commerce site with product catalog, cart, and Stripe checkout"
-
-# Mobile app
-npm run orchestrate "Create a fitness tracking mobile app with workout history"
-
-# API-only
-npm run orchestrate "Design a RESTful API for a library management system"
-```
-
-## How It Works
-
-### 1. Task Decomposition (PM Agent)
-
-The PM Agent analyzes your request and generates a structured plan:
-
-```json
-{
-  "project_name": "TODO App",
-  "tasks": [
-    {
-      "id": "task-1",
-      "agent": "backend",
-      "title": "User authentication API",
-      "priority": 1,
-      "dependencies": [],
-      "acceptance_criteria": ["JWT tokens", "Password hashing"]
-    },
-    {
-      "id": "task-2",
-      "agent": "frontend",
-      "title": "Login UI",
-      "priority": 1,
-      "dependencies": [],
-      "acceptance_criteria": ["Form validation", "Loading states"]
-    },
-    {
-      "id": "task-3",
-      "agent": "qa",
-      "title": "Security audit",
-      "priority": 2,
-      "dependencies": ["task-1", "task-2"]
-    }
-  ]
-}
-```
-
-### 2. Parallel Execution
-
-Tasks at the same priority level with no dependencies run in parallel:
-
-```
-Priority 1:  [Backend Auth] + [Frontend UI]  (parallel)
-             ↓
-Priority 2:  [QA Review]                     (after both complete)
-```
-
-### 3. Knowledge Base Storage
-
-All outputs are saved to `.gemini/antigravity/brain/`:
-
-```
-.gemini/antigravity/brain/
-├── current-plan.md
-├── 2026-01-27-backend-task-1.md
-├── 2026-01-27-frontend-task-2.md
-├── qa-report.md
-└── orchestration-summary.json
-```
-
-### 4. Final QA Review
-
-The QA Agent reviews all deliverables and generates a comprehensive report covering:
-- Security vulnerabilities (OWASP Top 10)
-- Performance metrics (API latency, bundle size, Web Vitals)
-- Accessibility compliance (WCAG 2.1 AA)
-- Code quality (test coverage, complexity)
-- Browser automation test results
-
-## Skills Reference
-
-### PM Agent
-
-**When to use**: Always called first to decompose requirements
-
-**Output**: JSON plan with tasks, priorities, dependencies, tech stack decisions
-
-**Example**:
-```bash
-antigravity agent run \
-  --skill .agent/skills/pm-agent \
-  --instruction "Plan a real-time chat application"
-```
-
-### Frontend Agent
-
-**Tech Stack**: Next.js 14, TypeScript, Tailwind CSS, shadcn/ui
-
+### frontend-agent
+**Activates when**: UI/UX work, components, styling
+**Tech stack**: Next.js 14, TypeScript, Tailwind CSS, shadcn/ui, React Query
 **Output**: React components, tests, Storybook stories
 
-**Best for**: UI implementation, client-side logic, responsive design
+### backend-agent
+**Activates when**: APIs, databases, authentication, server logic
+**Tech stack**: FastAPI, SQLAlchemy, PostgreSQL, Redis, JWT
+**Output**: API endpoints, database models, tests, OpenAPI documentation
 
-### Backend Agent
+### mobile-agent
+**Activates when**: Mobile apps, iOS/Android
+**Tech stack**: Flutter 3.19+, Dart, Riverpod
+**Output**: Screens, navigation, state management, platform-specific code
 
-**Tech Stack**: FastAPI (Python), SQLAlchemy, PostgreSQL, Redis
+### qa-agent
+**Activates when**: "review security", "check performance", "audit"
+**Checks**: OWASP Top 10, performance (Lighthouse, API latency), WCAG 2.1 AA, code quality
+**Output**: Comprehensive QA report with prioritized fixes
 
-**Output**: API endpoints, database models, integration tests, OpenAPI spec
+## Usage Examples
 
-**Best for**: REST APIs, authentication, database design
+### Example 1: Simple Component (Single Agent)
 
-### Mobile Agent
+**You**: "Create a user profile card component with avatar, name, and bio using Tailwind"
 
-**Tech Stack**: Flutter, Dart, Riverpod
+**What happens**:
+- frontend-agent activates automatically
+- You get a complete React component with TypeScript and Tailwind
+- ✅ Done in < 1 minute
 
-**Output**: Mobile screens, state management, platform-specific code
+### Example 2: Full-Stack App (Multi-Agent)
 
-**Best for**: iOS + Android cross-platform apps
+**You**: "Build a TODO app with user authentication"
 
-### QA Agent
+**What happens**:
 
-**Checks**: Security, performance, accessibility, code quality
+1. **workflow-guide activates**: "Let me help you orchestrate this..."
+2. **PM Agent consulted**: Creates plan with 5 tasks (auth API, login UI, TODO API, TODO UI, QA)
+3. **You're guided to Agent Manager**: "Spawn Backend Agent with this task: 'Implement JWT auth API...'"
+4. **You spawn 2 agents in parallel** (Backend, Frontend)
+5. **Agents work independently**: Save outputs to Knowledge Base
+6. **You review & coordinate**: Check `.gemini/antigravity/brain/` for API alignment
+7. **QA Agent spawned**: Reviews everything, finds 2 security issues
+8. **You fix issues**: Re-spawn Backend Agent with corrections
+9. **✅ Done**: Complete, tested, secure application
 
-**Output**: Comprehensive QA report with prioritized issues and remediation steps
+**Time**: 30-60 minutes | **Agents used**: 5
 
-**Best for**: Final review before deployment
+## Key Features
 
-## Configuration
+### ✅ Native Antigravity Integration
+- Uses `.agent/skills/` directory structure (Antigravity standard)
+- Progressive Disclosure for efficient token usage
+- Agent Manager UI for parallel execution
+- Knowledge Base for persistence
 
-### Environment Variables
+### ✅ Production-Ready Code
+- **Frontend**: TypeScript strict mode, Tailwind CSS (no inline styles), WCAG 2.1 AA
+- **Backend**: JWT auth, bcrypt hashing, rate limiting, input validation (Pydantic)
+- **Mobile**: Material Design 3, iOS + Android, clean architecture
+- **QA**: OWASP Top 10 audits, Lighthouse scores, security checklists
 
-Create a `.env` file (not tracked in git):
+### ✅ Comprehensive Documentation
+- Each skill has detailed SKILL.md with examples
+- Resource templates (API template, component template, etc.)
+- Best practices and anti-patterns documented
+- Troubleshooting guides included
 
-```bash
-# Antigravity Model (optional)
-ANTIGRAVITY_MODEL=gemini-3-pro  # or gemini-3-flash for faster/cheaper
+### ✅ Serena MCP Support (Optional)
+- Efficient code analysis and modification
+- Symbol search and refactoring
+- Pattern detection for security audits
+- Configured in `.agent/mcp.json`
 
-# Serena Configuration (optional)
-SERENA_LOG_LEVEL=info
-```
+## Prerequisites
 
-### Custom Configuration
-
-Edit `orchestrator.ts`:
-
-```typescript
-const CONFIG = {
-  skillsPath: '.agent/skills',
-  outputPath: '.gemini/antigravity/brain',
-  planFile: '.agent/plan.json',
-  agentModel: 'gemini-3-pro',     // Change model here
-  outputFormat: 'markdown',
-  maxRetries: 3,                  // Retry failed agents
-  retryDelay: 2000,               // ms between retries
-};
-```
+- **Google Antigravity** (2026+) - Download from [antigravity.google/download](https://antigravity.google/download)
+- **Antigravity account** - Free tier includes generous Gemini 3 Pro quota
+- **Serena MCP** (optional) - For advanced code analysis
 
 ## Advanced Usage
 
-### Running Individual Agents
-
-```bash
-# Run PM Agent directly
-antigravity agent run \
-  --skill .agent/skills/pm-agent \
-  --instruction "Plan an inventory management system" \
-  --model gemini-3-pro
-
-# Run Frontend Agent
-antigravity agent run \
-  --skill .agent/skills/frontend-agent \
-  --instruction "Build a product catalog with filtering and search"
-
-# Run QA Agent
-antigravity agent run \
-  --skill .agent/skills/qa-agent \
-  --instruction "Review the authentication implementation for security issues"
-```
-
-### Using Serena for Code Analysis
-
-Agents automatically use Serena MCP when available:
-
-```typescript
-// In any agent, these tools are available:
-// - find_symbol("LoginForm")
-// - get_symbols_overview("src/components")
-// - find_referencing_symbols("Button")
-// - replace_symbol_body("LoginForm", newCode)
-// - search_for_pattern("password.*=.*")
-```
-
 ### Customizing Skills
 
-Edit any `.agent/skills/*/SKILL.md` file to customize agent behavior:
+Edit any `.agent/skills/*/SKILL.md` to customize behavior:
 
 ```markdown
 ---
 name: frontend-agent
-description: Frontend specialist for React, Next.js, and modern UI
+description: Your custom description here
 ---
 
-# Frontend Agent
-
-## Use this skill when
-- Building user interfaces
-- (Add your custom conditions)
-
-## Instructions
-1. Follow Material Design 3
-2. (Add your custom steps)
+# Custom instructions
+1. Always use Material-UI instead of Tailwind
+2. Write tests in Jest, not Vitest
+...
 ```
+
+Antigravity will automatically pick up changes.
+
+### Adding New Skills
+
+Create a new folder in `.agent/skills/`:
+
+```bash
+mkdir -p .agent/skills/devops-agent
+cat > .agent/skills/devops-agent/SKILL.md << 'EOF'
+---
+name: devops-agent
+description: DevOps specialist for Docker, Kubernetes, CI/CD
+---
+
+# DevOps Agent
+[Your instructions here]
+EOF
+```
+
+### Using with Existing Projects
+
+Copy `.agent/` folder to any project:
+
+```bash
+cp -r .agent /path/to/your-project/
+cd /path/to/your-project
+antigravity open .
+```
+
+Now your project has access to all these skills!
+
+## Quota & Costs
+
+### Antigravity Free Tier
+- Limited Gemini API calls per month
+- Skills use Progressive Disclosure to minimize token usage
+- Simple tasks (single agent) use minimal quota
+- Complex projects (multi-agent) use more but are within free tier for reasonable use
+
+### Antigravity Paid Tier
+- Higher monthly quota
+- Run larger multi-agent projects
+- Faster models available (Gemini 3 Flash for quick tasks)
+
+**Cost Optimization Tips**:
+- Be specific in requests to avoid unnecessary skill loading
+- Follow PM Agent's plan (don't spawn unnecessary agents)
+- Review agent outputs before re-spawning
+- Use Gemini 3 Flash for simple tasks, Pro for complex ones
 
 ## Troubleshooting
 
-### Agent Fails to Start
+### Skills Not Loading
 
-```bash
-# Check Antigravity installation
-antigravity --version
+**Problem**: Antigravity doesn't detect skills
 
-# Validate skills
-npm run validate
+**Solution**:
+1. Ensure you opened the project: `antigravity open .`
+2. Check `.agent/skills/` folder exists
+3. Verify each skill has `SKILL.md` with YAML frontmatter
+4. Restart Antigravity IDE
 
-# Check skill file exists
-ls -la .agent/skills/*/SKILL.md
-```
+### Agent Manager Not Found
 
-### JSON Parsing Error
+**Problem**: Can't find Agent Manager UI
 
-If PM Agent output can't be parsed:
+**Solution**:
+- Look for "Mission Control" or "Agent Manager" panel in Antigravity
+- Try `View → Agent Manager` menu
+- Ensure Antigravity 2026+ (Agent Manager was added in 2026)
 
-1. Check the raw output in terminal
-2. Ensure the plan follows the template in `.agent/skills/pm-agent/resources/task-template.json`
-3. Try with a simpler request first
+### Agents Producing Incompatible Code
 
-### Serena Not Found
+**Problem**: Frontend and Backend don't match
 
-```bash
-# Install Serena
-pip install git+https://github.com/oraios/serena
+**Solution**:
+1. Review both outputs in `.gemini/antigravity/brain/`
+2. Identify mismatch (e.g., API endpoint differs)
+3. Re-spawn one agent with corrected spec
+4. Reference other agent's work: "The Backend created POST /api/auth/login, use that exact path"
 
-# Add to Antigravity
-antigravity mcp add serena
-
-# Verify
-antigravity mcp list
-```
-
-### Performance Issues
-
-```bash
-# Use faster model
-export ANTIGRAVITY_MODEL=gemini-3-flash
-
-# Or edit orchestrator.ts
-agentModel: 'gemini-3-flash',
-```
-
-## Best Practices
-
-### 1. Clear Requirements
-
-❌ Bad: "Make it better"
-✅ Good: "Add user authentication with email/password, JWT tokens, and password reset"
-
-### 2. Incremental Complexity
-
-Start simple, then iterate:
-
-```bash
-# Step 1: Basic CRUD
-npm run orchestrate "Create a simple TODO list (no auth)"
-
-# Step 2: Add features
-npm run orchestrate "Add user authentication to the TODO app"
-
-# Step 3: Enhance
-npm run orchestrate "Add real-time collaboration to the TODO app"
-```
-
-### 3. Review Outputs
-
-Always check `.gemini/antigravity/brain/`:
-- `current-plan.md`: Verify task breakdown
-- `qa-report.md`: Address critical issues
-- `orchestration-summary.json`: Check success rate
-
-### 4. Iterative QA
-
-Run QA multiple times as you fix issues:
-
-```bash
-# Initial QA
-npm run orchestrate "Review security of the authentication system"
-
-# After fixes
-npm run orchestrate "Re-audit authentication after implementing rate limiting"
-```
-
-## Limitations
-
-- **Antigravity Required**: This system only works with Google Antigravity
-- **Model Costs**: Using Gemini 3 Pro may incur costs (check Antigravity pricing)
-- **No Rollback**: Failed agents don't automatically roll back changes
-- **Linear Dependencies**: Circular dependencies not supported
+See [USAGE.md](./USAGE.md) for more troubleshooting tips.
 
 ## Contributing
 
-Contributions welcome! Areas for improvement:
+Contributions welcome! Ideas:
 
-- Additional agent specializations (DevOps, Data Science, ML)
-- More sophisticated dependency resolution
-- Retry with different strategies on failure
-- Integration with CI/CD pipelines
-- Web UI for orchestration management
+- **New agent skills**: Data Science Agent, DevOps Agent, Design Agent
+- **Enhanced templates**: More code examples, Storybook stories
+- **Better coordination**: Improved workflow-guide instructions
+- **Documentation**: More examples, video tutorials
 
 ## License
 
 MIT License - see LICENSE file
 
-## References
+## Resources
 
-- [Google Antigravity Documentation](https://antigravity.google/docs)
-- [Antigravity Skills Guide](https://codelabs.developers.google.com/getting-started-with-antigravity-skills)
-- [Serena MCP](https://github.com/oraios/serena)
-- [Agent Skills Standard](https://blog.devgenius.io/google-antigravity-adds-skills-04ab11d8497c)
+**Official Antigravity**:
+- [Antigravity Documentation](https://antigravity.google/docs/skills)
+- [Antigravity Skills Codelab](https://codelabs.developers.google.com/getting-started-with-antigravity-skills)
+- [Agent Manager Guide](https://antigravity.google/docs/agent-manager)
+- [Antigravity Blog: Skills Announcement](https://blog.devgenius.io/google-antigravity-adds-skills-04ab11d8497c)
+
+**This Project**:
+- [USAGE.md](./USAGE.md) - Detailed usage guide with examples
+- [Skill Documentation](./.agent/skills/) - Individual skill SKILL.md files
+
+**Related**:
+- [Serena MCP](https://github.com/oraios/serena) - Code analysis tool
+- [Agent Skills Standard](https://laurentkempe.com/2026/01/27/Agent-Skills-From-Claude-to-Open-Standard/) - Open standard adopted by Antigravity
 
 ## Support
 
-For issues related to:
-- **This orchestrator**: Open an issue in this repository
-- **Antigravity**: Check [Antigravity Help](https://antigravity.google/help)
-- **Serena**: Check [Serena GitHub](https://github.com/oraios/serena/issues)
+- **This project**: Open an issue in this repository
+- **Antigravity**: Check [antigravity.google/help](https://antigravity.google/help)
+- **Serena**: [GitHub Issues](https://github.com/oraios/serena/issues)
 
 ---
 
-**Built for Google Antigravity 2026**
+**Built for Google Antigravity 2026** | Last updated: January 2026
 
-Last updated: January 2026
+**Note**: This is a skill pack for Antigravity IDE, not a standalone application. Use it by opening this project in Antigravity and chatting in the IDE.
