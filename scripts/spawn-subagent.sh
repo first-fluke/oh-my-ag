@@ -35,6 +35,12 @@ if [ ! -d "$WORKSPACE" ]; then
   exit 1
 fi
 
+# Cleanup function: remove PID/LOG files after child exits
+cleanup() {
+  rm -f "$PID_FILE"
+  rm -f "$LOG_FILE"
+}
+
 # Launch subagent in background
 cd "$WORKSPACE" && \
   gemini -p "$(cat "$PROMPT_FILE")" --yolo \
@@ -42,4 +48,12 @@ cd "$WORKSPACE" && \
 
 PID=$!
 echo "$PID" > "$PID_FILE"
+
+# When this script's session ends, kill the child and clean up
+trap 'kill "$PID" 2>/dev/null; wait "$PID" 2>/dev/null; cleanup' EXIT SIGINT SIGTERM
+
 echo "$PID"
+
+# Wait for child so trap can fire on its exit
+wait "$PID" 2>/dev/null
+cleanup

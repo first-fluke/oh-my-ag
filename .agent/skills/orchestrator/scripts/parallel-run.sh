@@ -82,9 +82,28 @@ TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 RUN_DIR="${RESULTS_DIR}/parallel-${TIMESTAMP}"
 mkdir -p "$RUN_DIR"
 
+# PID list file for cleanup (especially useful for --no-wait mode)
+PID_LIST_FILE="${RUN_DIR}/pids.txt"
+
 # Track PIDs and results
 declare -A PIDS
 declare -A AGENT_NAMES
+
+# Cleanup: kill all child processes on exit
+cleanup() {
+  echo -e "\n${YELLOW}[Parallel]${NC} Cleaning up child processes..."
+  for pid in "${!PIDS[@]}"; do
+    if kill -0 "$pid" 2>/dev/null; then
+      kill "$pid" 2>/dev/null
+      echo -e "${YELLOW}[Parallel]${NC} Killed PID $pid (${AGENT_NAMES[$pid]:-unknown})"
+    fi
+  done
+  wait 2>/dev/null
+  # Remove PID list file if all processes are done
+  rm -f "$PID_LIST_FILE"
+}
+
+trap cleanup EXIT SIGINT SIGTERM
 
 echo -e "${CYAN}======================================${NC}"
 echo -e "${CYAN}  Parallel SubAgent Execution${NC}"
@@ -113,6 +132,7 @@ parse_inline_tasks() {
 
         PIDS[$!]=$idx
         AGENT_NAMES[$!]=$agent
+        echo "$!:$agent" >> "$PID_LIST_FILE"
         ((idx++))
     done
 }
@@ -194,6 +214,7 @@ spawn_task() {
 
     PIDS[$!]=$idx
     AGENT_NAMES[$!]=$agent
+    echo "$!:$agent" >> "$PID_LIST_FILE"
 }
 
 # Alternative simpler YAML parsing for common format
@@ -227,6 +248,7 @@ parse_yaml_simple() {
 
             PIDS[$!]=$idx
             AGENT_NAMES[$!]=$agent
+            echo "$!:$agent" >> "$PID_LIST_FILE"
             ((idx++))
         fi
     done < <(awk '/^[[:space:]]*-[[:space:]]*agent:/{if(block)print block; block=$0; next} {block=block" "$0} END{print block}' "$TASKS_FILE")
@@ -259,6 +281,9 @@ echo -e "${BLUE}[Parallel]${NC} Started ${YELLOW}${TOTAL_TASKS}${NC} agents"
 if [[ "$WAIT_MODE" == false ]]; then
     echo -e "${BLUE}[Parallel]${NC} Running in background mode"
     echo -e "${BLUE}[Parallel]${NC} Results will be in: ${RUN_DIR}"
+    echo -e "${BLUE}[Parallel]${NC} PID list: ${PID_LIST_FILE}"
+    # Disable the cleanup trap so background processes keep running
+    trap - EXIT SIGINT SIGTERM
     exit 0
 fi
 

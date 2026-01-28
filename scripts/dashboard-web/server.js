@@ -221,6 +221,11 @@ function broadcast(data) {
 wss.on("connection", (ws) => {
   // Send full state on connect
   ws.send(JSON.stringify({ type: "full", data: buildFullState() }));
+
+  // Clean up dead connections
+  ws.on("error", () => {
+    ws.terminate();
+  });
 });
 
 // --- File watcher ---
@@ -246,6 +251,42 @@ watcher.on("all", (event, filePath) => {
     });
   }, 100);
 });
+
+// --- Graceful shutdown ---
+
+function shutdown() {
+  console.log("\nShutting down...");
+
+  // Close file watcher
+  watcher.close().then(() => {
+    console.log("  File watcher closed");
+  }).catch(() => {});
+
+  // Close all WebSocket connections
+  for (const client of wss.clients) {
+    client.terminate();
+  }
+
+  // Close WebSocket server
+  wss.close(() => {
+    console.log("  WebSocket server closed");
+
+    // Close HTTP server
+    httpServer.close(() => {
+      console.log("  HTTP server closed");
+      process.exit(0);
+    });
+  });
+
+  // Force exit after 3 seconds if graceful shutdown hangs
+  setTimeout(() => {
+    console.error("  Forced exit after timeout");
+    process.exit(1);
+  }, 3000).unref();
+}
+
+process.on("SIGINT", shutdown);
+process.on("SIGTERM", shutdown);
 
 // --- Start ---
 

@@ -231,6 +231,18 @@ main() {
     echo "Created $MEMORIES_DIR — waiting for memory files..."
   fi
 
+  # Cleanup: kill all child processes (fswatch/inotifywait) on exit
+  cleanup() {
+    # Kill all child processes of this script
+    local children
+    children=$(jobs -p 2>/dev/null)
+    if [[ -n "$children" ]]; then
+      kill $children 2>/dev/null
+      wait $children 2>/dev/null
+    fi
+  }
+  trap cleanup EXIT SIGINT SIGTERM
+
   # Initial render
   render_dashboard
 
