@@ -293,14 +293,14 @@ MIT
 
 ## 문서
 
-| 문서 | 용도 |
-|------|------|
-| [README.md](./README.md) | 프로젝트 개요 (영문) |
-| [README-ko.md](./README-ko.md) | 프로젝트 개요 (한글) |
-| [USAGE.md](./USAGE.md) | 스킬 사용 방법 (영문) |
-| [USAGE-ko.md](./USAGE-ko.md) | 스킬 사용 방법 (한글) |
-| [AGENT_GUIDE.md](./AGENT_GUIDE.md) | **에이전트용**: 실행 규칙, 진행 추적, 협력 방식 |
+| 문서 | 대상 | 용도 |
+|------|------|------|
+| [README.md](./README.md) | 사용자 | 프로젝트 개요 (영문) |
+| [README-ko.md](./README-ko.md) | 사용자 | 프로젝트 개요 (한글) |
+| [USAGE.md](./USAGE.md) | 사용자 | 스킬 사용 방법 (영문) |
+| [USAGE-ko.md](./USAGE-ko.md) | 사용자 | 스킬 사용 방법 (한글) |
+| [AGENT_GUIDE.md](./AGENT_GUIDE.md) | 개발자 | **기존 프로젝트에 통합하는 방법** |
 
 ---
 
-**Google Antigravity 2026용** | 참고: [AGENT_GUIDE.md](./AGENT_GUIDE.md) 에이전트 실행 지침
+**Google Antigravity 2026용** | **처음이신가요?** [AGENT_GUIDE.md](./AGENT_GUIDE.md)에서 기존 프로젝트에 통합하는 방법을 확인하세요

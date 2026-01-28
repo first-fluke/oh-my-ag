@@ -237,14 +237,14 @@ npm run info            # 이 사용 가이드 출력
 
 ---
 
-## 에이전트용
+## 개발자용 (통합 가이드)
 
-Orchestrator에 의해 생성되는 에이전트라면 [AGENT_GUIDE.md](./AGENT_GUIDE.md)를 참고하세요. 다음을 포함합니다:
-- 진행 상황 추적 방법
-- Serena Memory 파일 업데이트 방식
-- 다른 에이전트와의 협력 방식
-- 결과 저장 방식
+기존 Antigravity 프로젝트에 이 스킬들을 통합하고 싶다면 [AGENT_GUIDE.md](./AGENT_GUIDE.md)를 참고하세요. 다음을 포함합니다:
+- 빠른 3단계 통합
+- 전체 대시보드 통합
+- 본인 기술 스택에 맞게 스킬 커스터마이징
+- 문제 해결 및 모범 사례
 
 ---
 
-**Antigravity IDE에서 채팅하세요.** 모니터링을 위해 대시보드를 사용하고, CLI 실행을 위해 orchestrator 스크립트를 사용합니다. 에이전트 실행 규칙은 [AGENT_GUIDE.md](./AGENT_GUIDE.md)를 참고하세요.
+**Antigravity IDE에서 채팅하세요.** 모니터링을 위해 대시보드를 사용하고, CLI 실행을 위해 orchestrator 스크립트를 사용합니다. 기존 프로젝트에 통합하려면 [AGENT_GUIDE.md](./AGENT_GUIDE.md)를 참고하세요.

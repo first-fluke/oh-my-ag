@@ -293,14 +293,14 @@ MIT
 
 ## Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [README.md](./README.md) | Project overview (English) |
-| [README-ko.md](./README-ko.md) | Project overview (Korean) |
-| [USAGE.md](./USAGE.md) | How to use the skills (English) |
-| [USAGE-ko.md](./USAGE-ko.md) | How to use the skills (Korean) |
-| [AGENT_GUIDE.md](./AGENT_GUIDE.md) | **For agents**: execution rules, progress tracking, collaboration |
+| Document | Audience | Purpose |
+|----------|----------|---------|
+| [README.md](./README.md) | Users | Project overview (English) |
+| [README-ko.md](./README-ko.md) | Users | Project overview (Korean) |
+| [USAGE.md](./USAGE.md) | Users | How to use the skills (English) |
+| [USAGE-ko.md](./USAGE-ko.md) | Users | How to use the skills (Korean) |
+| [AGENT_GUIDE.md](./AGENT_GUIDE.md) | Developers | **How to integrate into your existing project** |
 
 ---
 
-**Built for Google Antigravity 2026** | See also: [AGENT_GUIDE.md](./AGENT_GUIDE.md) for agent execution instructions
+**Built for Google Antigravity 2026** | **New to this project?** Start with [AGENT_GUIDE.md](./AGENT_GUIDE.md) to integrate into your existing project
