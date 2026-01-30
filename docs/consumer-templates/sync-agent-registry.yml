@@ -45,9 +45,9 @@ jobs:
 
       - name: Sync from registry
         # TODO: Replace with your registry repo
-        uses: first-fluke/oh-my-antigravity/.github/actions/sync-agent-registry@main
+        uses: first-fluke/oh-my-ag/.github/actions/sync-agent-registry@main
         with:
-          registry-repo: first-fluke/oh-my-antigravity
+          registry-repo: first-fluke/oh-my-ag
           version: ${{ steps.config.outputs.version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 

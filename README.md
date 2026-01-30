@@ -6,8 +6,24 @@ Professional agent skills for Google Antigravity IDE featuring specialized PM, F
 
 > **Like this project?** Give it a star!
 > ```bash
-> gh api --method PUT /user/starred/first-fluke/oh-my-antigravity
+> gh api --method PUT /user/starred/first-fluke/oh-my-ag
 > ```
+
+## Table of Contents
+
+- [Architecture](#architecture)
+- [What Is This?](#what-is-this)
+- [Quick Start](#quick-start)
+- [How It Works](#how-it-works)
+- [Real-time Dashboards](#real-time-dashboards)
+- [Project Structure](#project-structure)
+- [Skill Architecture](#skill-architecture)
+- [Skills Overview](#skills-overview)
+- [Prerequisites](#prerequisites)
+- [CLI Commands](#cli-commands)
+- [Troubleshooting](#troubleshooting)
+- [Central Registry](#central-registry-for-multi-repo-setup)
+- [License](#license)
 
 ## Architecture
 
@@ -67,7 +83,7 @@ A collection of **Antigravity Skills** enabling collaborative multi-agent develo
 # Install bun if you don't have it:
 # curl -fsSL https://bun.sh/install | bash
 
-bunx oh-my-antigravity
+bunx oh-my-ag
 ```
 
 Select your project type and skills will be installed to `.agent/skills/`.
@@ -83,14 +99,14 @@ Select your project type and skills will be installed to `.agent/skills/`.
 ### Option 2: Using vercel-labs/skills
 
 ```bash
-bunx skills add first-fluke/oh-my-antigravity
+bunx skills add first-fluke/oh-my-ag
 ```
 
 ### Option 3: Clone & Open
 
 ```bash
-git clone https://github.com/first-fluke/oh-my-antigravity
-cd oh-my-antigravity
+git clone https://github.com/first-fluke/oh-my-ag
+cd oh-my-ag
 antigravity open .
 ```
 
@@ -134,8 +150,8 @@ This creates `.agent/config/user-preferences.yaml` for your project.
 ### 3. Monitor with Dashboards
 
 ```bash
-bunx oh-my-antigravity dashboard      # Terminal dashboard (bash)
-bunx oh-my-antigravity dashboard:web  # Web dashboard (Node.js)
+bunx oh-my-ag dashboard      # Terminal dashboard (bash)
+bunx oh-my-ag dashboard:web  # Web dashboard (Node.js)
 # → http://localhost:9847
 ```
 
@@ -222,7 +238,7 @@ Both dashboards watch these files for real-time monitoring.
 ### Terminal Dashboard
 
 ```bash
-bunx oh-my-antigravity dashboard
+bunx oh-my-ag dashboard
 ```
 
 Watches `.serena/memories/` and renders a live status table in your terminal:
@@ -249,7 +265,7 @@ Watches `.serena/memories/` and renders a live status table in your terminal:
 ### Web Dashboard
 
 ```bash
-bunx oh-my-antigravity dashboard:web
+bunx oh-my-ag dashboard:web
 # → http://localhost:9847
 ```
 
@@ -411,14 +427,20 @@ For SubAgent Orchestrator, at least one CLI tool:
 | Codex | `npm i -g @openai/codex` | `codex auth` |
 | Qwen | `pip install qwen-cli` | `qwen auth` |
 
-## npm Scripts
+## CLI Commands
 
-| Script | Command | Description |
-|--------|---------|-------------|
-| `npm run dashboard` | `bunx oh-my-antigravity dashboard` | Terminal real-time dashboard |
-| `npm run dashboard:web` | `bunx oh-my-antigravity dashboard:web` | Web dashboard on port 9847 |
-| `npm run validate` | `node scripts/validate-skills.js` | Validate skill files |
-| `npm run info` | `cat USAGE.md` | Show usage guide |
+```bash
+bunx oh-my-ag                # Interactive skill installer
+bunx oh-my-ag doctor         # Check setup & repair missing skills
+bunx oh-my-ag doctor --json  # JSON output for CI/CD
+bunx oh-my-ag update         # Update skills to latest version
+bunx oh-my-ag stats          # View productivity metrics
+bunx oh-my-ag stats --reset  # Reset metrics
+bunx oh-my-ag retro          # Session retrospective (learnings & next steps)
+bunx oh-my-ag dashboard      # Terminal real-time dashboard
+bunx oh-my-ag dashboard:web  # Web dashboard (http://localhost:9847)
+bunx oh-my-ag help           # Show help
+```
 
 ## Troubleshooting
 
@@ -494,7 +516,7 @@ Releases are automated via [release-please](https://github.com/googleapis/releas
 
    ```yaml
    registry:
-     repo: first-fluke/oh-my-antigravity
+repo: first-fluke/oh-my-ag
    version: "1.2.0"  # Pin to specific version
    ```
 
@@ -509,9 +531,9 @@ Releases are automated via [release-please](https://github.com/googleapis/releas
 Consumer projects can use the sync action directly:
 
 ```yaml
-- uses: first-fluke/oh-my-antigravity/.github/actions/sync-agent-registry@main
+- uses: first-fluke/oh-my-ag/.github/actions/sync-agent-registry@main
   with:
-    registry-repo: first-fluke/oh-my-antigravity
+    registry-repo: first-fluke/oh-my-ag
     version: '1.2.0'  # or 'latest'
     github-token: ${{ secrets.GITHUB_TOKEN }}
 ```

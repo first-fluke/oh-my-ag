@@ -62,7 +62,7 @@ mkdir -p .agent/skills
 
 Copy workflows, shared resources, and each skill individually (this prevents overwriting):
 ```bash
-REPO="/tmp/oh-my-antigravity"  # temp clone location
+REPO="/tmp/oh-my-ag"  # temp clone location
 
 # Copy workflows (user-triggered /commands)
 mkdir -p .agent/workflows
@@ -156,13 +156,13 @@ If `dashboard` or `dashboard:web` scripts already exist, skip to Step 5.
 
 Otherwise, add to `scripts` section:
 ```json
-"dashboard": "bunx oh-my-antigravity dashboard",
-"dashboard:web": "bunx oh-my-antigravity dashboard:web"
+"dashboard": "bunx oh-my-ag dashboard",
+"dashboard:web": "bunx oh-my-ag dashboard:web"
 ```
 
 **Verification:**
 ```bash
-npm run dashboard:web --help 2>&1 | head -3
+bunx oh-my-ag dashboard:web --help 2>&1 | head -3
 # Should show help output without errors
 ```
 
@@ -174,14 +174,14 @@ Dashboards are now built into the CLI. No manual copying needed.
 
 Users can run:
 ```bash
-bunx oh-my-antigravity dashboard      # Terminal dashboard
-bunx oh-my-antigravity dashboard:web  # Web dashboard
+bunx oh-my-ag dashboard      # Terminal dashboard
+bunx oh-my-ag dashboard:web  # Web dashboard
 ```
 
 Or via npm scripts (if added to package.json):
 ```bash
-npm run dashboard
-npm run dashboard:web
+bunx oh-my-ag dashboard
+bunx oh-my-ag dashboard:web
 ```
 
 ---
@@ -345,7 +345,7 @@ After successful integration, inform user:
 What's next:
 1. Chat in Antigravity IDE to use skills automatically
 2. For complex projects, use Agent Manager to spawn multiple agents
-3. To monitor CLI execution, run: npm run dashboard:web
+3. To monitor CLI execution, run: bunx oh-my-ag dashboard:web
 4. Edit .agent/skills/*/SKILL.md to customize for your tech stack
 5. See README.md for detailed usage and troubleshooting
 

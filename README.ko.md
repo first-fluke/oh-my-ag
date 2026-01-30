@@ -4,8 +4,22 @@ Google Antigravity IDE용 전문 에이전트 스킬 모음. PM, Frontend, Backe
 
 > **마음에 드셨나요?** 스타 눌러주세요!
 > ```bash
-> gh repo star first-fluke/oh-my-antigravity
+> gh repo star first-fluke/oh-my-ag
 > ```
+
+## 목차
+
+- [이게 뭔가요?](#이게-뭔가요)
+- [빠른 시작](#빠른-시작)
+- [동작 원리](#동작-원리)
+- [실시간 대시보드](#실시간-대시보드)
+- [프로젝트 구조](#프로젝트-구조)
+- [스킬 아키텍처](#스킬-아키텍처)
+- [스킬 개요](#스킬-개요)
+- [사전 요구 사항](#사전-요구-사항)
+- [CLI 명령어](#cli-명령어)
+- [문제 해결](#문제-해결)
+- [라이선스](#라이선스)
 
 ## 이게 뭔가요?
 
@@ -29,7 +43,7 @@ Google Antigravity IDE용 전문 에이전트 스킬 모음. PM, Frontend, Backe
 
 ```bash
 git clone <repository-url>
-cd oh-my-antigravity
+cd oh-my-ag
 antigravity open .
 ```
 
@@ -41,16 +55,16 @@ Antigravity가 `.agent/skills/`의 스킬을 자동 감지합니다.
 
 ```bash
 # 옵션 1: 스킬만 복사
-cp -r oh-my-antigravity/.agent/skills /path/to/your-project/.agent/
+cp -r oh-my-ag/.agent/skills /path/to/your-project/.agent/
 
 # 옵션 2: 스킬 + 대시보드
-cp -r oh-my-antigravity/.agent/skills /path/to/your-project/.agent/
+cp -r oh-my-ag/.agent/skills /path/to/your-project/.agent/
 
-cp oh-my-antigravity/package.json /path/to/your-project/  # 의존성 병합
+cp oh-my-ag/package.json /path/to/your-project/  # 의존성 병합
 
 # 옵션 3: 특정 스킬만
-cp -r oh-my-antigravity/.agent/skills/backend-agent /path/to/your-project/.agent/skills/
-cp -r oh-my-antigravity/.agent/skills/frontend-agent /path/to/your-project/.agent/skills/
+cp -r oh-my-ag/.agent/skills/backend-agent /path/to/your-project/.agent/skills/
+cp -r oh-my-ag/.agent/skills/frontend-agent /path/to/your-project/.agent/skills/
 ```
 
 본인 프로젝트에서:
@@ -103,8 +117,8 @@ antigravity open .
 # bun이 없으면 먼저 설치:
 # curl -fsSL https://bun.sh/install | bash
 
-bunx oh-my-antigravity dashboard      # 터미널 대시보드 (실시간)
-bunx oh-my-antigravity dashboard:web  # 웹 대시보드 (브라우저 UI)
+bunx oh-my-ag dashboard      # 터미널 대시보드 (실시간)
+bunx oh-my-ag dashboard:web  # 웹 대시보드 (브라우저 UI)
 # → http://localhost:9847
 ```
 
@@ -194,7 +208,7 @@ Orchestrator가 `.serena/memories/`에 구조화된 상태를 기록합니다:
 # bun이 없으면 먼저 설치:
 # curl -fsSL https://bun.sh/install | bash
 
-bunx oh-my-antigravity dashboard
+bunx oh-my-ag dashboard
 ```
 
 `.serena/memories/`를 감시하여 터미널에 실시간 상태 테이블을 표시합니다:
@@ -221,7 +235,7 @@ bunx oh-my-antigravity dashboard
 ### 웹 대시보드
 
 ```bash
-bunx oh-my-antigravity dashboard:web
+bunx oh-my-ag dashboard:web
 # → http://localhost:9847
 ```
 
@@ -383,14 +397,20 @@ SubAgent Orchestrator를 사용하려면 최소 1개의 CLI 도구 필요:
 | Codex | `npm i -g @openai/codex` | `codex auth` |
 | Qwen | `pip install qwen-cli` | `qwen auth` |
 
-## npm 스크립트
+## CLI 명령어
 
-| 스크립트 | 명령어 | 설명 |
-|---------|--------|------|
-| `npm run dashboard` | `bunx oh-my-antigravity dashboard` | 터미널 실시간 대시보드 |
-| `npm run dashboard:web` | `bunx oh-my-antigravity dashboard:web` | 웹 대시보드 (포트 9847) |
-| `npm run validate` | `node scripts/validate-skills.js` | 스킬 파일 검증 |
-| `npm run info` | `cat USAGE.md` | 사용 가이드 출력 |
+```bash
+bunx oh-my-ag                # 대화형 스킬 설치
+bunx oh-my-ag doctor         # 설정 확인 & 누락된 스킬 보강
+bunx oh-my-ag doctor --json  # CI/CD용 JSON 출력
+bunx oh-my-ag update         # 스킬을 최신 버전으로 업데이트
+bunx oh-my-ag stats          # 생산성 메트릭 조회
+bunx oh-my-ag stats --reset  # 메트릭 초기화
+bunx oh-my-ag retro          # 세션 회고 (배운 점 & 다음 단계)
+bunx oh-my-ag dashboard      # 터미널 실시간 대시보드
+bunx oh-my-ag dashboard:web  # 웹 대시보드 (http://localhost:9847)
+bunx oh-my-ag help           # 도움말 표시
+```
 
 ## 문제 해결
 

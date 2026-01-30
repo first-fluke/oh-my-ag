@@ -114,10 +114,10 @@ function main(): void {
   }));
 
   const manifest: Manifest = {
-    name: 'oh-my-antigravity',
+    name: 'oh-my-ag',
     version: version,
     releaseDate: new Date().toISOString(),
-    repository: 'https://github.com/first-fluke/oh-my-antigravity',
+    repository: 'https://github.com/first-fluke/oh-my-ag',
     files: filesWithChecksums,
     checksums: {
       algorithm: 'sha256'

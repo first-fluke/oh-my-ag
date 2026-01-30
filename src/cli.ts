@@ -10,6 +10,9 @@ import { startDashboard } from "./dashboard";
 import { startTerminalDashboard } from "./terminal-dashboard";
 
 const args = process.argv.slice(2);
+const jsonMode = args.includes("--json");
+const resetMode = args.includes("--reset");
+
 if (args[0] === "dashboard") {
   startTerminalDashboard();
 } else if (args[0] === "dashboard:web") {
@@ -17,14 +20,18 @@ if (args[0] === "dashboard") {
 } else if (args[0] === "update") {
   update().catch(console.error);
 } else if (args[0] === "doctor") {
-  doctor().catch(console.error);
+  doctor(jsonMode).catch(console.error);
+} else if (args[0] === "stats") {
+  stats(jsonMode, resetMode).catch(console.error);
+} else if (args[0] === "retro") {
+  retro(jsonMode).catch(console.error);
 } else if (args[0] === "help" || args[0] === "--help" || args[0] === "-h") {
   showHelp();
 } else {
   main().catch(console.error);
 }
 
-const REPO = "first-fluke/oh-my-antigravity";
+const REPO = "first-fluke/oh-my-ag";
 const GITHUB_RAW = `https://raw.githubusercontent.com/${REPO}/main/.agent/skills`;
 
 const SKILLS = {
@@ -181,7 +188,7 @@ async function downloadFile(manifestFile: ManifestFile): Promise<{ path: string;
 
 async function update(): Promise<void> {
   console.clear();
-  p.intro(pc.bgMagenta(pc.white(" 🛸 oh-my-antigravity update ")));
+  p.intro(pc.bgMagenta(pc.white(" 🛸 oh-my-ag update ")));
 
   const cwd = process.cwd();
   const spinner = p.spinner();
@@ -379,25 +386,69 @@ async function checkSkills(): Promise<SkillCheck[]> {
   return checks;
 }
 
-async function doctor(): Promise<void> {
-  console.clear();
-  p.intro(pc.bgMagenta(pc.white(" 🩺 oh-my-antigravity doctor ")));
-
+async function doctor(jsonMode = false): Promise<void> {
   const cwd = process.cwd();
+
+  const clis = await Promise.all([
+    checkCLI("gemini", "gemini", "npm install -g @anthropic-ai/gemini-cli"),
+    checkCLI("claude", "claude", "npm install -g @anthropic-ai/claude-code"),
+    checkCLI("codex", "codex", "npm install -g @openai/codex"),
+    checkCLI("qwen", "qwen", "pip install qwen-cli"),
+  ]);
+
+  const mcpChecks = await Promise.all(
+    clis.filter((c) => c.installed).map(async (cli) => {
+      const mcp = await checkMCPConfig(cli.name);
+      return { ...cli, mcp };
+    })
+  );
+
+  const dashboardChecks = await checkDashboardDependencies();
+  const skillChecks = await checkSkills();
+
+  const serenaDir = join(cwd, ".serena", "memories");
+  const hasSerena = existsSync(serenaDir);
+  let serenaFileCount = 0;
+  if (hasSerena) {
+    try {
+      serenaFileCount = readdirSync(serenaDir).length;
+    } catch {}
+  }
+
+  const missingCLIs = clis.filter((c) => !c.installed);
+  const missingSkills = skillChecks.length > 0
+    ? skillChecks.filter((s) => !s.installed || !s.hasSkillMd)
+    : [...SKILLS.domain, ...SKILLS.coordination, ...SKILLS.utility].map((s) => ({ name: s.name, installed: false, hasSkillMd: false }));
+
+  const totalIssues =
+    missingCLIs.length +
+    mcpChecks.filter((c) => !c.mcp.configured).length +
+    dashboardChecks.filter((d) => !d.available).length +
+    missingSkills.length;
+
+  if (jsonMode) {
+    const result = {
+      ok: totalIssues === 0,
+      issues: totalIssues,
+      clis: clis.map((c) => ({ name: c.name, installed: c.installed, version: c.version || null })),
+      mcp: mcpChecks.map((c) => ({ name: c.name, configured: c.mcp.configured, path: c.mcp.path || null })),
+      dashboard: dashboardChecks.map((d) => ({ name: d.name, available: d.available, type: d.type })),
+      skills: skillChecks.length > 0
+        ? skillChecks.map((s) => ({ name: s.name, installed: s.installed, complete: s.hasSkillMd }))
+        : [],
+      missingSkills: missingSkills.map((s) => s.name),
+      serena: { exists: hasSerena, fileCount: serenaFileCount },
+    };
+    console.log(JSON.stringify(result, null, 2));
+    process.exit(totalIssues === 0 ? 0 : 1);
+  }
+
+  console.clear();
+  p.intro(pc.bgMagenta(pc.white(" 🩺 oh-my-ag doctor ")));
+
   const spinner = p.spinner();
 
   try {
-    spinner.start("Checking CLI installations...");
-
-    const clis = await Promise.all([
-      checkCLI("gemini", "gemini", "npm install -g @anthropic-ai/gemini-cli"),
-      checkCLI("claude", "claude", "npm install -g @anthropic-ai/claude-code"),
-      checkCLI("codex", "codex", "npm install -g @openai/codex"),
-      checkCLI("qwen", "qwen", "pip install qwen-cli"),
-    ]);
-
-    spinner.stop("CLI check complete");
-
     const cliTable = [
       pc.bold("🔍 CLI Installation Status"),
       "┌─────────┬──────────┬─────────────┐",
@@ -413,24 +464,12 @@ async function doctor(): Promise<void> {
 
     p.note(cliTable, "CLI Status");
 
-    const missingCLIs = clis.filter((c) => !c.installed);
     if (missingCLIs.length > 0) {
       p.note(
         missingCLIs.map((cli) => `${pc.yellow("→")} ${cli.name}: ${pc.dim(cli.installCmd)}`).join("\n"),
         "Install missing CLIs"
       );
     }
-
-    spinner.start("Checking MCP configurations...");
-
-    const mcpChecks = await Promise.all(
-      clis.filter((c) => c.installed).map(async (cli) => {
-        const mcp = await checkMCPConfig(cli.name);
-        return { ...cli, mcp };
-      })
-    );
-
-    spinner.stop("MCP check complete");
 
     if (mcpChecks.length > 0) {
       const mcpTable = [
@@ -449,10 +488,6 @@ async function doctor(): Promise<void> {
       p.note(mcpTable, "MCP Status");
     }
 
-    spinner.start("Checking dashboard dependencies...");
-    const dashboardChecks = await checkDashboardDependencies();
-    spinner.stop("Dashboard check complete");
-
     const dashboardTable = [
       pc.bold("📊 Dashboard Dependencies"),
       "┌─────────────────┬──────────┬────────────────────────────────────┐",
@@ -468,14 +503,10 @@ async function doctor(): Promise<void> {
 
     p.note(dashboardTable, "Dashboard Status");
 
-    spinner.start("Checking skills installation...");
-    const skillChecks = await checkSkills();
-    spinner.stop("Skills check complete");
+    const installedCount = skillChecks.filter((s) => s.installed).length;
+    const completeCount = skillChecks.filter((s) => s.hasSkillMd).length;
 
     if (skillChecks.length > 0) {
-      const installedCount = skillChecks.filter((s) => s.installed).length;
-      const completeCount = skillChecks.filter((s) => s.hasSkillMd).length;
-
       const skillTable = [
         pc.bold(`📦 Skills (${installedCount}/${skillChecks.length} installed, ${completeCount} complete)`),
         "┌────────────────────┬──────────┬─────────────┐",
@@ -491,23 +522,89 @@ async function doctor(): Promise<void> {
 
       p.note(skillTable, "Skills Status");
     } else {
-      p.note(pc.yellow("No skills installed. Run `oh-my-antigravity` to install."), "Skills Status");
+      p.note(pc.yellow("No skills installed."), "Skills Status");
     }
 
-    // Serena Memory Check
-    const serenaDir = join(cwd, ".serena", "memories");
-    const hasSerena = existsSync(serenaDir);
+    if (missingSkills.length > 0) {
+      const shouldRepair = await p.confirm({
+        message: `Found ${missingSkills.length} missing/incomplete skill(s). Install them?`,
+        initialValue: true,
+      });
+
+      if (p.isCancel(shouldRepair)) {
+        p.cancel("Cancelled.");
+        process.exit(0);
+      }
+
+      if (shouldRepair) {
+        const allSkillNames = missingSkills.map((s) => s.name);
+
+        const selectMode = await p.select({
+          message: "Which skills to install?",
+          options: [
+            { value: "all", label: `✨ All (${allSkillNames.length} skills)`, hint: "Recommended" },
+            { value: "select", label: "🔧 Select individually" },
+          ],
+        });
+
+        if (p.isCancel(selectMode)) {
+          p.cancel("Cancelled.");
+          process.exit(0);
+        }
+
+        let skillsToInstall: string[];
+
+        if (selectMode === "select") {
+          const allSkills = [...SKILLS.domain, ...SKILLS.coordination, ...SKILLS.utility];
+          const selected = await p.multiselect({
+            message: "Select skills to install:",
+            options: missingSkills.map((s) => {
+              const skillInfo = allSkills.find((sk) => sk.name === s.name);
+              return {
+                value: s.name,
+                label: s.name,
+                hint: skillInfo?.desc || "",
+              };
+            }),
+            required: true,
+          });
+
+          if (p.isCancel(selected)) {
+            p.cancel("Cancelled.");
+            process.exit(0);
+          }
+          skillsToInstall = selected as string[];
+        } else {
+          skillsToInstall = allSkillNames;
+        }
+
+        spinner.start("Installing skills...");
+
+        try {
+          await installShared(cwd);
+
+          for (const skillName of skillsToInstall) {
+            spinner.message(`Installing ${pc.cyan(skillName)}...`);
+            await installSkill(skillName, cwd);
+          }
+
+          spinner.stop(`Installed ${skillsToInstall.length} skill(s)!`);
+          p.note(
+            skillsToInstall.map((s) => `${pc.green("✓")} ${s}`).join("\n"),
+            "Installed Skills"
+          );
+        } catch (error) {
+          spinner.stop("Installation failed");
+          p.log.error(error instanceof Error ? error.message : String(error));
+        }
+      }
+    }
 
     if (hasSerena) {
-      try {
-        const files = readdirSync(serenaDir);
-        p.note(
-          `${pc.green("✅")} Serena memory directory exists\n${pc.dim(`${files.length} memory files found`)}`,
-          "Serena Memory"
-        );
-      } catch {
-        p.note(pc.yellow("⚠️  Serena directory exists but cannot read files"), "Serena Memory");
-      }
+      p.note(
+        `${pc.green("✅")} Serena memory directory exists\n${pc.dim(`${serenaFileCount} memory files found`)}`,
+        "Serena Memory"
+      );
     } else {
       p.note(
         `${pc.yellow("⚠️")} Serena memory directory not found\n${pc.dim("Dashboard will show 'No agents detected'")}`,
@@ -515,30 +612,382 @@ async function doctor(): Promise<void> {
       );
     }
 
-    const totalIssues =
-      missingCLIs.length +
-      mcpChecks.filter((c) => !c.mcp.configured).length +
-      dashboardChecks.filter((d) => !d.available).length +
-      (skillChecks.length === 0 ? 1 : 0);
-
     if (totalIssues === 0) {
       p.outro(pc.green("✅ All checks passed! Ready to use."));
     } else {
       p.outro(pc.yellow(`⚠️  Found ${totalIssues} issue(s). See details above.`));
     }
   } catch (error) {
-    spinner.stop("Check failed");
+    if (spinner) spinner.stop("Check failed");
     p.log.error(error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }
 
+interface Metrics {
+  sessions: number;
+  skillsUsed: Record<string, number>;
+  tasksCompleted: number;
+  totalSessionTime: number;
+  filesChanged: number;
+  linesAdded: number;
+  linesRemoved: number;
+  lastUpdated: string;
+  startDate: string;
+}
+
+interface Retrospective {
+  id: string;
+  date: string;
+  summary: string;
+  keyLearnings: string[];
+  filesChanged: string[];
+  nextSteps: string[];
+}
+
+function getMetricsPath(cwd: string): string {
+  return join(cwd, ".serena", "metrics.json");
+}
+
+function getRetroPath(cwd: string): string {
+  return join(cwd, ".serena", "retrospectives");
+}
+
+function loadMetrics(cwd: string): Metrics {
+  const metricsPath = getMetricsPath(cwd);
+  if (existsSync(metricsPath)) {
+    try {
+      return JSON.parse(readFileSync(metricsPath, "utf-8"));
+    } catch {
+      return createEmptyMetrics();
+    }
+  }
+  return createEmptyMetrics();
+}
+
+function createEmptyMetrics(): Metrics {
+  return {
+    sessions: 0,
+    skillsUsed: {},
+    tasksCompleted: 0,
+    totalSessionTime: 0,
+    filesChanged: 0,
+    linesAdded: 0,
+    linesRemoved: 0,
+    lastUpdated: new Date().toISOString(),
+    startDate: new Date().toISOString(),
+  };
+}
+
+function saveMetrics(cwd: string, metrics: Metrics): void {
+  const metricsPath = getMetricsPath(cwd);
+  const metricsDir = dirname(metricsPath);
+  if (!existsSync(metricsDir)) {
+    mkdirSync(metricsDir, { recursive: true });
+  }
+  metrics.lastUpdated = new Date().toISOString();
+  writeFileSync(metricsPath, JSON.stringify(metrics, null, 2), "utf-8");
+}
+
+function getGitStats(cwd: string): { filesChanged: number; linesAdded: number; linesRemoved: number } {
+  try {
+    const diffStat = execSync("git diff --stat HEAD~10 2>/dev/null || git diff --stat", {
+      cwd,
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "ignore"],
+    });
+
+    const lines = diffStat.trim().split("\n");
+    const summaryLine = lines[lines.length - 1] || "";
+
+    const filesMatch = summaryLine.match(/(\d+) files? changed/);
+    const addMatch = summaryLine.match(/(\d+) insertions?\(\+\)/);
+    const removeMatch = summaryLine.match(/(\d+) deletions?\(-\)/);
+
+    return {
+      filesChanged: filesMatch?.[1] ? parseInt(filesMatch[1], 10) : 0,
+      linesAdded: addMatch?.[1] ? parseInt(addMatch[1], 10) : 0,
+      linesRemoved: removeMatch?.[1] ? parseInt(removeMatch[1], 10) : 0,
+    };
+  } catch {
+    return { filesChanged: 0, linesAdded: 0, linesRemoved: 0 };
+  }
+}
+
+function detectSkillsFromMemories(cwd: string): Record<string, number> {
+  const memoriesDir = join(cwd, ".serena", "memories");
+  const skillsUsed: Record<string, number> = {};
+
+  if (!existsSync(memoriesDir)) return skillsUsed;
+
+  try {
+    const files = readdirSync(memoriesDir);
+    for (const file of files) {
+      const match = file.match(/(?:progress|result)-(\w+)/);
+      if (match?.[1]) {
+        const skill = match[1];
+        skillsUsed[skill] = (skillsUsed[skill] || 0) + 1;
+      }
+    }
+  } catch {}
+
+  return skillsUsed;
+}
+
+async function stats(jsonMode = false, resetMode = false): Promise<void> {
+  const cwd = process.cwd();
+  const metricsPath = getMetricsPath(cwd);
+
+  if (resetMode) {
+    if (existsSync(metricsPath)) {
+      writeFileSync(metricsPath, JSON.stringify(createEmptyMetrics(), null, 2), "utf-8");
+    }
+    if (jsonMode) {
+      console.log(JSON.stringify({ reset: true }));
+    } else {
+      console.log(pc.green("✅ Metrics reset successfully."));
+    }
+    return;
+  }
+
+  const metrics = loadMetrics(cwd);
+  const gitStats = getGitStats(cwd);
+  const detectedSkills = detectSkillsFromMemories(cwd);
+
+  for (const [skill, count] of Object.entries(detectedSkills)) {
+    metrics.skillsUsed[skill] = (metrics.skillsUsed[skill] || 0) + count;
+  }
+
+  metrics.filesChanged += gitStats.filesChanged;
+  metrics.linesAdded += gitStats.linesAdded;
+  metrics.linesRemoved += gitStats.linesRemoved;
+  metrics.sessions += 1;
+
+  saveMetrics(cwd, metrics);
+
+  const daysSinceStart = Math.max(1, Math.ceil((Date.now() - new Date(metrics.startDate).getTime()) / (1000 * 60 * 60 * 24)));
+  const avgSessionTime = metrics.sessions > 0 ? Math.round(metrics.totalSessionTime / metrics.sessions) : 0;
+
+  if (jsonMode) {
+    console.log(JSON.stringify({
+      ...metrics,
+      gitStats,
+      daysSinceStart,
+      avgSessionTime,
+    }, null, 2));
+    return;
+  }
+
+  console.clear();
+  p.intro(pc.bgMagenta(pc.white(" 📊 oh-my-ag stats ")));
+
+  const statsTable = [
+    pc.bold(`📈 Productivity Metrics (${daysSinceStart} days)`),
+    "┌─────────────────────┬──────────────┐",
+    `│ ${pc.bold("Metric")}              │ ${pc.bold("Value")}        │`,
+    "├─────────────────────┼──────────────┤",
+    `│ Sessions            │ ${String(metrics.sessions).padEnd(12)} │`,
+    `│ Tasks Completed     │ ${String(metrics.tasksCompleted).padEnd(12)} │`,
+    `│ Files Changed       │ ${String(metrics.filesChanged).padEnd(12)} │`,
+    `│ Lines Added         │ ${pc.green("+" + metrics.linesAdded).padEnd(12)} │`,
+    `│ Lines Removed       │ ${pc.red("-" + metrics.linesRemoved).padEnd(12)} │`,
+    "└─────────────────────┴──────────────┘",
+  ].join("\n");
+
+  p.note(statsTable, "Overview");
+
+  const sortedSkills = Object.entries(metrics.skillsUsed)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5);
+
+  if (sortedSkills.length > 0) {
+    const skillsTable = [
+      pc.bold("🏆 Top Skills Used"),
+      ...sortedSkills.map(([skill, count], i) => `  ${i + 1}. ${skill} (${count})`),
+    ].join("\n");
+
+    p.note(skillsTable, "Skills");
+  }
+
+  p.outro(pc.dim(`Data stored in: ${metricsPath}`));
+}
+
+function loadRetrospectives(cwd: string): Retrospective[] {
+  const retroDir = getRetroPath(cwd);
+  if (!existsSync(retroDir)) return [];
+
+  try {
+    const files = readdirSync(retroDir).filter((f) => f.endsWith(".json")).sort().reverse();
+    return files.slice(0, 10).map((f) => JSON.parse(readFileSync(join(retroDir, f), "utf-8")));
+  } catch {
+    return [];
+  }
+}
+
+function saveRetrospective(cwd: string, retro: Retrospective): void {
+  const retroDir = getRetroPath(cwd);
+  if (!existsSync(retroDir)) {
+    mkdirSync(retroDir, { recursive: true });
+  }
+  const filename = `${retro.date.replace(/[:.]/g, "-")}_${retro.id}.json`;
+  writeFileSync(join(retroDir, filename), JSON.stringify(retro, null, 2), "utf-8");
+}
+
+function getRecentGitCommits(cwd: string, limit = 5): string[] {
+  try {
+    const logs = execSync(`git log --oneline -${limit} 2>/dev/null`, {
+      cwd,
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "ignore"],
+    });
+    return logs.trim().split("\n").filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function getRecentChangedFiles(cwd: string): string[] {
+  try {
+    const files = execSync("git diff --name-only HEAD~5 2>/dev/null || git diff --name-only", {
+      cwd,
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "ignore"],
+    });
+    return files.trim().split("\n").filter(Boolean).slice(0, 10);
+  } catch {
+    return [];
+  }
+}
+
+async function retro(jsonMode = false): Promise<void> {
+  const cwd = process.cwd();
+  const retroDir = getRetroPath(cwd);
+  const existingRetros = loadRetrospectives(cwd);
+
+  if (jsonMode) {
+    console.log(JSON.stringify({ retrospectives: existingRetros }, null, 2));
+    return;
+  }
+
+  console.clear();
+  p.intro(pc.bgMagenta(pc.white(" 🔄 oh-my-ag retro ")));
+
+  const recentRetro = existingRetros[0];
+  if (recentRetro) {
+    p.note(
+      [
+        pc.bold("📅 Last Retrospective"),
+        `Date: ${recentRetro.date}`,
+        "",
+        pc.bold("Summary:"),
+        recentRetro.summary,
+        "",
+        pc.bold("Key Learnings:"),
+        ...recentRetro.keyLearnings.map((l) => `  • ${l}`),
+        "",
+        pc.bold("Next Steps:"),
+        ...recentRetro.nextSteps.map((s) => `  → ${s}`),
+      ].join("\n"),
+      "Previous Session"
+    );
+  }
+
+  const action = await p.select({
+    message: "What would you like to do?",
+    options: [
+      { value: "new", label: "📝 Create new retrospective" },
+      { value: "list", label: "📋 View past retrospectives" },
+      { value: "exit", label: "👋 Exit" },
+    ],
+  });
+
+  if (p.isCancel(action) || action === "exit") {
+    p.outro(pc.dim("Goodbye!"));
+    return;
+  }
+
+  if (action === "list") {
+    if (existingRetros.length === 0) {
+      p.note(pc.yellow("No retrospectives found."), "History");
+    } else {
+      const list = existingRetros.map((r, i) => `${i + 1}. [${r.date.split("T")[0]}] ${r.summary.slice(0, 50)}...`).join("\n");
+      p.note(list, `📚 Past Retrospectives (${existingRetros.length})`);
+    }
+    p.outro(pc.dim(`Stored in: ${retroDir}`));
+    return;
+  }
+
+  const recentCommits = getRecentGitCommits(cwd);
+  const changedFiles = getRecentChangedFiles(cwd);
+
+  if (recentCommits.length > 0) {
+    p.note(recentCommits.join("\n"), "Recent Commits");
+  }
+  if (changedFiles.length > 0) {
+    p.note(changedFiles.join("\n"), "Changed Files");
+  }
+
+  const summary = await p.text({
+    message: "What did you accomplish in this session?",
+    placeholder: "e.g., Implemented user authentication flow",
+  });
+
+  if (p.isCancel(summary)) {
+    p.cancel("Cancelled.");
+    return;
+  }
+
+  const learningsInput = await p.text({
+    message: "Key learnings? (comma-separated)",
+    placeholder: "e.g., JWT needs refresh token, bcrypt is slow",
+  });
+
+  if (p.isCancel(learningsInput)) {
+    p.cancel("Cancelled.");
+    return;
+  }
+
+  const nextStepsInput = await p.text({
+    message: "Next steps? (comma-separated)",
+    placeholder: "e.g., Add password reset, Write tests",
+  });
+
+  if (p.isCancel(nextStepsInput)) {
+    p.cancel("Cancelled.");
+    return;
+  }
+
+  const retro: Retrospective = {
+    id: Math.random().toString(36).slice(2, 8),
+    date: new Date().toISOString(),
+    summary: summary as string,
+    keyLearnings: (learningsInput as string).split(",").map((s) => s.trim()).filter(Boolean),
+    filesChanged: changedFiles,
+    nextSteps: (nextStepsInput as string).split(",").map((s) => s.trim()).filter(Boolean),
+  };
+
+  saveRetrospective(cwd, retro);
+
+  p.note(
+    [
+      pc.green("✅ Retrospective saved!"),
+      "",
+      `Summary: ${retro.summary}`,
+      `Learnings: ${retro.keyLearnings.length} items`,
+      `Next steps: ${retro.nextSteps.length} items`,
+    ].join("\n"),
+    "Saved"
+  );
+
+  p.outro(pc.dim(`Stored in: ${retroDir}`));
+}
+
 function showHelp(): void {
   console.log(`
-${pc.bold("🛸 oh-my-antigravity")} - Multi-Agent Skills for Antigravity IDE
+${pc.bold("🛸 oh-my-ag")} - Multi-Agent Skills for Antigravity IDE
 
 ${pc.bold("USAGE:")}
-  bunx oh-my-antigravity [command]
+  bunx oh-my-ag [command]
 
 ${pc.bold("COMMANDS:")}
   ${pc.cyan("<no command>")}    Interactive CLI - install skills with prompts
@@ -546,7 +995,13 @@ ${pc.bold("COMMANDS:")}
   ${pc.cyan("dashboard:web")}  Start web dashboard on http://localhost:9847
   ${pc.cyan("update")}         Update skills to latest version from registry
   ${pc.cyan("doctor")}         Check CLI installations, MCP configs, and skill status
+  ${pc.cyan("stats")}          View productivity metrics
+  ${pc.cyan("retro")}          Session retrospective (learnings & next steps)
   ${pc.cyan("help")}           Show this help message
+
+${pc.bold("OPTIONS:")}
+  ${pc.cyan("--json")}         Output as JSON (for doctor, stats, retro)
+  ${pc.cyan("--reset")}        Reset data (for stats)
 
 ${pc.bold("PRESETS:")}
   ✨ all       - Install all available skills
@@ -556,22 +1011,26 @@ ${pc.bold("PRESETS:")}
   📱 mobile    - Mobile + PM + QA + Debug + Commit
 
 ${pc.bold("EXAMPLES:")}
-  bunx oh-my-antigravity                    # Interactive mode
-  bunx oh-my-antigravity dashboard          # Terminal dashboard
-  bunx oh-my-antigravity dashboard:web      # Web dashboard
-  bunx oh-my-antigravity update             # Update skills
-  bunx oh-my-antigravity doctor             # Check setup
+  bunx oh-my-ag                    # Interactive mode
+  bunx oh-my-ag dashboard          # Terminal dashboard
+  bunx oh-my-ag dashboard:web      # Web dashboard
+  bunx oh-my-ag update             # Update skills
+  bunx oh-my-ag doctor             # Check setup
+  bunx oh-my-ag doctor --json      # JSON output for CI/CD
+  bunx oh-my-ag stats              # View productivity metrics
+  bunx oh-my-ag stats --reset      # Reset metrics
+  bunx oh-my-ag retro              # Create session retrospective
 
-${pc.dim("For more info: https://github.com/first-fluke/oh-my-antigravity")}
+${pc.dim("For more info: https://github.com/first-fluke/oh-my-ag")}
 
 ${pc.bold("❤️  Enjoying this project?")}
-  ${pc.dim("gh api --method PUT /user/starred/first-fluke/oh-my-antigravity")}
+  ${pc.dim("gh api --method PUT /user/starred/first-fluke/oh-my-ag")}
 `);
 }
 
 async function main() {
   console.clear();
-  p.intro(pc.bgMagenta(pc.white(" 🛸 oh-my-antigravity ")));
+  p.intro(pc.bgMagenta(pc.white(" 🛸 oh-my-ag ")));
 
   const projectType = await p.select({
     message: "What type of project?",
@@ -639,7 +1098,7 @@ async function main() {
     p.outro(pc.green("Done! Open your project in your IDE to use the skills."));
 
     p.note(
-      `${pc.yellow("❤️")} Enjoying oh-my-antigravity? Give it a star!\n${pc.dim("gh api --method PUT /user/starred/first-fluke/oh-my-antigravity")}`,
+      `${pc.yellow("❤️")} Enjoying oh-my-ag? Give it a star!\n${pc.dim("gh api --method PUT /user/starred/first-fluke/oh-my-ag")}`,
       "Support"
     );
   } catch (error) {

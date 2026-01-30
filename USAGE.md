@@ -4,7 +4,7 @@
 
 1. **Open in Antigravity IDE**
    ```bash
-   antigravity open /path/to/oh-my-antigravity
+   antigravity open /path/to/oh-my-ag
    ```
 
 2. **Skills are automatically detected.** Antigravity scans `.agent/skills/` and indexes all available skills.
@@ -80,10 +80,10 @@ wait
 **Monitor in real-time:**
 ```bash
 # Terminal (separate terminal window)
-npm run dashboard
+bunx oh-my-ag dashboard
 
 # Or browser
-npm run dashboard:web
+bunx oh-my-ag dashboard:web
 # → http://localhost:9847
 ```
 
@@ -94,7 +94,7 @@ npm run dashboard:web
 ### Terminal Dashboard
 
 ```bash
-npm run dashboard
+bunx oh-my-ag dashboard
 ```
 
 Watches `.serena/memories/` using `fswatch` (macOS) or `inotifywait` (Linux). Displays a live table with session status, agent states, turns, and latest activity. Updates automatically when memory files change.
@@ -107,7 +107,7 @@ Watches `.serena/memories/` using `fswatch` (macOS) or `inotifywait` (Linux). Di
 
 ```bash
 npm install          # first time only
-npm run dashboard:web
+bunx oh-my-ag dashboard:web
 ```
 
 Open `http://localhost:9847` in your browser. Features:
@@ -236,7 +236,7 @@ You: "Login button throws TypeError"
 ### Workflow D: CLI Orchestration with Dashboard
 
 ```
-Terminal 1: npm run dashboard:web
+Terminal 1: bunx oh-my-ag dashboard:web
 Terminal 2: ./scripts/spawn-subagent.sh backend "task" ./backend &
             ./scripts/spawn-subagent.sh frontend "task" ./frontend &
 Browser:    http://localhost:9847 → real-time status
@@ -250,7 +250,7 @@ Browser:    http://localhost:9847 → real-time status
 2. **Use CLI spawning** for multi-domain projects — don't try to do everything in one chat
 3. **Review Knowledge Base** — check `.gemini/antigravity/brain/` for API consistency
 4. **Iterate with re-spawns** — refine instructions, don't start over
-5. **Use dashboards** — `npm run dashboard` or `npm run dashboard:web` to monitor orchestrator sessions
+5. **Use dashboards** — `bunx oh-my-ag dashboard` or `bunx oh-my-ag dashboard:web` to monitor orchestrator sessions
 6. **Separate workspaces** — assign each agent its own directory
 
 ---
@@ -269,13 +269,19 @@ Browser:    http://localhost:9847 → real-time status
 
 ---
 
-## npm Scripts
+## CLI Commands
 
 ```bash
-npm run dashboard       # Terminal real-time dashboard
-npm run dashboard:web   # Web dashboard → http://localhost:9847
-npm run validate        # Validate skill files
-npm run info            # Show this usage guide
+bunx oh-my-ag                # Interactive skill installer
+bunx oh-my-ag doctor         # Check setup & repair missing skills
+bunx oh-my-ag doctor --json  # JSON output for CI/CD
+bunx oh-my-ag update         # Update skills to latest version
+bunx oh-my-ag stats          # View productivity metrics
+bunx oh-my-ag stats --reset  # Reset metrics
+bunx oh-my-ag retro          # Session retrospective (learnings & next steps)
+bunx oh-my-ag dashboard      # Terminal real-time dashboard
+bunx oh-my-ag dashboard:web  # Web dashboard (http://localhost:9847)
+bunx oh-my-ag help           # Show help
 ```
 
 ---

@@ -1,10 +1,10 @@
 {
-  "name": "oh-my-antigravity",
+  "name": "oh-my-ag",
   "version": "1.1.1",
   "description": "Professional agent skills for Google Antigravity IDE - PM, Frontend, Backend, Mobile, QA, and Debug specialists that work together seamlessly",
   "type": "module",
   "bin": {
-    "oh-my-antigravity": "./bin/cli.js"
+    "oh-my-ag": "./bin/cli.js"
   },
   "files": [
     "bin",
@@ -39,12 +39,7 @@
   "scripts": {
     "build": "bun build src/cli.ts --outfile bin/cli.js --target node --minify",
     "dev": "bun run src/cli.ts",
-    "prepublishOnly": "bun run build",
-    "validate": "node scripts/validate-skills.js",
-    "setup": "echo '✅ Skills are ready! Open this project in Antigravity IDE and start chatting.'",
-    "info": "cat USAGE.md",
-    "dashboard": "bunx oh-my-antigravity dashboard",
-    "dashboard:web": "bunx oh-my-antigravity dashboard:web"
+    "prepublishOnly": "bun run build"
   },
   "dependencies": {
     "@clack/prompts": "^1.0.0",
@@ -61,7 +56,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/first-fluke/oh-my-antigravity"
+    "url": "https://github.com/first-fluke/oh-my-ag"
   },
   "antigravity": {
     "skillsPath": ".agent/skills",

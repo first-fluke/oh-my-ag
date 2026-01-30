@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "oh-my-antigravity",
+      "name": "oh-my-ag",
       "dependencies": {
         "@clack/prompts": "^1.0.0",
         "chokidar": "^4.0.0",
