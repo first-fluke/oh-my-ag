@@ -49,6 +49,7 @@
   "dependencies": {
     "@clack/prompts": "^1.0.0",
     "chokidar": "^4.0.0",
+    "p-map": "^7.0.4",
     "picocolors": "^1.1.1",
     "ws": "^8.18.0"
   },

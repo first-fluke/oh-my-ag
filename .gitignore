@@ -52,3 +52,5 @@ coverage/
 
 # OS
 Thumbs.db
+
+.opencode/mimic/
