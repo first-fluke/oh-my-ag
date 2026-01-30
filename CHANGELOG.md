@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.1.1](https://github.com/first-fluke/oh-my-antigravity/compare/oh-my-antigravity-v1.1.0...oh-my-antigravity-v1.1.1) (2026-01-30)
+
+
+### Bug Fixes
+
+* convert generate-manifest.js to ES module syntax ([bce2296](https://github.com/first-fluke/oh-my-antigravity/commit/bce22962b4dc69ef18bb697c11bc3f8422877c26))
+
+
+### Refactoring
+
+* convert generate-manifest to TypeScript ([c9b13df](https://github.com/first-fluke/oh-my-antigravity/commit/c9b13dfa85bea41e14498231795404c263057e2e))
+
+
+### Documentation
+
+* remove npm scripts fallback from dashboard section ([5d888a9](https://github.com/first-fluke/oh-my-antigravity/commit/5d888a9d82b32a3c25199b46a8eba941f24408b7))
+
 ## [1.1.0](https://github.com/first-fluke/oh-my-antigravity/compare/oh-my-antigravity-v1.0.0...oh-my-antigravity-v1.1.0) (2026-01-30)
 
 
