@@ -223,10 +223,10 @@ Both dashboards watch these files for real-time monitoring.
 ### Terminal Dashboard
 
 ```bash
-npm run dashboard
+bunx oh-my-antigravity dashboard
 ```
 
-Uses `fswatch` (macOS) / `inotifywait` (Linux) to watch `.serena/memories/` and render a live status table:
+Watches `.serena/memories/` and renders a live status table in your terminal:
 
 ```
 ╔════════════════════════════════════════════════════════╗
@@ -250,8 +250,7 @@ Uses `fswatch` (macOS) / `inotifywait` (Linux) to watch `.serena/memories/` and 
 ### Web Dashboard
 
 ```bash
-npm install        # first time only (installs chokidar, ws)
-npm run dashboard:web
+bunx oh-my-antigravity dashboard:web
 # → http://localhost:9847
 ```
 

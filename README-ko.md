@@ -192,10 +192,10 @@ Orchestrator가 `.serena/memories/`에 구조화된 상태를 기록합니다:
 ### 터미널 대시보드
 
 ```bash
-npm run dashboard
+bunx oh-my-antigravity dashboard
 ```
 
-`fswatch` (macOS) / `inotifywait` (Linux)로 `.serena/memories/`를 감시하고 실시간 상태 테이블을 표시합니다:
+`.serena/memories/`를 감시하여 터미널에 실시간 상태 테이블을 표시합니다:
 
 ```
 ╔════════════════════════════════════════════════════════╗
@@ -219,15 +219,14 @@ npm run dashboard
 ### 웹 대시보드
 
 ```bash
-npm install        # 최초 1회 (chokidar, ws 설치)
-npm run dashboard:web
+bunx oh-my-antigravity dashboard:web
 # → http://localhost:9847
 ```
 
 기능:
-- WebSocket 실시간 푸시 (폴링 없음)
+- WebSocket 실시간 푸시 (폴림 없음)
 - 연결 끊김 시 자동 재연결
-- 보라색 Serena 테마 UI
+- 볼라색 Serena 테마 UI
 - 세션 상태, 에이전트 테이블, 활동 로그
 - chokidar 기반 이벤트 드리븐 파일 감시 (크로스 플랫폼)
 
