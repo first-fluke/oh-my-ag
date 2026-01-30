@@ -563,6 +563,9 @@ ${pc.bold("EXAMPLES:")}
   bunx oh-my-antigravity doctor             # Check setup
 
 ${pc.dim("For more info: https://github.com/first-fluke/oh-my-antigravity")}
+
+${pc.bold("❤️  Enjoying this project?")}
+  ${pc.dim("gh api --method PUT /user/starred/first-fluke/oh-my-antigravity")}
 `);
 }
 
@@ -634,6 +637,11 @@ async function main() {
     );
 
     p.outro(pc.green("Done! Open your project in your IDE to use the skills."));
+
+    p.note(
+      `${pc.yellow("❤️")} Enjoying oh-my-antigravity? Give it a star!\n${pc.dim("gh api --method PUT /user/starred/first-fluke/oh-my-antigravity")}`,
+      "Support"
+    );
   } catch (error) {
     spinner.stop("Installation failed");
     p.log.error(error instanceof Error ? error.message : String(error));
