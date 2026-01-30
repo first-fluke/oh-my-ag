@@ -7,22 +7,28 @@
 ### PM Agent (작성자)
 계획 단계에서 API 계약서를 여기에 생성:
 ```
-write_memory("api-contracts/{domain}.md", contract content)
+[WRITE]("api-contracts/{domain}.md", contract content)
 ```
 
-또는 Serena가 없을 경우 이 디렉토리에 직접 파일 생성.
+MCP 메모리 도구가 없을 경우 이 디렉토리에 직접 파일 생성.
 
 ### Backend Agent (구현자)
 계약서를 읽고 그대로 구현:
 ```
-read_memory("api-contracts/{domain}.md")
+[READ]("api-contracts/{domain}.md")
 ```
 
 ### Frontend / Mobile Agent (소비자)
 계약서를 읽고 API 클라이언트를 그대로 연동:
 ```
-read_memory("api-contracts/{domain}.md")
+[READ]("api-contracts/{domain}.md")
 ```
+
+## Tool Reference
+
+도구명은 `mcp.json → memoryConfig.tools`에서 설정:
+- `[READ]` → default: `read_memory`
+- `[WRITE]` → default: `write_memory`
 
 ## 계약서 형식
 

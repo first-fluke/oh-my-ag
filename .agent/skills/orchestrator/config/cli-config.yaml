@@ -11,7 +11,7 @@ vendors:
     prompt_flag: "-p"
     output_format_flag: "--output-format"
     output_format: "json"
-    auto_approve_flag: "--yolo"
+    auto_approve_flag: "--approval-mode=yolo"
     model_flag: "-m"
     default_model: "gemini-2.5-pro"
     include_dirs_flag: "--include-directories"

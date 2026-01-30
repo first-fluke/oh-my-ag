@@ -1,13 +1,31 @@
-# Serena Memory Schema for Multi-Agent Orchestration
+# MCP Memory Schema for Multi-Agent Orchestration
 
 ## Overview
 
 Each subagent writes only to its own dedicated files. The orchestrator manages session-level files. This ownership model prevents write conflicts between concurrent agents.
 
+## Configuration
+
+Memory base path and tool names are configurable via `mcp.json`:
+```json
+{
+  "memoryConfig": {
+    "basePath": ".serena/memories",
+    "tools": {
+      "read": "read_memory",
+      "write": "write_memory",
+      "edit": "edit_memory"
+    }
+  }
+}
+```
+
+Default base path: `.serena/memories`
+
 ## File Structure
 
 ```
-.serena/memories/
+{memoryConfig.basePath}/
   orchestrator-session.md    # Session metadata (orchestrator only)
   task-board.md              # Master task list (orchestrator writes, agents read)
   progress-{agent-id}.md    # Per-agent progress log (owning agent only)

@@ -99,7 +99,7 @@ QA Agent와 Orchestrator가 세션 종료 후 새 교훈을 추가한다.
 리뷰 중 반복되는 이슈를 발견하면:
 1. 해당 도메인 섹션에 교훈 추가
 2. 형식: `### {날짜}: {한줄 요약}` + 문제/원인/해결/예방
-3. Serena: `edit_memory("lessons-learned.md", 추가 내용)`
+3. MCP 메모리 도구: `[EDIT]("lessons-learned.md", 추가 내용)`
 
 ### Orchestrator가 추가하는 경우
 세션 종료 시 실패한 태스크가 있으면:

@@ -1,15 +1,17 @@
 ---
-description: Automated CLI-based parallel agent execution — spawn subagents via Gemini CLI, coordinate through Serena Memory, monitor progress, and run verification
+description: Automated CLI-based parallel agent execution — spawn subagents via Gemini CLI, coordinate through MCP Memory, monitor progress, and run verification
 ---
 
 # MANDATORY RULES — VIOLATION IS FORBIDDEN
 
 - **All responses MUST be written in Korean (한국어).** Do NOT respond in English.
 - **NEVER skip steps.** Execute from Step 0 in order. Explicitly report completion of each step before proceeding.
-- **You MUST use Serena MCP tools throughout the entire workflow.** This is NOT optional.
-  - Use `get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern` for code exploration.
-  - Use `read_memory`, `write_memory`, `edit_memory` for progress tracking in `.serena/memories/`.
-  - Do NOT use raw file reads or grep as substitutes. Serena MCP is the primary interface.
+- **You MUST use MCP tools throughout the entire workflow.** This is NOT optional.
+  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for code exploration.
+  - Use memory tools (read/write/edit) for progress tracking.
+  - Memory path: configurable via `memoryConfig.basePath` (default: `.serena/memories`)
+  - Tool names: configurable via `memoryConfig.tools` in `mcp.json`
+  - Do NOT use raw file reads or grep as substitutes. MCP tools are the primary interface.
 - **Read required documents BEFORE starting.**
 
 ---
@@ -18,7 +20,7 @@ description: Automated CLI-based parallel agent execution — spawn subagents vi
 
 1. Read `.agent/skills/workflow-guide/SKILL.md` and confirm Core Rules.
 2. Read `.agent/skills/_shared/context-loading.md` for resource loading strategy.
-3. Read `.agent/skills/_shared/serena-memory-protocol.md` for memory protocol.
+3. Read `.agent/skills/_shared/memory-protocol.md` for memory protocol.
 
 ---
 
@@ -35,7 +37,7 @@ Check if `.agent/plan.json` exists.
 
 // turbo
 1. Generate a session ID (format: `session-YYYYMMDD-HHMMSS`).
-2. Use `write_memory` to create `orchestrator-session.md` and `task-board.md` in `.serena/memories/`.
+2. Use memory write tool to create `orchestrator-session.md` and `task-board.md` in the memory base path.
 3. Set session status to RUNNING.
 
 ---
@@ -44,16 +46,16 @@ Check if `.agent/plan.json` exists.
 
 // turbo
 For each priority tier (P0 first, then P1, etc.):
-- Spawn agents using `gemini -p "{prompt}" --yolo` (max 3 parallel).
+- Spawn agents using `gemini -p "{prompt}" --approval-mode=yolo` (max 3 parallel).
 - Each agent gets: task description, API contracts, relevant context from `_shared/context-loading.md`.
-- Use `edit_memory` to update `task-board.md` with agent status.
+- Use memory edit tool to update `task-board.md` with agent status.
 
 ---
 
 ## Step 4: Monitor Progress
 
-Use `read_memory` to poll `progress-{agent}.md` every 30 seconds.
-- Use `edit_memory` to update `task-board.md` with turn counts and status changes.
+Use memory read tool to poll `progress-{agent}.md` every 30 seconds.
+- Use memory edit tool to update `task-board.md` with turn counts and status changes.
 - Watch for: completion, failures, crashes (no update for 5 minutes).
 
 ---
@@ -73,7 +75,7 @@ bash .agent/skills/_shared/verify.sh {agent-type} {workspace}
 ## Step 6: Collect Results
 
 // turbo
-After all agents complete, use `read_memory` to read all `result-{agent}.md` files.
+After all agents complete, use memory read tool to read all `result-{agent}.md` files.
 Compile summary: completed tasks, failed tasks, files changed, remaining issues.
 
 ---
@@ -83,4 +85,4 @@ Compile summary: completed tasks, failed tasks, files changed, remaining issues.
 Present session summary to the user.
 - If any tasks failed after retries, list them with error details.
 - Suggest next steps: manual fix, re-run specific agents, or run `/review` for QA.
-- Use `write_memory` to record final results in Serena Memory.
+- Use memory write tool to record final results.

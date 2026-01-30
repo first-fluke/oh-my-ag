@@ -1,6 +1,6 @@
 ---
 name: orchestrator
-description: Automated multi-agent orchestrator that spawns CLI subagents in parallel, coordinates via Serena Memory, and monitors progress
+description: Automated multi-agent orchestrator that spawns CLI subagents in parallel, coordinates via MCP Memory, and monitors progress
 ---
 
 # Orchestrator - Automated Multi-Agent Coordinator
@@ -17,7 +17,7 @@ description: Automated multi-agent orchestrator that spawns CLI subagents in par
 - Quick bug fixes or minor changes
 
 ## Important
-This skill orchestrates CLI subagents via `gemini -p "..." --yolo`. It uses Serena Memory as a shared state bus. Each subagent runs as an independent process.
+This skill orchestrates CLI subagents via `gemini -p "..." --approval-mode=yolo`. It uses MCP Memory tools as a shared state bus. Each subagent runs as an independent process.
 
 ## Configuration
 
@@ -30,10 +30,27 @@ This skill orchestrates CLI subagents via `gemini -p "..." --yolo`. It uses Sere
 | MAX_TURNS (review) | 15 | Turn limit for qa/debug |
 | MAX_TURNS (plan) | 10 | Turn limit for pm |
 
+## Memory Configuration
+
+Memory provider and tool names are configurable via `mcp.json`:
+```json
+{
+  "memoryConfig": {
+    "provider": "serena",
+    "basePath": ".serena/memories",
+    "tools": {
+      "read": "read_memory",
+      "write": "write_memory",
+      "edit": "edit_memory"
+    }
+  }
+}
+```
+
 ## Workflow Phases
 
 **PHASE 1 - Plan**: Analyze request -> decompose tasks -> generate session ID
-**PHASE 2 - Setup**: `write_memory("orchestrator-session.md")` + `write_memory("task-board.md")`
+**PHASE 2 - Setup**: Use memory write tool to create `orchestrator-session.md` + `task-board.md`
 **PHASE 3 - Execute**: Spawn agents by priority tier (never exceed MAX_PARALLEL)
 **PHASE 4 - Monitor**: Poll every POLL_INTERVAL; handle completed/failed/crashed agents
 **PHASE 4.5 - Verify**: Run `../_shared/verify.sh {agent-type} {workspace}` per completed agent

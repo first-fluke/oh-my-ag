@@ -6,10 +6,12 @@ description: Coordinate multiple agents for a complex multi-domain project using
 
 - **All responses MUST be written in Korean (한국어).** Do NOT respond in English.
 - **NEVER skip steps.** Execute from Step 0 in order. Explicitly report completion of each step to the user before proceeding to the next.
-- **You MUST use Serena MCP tools throughout the entire workflow.** This is NOT optional.
-  - Use `get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern` for code exploration.
-  - Use `read_memory`, `write_memory`, `edit_memory` for progress tracking in `.serena/memories/`.
-  - Do NOT use raw file reads or grep as substitutes. Serena MCP is the primary interface for code and memory operations.
+- **You MUST use MCP tools throughout the entire workflow.** This is NOT optional.
+  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for code exploration.
+  - Use memory tools (read/write/edit) for progress tracking.
+  - Memory path: configurable via `memoryConfig.basePath` (default: `.serena/memories`)
+  - Tool names: configurable via `memoryConfig.tools` in `mcp.json`
+  - Do NOT use raw file reads or grep as substitutes. MCP tools are the primary interface for code and memory operations.
 - **Read the workflow-guide BEFORE starting.** Read `.agent/skills/workflow-guide/SKILL.md` and follow its Core Rules.
 - **Follow the context-loading guide.** Read `.agent/skills/_shared/context-loading.md` and load only task-relevant resources.
 
@@ -19,9 +21,9 @@ description: Coordinate multiple agents for a complex multi-domain project using
 
 1. Read `.agent/skills/workflow-guide/SKILL.md` and confirm Core Rules.
 2. Read `.agent/skills/_shared/context-loading.md` for resource loading strategy.
-3. Read `.agent/skills/_shared/serena-memory-protocol.md` for memory protocol.
-4. Record session start in Serena Memory:
-   - Use `write_memory` to create `session-coordinate.md` in `.serena/memories/`
+3. Read `.agent/skills/_shared/memory-protocol.md` for memory protocol.
+4. Record session start using memory write tool:
+   - Create `session-coordinate.md` in the memory base path
    - Include: session start time, user request summary.
 
 ---
@@ -31,7 +33,7 @@ description: Coordinate multiple agents for a complex multi-domain project using
 Analyze the user's request and identify involved domains (frontend, backend, mobile, QA).
 - Single domain: suggest using the specific agent directly.
 - Multiple domains: proceed to Step 2.
-- Use Serena MCP `get_symbols_overview` or `search_for_pattern` to understand the existing codebase structure relevant to the request.
+- Use MCP code analysis tools (`get_symbols_overview` or `search_for_pattern`) to understand the existing codebase structure relevant to the request.
 - Report analysis results to the user.
 
 ---
@@ -44,7 +46,7 @@ Activate PM Agent to:
 2. Define API contracts.
 3. Create a prioritized task breakdown.
 4. Save plan to `.agent/plan.json`.
-5. Use `write_memory` to record plan completion in Serena Memory.
+5. Use memory write tool to record plan completion.
 
 ---
 
@@ -72,8 +74,8 @@ Guide the user to Agent Manager (Mission Control):
 ## Step 5: Monitor Agent Progress
 
 - Watch Agent Manager inbox for questions.
-- Use Serena MCP `find_symbol` and `search_for_pattern` to verify API contract alignment between agents.
-- Use `edit_memory` to record monitoring results in Serena Memory.
+- Use MCP code analysis tools (`find_symbol` and `search_for_pattern`) to verify API contract alignment between agents.
+- Use memory edit tool to record monitoring results.
 
 ---
 
@@ -93,4 +95,4 @@ If QA finds CRITICAL or HIGH issues:
 1. Re-spawn the responsible agent with QA findings.
 2. Repeat Steps 5-7.
 3. Continue until all critical issues are resolved.
-4. Use `write_memory` to record final results in Serena Memory.
+4. Use memory write tool to record final results.

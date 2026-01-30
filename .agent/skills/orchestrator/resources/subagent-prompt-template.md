@@ -1,6 +1,6 @@
 # Subagent Prompt Template
 
-This template is used by the orchestrator to construct self-contained prompts for CLI subagents launched via `gemini -p "..." --yolo`.
+This template is used by the orchestrator to construct self-contained prompts for CLI subagents launched via `gemini -p "..." --approval-mode=yolo`.
 
 ## Template
 
@@ -38,19 +38,24 @@ If you are running low on turns, prioritize:
 2. Document what remains incomplete
 3. Ensure created files are in a usable state
 
-## Serena Memory Protocol
+## MCP Memory Protocol
 
-You have access to Serena MCP tools for shared state coordination.
+You have access to MCP memory tools for shared state coordination.
+Tool names are configurable via `mcp.json → memoryConfig.tools`:
+- `[READ]` → default: `read_memory`
+- `[WRITE]` → default: `write_memory`
+- `[EDIT]` → default: `edit_memory`
+
 Follow this protocol exactly:
 
 ### On Start (Turn 1)
 1. Read your task assignment:
    ```
-   read_memory("task-board.md")
+   [READ]("task-board.md")
    ```
 2. Create your progress file:
    ```
-   write_memory("progress-{AGENT_ID}.md", initial content)
+   [WRITE]("progress-{AGENT_ID}.md", initial content)
    ```
    Initial content:
    ```markdown
@@ -67,7 +72,7 @@ Follow this protocol exactly:
 ### During Execution (Every 3-5 Turns)
 Update your progress file by appending a new turn entry:
 ```
-edit_memory("progress-{AGENT_ID}.md", append turn entry)
+[EDIT]("progress-{AGENT_ID}.md", append turn entry)
 ```
 
 Turn entry format:
@@ -82,7 +87,7 @@ Turn entry format:
 ### On Completion
 Create your result file:
 ```
-write_memory("result-{AGENT_ID}.md", final result)
+[WRITE]("result-{AGENT_ID}.md", final result)
 ```
 
 Result format:

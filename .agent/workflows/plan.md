@@ -6,9 +6,11 @@ description: PM planning workflow — analyze requirements, select tech stack, d
 
 - **All responses MUST be written in Korean (한국어).** Do NOT respond in English.
 - **NEVER skip steps.** Execute from Step 1 in order.
-- **You MUST use Serena MCP tools throughout the workflow.**
-  - Use `get_symbols_overview`, `find_symbol`, `search_for_pattern` to analyze the existing codebase.
-  - Use `write_memory`, `edit_memory` to record planning results in `.serena/memories/`.
+- **You MUST use MCP tools throughout the workflow.**
+  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `search_for_pattern`) to analyze the existing codebase.
+  - Use memory tools (write/edit) to record planning results.
+  - Memory path: configurable via `memoryConfig.basePath` (default: `.serena/memories`)
+  - Tool names: configurable via `memoryConfig.tools` in `mcp.json`
   - Do NOT use raw file reads or grep as substitutes.
 
 ---
@@ -26,7 +28,7 @@ Ask the user to describe what they want to build. Clarify:
 ## Step 2: Analyze Technical Feasibility
 
 // turbo
-If an existing codebase exists, use Serena MCP tools to scan:
+If an existing codebase exists, use MCP code analysis tools to scan:
 - `get_symbols_overview` for project structure and architecture patterns.
 - `find_symbol` and `search_for_pattern` to identify reusable code and what needs to be built.
 
@@ -64,6 +66,6 @@ Present the full plan: task list, priority tiers, dependency graph, agent assign
 // turbo
 Save the approved plan:
 1. `.agent/plan.json`
-2. Use `write_memory` to record plan summary in Serena Memory.
+2. Use memory write tool to record plan summary.
 
 The plan is now ready for `/coordinate` or `/orchestrate` to execute.

@@ -6,10 +6,12 @@ description: Structured bug diagnosis and fixing workflow — reproduce, diagnos
 
 - **All responses MUST be written in Korean (한국어).** Do NOT respond in English.
 - **NEVER skip steps.** Execute from Step 1 in order.
-- **You MUST use Serena MCP tools throughout the workflow.**
-  - Use `find_symbol`, `find_referencing_symbols`, `search_for_pattern` for bug investigation — NOT raw file reads or grep.
-  - Use `write_memory` to record debugging results in `.serena/memories/`.
-  - Serena MCP is the primary interface for all code exploration.
+- **You MUST use MCP tools throughout the workflow.**
+  - Use code analysis tools (`find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for bug investigation — NOT raw file reads or grep.
+  - Use memory write tool to record debugging results.
+  - Memory path: configurable via `memoryConfig.basePath` (default: `.serena/memories`)
+  - Tool names: configurable via `memoryConfig.tools` in `mcp.json`
+  - MCP tools are the primary interface for all code exploration.
 
 ---
 
@@ -27,14 +29,14 @@ If an error message is provided, proceed immediately.
 ## Step 2: Reproduce the Bug
 
 // turbo
-Use Serena MCP `search_for_pattern` with the error message or stack trace to locate the error in the codebase.
+Use MCP `search_for_pattern` with the error message or stack trace to locate the error in the codebase.
 Use `find_symbol` to identify the exact function and file. Do NOT grep or read files manually.
 
 ---
 
 ## Step 3: Diagnose Root Cause
 
-Use Serena MCP `find_referencing_symbols` to trace the execution path backward from the error point.
+Use MCP `find_referencing_symbols` to trace the execution path backward from the error point.
 Identify the root cause — not just the symptom. Check:
 - null/undefined access
 - Race conditions
@@ -65,14 +67,14 @@ Present the root cause and proposed fix to the user.
 ## Step 6: Scan for Similar Patterns
 
 // turbo
-Use Serena MCP `search_for_pattern` to search the codebase for the same pattern that caused the bug.
+Use MCP `search_for_pattern` to search the codebase for the same pattern that caused the bug.
 Report any other locations that may have the same vulnerability. Fix them if confirmed.
 
 ---
 
 ## Step 7: Document the Bug
 
-Use `write_memory` to record a bug report in Serena Memory:
+Use memory write tool to record a bug report:
 - Symptom, root cause
 - Fix applied, files changed
 - Regression test location

@@ -6,9 +6,11 @@ description: Full QA review pipeline — security audit (OWASP Top 10), performa
 
 - **All responses MUST be written in Korean (한국어).** Do NOT respond in English.
 - **NEVER skip steps.** Execute from Step 1 in order.
-- **You MUST use Serena MCP tools throughout the workflow.**
-  - Use `get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern` for code analysis and review.
-  - Use `write_memory` to record review results in `.serena/memories/`.
+- **You MUST use MCP tools throughout the workflow.**
+  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for code analysis and review.
+  - Use memory write tool to record review results.
+  - Memory path: configurable via `memoryConfig.basePath` (default: `.serena/memories`)
+  - Tool names: configurable via `memoryConfig.tools` in `mcp.json`
   - Do NOT use raw file reads or grep as substitutes.
 
 ---
@@ -30,7 +32,7 @@ Check for known vulnerabilities in dependencies. Flag any CRITICAL or HIGH findi
 
 ## Step 3: Manual Security Review (OWASP Top 10)
 
-Use Serena MCP `search_for_pattern` and `find_symbol` to review code for:
+Use MCP code analysis tools (`search_for_pattern` and `find_symbol`) to review code for:
 - Injection (SQL, XSS, command)
 - Broken auth, sensitive data exposure
 - Broken access control, security misconfig
@@ -42,7 +44,7 @@ Use Serena MCP `search_for_pattern` and `find_symbol` to review code for:
 
 ## Step 4: Performance Analysis
 
-Use Serena MCP tools to check for:
+Use MCP tools to check for:
 - N+1 queries, missing indexes
 - Unbounded pagination, memory leaks
 - Unnecessary re-renders (React)
@@ -63,7 +65,7 @@ Check for:
 
 ## Step 6: Code Quality Review
 
-Use Serena MCP `get_symbols_overview` and `find_referencing_symbols` to check for:
+Use MCP code analysis tools (`get_symbols_overview` and `find_referencing_symbols`) to check for:
 - Consistent naming, proper error handling
 - Test coverage, TypeScript strict mode compliance
 - Unused imports/variables
@@ -81,4 +83,4 @@ Compile all findings into a prioritized report:
 - **LOW**: Backlog
 
 Each finding must include: `file:line`, description, and remediation code.
-Use `write_memory` to record the final report in Serena Memory.
+Use memory write tool to record the final report.
