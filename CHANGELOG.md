@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.1.2](https://github.com/first-fluke/oh-my-ag/compare/oh-my-antigravity-v1.1.1...oh-my-antigravity-v1.1.2) (2026-01-30)
+
+
+### Refactoring
+
+* add Intelligent Escalation to backend agent execution protocol ([e366ad4](https://github.com/first-fluke/oh-my-ag/commit/e366ad4c122b8e44b5aa60cea4feb88e3481957f))
+* add Intelligent Escalation to frontend agent execution protocol ([6766640](https://github.com/first-fluke/oh-my-ag/commit/6766640457a4f766a7006603d0b416336a20ba14))
+* add Intelligent Escalation to mobile agent execution protocol ([4c99c98](https://github.com/first-fluke/oh-my-ag/commit/4c99c98e2604f0fe84151667c22eab9782cdfd51))
+* add Intelligent Escalation to PM, QA, and debug agent execution protocols ([2b79d4e](https://github.com/first-fluke/oh-my-ag/commit/2b79d4ec6a742dbfb408fbc88af24fb71012b563))
+
+
+### Documentation
+
+* enhance clarification-protocol with Intelligent Escalation ([2fee2f7](https://github.com/first-fluke/oh-my-ag/commit/2fee2f734f00b7a16e87a1e97e111ee7fb70b930))
+
+
+### Miscellaneous
+
+* rebuild CLI after protocol updates ([24c314d](https://github.com/first-fluke/oh-my-ag/commit/24c314d6887f27834b72baa844520504804d3478))
+
 ## [1.1.1](https://github.com/first-fluke/oh-my-antigravity/compare/oh-my-antigravity-v1.1.0...oh-my-antigravity-v1.1.1) (2026-01-30)
 
 
