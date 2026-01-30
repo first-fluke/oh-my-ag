@@ -19,7 +19,7 @@ Orchestrator와 workflow-guide가 태스크를 올바른 에이전트에 배정�
 | 접근성, accessibility, WCAG, a11y | **qa-agent** | |
 | 계획, plan, 분해, breakdown, 태스크, sprint | **pm-agent** | |
 | 자동, automatic, 병렬, parallel, orchestrate | **orchestrator** | |
-| 워크플로우, workflow, 가이드, manual, Agent Manager | **workflow-guide** | |
+| 워크플로우, workflow, 가이드, manual, step-by-step | **workflow-guide** | |
 
 ---
 

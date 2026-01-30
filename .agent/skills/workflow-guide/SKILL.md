@@ -1,6 +1,6 @@
 ---
 name: multi-agent-workflow
-description: Guide for coordinating PM, Frontend, Backend, Mobile, and QA agents on complex projects using Antigravity's Agent Manager UI
+description: Guide for coordinating PM, Frontend, Backend, Mobile, and QA agents on complex projects via CLI
 ---
 
 # Multi-Agent Workflow Guide
@@ -8,7 +8,7 @@ description: Guide for coordinating PM, Frontend, Backend, Mobile, and QA agents
 ## When to use
 - Complex feature spanning multiple domains (full-stack, mobile)
 - Coordination needed between frontend, backend, mobile, and QA
-- User wants to manually manage agents via Agent Manager UI
+- User wants step-by-step guidance for multi-agent coordination
 
 ## When NOT to use
 - Simple single-domain task -> use the specific agent directly
@@ -30,13 +30,20 @@ description: Guide for coordinating PM, Frontend, Backend, Mobile, and QA agents
 PM Agent analyzes requirements, selects tech stack, creates task breakdown with priorities.
 
 ### Step 2: Spawn Agents by Priority
-Guide user to Agent Manager:
-1. Open Agent Manager panel (Mission Control)
-2. Click 'New Agent', select skill, paste task description
-3. Spawn all same-priority tasks in parallel
+Spawn agents via CLI:
+1. Use spawn-agent.sh for each task
+2. CLI selection follows agent_cli_mapping in user-preferences.yaml
+3. Spawn all same-priority tasks in parallel using background processes
+
+```bash
+# Example: spawn backend and frontend in parallel
+.agent/skills/orchestrator/scripts/spawn-agent.sh backend "task description" ./backend &
+.agent/skills/orchestrator/scripts/spawn-agent.sh frontend "task description" ./frontend &
+wait
+```
 
 ### Step 3: Monitor & Coordinate
-- Watch Agent Manager inbox for questions
+- Use memory read tool to poll `progress-{agent}.md` files
 - Verify API contracts align between agents
 - Ensure shared data models are consistent
 

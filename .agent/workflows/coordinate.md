@@ -4,9 +4,7 @@ description: Coordinate multiple agents for a complex multi-domain project using
 
 # MANDATORY RULES — VIOLATION IS FORBIDDEN
 
-- **응답 언어는 `.agent/config/user-preferences.yaml`의 `language` 설정을 따른다.**
-  - 설정 파일이 없으면 기본값: 한국어(ko)
-  - 설정값 예시: ko(한국어), en(English), ja(日本語), zh(中文)
+- **Response language follows `language` setting in `.agent/config/user-preferences.yaml` if configured.**
 - **NEVER skip steps.** Execute from Step 0 in order. Explicitly report completion of each step to the user before proceeding to the next.
 - **You MUST use MCP tools throughout the entire workflow.** This is NOT optional.
   - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for code exploration.
@@ -64,20 +62,26 @@ Present the PM Agent's task breakdown to the user:
 
 ## Step 4: Spawn Agents by Priority Tier
 
-Guide the user to Agent Manager (Mission Control):
-1. Open Agent Manager panel.
-2. Click 'New Agent' for each task.
-3. Select the matching skill and paste the task description.
-4. Spawn all same-priority tasks in parallel.
-5. Assign separate workspaces to avoid file conflicts.
+// turbo
+Spawn agents using CLI for each task:
+```bash
+# Example: spawn backend and frontend in parallel
+.agent/skills/orchestrator/scripts/spawn-agent.sh backend "task description" ./backend &
+.agent/skills/orchestrator/scripts/spawn-agent.sh frontend "task description" ./frontend &
+wait
+```
+
+1. Use spawn-agent.sh for each task (respects agent_cli_mapping from user-preferences.yaml)
+2. Spawn all same-priority tasks in parallel using background processes
+3. Assign separate workspaces to avoid file conflicts
 
 ---
 
 ## Step 5: Monitor Agent Progress
 
-- Watch Agent Manager inbox for questions.
-- Use MCP code analysis tools (`find_symbol` and `search_for_pattern`) to verify API contract alignment between agents.
-- Use memory edit tool to record monitoring results.
+- Use memory read tool to poll `progress-{agent}.md` files
+- Use MCP code analysis tools (`find_symbol` and `search_for_pattern`) to verify API contract alignment between agents
+- Use memory edit tool to record monitoring results
 
 ---
 

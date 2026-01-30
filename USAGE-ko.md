@@ -38,9 +38,12 @@
 
 1. **Workflow Guide 활성화** — 멀티 도메인 복잡도 감지
 2. **PM Agent 기획** — 우선순위와 함께 태스크 분해
-3. **Agent Manager에서 에이전트 생성**:
-   - Backend Agent: JWT 인증 API
-   - Frontend Agent: 로그인 및 TODO UI
+3. **CLI로 에이전트 생성**:
+   ```bash
+   .agent/skills/orchestrator/scripts/spawn-agent.sh backend "JWT 인증 API" ./backend &
+   .agent/skills/orchestrator/scripts/spawn-agent.sh frontend "로그인 및 TODO UI" ./frontend &
+   wait
+   ```
 4. **에이전트들이 병렬 작업** — Knowledge Base에 저장
 5. **조율** — `.gemini/antigravity/brain/` 일관성 확인
 6. **QA Agent 검토** — 보안/성능 감사
@@ -139,8 +142,8 @@ Antigravity가 자동으로 요청을 스킬에 매칭시킵니다. 스킬을 �
 - `verify.sh`를 통한 자동 검증
 - 크로스 세션 교훈 누적 시스템
 
-### Agent Manager UI
-Antigravity IDE의 Mission Control 대시보드입니다. 에이전트 생성, 워크스페이스 할당, 인박스로 모니터링, 산출물 검토.
+### CLI 에이전트 실행
+`spawn-agent.sh`를 사용하여 CLI로 에이전트를 실행합니다. `user-preferences.yaml`의 `agent_cli_mapping`을 참조하여 에이전트 타입별로 적절한 CLI(gemini, claude, codex)를 선택합니다.
 
 ### Knowledge Base
 에이전트 산출물이 `.gemini/antigravity/brain/`에 저장됩니다. 기획서, 코드, 리포트, 조율 메모 포함.
@@ -179,7 +182,7 @@ Antigravity IDE 채팅에서 입력하여 단계별 워크플로우를 실행합
 
 | 명령어 | 설명 |
 |--------|------|
-| `/coordinate` | Agent Manager UI를 통한 멀티 에이전트 조율 |
+| `/coordinate` | CLI를 통한 단계별 멀티 에이전트 조율 |
 | `/orchestrate` | CLI 기반 자동 병렬 에이전트 실행 |
 | `/plan` | PM 태스크 분해 + API 계약 정의 |
 | `/review` | 전체 QA 파이프라인 (보안, 성능, 접근성, 코드 품질) |
@@ -205,7 +208,7 @@ Antigravity IDE 채팅에서 입력하여 단계별 워크플로우를 실행합
 입력: "인증이 있는 TODO 앱 만들어줘"
   → workflow-guide 자동 활성화
   → PM Agent 기획
-  → Agent Manager에서 에이전트 생성
+  → CLI로 에이전트 생성 (spawn-agent.sh)
   → 에이전트 병렬 작업
   → QA Agent 검토
   → 이슈 수정 & 반복
@@ -242,7 +245,7 @@ Antigravity IDE 채팅에서 입력하여 단계별 워크플로우를 실행합
 ## 팁
 
 1. **구체적으로** — "JWT 인증과 React 프론트엔드, FastAPI 백엔드가 있는 TODO 앱 만들어줘"가 "앱 만들어줘"보다 낫습니다.
-2. **멀티 도메인은 Agent Manager 사용** — 한 채팅에서 모든 것을 하려고 하지 마세요.
+2. **멀티 도메인은 CLI spawning 사용** — 한 채팅에서 모든 것을 하려고 하지 마세요.
 3. **Knowledge Base 검토** — `.gemini/antigravity/brain/`에서 API 일관성 확인
 4. **재생성으로 반복** — 처음부터 다시 하지 말고, 명령을 다듬어 재생성하세요.
 5. **대시보드 사용** — `npm run dashboard` 또는 `npm run dashboard:web`로 orchestrator 세션 모니터링
@@ -255,7 +258,7 @@ Antigravity IDE 채팅에서 입력하여 단계별 워크플로우를 실행합
 | 문제 | 해결법 |
 |------|--------|
 | 스킬이 로드되지 않음 | `antigravity open .`, `.agent/skills/` 확인, IDE 재시작 |
-| Agent Manager를 찾을 수 없음 | View → Agent Manager 메뉴, Antigravity 2026+ 필요 |
+| CLI를 찾을 수 없음 | `which gemini` / `which claude` 확인, 누락된 CLI 설치 |
 | 에이전트 산출물이 호환되지 않음 | Knowledge Base에서 둘 다 검토, 수정하여 재생성 |
 | 대시보드: "No agents" 표시 | 메모리 파일이 아직 생성되지 않음, orchestrator 실행 필요 |
 | 웹 대시보드가 시작 안 됨 | `npm install`로 chokidar, ws 설치 |

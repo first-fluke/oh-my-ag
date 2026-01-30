@@ -9,20 +9,21 @@
 Step 1: PM Agent plans the project
   -> 5 tasks: auth API, CRUD API, login UI, todo UI, QA review
 
-Step 2: Spawn Priority 1 agents in Agent Manager
-  - Backend Agent: "JWT authentication API + TODO CRUD"
-  - Frontend Agent: "Login/Register UI"
-  (Both run in parallel - no dependencies)
+Step 2: Spawn Priority 1 agents via CLI
+  # Run in parallel using background processes
+  .agent/skills/orchestrator/scripts/spawn-agent.sh backend "JWT authentication API + TODO CRUD" ./backend &
+  .agent/skills/orchestrator/scripts/spawn-agent.sh frontend "Login/Register UI" ./frontend &
+  wait
 
 Step 3: Monitor progress
-  - Check Agent Manager inbox for questions
+  - Use memory read tool to poll progress-{agent}.md files
   - Verify API contracts align between backend/frontend
 
 Step 4: Spawn Priority 2 after P1 completes
-  - Frontend Agent: "TODO List UI" (uses backend API contracts from P1)
+  .agent/skills/orchestrator/scripts/spawn-agent.sh frontend "TODO List UI" ./frontend
 
 Step 5: Spawn Priority 3
-  - QA Agent: "Security + Performance review of all deliverables"
+  .agent/skills/orchestrator/scripts/spawn-agent.sh qa "Security + Performance review" .
 
 Step 6: Address QA findings
   - Re-spawn agents for CRITICAL/HIGH issues
@@ -39,15 +40,14 @@ Step 1: PM Agent analyzes existing codebase and plans
   -> 2 tasks: Comments API, Comment Section UI
 
 Step 2: Spawn Backend Agent first (API-first)
-  - "Comments API with nested replies, pagination"
+  .agent/skills/orchestrator/scripts/spawn-agent.sh backend "Comments API with nested replies, pagination" ./backend
 
 Step 3: After backend completes, spawn Frontend Agent
-  - "Comment section UI using the new API endpoints"
+  .agent/skills/orchestrator/scripts/spawn-agent.sh frontend "Comment section UI using the new API endpoints" ./frontend
   (Sequential because frontend depends on API contracts)
 
 Step 4: QA review
-  - Security: XSS in comments, rate limiting
-  - Performance: Pagination, N+1 queries
+  .agent/skills/orchestrator/scripts/spawn-agent.sh qa "Security: XSS in comments, rate limiting; Performance: Pagination, N+1 queries" .
 ```
 
 ## Example 3: When to Use Orchestrator Instead
@@ -63,6 +63,6 @@ orchestrator skill instead, which will:
 3. Monitor progress and handle retries
 4. Return unified results
 
-Use workflow-guide when you want manual control.
+Use workflow-guide when you want step-by-step control.
 Use orchestrator when you want hands-off automation."
 ```

@@ -38,9 +38,12 @@
 
 1. **Workflow Guide activates** — detects multi-domain complexity
 2. **PM Agent plans** — creates task breakdown with priorities
-3. **You spawn agents** in Agent Manager UI:
-   - Backend Agent: JWT authentication API
-   - Frontend Agent: Login and TODO UI
+3. **You spawn agents via CLI**:
+   ```bash
+   .agent/skills/orchestrator/scripts/spawn-agent.sh backend "JWT authentication API" ./backend &
+   .agent/skills/orchestrator/scripts/spawn-agent.sh frontend "Login and TODO UI" ./frontend &
+   wait
+   ```
 4. **Agents work in parallel** — save outputs to Knowledge Base
 5. **You coordinate** — review `.gemini/antigravity/brain/` for consistency
 6. **QA Agent reviews** — security/performance audit
@@ -139,8 +142,8 @@ Shared resources live in `_shared/` (not a skill) and are referenced by all agen
 - Automated verification via `verify.sh`
 - Cross-session lessons learned accumulation
 
-### Agent Manager UI
-Mission Control dashboard in Antigravity IDE. Spawn agents, assign workspaces, monitor via inbox, review artifacts.
+### CLI Agent Spawning
+Use `spawn-agent.sh` to run agents via CLI. Respects `agent_cli_mapping` in `user-preferences.yaml` to select the appropriate CLI (gemini, claude, codex) per agent type.
 
 ### Knowledge Base
 Agent outputs stored at `.gemini/antigravity/brain/`. Contains plans, code, reports, and coordination notes.
@@ -179,7 +182,7 @@ Type these in Antigravity IDE chat to trigger step-by-step workflows:
 
 | Command | Description |
 |---------|-------------|
-| `/coordinate` | Multi-agent orchestration via Agent Manager UI |
+| `/coordinate` | Multi-agent orchestration via CLI with step-by-step guidance |
 | `/orchestrate` | Automated CLI-based parallel agent execution |
 | `/plan` | PM task decomposition with API contracts |
 | `/review` | Full QA pipeline (security, performance, accessibility, code quality) |
@@ -205,7 +208,7 @@ You: "Create a button component"
 You: "Build a TODO app with authentication"
   → workflow-guide activates automatically
   → PM Agent creates plan
-  → You spawn agents in Agent Manager
+  → You spawn agents via CLI (spawn-agent.sh)
   → Agents work in parallel
   → QA Agent reviews
   → Fix issues, iterate
@@ -243,7 +246,7 @@ Browser:    http://localhost:9847 → real-time status
 ## Tips
 
 1. **Be specific** — "Build a TODO app with JWT auth, React frontend, FastAPI backend" is better than "make an app"
-2. **Use Agent Manager** for multi-domain projects — don't try to do everything in one chat
+2. **Use CLI spawning** for multi-domain projects — don't try to do everything in one chat
 3. **Review Knowledge Base** — check `.gemini/antigravity/brain/` for API consistency
 4. **Iterate with re-spawns** — refine instructions, don't start over
 5. **Use dashboards** — `npm run dashboard` or `npm run dashboard:web` to monitor orchestrator sessions
@@ -256,7 +259,7 @@ Browser:    http://localhost:9847 → real-time status
 | Problem | Solution |
 |---------|----------|
 | Skills not loading | `antigravity open .`, check `.agent/skills/`, restart IDE |
-| Agent Manager not found | View → Agent Manager menu, requires Antigravity 2026+ |
+| CLI not found | Check `which gemini` / `which claude`, install missing CLIs |
 | Incompatible agent outputs | Review both in Knowledge Base, re-spawn with corrections |
 | Dashboard: "No agents" | Memory files not created yet, run orchestrator first |
 | Web dashboard won't start | Run `npm install` to install chokidar and ws |

@@ -13,7 +13,7 @@ description: Automated multi-agent orchestrator that spawns CLI subagents in par
 
 ## When NOT to use
 - Simple single-domain task -> use the specific agent directly
-- User wants manual control via Agent Manager UI -> use workflow-guide
+- User wants step-by-step manual control -> use workflow-guide
 - Quick bug fixes or minor changes
 
 ## Important

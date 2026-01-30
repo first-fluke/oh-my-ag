@@ -4,9 +4,7 @@ description: Automated CLI-based parallel agent execution — spawn subagents vi
 
 # MANDATORY RULES — VIOLATION IS FORBIDDEN
 
-- **응답 언어는 `.agent/config/user-preferences.yaml`의 `language` 설정을 따른다.**
-  - 설정 파일이 없으면 기본값: 한국어(ko)
-  - 설정값 예시: ko(한국어), en(English), ja(日本語), zh(中文)
+- **Response language follows `language` setting in `.agent/config/user-preferences.yaml` if configured.**
 - **NEVER skip steps.** Execute from Step 0 in order. Explicitly report completion of each step before proceeding.
 - **You MUST use MCP tools throughout the entire workflow.** This is NOT optional.
   - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for code exploration.
