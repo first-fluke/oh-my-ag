@@ -8,7 +8,7 @@ pnpm-lock.yaml
 dist/
 build/
 *.js.map
-!bin/*.js
+bin/*.js
 !scripts/dashboard-web/**/*.js
 !scripts/generate-manifest.js
 
