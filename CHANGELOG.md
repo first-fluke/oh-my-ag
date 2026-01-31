@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.4.0](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.3.1...oh-my-ag-v1.4.0) (2026-01-31)
+
+
+### Features
+
+* **scripts:** add MCP SSE bridge for Antigravity IDE ([4e50e2f](https://github.com/first-fluke/oh-my-ag/commit/4e50e2f427fa37ef23dce6ae5854fea923190ccf))
+
+
+### Refactoring
+
+* **cli:** extract commands to commands directory and add auto retro ([471669a](https://github.com/first-fluke/oh-my-ag/commit/471669a9d8ca007599727fd94432db4de4cc9dad))
+* **cli:** extract types to dedicated types directory ([b702fd3](https://github.com/first-fluke/oh-my-ag/commit/b702fd367724307de5abaffa1c6580cc4e7f87b0))
+* **cli:** extract utility functions to lib directory ([602b232](https://github.com/first-fluke/oh-my-ag/commit/602b2323ecdcd1df01aa46f381d9bc1b3cbf5b79))
+
+
+### Documentation
+
+* **setup:** add Antigravity IDE SSE bridge configuration ([1422790](https://github.com/first-fluke/oh-my-ag/commit/1422790e854aa767b5b416e0a3c9105655b4e9bb))
+* **setup:** rewrite in English and make Serena config optional ([9f44393](https://github.com/first-fluke/oh-my-ag/commit/9f44393a0f3dbcd9d68a6b987235c6530796c629))
+
+
+### Miscellaneous
+
+* remove obsolete cleanup.sh script ([db1671d](https://github.com/first-fluke/oh-my-ag/commit/db1671dd2246998890972a35a6c80845be3dc628))
+
 ## [1.3.1](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.3.0...oh-my-ag-v1.3.1) (2026-01-31)
 
 
