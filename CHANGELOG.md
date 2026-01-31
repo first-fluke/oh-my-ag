@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.3.0...oh-my-ag-v1.3.1) (2026-01-31)
+
+
+### Refactoring
+
+* **doctor:** remove dashboard checks and update CLI install commands ([12de2cf](https://github.com/first-fluke/oh-my-ag/commit/12de2cfcb4f59c064ca032cfc7f33ab3ae9a26a9))
+
 ## [1.3.0](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.2.0...oh-my-ag-v1.3.0) (2026-01-31)
 
 
