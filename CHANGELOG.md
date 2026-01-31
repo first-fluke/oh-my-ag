@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.1](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.4.0...oh-my-ag-v1.4.1) (2026-01-31)
+
+
+### Documentation
+
+* **readme:** remove obsolete troubleshooting and prerequisites ([97c0061](https://github.com/first-fluke/oh-my-ag/commit/97c0061825cd207abf7730c199a75343ddc73a0d))
+* **readme:** update CLI installation commands to use bun ([1af294e](https://github.com/first-fluke/oh-my-ag/commit/1af294e01822ea49a447fdb83581784e1d257ba1))
+
+
+### Miscellaneous
+
+* remove bin/cli.js from git tracking ([0adcf85](https://github.com/first-fluke/oh-my-ag/commit/0adcf858bd6adb7c2cfb57b94a5645f4023f8388))
+
 ## [1.4.0](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.3.1...oh-my-ag-v1.4.0) (2026-01-31)
 
 
