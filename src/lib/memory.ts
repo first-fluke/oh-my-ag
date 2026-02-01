@@ -40,7 +40,7 @@ export function parseAgentActivity(
   const progressMatch = filename.match(/^progress-(\w+)\.md$/);
   const resultMatch = filename.match(/^result-(\w+)\.md$/);
 
-  if (progressMatch) {
+  if (progressMatch?.[1]) {
     return {
       agent: progressMatch[1],
       type: "progress",
@@ -48,7 +48,7 @@ export function parseAgentActivity(
     };
   }
 
-  if (resultMatch) {
+  if (resultMatch?.[1]) {
     return {
       agent: resultMatch[1],
       type: "result",
@@ -98,7 +98,7 @@ export function getSessionSummary(cwd: string): SessionSummary {
         if (activity.type === "result") {
           const taskMatch =
             content.match(/task[:\s]+(.+)/i) || content.match(/##\s*(.+)/);
-          if (taskMatch) {
+          if (taskMatch?.[1]) {
             summary.completedTasks.push(taskMatch[1].trim());
           }
         } else if (activity.type === "progress") {
@@ -106,7 +106,7 @@ export function getSessionSummary(cwd: string): SessionSummary {
             content.match(/current[:\s]+(.+)/i) ||
             content.match(/working on[:\s]+(.+)/i);
           if (
-            taskMatch &&
+            taskMatch?.[1] &&
             !summary.completedTasks.includes(taskMatch[1].trim())
           ) {
             summary.inProgressTasks.push(taskMatch[1].trim());
@@ -136,7 +136,6 @@ export function getRecentAgentActivities(
 
     try {
       const filePath = join(memoriesDir, file);
-      const _stats = readFileSync(filePath);
       const content = readFileSync(filePath, "utf-8");
 
       const activity = parseAgentActivity(file, content);

@@ -95,7 +95,9 @@ export function getCommitTypes(commits: string[]): Record<string, number> {
     const match = commit.match(typePattern);
     if (match) {
       const type = match[1];
-      types[type] = (types[type] || 0) + 1;
+      if (type) {
+        types[type] = (types[type] || 0) + 1;
+      }
     }
   }
 
@@ -117,7 +119,7 @@ export function getLastRetroDate(cwd: string): string | null {
       stdio: ["pipe", "pipe", "ignore"],
     });
 
-    const retro = JSON.parse(content);
+    const retro = JSON.parse(content) as { date?: string };
     return retro.date || null;
   } catch {
     return null;
