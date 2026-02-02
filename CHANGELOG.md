@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.4](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.5.3...oh-my-ag-v1.5.4) (2026-02-02)
+
+
+### Bug Fixes
+
+* commit prompt-manifest.json to repo on release ([a11dbfd](https://github.com/first-fluke/oh-my-ag/commit/a11dbfdc5b5eb0135a6f13eea4e553680d4e38e1))
+* make terminal dashboard async to keep event loop alive ([edda589](https://github.com/first-fluke/oh-my-ag/commit/edda589338859a4f3e98f228cef303635e842327))
+
 ## [1.5.3](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.5.2...oh-my-ag-v1.5.3) (2026-02-02)
 
 
