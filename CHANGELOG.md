@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.6](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.5.5...oh-my-ag-v1.5.6) (2026-02-02)
+
+
+### Documentation
+
+* translate remaining Korean text to English ([aa8ed3b](https://github.com/first-fluke/oh-my-ag/commit/aa8ed3b3f0d8a726378e39f545806d1d38dc8b38))
+
+
+### Miscellaneous
+
+* update prompt-manifest.json for 1.5.5 ([1c89026](https://github.com/first-fluke/oh-my-ag/commit/1c8902637830de9086a5b4e7109be66ffa85e914))
+
 ## [1.5.5](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.5.4...oh-my-ag-v1.5.5) (2026-02-02)
 
 
