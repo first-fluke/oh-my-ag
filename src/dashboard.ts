@@ -115,22 +115,24 @@ function getAgentTurn(memoriesDir: string, agent: string): number | null {
 
 function getLatestActivity(memoriesDir: string) {
   try {
+    // Only show progress-* and result-* files (like the original sh script)
     const files = readdirSync(memoriesDir)
-      .filter((f) => f.endsWith(".md") && f !== ".gitkeep")
+      .filter(
+        (f) =>
+          (f.startsWith("progress-") || f.startsWith("result-")) &&
+          f.endsWith(".md"),
+      )
       .map((f) => ({ name: f, mtime: statSync(join(memoriesDir, f)).mtimeMs }))
       .sort((a, b) => b.mtime - a.mtime)
-      .slice(0, 10);
+      .slice(0, 5);
 
     return files
       .map((f) => {
-        const name =
-          f.name
-            .replace(/^(progress|result|session|debug|task)-?/, "")
-            .replace(/[-_]agent/, "")
-            .replace(/[-_]completion/, "")
-            .replace(/\.md$/, "")
-            .replace(/[-_]/g, " ")
-            .trim() || f.name.replace(/\.md$/, "");
+        const name = f.name
+          .replace(/^(progress|result)-/, "")
+          .replace(/\.md$/, "")
+          .replace(/[-_]/g, " ")
+          .trim();
 
         const content = readFileSafe(join(memoriesDir, f.name));
         const lines = content
@@ -170,8 +172,13 @@ function discoverAgentsFromFiles(memoriesDir: string) {
   const seen = new Set<string>();
 
   try {
+    // Only look at progress-* and result-* files for agent discovery
     const files = readdirSync(memoriesDir)
-      .filter((f) => f.endsWith(".md") && f !== ".gitkeep")
+      .filter(
+        (f) =>
+          (f.startsWith("progress-") || f.startsWith("result-")) &&
+          f.endsWith(".md"),
+      )
       .map((f) => ({ name: f, mtime: statSync(join(memoriesDir, f)).mtimeMs }))
       .sort((a, b) => b.mtime - a.mtime);
 
