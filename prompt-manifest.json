@@ -1,0 +1,421 @@
+{
+  "name": "oh-my-ag",
+  "version": "1.5.4",
+  "releaseDate": "2026-02-02T01:54:03.357Z",
+  "repository": "https://github.com/first-fluke/oh-my-ag",
+  "files": [
+    {
+      "path": ".agent/config/user-preferences.yaml",
+      "sha256": "d0c4e6a49f9452c1bdddb0e4352e143b53b784364123c1573b7e903d7a490a90",
+      "size": 570
+    },
+    {
+      "path": ".agent/mcp.json",
+      "sha256": "84e2ab4da765272962f70c7c6ce8efc379c18b5ae2963c804b65c484c350343b",
+      "size": 1405
+    },
+    {
+      "path": ".agent/skills/_shared/api-contracts/README.md",
+      "sha256": "c5483e8200107c638f7861a244aeef35f634c9bccba94c6e96374b2a01ef30a3",
+      "size": 1463
+    },
+    {
+      "path": ".agent/skills/_shared/api-contracts/template.md",
+      "sha256": "c412bb070f6541972c8e835426cff9f961eaeaa5a00a713c4ba0c37e97c693b6",
+      "size": 1926
+    },
+    {
+      "path": ".agent/skills/_shared/clarification-protocol.md",
+      "sha256": "b7b76da0a47367ae7acead440174fcf1a24a02ae1799f2dacdaac24bbf6744d4",
+      "size": 6835
+    },
+    {
+      "path": ".agent/skills/_shared/common-checklist.md",
+      "sha256": "c5117e6913cc60a4679dd55e4a5c0c19a7128f5a56e37d2a605150970e177f0a",
+      "size": 1062
+    },
+    {
+      "path": ".agent/skills/_shared/context-budget.md",
+      "sha256": "4b48a4f114064d9d2804dcb3ec9fb8caf033b4303cc83d4701a5b767812f844b",
+      "size": 3852
+    },
+    {
+      "path": ".agent/skills/_shared/context-loading.md",
+      "sha256": "341518c60ffa5e1a521081782796ace440ac631f7e06abd81b63cff26c8e6293",
+      "size": 3902
+    },
+    {
+      "path": ".agent/skills/_shared/difficulty-guide.md",
+      "sha256": "0fd8dc084eb0ea2d6bfa146316c5660911be72b91b6512bdc8b61e7bcf5cc040",
+      "size": 1752
+    },
+    {
+      "path": ".agent/skills/_shared/lessons-learned.md",
+      "sha256": "d7754c730e1af8ba123f3c4a546487a6786a83125b2b169eb785de682f155a91",
+      "size": 5021
+    },
+    {
+      "path": ".agent/skills/_shared/memory-protocol.md",
+      "sha256": "930c0721298f37bfd9b23c7052c0c028999c934f04ddb4a10634a4811937d20a",
+      "size": 1874
+    },
+    {
+      "path": ".agent/skills/_shared/reasoning-templates.md",
+      "sha256": "f8baeb8d29bbdbb9b5decb95b9c18733f6eed618e46089fa2ca1276b41819100",
+      "size": 4946
+    },
+    {
+      "path": ".agent/skills/_shared/skill-routing.md",
+      "sha256": "5534dc15403cf4297ea250c938bae8995e312c1d2e808a1704a2ce0929da2e7f",
+      "size": 3271
+    },
+    {
+      "path": ".agent/skills/_shared/verify.sh",
+      "sha256": "abf4a2cd53b70fd4166726faa59c375716baac86b7fdc73e3d6d584d20ecd3cd",
+      "size": 7833
+    },
+    {
+      "path": ".agent/skills/backend-agent/SKILL.md",
+      "sha256": "6350f2c85efa0a88b731a5b3ea769b47c0cd8781c4cc7fba4528c85852365a3e",
+      "size": 3489
+    },
+    {
+      "path": ".agent/skills/backend-agent/resources/api-template.py",
+      "sha256": "e2a3d51273985dbbbc39869306db48fcfb39469427b928894dda650ef894e003",
+      "size": 8656
+    },
+    {
+      "path": ".agent/skills/backend-agent/resources/checklist.md",
+      "sha256": "0cb20455aac753c014b650fb74a193782267a4090526d375d256a44cb2eb709c",
+      "size": 1340
+    },
+    {
+      "path": ".agent/skills/backend-agent/resources/error-playbook.md",
+      "sha256": "5ca411359e9f0d7632222c8821cd3f6bdbd76e381e0ba247a19d851da486bb4c",
+      "size": 3676
+    },
+    {
+      "path": ".agent/skills/backend-agent/resources/examples.md",
+      "sha256": "f2d7228143c19b0fc640accc5a2efd067867f84e3c548959eb41a8e2b0208717",
+      "size": 2006
+    },
+    {
+      "path": ".agent/skills/backend-agent/resources/execution-protocol.md",
+      "sha256": "699d69fe9b7f7412854c9cd6eb837d4bfd855e80fde0940ffe55bc8add6b3896",
+      "size": 1948
+    },
+    {
+      "path": ".agent/skills/backend-agent/resources/snippets.md",
+      "sha256": "db8d747ec12cb3c3903649d379002b9a872161284781a6ef738fd211ee73153e",
+      "size": 4982
+    },
+    {
+      "path": ".agent/skills/backend-agent/resources/tech-stack.md",
+      "sha256": "540a07888a2cd119144c09dab85a508147da569e883b0d2c6ee4e831d666314b",
+      "size": 1200
+    },
+    {
+      "path": ".agent/skills/commit/SKILL.md",
+      "sha256": "ac3d1906db8ac9166519b50d12b1faef6c4d9876fbb5bb058d54c30ff699e0c0",
+      "size": 3205
+    },
+    {
+      "path": ".agent/skills/commit/config/commit-config.yaml",
+      "sha256": "cb83b06f9c88702b432c39f583618844b04f22eb47e1d8649f382bf925b68ddc",
+      "size": 908
+    },
+    {
+      "path": ".agent/skills/commit/resources/conventional-commits.md",
+      "sha256": "c16743671ac3dc87120b5bb789f99e6e9cfe3a8e3d643126ca532e038f96746f",
+      "size": 4068
+    },
+    {
+      "path": ".agent/skills/debug-agent/SKILL.md",
+      "sha256": "3489436f30820ec44bec2be72cab67e88435f98e8b4451c7ed96019f1b4ca005",
+      "size": 1813
+    },
+    {
+      "path": ".agent/skills/debug-agent/resources/bug-report-template.md",
+      "sha256": "37956e06aec3fce5a27f1fa0364fa1ae7e361ccb57e03c55ffb735ed63bdc0d8",
+      "size": 7556
+    },
+    {
+      "path": ".agent/skills/debug-agent/resources/checklist.md",
+      "sha256": "734989597cc120cf98d96327709d73e1223e28787e771c7cfd6d86c43f866417",
+      "size": 997
+    },
+    {
+      "path": ".agent/skills/debug-agent/resources/common-patterns.md",
+      "sha256": "879da841dc35e472c7cfa936a3742a2649224a8e44bcb745fc3d629d78a359db",
+      "size": 15185
+    },
+    {
+      "path": ".agent/skills/debug-agent/resources/debugging-checklist.md",
+      "sha256": "66c06c0e738ba12013ef08143925ba7c0aafa793c4cb2d9e90cfdf1d5884deb1",
+      "size": 10033
+    },
+    {
+      "path": ".agent/skills/debug-agent/resources/error-playbook.md",
+      "sha256": "a4ffd73837372157d22d60f9b32098d1b20c2beecc47df2a523f666674d3e06d",
+      "size": 3383
+    },
+    {
+      "path": ".agent/skills/debug-agent/resources/examples.md",
+      "sha256": "d42e7f6571f25aacd296308471a9c04564e10859fdd58a37908309a5e25fb61c",
+      "size": 2261
+    },
+    {
+      "path": ".agent/skills/debug-agent/resources/execution-protocol.md",
+      "sha256": "d0dbc391664aa87bd4f65e3f44293b395a58a1a9350e025b628696bdf32c5478",
+      "size": 2362
+    },
+    {
+      "path": ".agent/skills/frontend-agent/SKILL.md",
+      "sha256": "4b73950e8ecf5b486164e7979218fb1bc89773cf0d862dec61fd141279d9bd13",
+      "size": 5920
+    },
+    {
+      "path": ".agent/skills/frontend-agent/resources/checklist.md",
+      "sha256": "0ecdbd77bb152badfd00666f46b4d7d749341e888ba59941b075e54d0ebde5cc",
+      "size": 1338
+    },
+    {
+      "path": ".agent/skills/frontend-agent/resources/component-template.tsx",
+      "sha256": "41f04ba659a8f7ac1c95a405435a0cd709b5c0491e03b79a62c53387fea9a5ab",
+      "size": 2123
+    },
+    {
+      "path": ".agent/skills/frontend-agent/resources/error-playbook.md",
+      "sha256": "5c656dda5a4198cd4f10bd66aec55a02757712c52047895f8e90d186e2567d86",
+      "size": 3944
+    },
+    {
+      "path": ".agent/skills/frontend-agent/resources/examples.md",
+      "sha256": "1a59963bdea83d894b1e7b70eced007d43f65b7d60a1c51d00f88f37fcc7644d",
+      "size": 2129
+    },
+    {
+      "path": ".agent/skills/frontend-agent/resources/execution-protocol.md",
+      "sha256": "e541fc53171e54c1202764aa12f7c04419de937d98519d6b1549fa4c2c8ba960",
+      "size": 2210
+    },
+    {
+      "path": ".agent/skills/frontend-agent/resources/snippets.md",
+      "sha256": "0a4c2b21a755c8bf7d7c85e2333cc9775bf20e01b2962533d4ca499ca14f5f47",
+      "size": 5134
+    },
+    {
+      "path": ".agent/skills/frontend-agent/resources/tailwind-rules.md",
+      "sha256": "34472ab5b5e46ecdaf51114652c7c0d5b3540b49d86fd4cbeb6b9d4bbcb9930b",
+      "size": 6657
+    },
+    {
+      "path": ".agent/skills/frontend-agent/resources/tech-stack.md",
+      "sha256": "6241dce75ebe4ee3746874edb6909c3ec1b3b9cca4884ab9ceb9263977d8c49e",
+      "size": 1115
+    },
+    {
+      "path": ".agent/skills/mobile-agent/SKILL.md",
+      "sha256": "b18f718aa036411a54d0332b1cd819e718cb9adf8fe89c9b9d8888359d7a6a14",
+      "size": 1634
+    },
+    {
+      "path": ".agent/skills/mobile-agent/resources/checklist.md",
+      "sha256": "75f6eedcd8790e0329cdb0d92ecd372563edeef43ccd1a04993f46fda5bac4db",
+      "size": 1252
+    },
+    {
+      "path": ".agent/skills/mobile-agent/resources/error-playbook.md",
+      "sha256": "5ed2a518b21b5afef358ce3284a5349edbe4ebfaa7654a6cb095bbe02d3917aa",
+      "size": 3763
+    },
+    {
+      "path": ".agent/skills/mobile-agent/resources/examples.md",
+      "sha256": "74dc851f4a58f13e930400dccbc221fecba7644eb6d5a606380ebd01600b2832",
+      "size": 2449
+    },
+    {
+      "path": ".agent/skills/mobile-agent/resources/execution-protocol.md",
+      "sha256": "7adfb2f23d4af8e51f52f5846212bbecbde09de076be371b195ae10fdfa739a6",
+      "size": 2113
+    },
+    {
+      "path": ".agent/skills/mobile-agent/resources/screen-template.dart",
+      "sha256": "5758c31e5d51ddd1f6b12e5ce22af535f01aa9b0074c2f476ef3566a766f8e9f",
+      "size": 7849
+    },
+    {
+      "path": ".agent/skills/mobile-agent/resources/snippets.md",
+      "sha256": "ef323a2604844dc467f2589282229f5c11ff0489aee7639a3112043d1db40c35",
+      "size": 5516
+    },
+    {
+      "path": ".agent/skills/mobile-agent/resources/tech-stack.md",
+      "sha256": "d231794b948fa43af350e6b61521e3eb2dd3e4628ba5b97cb614a4ca342f8337",
+      "size": 1254
+    },
+    {
+      "path": ".agent/skills/orchestrator/SKILL.md",
+      "sha256": "a22186d5307b2cef216c3e2496d4c708e13bbc0b68a26402231c17e642ca238e",
+      "size": 3948
+    },
+    {
+      "path": ".agent/skills/orchestrator/config/cli-config.yaml",
+      "sha256": "4425eac2ae208a4ae0b9498263b49b94931c61403b0bd5fb509c6d6db6cf268b",
+      "size": 2191
+    },
+    {
+      "path": ".agent/skills/orchestrator/resources/memory-schema.md",
+      "sha256": "94f4640a48c9632497c13173c3523d85ef5b4138eb3a2ad5f9b595be7c528705",
+      "size": 5865
+    },
+    {
+      "path": ".agent/skills/orchestrator/resources/subagent-prompt-template.md",
+      "sha256": "b19332a9a8948edf5d8a2e495fcebca4c0aeeabe203881d83c4153743561c332",
+      "size": 4362
+    },
+    {
+      "path": ".agent/skills/orchestrator/scripts/parallel-run.sh",
+      "sha256": "4b112010b73163dedb254d8a82c2517c0ae2a8c87116814fbb82923c46121331",
+      "size": 9460
+    },
+    {
+      "path": ".agent/skills/orchestrator/templates/backend-task.md",
+      "sha256": "41ea2b57cb106d60018f775c0a31dc32637f19beebfc1814edd988a9ac55e25b",
+      "size": 453
+    },
+    {
+      "path": ".agent/skills/orchestrator/templates/debug-task.md",
+      "sha256": "752c4de3badb5474d46b03a62ec2ee48332ff10f909935375696928112b5347c",
+      "size": 339
+    },
+    {
+      "path": ".agent/skills/orchestrator/templates/frontend-task.md",
+      "sha256": "3e1c86f632d682712a3687ca96ceeb246dc75df35d48ce74e2ff672a26e3c832",
+      "size": 443
+    },
+    {
+      "path": ".agent/skills/orchestrator/templates/mobile-task.md",
+      "sha256": "ceaad26632ebd577cff324d048c8fff9cbb134481c07a5d2785165da74bda017",
+      "size": 449
+    },
+    {
+      "path": ".agent/skills/orchestrator/templates/qa-task.md",
+      "sha256": "26037c9ba0514b2eb8e3f10e9ab9b5d0036feb359fd6ff9a2903a35318ee85e0",
+      "size": 441
+    },
+    {
+      "path": ".agent/skills/orchestrator/templates/tasks-example.yaml",
+      "sha256": "0d067f27fae2992d7b406c820f1aaf26f37ddb5cebf6fa0d780bf0036ab74736",
+      "size": 418
+    },
+    {
+      "path": ".agent/skills/pm-agent/SKILL.md",
+      "sha256": "e196d00f43af0561c70ba2c5aff1855fbdef555d04380882b19ca92ea93c13fe",
+      "size": 1904
+    },
+    {
+      "path": ".agent/skills/pm-agent/resources/error-playbook.md",
+      "sha256": "e53c932df94d4e7885fa84893feacab2a0661ec755874e36f66dbbf25f81597d",
+      "size": 2449
+    },
+    {
+      "path": ".agent/skills/pm-agent/resources/examples.md",
+      "sha256": "90ff92af3724f66e7aca582ac97807573dbabce4252f1f0a150c67f4a3b987a2",
+      "size": 2971
+    },
+    {
+      "path": ".agent/skills/pm-agent/resources/execution-protocol.md",
+      "sha256": "6ebc7ad93b71fc80d5263653b9811332715209ab6530bd3ca1c7ea115cbc17ad",
+      "size": 2323
+    },
+    {
+      "path": ".agent/skills/pm-agent/resources/task-template.json",
+      "sha256": "ab28aad9dfb4ec4c5075f3f5be5f490dc42f4177b2f0784608b9bcff4b2e11bf",
+      "size": 1087
+    },
+    {
+      "path": ".agent/skills/qa-agent/SKILL.md",
+      "sha256": "540f6f05307a041dd0e6e74f50e3c84bd6b1cb02ef26d44fe83a6f28c83fba02",
+      "size": 1548
+    },
+    {
+      "path": ".agent/skills/qa-agent/resources/checklist.md",
+      "sha256": "70aca181e6d054f10317c66d7137d2f0ddbe8bc2c9a717da1b19908c4c233b9e",
+      "size": 8393
+    },
+    {
+      "path": ".agent/skills/qa-agent/resources/error-playbook.md",
+      "sha256": "526415415a5561adef18ee5e04c5e79ad933f01e4605f52c814c010beb4f29d5",
+      "size": 3311
+    },
+    {
+      "path": ".agent/skills/qa-agent/resources/examples.md",
+      "sha256": "9f68510358f3dbfbcf6a102d5e0051ffa22e81f4b2077b662bc5f47193ca218a",
+      "size": 2594
+    },
+    {
+      "path": ".agent/skills/qa-agent/resources/execution-protocol.md",
+      "sha256": "2eb7043fba62fe3fed3a372baa7a2f32bfdc710920cebc6cd4c78324e5ae2388",
+      "size": 2386
+    },
+    {
+      "path": ".agent/skills/qa-agent/resources/self-check.md",
+      "sha256": "e1cfcec3fdb4b58292d480cd622db3836cc213d2f2f8a78a51d5b2d4409df39c",
+      "size": 1061
+    },
+    {
+      "path": ".agent/skills/workflow-guide/SKILL.md",
+      "sha256": "86590c3915d8c265ac48bf9184fa465ec3002aa8848b0fd2547e27fd1432767b",
+      "size": 2079
+    },
+    {
+      "path": ".agent/skills/workflow-guide/resources/examples.md",
+      "sha256": "fa621d196e979ce6f5f6e1e49f77ffd829dd913bcb09acd6461168dbbd7bf57c",
+      "size": 2200
+    },
+    {
+      "path": ".agent/workflows/coordinate.md",
+      "sha256": "4ee1607690e5cc26aa27d841da1e25d3bde906271e87c3ad24b8008036917125",
+      "size": 3880
+    },
+    {
+      "path": ".agent/workflows/debug.md",
+      "sha256": "7f145400f4a2391799dbe29b125cd7e1f07bfdad2300ecbee1ac9ae0a088e8b2",
+      "size": 2531
+    },
+    {
+      "path": ".agent/workflows/orchestrate.md",
+      "sha256": "06541e5a45bdb534396223a27285b277c5c48c0bc993551a3f7dabf12001dc26",
+      "size": 3759
+    },
+    {
+      "path": ".agent/workflows/plan.md",
+      "sha256": "9cce80d996ccdb0d062f5e0bf75363c9a81c918ac7783f6afe48c601e9709e01",
+      "size": 2230
+    },
+    {
+      "path": ".agent/workflows/review.md",
+      "sha256": "c1a21088d2d618714a309bc06c763195177070df98e9951ef6af47fe9fbe756a",
+      "size": 2685
+    },
+    {
+      "path": ".agent/workflows/setup.md",
+      "sha256": "7a86f57f435ef3802beab0f362ae0778a5475ac7f4b9d6a8a5187c40384fb294",
+      "size": 6833
+    },
+    {
+      "path": ".agent/workflows/tools.md",
+      "sha256": "e4e6229c4c9eb0d3390b0eedc3347472964914c86a10b21aa6bffd3d7787002c",
+      "size": 5256
+    }
+  ],
+  "checksums": {
+    "algorithm": "sha256"
+  },
+  "metadata": {
+    "skillCount": 9,
+    "workflowCount": 7,
+    "totalFiles": 81
+  }
+}
