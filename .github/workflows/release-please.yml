@@ -45,6 +45,14 @@ jobs:
           RELEASE_VERSION: ${{ needs.release-please.outputs.version }}
         run: bunx tsx src/generate-manifest.ts "$RELEASE_VERSION"
 
+      - name: Commit prompt-manifest.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add prompt-manifest.json
+          git commit -m "chore: update prompt-manifest.json for ${{ needs.release-please.outputs.version }}" || echo "No changes to commit"
+          git push
+
       - name: Create tarball
         run: |
           tar -czvf agent-skills.tar.gz .agent/
