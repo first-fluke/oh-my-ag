@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.6.1...oh-my-ag-v1.7.0) (2026-02-03)
+
+
+### Features
+
+* add Codex environment configuration and enhance project description in READMEs ([1643099](https://github.com/first-fluke/oh-my-ag/commit/164309926c6dd080b96f317cf463181065d2d8c2))
+
+
+### Miscellaneous
+
+* update prompt-manifest.json for 1.6.1 ([bada43d](https://github.com/first-fluke/oh-my-ag/commit/bada43d5066a67a508b3bf79e780a7049fe658be))
+
 ## [1.6.1](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.6.0...oh-my-ag-v1.6.1) (2026-02-03)
 
 
