@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.8.0](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.7.1...oh-my-ag-v1.8.0) (2026-02-04)
+
+
+### Features
+
+* **bridge:** auto-fix missing languages key in Serena project configs ([8d76feb](https://github.com/first-fluke/oh-my-ag/commit/8d76febf9fdc94cb66b64b3f947d713988f51f60))
+
+
+### Documentation
+
+* add uv as prerequisite for Serena setup ([909c4db](https://github.com/first-fluke/oh-my-ag/commit/909c4db7428b61ba47efd7dd464bff3d54c133fc))
+
+
+### Miscellaneous
+
+* update prompt-manifest.json for 1.7.1 ([b7ac12e](https://github.com/first-fluke/oh-my-ag/commit/b7ac12ed3e0a4904094ad0e06bbb4e71d631d799))
+
 ## [1.7.1](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.7.0...oh-my-ag-v1.7.1) (2026-02-04)
 
 
