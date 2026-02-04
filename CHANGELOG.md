@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.7.1](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.7.0...oh-my-ag-v1.7.1) (2026-02-04)
+
+
+### Documentation
+
+* add Star History section to README files ([cab9cee](https://github.com/first-fluke/oh-my-ag/commit/cab9cee8bae1c0cb0a5767a1b90ae8dc2e74cce7))
+* translate tools.md workflow from Korean to English ([34a0937](https://github.com/first-fluke/oh-my-ag/commit/34a093778eb61410b147f1294b12a070aa80d6bb))
+
+
+### Miscellaneous
+
+* update prompt-manifest.json for 1.7.0 ([eec2bb9](https://github.com/first-fluke/oh-my-ag/commit/eec2bb9e75be44b794426931422a2874296aae6b))
+
 ## [1.7.0](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.6.1...oh-my-ag-v1.7.0) (2026-02-03)
 
 
