@@ -1,7 +1,7 @@
 import { spawn as spawnProcess } from "node:child_process";
 import fs from "node:fs";
-import path from "node:path";
 import { tmpdir } from "node:os";
+import path from "node:path";
 import color from "picocolors";
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
@@ -42,11 +42,12 @@ type CliConfig = {
 function splitArgs(value: string): string[] {
   const args: string[] = [];
   const regex = /[^\s"']+|"([^"]*)"|'([^']*)'/g;
-  let match: RegExpExecArray | null;
-  while ((match = regex.exec(value)) !== null) {
+  let match: RegExpExecArray | null = regex.exec(value);
+  while (match !== null) {
     if (match[1] !== undefined) args.push(match[1]);
     else if (match[2] !== undefined) args.push(match[2]);
     else if (match[0]) args.push(match[0]);
+    match = regex.exec(value);
   }
   return args;
 }
@@ -72,7 +73,11 @@ const VendorConfigSchema = z
       .transform((value) => {
         if (value === undefined) return undefined;
         const normalized = value.trim().toLowerCase();
-        if (normalized === "" || normalized === "none" || normalized === "null") {
+        if (
+          normalized === "" ||
+          normalized === "none" ||
+          normalized === "null"
+        ) {
           return null;
         }
         return value;
@@ -131,7 +136,12 @@ function parseCliConfig(content: string): CliConfig {
 }
 
 function readUserPreferences(cwd: string): UserPreferences | null {
-  const configPath = path.join(cwd, ".agent", "config", "user-preferences.yaml");
+  const configPath = path.join(
+    cwd,
+    ".agent",
+    "config",
+    "user-preferences.yaml",
+  );
   if (!fs.existsSync(configPath)) return null;
   try {
     const content = fs.readFileSync(configPath, "utf-8");
@@ -247,7 +257,10 @@ export async function spawnAgent(
   const promptFlag = resolvePromptFlag(vendor, vendorConfig.prompt_flag);
 
   if (vendorConfig.output_format_flag && vendorConfig.output_format) {
-    optionArgs.push(vendorConfig.output_format_flag, vendorConfig.output_format);
+    optionArgs.push(
+      vendorConfig.output_format_flag,
+      vendorConfig.output_format,
+    );
   } else if (vendorConfig.output_format_flag) {
     optionArgs.push(vendorConfig.output_format_flag);
   }
@@ -353,10 +366,7 @@ export async function checkStatus(
       "memories",
       `result-${agent}.md`,
     );
-    const pidFile = path.join(
-      tmpdir(),
-      `subagent-${sessionId}-${agent}.pid`,
-    );
+    const pidFile = path.join(tmpdir(), `subagent-${sessionId}-${agent}.pid`);
 
     if (fs.existsSync(resultFile)) {
       const content = fs.readFileSync(resultFile, "utf-8");

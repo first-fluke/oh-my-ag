@@ -9,7 +9,37 @@ import {
   type MockInstance,
   vi,
 } from "vitest";
-import { bridge } from "../commands/bridge.js";
+import { bridge, validateSerenaConfigs } from "../commands/bridge.js";
+
+// Mock fs module
+const mockFs = vi.hoisted(() => ({
+  existsSync: vi.fn(),
+  readFileSync: vi.fn(),
+  writeFileSync: vi.fn(),
+}));
+
+vi.mock("node:fs", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs")>();
+  return {
+    ...actual,
+    existsSync: mockFs.existsSync,
+    readFileSync: mockFs.readFileSync,
+    writeFileSync: mockFs.writeFileSync,
+  };
+});
+
+// Mock os module
+const mockOs = vi.hoisted(() => ({
+  homedir: vi.fn(() => "/mock/home"),
+}));
+
+vi.mock("node:os", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:os")>();
+  return {
+    ...actual,
+    homedir: mockOs.homedir,
+  };
+});
 
 // Define types for our mocks to avoid 'any'
 interface MockRequest {
@@ -184,5 +214,146 @@ describe("bridge command", () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       expect.stringContaining("Connected to existing Serena server"),
     );
+  });
+});
+
+describe("validateSerenaConfigs", () => {
+  let consoleErrorSpy: MockInstance;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should do nothing if global config does not exist", () => {
+    mockFs.existsSync.mockReturnValue(false);
+
+    validateSerenaConfigs();
+
+    expect(mockFs.readFileSync).not.toHaveBeenCalled();
+    expect(mockFs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it("should do nothing if no projects are registered", () => {
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockReturnValue("some_key: value\n");
+
+    validateSerenaConfigs();
+
+    expect(mockFs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it("should skip projects without project.yml", () => {
+    mockFs.existsSync.mockImplementation((path: string) => {
+      if (path === "/mock/home/.serena/serena_config.yml") return true;
+      if (path === "/project1/.serena/project.yml") return false;
+      return false;
+    });
+    mockFs.readFileSync.mockReturnValue("projects:\n  - /project1\n");
+
+    validateSerenaConfigs();
+
+    expect(mockFs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it("should not modify project.yml if languages key already exists", () => {
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockImplementation((path: string) => {
+      if (path === "/mock/home/.serena/serena_config.yml") {
+        return "projects:\n  - /project1\n";
+      }
+      if (path === "/project1/.serena/project.yml") {
+        return "project:\n  name: test\n\nlanguages:\n  - python\n";
+      }
+      return "";
+    });
+
+    validateSerenaConfigs();
+
+    expect(mockFs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it("should add languages key if missing from project.yml", () => {
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockImplementation((path: string) => {
+      if (path === "/mock/home/.serena/serena_config.yml") {
+        return "projects:\n  - /project1\n";
+      }
+      if (path === "/project1/.serena/project.yml") {
+        return "project:\n  name: test\n\nstructure:\n  monorepo: true\n";
+      }
+      return "";
+    });
+
+    validateSerenaConfigs();
+
+    expect(mockFs.writeFileSync).toHaveBeenCalledWith(
+      "/project1/.serena/project.yml",
+      expect.stringContaining("languages:"),
+    );
+    expect(mockFs.writeFileSync).toHaveBeenCalledWith(
+      "/project1/.serena/project.yml",
+      expect.stringContaining("- python"),
+    );
+    expect(mockFs.writeFileSync).toHaveBeenCalledWith(
+      "/project1/.serena/project.yml",
+      expect.stringContaining("- typescript"),
+    );
+    expect(mockFs.writeFileSync).toHaveBeenCalledWith(
+      "/project1/.serena/project.yml",
+      expect.stringContaining("- dart"),
+    );
+    expect(mockFs.writeFileSync).toHaveBeenCalledWith(
+      "/project1/.serena/project.yml",
+      expect.stringContaining("- terraform"),
+    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Missing 'languages' key"),
+    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Fixed"),
+    );
+  });
+
+  it("should handle multiple projects", () => {
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockImplementation((path: string) => {
+      if (path === "/mock/home/.serena/serena_config.yml") {
+        return "projects:\n  - /project1\n  - /project2\n";
+      }
+      if (path === "/project1/.serena/project.yml") {
+        return "project:\n  name: test1\n\nlanguages:\n  - python\n";
+      }
+      if (path === "/project2/.serena/project.yml") {
+        return "project:\n  name: test2\n\nstructure:\n  monorepo: true\n";
+      }
+      return "";
+    });
+
+    validateSerenaConfigs();
+
+    expect(mockFs.writeFileSync).toHaveBeenCalledTimes(1);
+    expect(mockFs.writeFileSync).toHaveBeenCalledWith(
+      "/project2/.serena/project.yml",
+      expect.stringContaining("languages:"),
+    );
+  });
+
+  it("should handle errors gracefully", () => {
+    mockFs.existsSync.mockReturnValue(true);
+    mockFs.readFileSync.mockImplementation(() => {
+      throw new Error("Read error");
+    });
+
+    validateSerenaConfigs();
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Failed to validate Serena configs"),
+    );
+    expect(mockFs.writeFileSync).not.toHaveBeenCalled();
   });
 });

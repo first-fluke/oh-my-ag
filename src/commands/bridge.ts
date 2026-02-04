@@ -1,8 +1,66 @@
 import { type ChildProcess, spawn } from "node:child_process";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import http, { type IncomingMessage } from "node:http";
 import https from "node:https";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
 const DEFAULT_SSE_URL = "http://localhost:12341/sse";
+
+export function validateSerenaConfigs(): void {
+  const globalConfigPath = join(homedir(), ".serena", "serena_config.yml");
+
+  if (!existsSync(globalConfigPath)) {
+    return;
+  }
+
+  try {
+    const globalContent = readFileSync(globalConfigPath, "utf8");
+
+    // Extract projects list from global config
+    const projectsMatch = globalContent.match(
+      /^projects:\s*\n((?:\s*-\s*.+\n?)*)/m,
+    );
+    if (!projectsMatch) {
+      return;
+    }
+
+    const projectLines = projectsMatch[1].match(/^\s*-\s*(.+)$/gm) || [];
+    const projects = projectLines.map((line) =>
+      line.replace(/^\s*-\s*/, "").trim(),
+    );
+
+    // Check each project's config
+    for (const projectPath of projects) {
+      const projectConfigPath = join(projectPath, ".serena", "project.yml");
+
+      if (!existsSync(projectConfigPath)) {
+        continue;
+      }
+
+      const content = readFileSync(projectConfigPath, "utf8");
+
+      // Check if languages key exists at root level
+      if (!/^languages:/m.test(content)) {
+        console.error(
+          `[Bridge] Missing 'languages' key in ${projectConfigPath}, adding default...`,
+        );
+
+        // Find insertion point after project: block
+        const insertIndex = content.search(/\n(?=\w)/);
+        if (insertIndex !== -1) {
+          const newContent = `${content.slice(0, insertIndex)}\n\nlanguages:\n  - python\n  - typescript\n  - dart\n  - terraform${content.slice(insertIndex)}`;
+          writeFileSync(projectConfigPath, newContent);
+          console.error(`[Bridge] Fixed ${projectConfigPath}`);
+        }
+      }
+    }
+  } catch (err) {
+    console.error(
+      `[Bridge] Warning: Failed to validate Serena configs: ${err instanceof Error ? err.message : err}`,
+    );
+  }
+}
 
 export async function bridge(sseUrlArg?: string) {
   const SSE_URL = sseUrlArg || DEFAULT_SSE_URL;
@@ -90,6 +148,9 @@ export async function bridge(sseUrlArg?: string) {
     console.error("Timed out waiting for Serena server to start.");
     process.exit(1);
   }
+
+  // Validate Serena configs before starting
+  validateSerenaConfigs();
 
   // Check if server is running
   const isRunning = await checkServer();
