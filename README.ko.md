@@ -53,12 +53,16 @@ Google Antigravity를 위한 궁극의 멀티 에이전트 프레임워크.
 
 - **Google Antigravity** (2026+)
 - **Bun** (CLI 및 대시보드용)
+- **uv** (Serena 설정용)
 
 ### 옵션 1: 대화형 CLI (권장)
 
 ```bash
 # bun이 없으면 먼저 설치:
 # curl -fsSL https://bun.sh/install | bash
+
+# uv가 없으면 먼저 설치:
+# curl -LsSf https://astral.sh/uv/install.sh | sh
 
 bunx oh-my-ag
 ```

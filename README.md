@@ -91,12 +91,16 @@ A collection of **Antigravity Skills** enabling collaborative multi-agent develo
 
 - **Google Antigravity** (2026+)
 - **Bun** (for CLI and dashboards)
+- **uv** (for Serena setup)
 
 ### Option 1: Interactive CLI (Recommended)
 
 ```bash
 # Install bun if you don't have it:
 # curl -fsSL https://bun.sh/install | bash
+
+# Install uv if you don't have it:
+# curl -LsSf https://astral.sh/uv/install.sh | sh
 
 bunx oh-my-ag
 ```
