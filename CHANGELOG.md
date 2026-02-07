@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.9.3](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.9.2...oh-my-ag-v1.9.3) (2026-02-07)
+
+
+### Bug Fixes
+
+* **transport:** migrate MCP transport from SSE to Streamable HTTP ([5c85c32](https://github.com/first-fluke/oh-my-ag/commit/5c85c324c1109fb80fe3c5c2820c656fa2a13859))
+
+
+### Miscellaneous
+
+* update prompt-manifest.json for 1.9.2 ([b01ebbb](https://github.com/first-fluke/oh-my-ag/commit/b01ebbbcd4c83a67ffc544cfd2ed9944b0d8b04d))
+
 ## [1.9.2](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.9.1...oh-my-ag-v1.9.2) (2026-02-07)
 
 
