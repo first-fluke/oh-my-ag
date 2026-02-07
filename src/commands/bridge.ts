@@ -6,6 +6,15 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 const DEFAULT_SSE_URL = "http://localhost:12341/sse";
+const STARTUP_CHECK_INTERVAL_MS = 1000;
+const STARTUP_PROBE_TIMEOUT_MS = Number.parseInt(
+  process.env.OH_MY_AG_BRIDGE_PROBE_TIMEOUT_MS ?? "2000",
+  10,
+);
+const STARTUP_TIMEOUT_MS = Number.parseInt(
+  process.env.OH_MY_AG_BRIDGE_STARTUP_TIMEOUT_MS ?? "120000",
+  10,
+);
 
 export function validateSerenaConfigs(): void {
   const globalConfigPath = join(homedir(), ".serena", "serena_config.yml");
@@ -25,7 +34,8 @@ export function validateSerenaConfigs(): void {
       return;
     }
 
-    const projectLines = projectsMatch[1].match(/^\s*-\s*(.+)$/gm) || [];
+    const projectLines =
+      (projectsMatch[1] ?? "").match(/^\s*-\s*(.+)$/gm) || [];
     const projects = projectLines.map((line) =>
       line.replace(/^\s*-\s*/, "").trim(),
     );
@@ -75,19 +85,37 @@ export async function bridge(sseUrlArg?: string) {
   let isShuttingDown = false;
 
   async function checkServer(): Promise<boolean> {
-    return new Promise((resolve) => {
-      const req = httpModule.get(SSE_URL, (_res) => {
-        // If we get any response (even 404), the server is up
-        resolve(true);
-        req.destroy();
+    const probeTargets =
+      url.hostname === "localhost"
+        ? [SSE_URL, SSE_URL.replace("localhost", "127.0.0.1")]
+        : [SSE_URL];
+
+    for (const target of probeTargets) {
+      const isReachable = await new Promise<boolean>((resolve) => {
+        const req = httpModule.get(target, (_res) => {
+          // If we get any response (even 404), the server is up
+          resolve(true);
+          req.destroy();
+        });
+
+        req.setTimeout(STARTUP_PROBE_TIMEOUT_MS, () => {
+          req.destroy();
+          resolve(false);
+        });
+
+        req.on("error", () => {
+          resolve(false);
+        });
+
+        req.end();
       });
 
-      req.on("error", () => {
-        resolve(false);
-      });
+      if (isReachable) {
+        return true;
+      }
+    }
 
-      req.end();
-    });
+    return false;
   }
 
   async function startServer(): Promise<void> {
@@ -101,6 +129,8 @@ export async function bridge(sseUrlArg?: string) {
       "--from",
       "git+https://github.com/oraios/serena",
       "serena-mcp-server",
+      "--transport",
+      "sse",
       "--host",
       host,
       "--port",
@@ -123,6 +153,12 @@ export async function bridge(sseUrlArg?: string) {
       });
     }
 
+    if (serenaProcess.stdout) {
+      serenaProcess.stdout.on("data", () => {
+        // Drain stdout to avoid child process blocking on a full pipe buffer.
+      });
+    }
+
     serenaProcess.on("error", (err) => {
       console.error("Failed to start Serena server:", err);
       process.exit(1);
@@ -137,12 +173,16 @@ export async function bridge(sseUrlArg?: string) {
 
     // Wait for server to be ready
     console.error("Waiting for Serena to be ready...");
-    for (let i = 0; i < 30; i++) {
+    const maxAttempts = Math.max(
+      1,
+      Math.ceil(STARTUP_TIMEOUT_MS / STARTUP_CHECK_INTERVAL_MS),
+    );
+    for (let i = 0; i < maxAttempts; i++) {
       if (await checkServer()) {
         console.error("Serena server is ready!");
         return;
       }
-      await new Promise((r) => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, STARTUP_CHECK_INTERVAL_MS));
     }
 
     console.error("Timed out waiting for Serena server to start.");

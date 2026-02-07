@@ -53,7 +53,7 @@ interface MockProcess {
   stderr: { on: MockInstance };
   on: MockInstance;
   kill: MockInstance;
-  stdout: { write: MockInstance };
+  stdout: { write: MockInstance; on: MockInstance };
   stdin: {
     setEncoding: MockInstance;
     on: MockInstance;
@@ -101,7 +101,7 @@ describe("bridge command", () => {
       stderr: { on: vi.fn() },
       on: vi.fn(),
       kill: vi.fn(),
-      stdout: { write: vi.fn() },
+      stdout: { write: vi.fn(), on: vi.fn() },
       stdin: {
         setEncoding: vi.fn(),
         on: vi.fn(),
