@@ -506,6 +506,8 @@ bunx oh-my-ag dashboard:web
 
 ```bash
 bunx oh-my-ag                # 대화형 스킬 설치
+bunx oh-my-ag usage          # 모델 사용량 쿼터 조회 (바 차트)
+bunx oh-my-ag usage --json   # 스크립팅용 JSON 출력
 bunx oh-my-ag doctor         # 설정 확인 & 누락된 스킬 보강
 bunx oh-my-ag doctor --json  # CI/CD용 JSON 출력
 bunx oh-my-ag update         # 스킬을 최신 버전으로 업데이트

@@ -498,6 +498,8 @@ Each skill provides domain-specific resources:
 
 ```bash
 bunx oh-my-ag                # Interactive skill installer
+bunx oh-my-ag usage          # Show model usage quotas (bar chart)
+bunx oh-my-ag usage --json   # JSON output for scripting
 bunx oh-my-ag doctor         # Check setup & repair missing skills
 bunx oh-my-ag doctor --json  # JSON output for CI/CD
 bunx oh-my-ag update         # Update skills to latest version
