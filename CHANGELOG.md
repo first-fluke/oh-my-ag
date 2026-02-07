@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.10.0](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.9.3...oh-my-ag-v1.10.0) (2026-02-07)
+
+
+### Features
+
+* **bridge:** migrate from SSE to Streamable HTTP transport ([16ad162](https://github.com/first-fluke/oh-my-ag/commit/16ad162d5de1ec8053f6de54d0081206ce938daa))
+
+
+### Miscellaneous
+
+* update prompt-manifest.json for 1.9.3 ([8cbe854](https://github.com/first-fluke/oh-my-ag/commit/8cbe8544e8570eadc9db61f8a1dedae1214af313))
+
 ## [1.9.3](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.9.2...oh-my-ag-v1.9.3) (2026-02-07)
 
 
