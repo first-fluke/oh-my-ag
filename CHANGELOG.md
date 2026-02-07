@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.9.2](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.9.1...oh-my-ag-v1.9.2) (2026-02-07)
+
+
+### Documentation
+
+* remove redundant Skills Overview section ([efc4665](https://github.com/first-fluke/oh-my-ag/commit/efc4665b6839dc118ad5fa28758c84c43fc8c484))
+* sort CLI commands alphabetically and simplify ([9d2086d](https://github.com/first-fluke/oh-my-ag/commit/9d2086d6c0af8424c94fa01fbd0f0d79129743f4))
+
+
+### Miscellaneous
+
+* update prompt-manifest.json for 1.9.1 ([b8a2d71](https://github.com/first-fluke/oh-my-ag/commit/b8a2d719e328edcf95bd122df0b05f22047aee18))
+
 ## [1.9.1](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.9.0...oh-my-ag-v1.9.1) (2026-02-07)
 
 
