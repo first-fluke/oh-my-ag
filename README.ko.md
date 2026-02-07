@@ -457,19 +457,16 @@ bunx oh-my-ag dashboard:web
 
 ```bash
 bunx oh-my-ag                # 대화형 스킬 설치
-bunx oh-my-ag usage          # 모델 사용량 쿼터 조회 (바 차트)
-bunx oh-my-ag usage --json   # 스크립팅용 JSON 출력
-bunx oh-my-ag doctor         # 설정 확인 & 누락된 스킬 보강
-bunx oh-my-ag doctor --json  # CI/CD용 JSON 출력
-bunx oh-my-ag update         # 스킬을 최신 버전으로 업데이트
-bunx oh-my-ag stats          # 생산성 메트릭 조회
-bunx oh-my-ag stats --reset  # 메트릭 초기화
-bunx oh-my-ag retro          # 세션 회고 (배운 점 & 다음 단계)
-bunx oh-my-ag memory:init    # Serena 메모리 스키마 초기화
+bunx oh-my-ag bridge         # MCP stdio - SSE 브릿지 (Serena용)
 bunx oh-my-ag dashboard      # 터미널 실시간 대시보드
 bunx oh-my-ag dashboard:web  # 웹 대시보드 (http://localhost:9847)
-bunx oh-my-ag bridge         # MCP stdio - SSE 브릿지 (Serena용)
+bunx oh-my-ag doctor         # 설정 확인 & 누락된 스킬 보강
 bunx oh-my-ag help           # 도움말 표시
+bunx oh-my-ag memory:init    # Serena 메모리 스키마 초기화
+bunx oh-my-ag retro          # 세션 회고 (배운 점 & 다음 단계)
+bunx oh-my-ag stats          # 생산성 메트릭 조회
+bunx oh-my-ag update         # 스킬을 최신 버전으로 업데이트
+bunx oh-my-ag usage          # 모델 사용량 쿼터 조회
 ```
 
 ## 문제 해결

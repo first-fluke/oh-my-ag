@@ -449,19 +449,16 @@ Each skill provides domain-specific resources:
 
 ```bash
 bunx oh-my-ag                # Interactive skill installer
-bunx oh-my-ag usage          # Show model usage quotas (bar chart)
-bunx oh-my-ag usage --json   # JSON output for scripting
-bunx oh-my-ag doctor         # Check setup & repair missing skills
-bunx oh-my-ag doctor --json  # JSON output for CI/CD
-bunx oh-my-ag update         # Update skills to latest version
-bunx oh-my-ag stats          # View productivity metrics
-bunx oh-my-ag stats --reset  # Reset metrics
-bunx oh-my-ag retro          # Session retrospective (learnings & next steps)
-bunx oh-my-ag memory:init    # Initialize Serena memory schema
+bunx oh-my-ag bridge         # Bridge MCP stdio to SSE (for Serena)
 bunx oh-my-ag dashboard      # Terminal real-time dashboard
 bunx oh-my-ag dashboard:web  # Web dashboard (http://localhost:9847)
-bunx oh-my-ag bridge         # Bridge MCP stdio to SSE (for Serena)
+bunx oh-my-ag doctor         # Check setup & repair missing skills
 bunx oh-my-ag help           # Show help
+bunx oh-my-ag memory:init    # Initialize Serena memory schema
+bunx oh-my-ag retro          # Session retrospective (learnings & next steps)
+bunx oh-my-ag stats          # View productivity metrics
+bunx oh-my-ag update         # Update skills to latest version
+bunx oh-my-ag usage          # Show model usage quotas
 ```
 
 ## Troubleshooting
