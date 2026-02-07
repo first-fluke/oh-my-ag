@@ -29,7 +29,6 @@ Orchestrate 6 specialized domain agents (PM, Frontend, Backend, Mobile, QA, Debu
 - [Real-time Dashboards](#real-time-dashboards)
 - [Project Structure](#project-structure)
 - [Skill Architecture](#skill-architecture)
-- [Skills Overview](#skills-overview)
 - [CLI Commands](#cli-commands)
 - [Troubleshooting](#troubleshooting)
 - [Central Registry](#central-registry-for-multi-repo-setup)
@@ -78,17 +77,17 @@ flowchart TD
 
 A collection of **Antigravity Skills** enabling collaborative multi-agent development. Work is distributed across expert agents:
 
-| Agent | Specialization |
-|-------|---------------|
-| **Workflow Guide** | Coordinates complex multi-agent projects |
-| **PM Agent** | Requirements analysis, task decomposition, architecture |
-| **Frontend Agent** | React/Next.js, TypeScript, Tailwind CSS |
-| **Backend Agent** | FastAPI, PostgreSQL, JWT authentication |
-| **Mobile Agent** | Flutter cross-platform development |
-| **QA Agent** | OWASP Top 10 security, performance, accessibility |
-| **Debug Agent** | Bug diagnosis, root cause analysis, regression tests |
-| **Orchestrator** | CLI-based parallel agent execution with Serena Memory |
-| **Commit** | Conventional Commits with project-specific rules |
+| Agent | Specialization | Triggers |
+|-------|---------------|----------|
+| **Workflow Guide** | Coordinates complex multi-agent projects | "multi-domain", "complex project" |
+| **PM Agent** | Requirements analysis, task decomposition, architecture | "plan", "break down", "what should we build" |
+| **Frontend Agent** | React/Next.js, TypeScript, Tailwind CSS | "UI", "component", "styling" |
+| **Backend Agent** | FastAPI, PostgreSQL, JWT authentication | "API", "database", "authentication" |
+| **Mobile Agent** | Flutter cross-platform development | "mobile app", "iOS/Android" |
+| **QA Agent** | OWASP Top 10 security, performance, accessibility | "review security", "audit", "check performance" |
+| **Debug Agent** | Bug diagnosis, root cause analysis, regression tests | "bug", "error", "crash" |
+| **Orchestrator** | CLI-based parallel agent execution with Serena Memory | "spawn agent", "parallel execution" |
+| **Commit** | Conventional Commits with project-specific rules | "commit", "save changes" |
 
 ## Quick Start
 
@@ -445,54 +444,6 @@ Each skill provides domain-specific resources:
 | `error-playbook.md` | Failure recovery with "3 strikes" escalation rule |
 | `tech-stack.md` | Detailed technology specifications |
 | `snippets.md` | Copy-paste ready code patterns |
-
-## Skills Overview
-
-### workflow-guide
-
-**Triggers**: Complex multi-domain requests
-**Does**: Guides coordination of PM, Frontend, Backend, Mobile, QA agents
-
-### pm-agent
-
-**Triggers**: "plan this", "break down", "what should we build"
-**Output**: `.agent/plan.json` with tasks, priorities, dependencies
-
-### frontend-agent
-
-**Triggers**: UI, components, styling, client-side logic
-**Stack**: Next.js 14, TypeScript, Tailwind CSS, shadcn/ui
-
-### backend-agent
-
-**Triggers**: APIs, databases, authentication
-**Stack**: FastAPI, SQLAlchemy, PostgreSQL, Redis, JWT
-
-### mobile-agent
-
-**Triggers**: Mobile apps, iOS/Android
-**Stack**: Flutter 3.19+, Dart, Riverpod
-
-### qa-agent
-
-**Triggers**: "review security", "check performance", "audit"
-**Checks**: OWASP Top 10, Lighthouse, WCAG 2.1 AA
-
-### debug-agent
-
-**Triggers**: Bug reports, error messages, crashes
-**Output**: Fixed code, regression tests, bug documentation
-
-### orchestrator
-
-**Triggers**: Programmatic sub-agent execution
-**CLIs**: Gemini, Claude, Codex, Qwen (configurable)
-
-### commit
-
-**Triggers**: "commit", "커밋해줘", "save changes"
-**Format**: Conventional Commits with Co-Author tag
-**Config**: `.agent/skills/commit/config/commit-config.yaml`
 
 ## CLI Commands
 

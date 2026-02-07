@@ -27,7 +27,6 @@ Google Antigravity를 위한 궁극의 멀티 에이전트 프레임워크.
 - [실시간 대시보드](#실시간-대시보드)
 - [프로젝트 구조](#프로젝트-구조)
 - [스킬 아키텍처](#스킬-아키텍처)
-- [스킬 개요](#스킬-개요)
 - [CLI 명령어](#cli-명령어)
 - [문제 해결](#문제-해결)
 - [라이선스](#라이선스)
@@ -36,17 +35,17 @@ Google Antigravity를 위한 궁극의 멀티 에이전트 프레임워크.
 
 멀티 에이전트 협업 개발을 위한 **Antigravity Skills** 모음입니다. 작업을 전문 에이전트에게 분배합니다:
 
-| 에이전트 | 전문 분야 |
-|---------|----------|
-| **Workflow Guide** | 복잡한 멀티 에이전트 프로젝트 조율 |
-| **PM Agent** | 요구사항 분석, 태스크 분해, 아키텍처 설계 |
-| **Frontend Agent** | React/Next.js, TypeScript, Tailwind CSS |
-| **Backend Agent** | FastAPI, PostgreSQL, JWT 인증 |
-| **Mobile Agent** | Flutter 크로스 플랫폼 개발 |
-| **QA Agent** | OWASP Top 10 보안, 성능, 접근성 감사 |
-| **Debug Agent** | 버그 진단, 근본 원인 분석, 회귀 테스트 |
-| **Orchestrator** | CLI 기반 병렬 에이전트 실행 + Serena Memory |
-| **Commit** | Conventional Commits 규칙 기반 커밋 관리 |
+| 에이전트 | 전문 분야 | 발동 키워드 |
+|---------|----------|-----------|
+| **Workflow Guide** | 복잡한 멀티 에이전트 프로젝트 조율 | "멀티 도메인", "복잡한 프로젝트" |
+| **PM Agent** | 요구사항 분석, 태스크 분해, 아키텍처 설계 | "기획", "분석", "뭘 만들어야 할까" |
+| **Frontend Agent** | React/Next.js, TypeScript, Tailwind CSS | "UI", "컴포넌트", "스타일링" |
+| **Backend Agent** | FastAPI, PostgreSQL, JWT 인증 | "API", "데이터베이스", "인증" |
+| **Mobile Agent** | Flutter 크로스 플랫폼 개발 | "모바일 앱", "iOS/Android" |
+| **QA Agent** | OWASP Top 10 보안, 성능, 접근성 감사 | "보안 검토", "감사", "성능 확인" |
+| **Debug Agent** | 버그 진단, 근본 원인 분석, 회귀 테스트 | "버그", "에러", "크래시" |
+| **Orchestrator** | CLI 기반 병렬 에이전트 실행 + Serena Memory | "에이전트 실행", "병렬 실행" |
+| **Commit** | Conventional Commits 규칙 기반 커밋 관리 | "커밋", "변경사항 저장" |
 
 ## 아키텍처
 
@@ -453,54 +452,6 @@ bunx oh-my-ag dashboard:web
 | `error-playbook.md` | "3 strikes" 에스컬레이션 규칙을 포함한 장애 복구 |
 | `tech-stack.md` | 상세 기술 사양 |
 | `snippets.md` | 바로 사용 가능한 코드 패턴 |
-
-## 스킬 개요
-
-### workflow-guide
-
-**발동 조건**: 복잡한 멀티 도메인 요청
-**역할**: PM, Frontend, Backend, Mobile, QA 에이전트 조율 안내
-
-### pm-agent
-
-**발동 조건**: "기획해줘", "분석해줘", "뭘 만들어야 할까"
-**산출물**: `.agent/plan.json` (태스크, 우선순위, 의존성)
-
-### frontend-agent
-
-**발동 조건**: UI, 컴포넌트, 스타일링, 클라이언트 로직
-**기술 스택**: Next.js 14, TypeScript, Tailwind CSS, shadcn/ui
-
-### backend-agent
-
-**발동 조건**: API, 데이터베이스, 인증
-**기술 스택**: FastAPI, SQLAlchemy, PostgreSQL, Redis, JWT
-
-### mobile-agent
-
-**발동 조건**: 모바일 앱, iOS/Android
-**기술 스택**: Flutter 3.19+, Dart, Riverpod
-
-### qa-agent
-
-**발동 조건**: "보안 검토해줘", "성능 확인", "감사해줘"
-**검사 항목**: OWASP Top 10, Lighthouse, WCAG 2.1 AA
-
-### debug-agent
-
-**발동 조건**: 버그 리포트, 에러 메시지, 크래시
-**산출물**: 수정된 코드, 회귀 테스트, 버그 문서
-
-### orchestrator
-
-**발동 조건**: 프로그래밍 방식의 서브에이전트 실행
-**지원 CLI**: Gemini, Claude, Codex, Qwen (설정 가능)
-
-### commit
-
-**발동 조건**: "커밋해줘", "commit", "변경사항 저장"
-**형식**: Conventional Commits + Co-Author 태그
-**설정**: `.agent/skills/commit/config/commit-config.yaml`
 
 ## CLI 명령어
 
