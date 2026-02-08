@@ -32,6 +32,7 @@ Orchestrate 6 specialized domain agents (PM, Frontend, Backend, Mobile, QA, Debu
 - [CLI Commands](#cli-commands)
 - [Troubleshooting](#troubleshooting)
 - [Central Registry](#central-registry-for-multi-repo-setup)
+- [Sponsors](#sponsors)
 - [License](#license)
 
 ## Architecture
@@ -560,6 +561,30 @@ Consumer projects can use the sync action directly:
     version: '1.2.0'  # or 'latest'
     github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+## Sponsors
+
+This project is maintained thanks to our generous sponsors.
+
+<a href="https://github.com/sponsors/first-fluke">
+  <img src="https://img.shields.io/badge/Sponsor-♥-ea4aaa?style=for-the-badge" alt="Sponsor" />
+</a>
+
+### 🚀 Champion
+
+<!-- Champion tier ($100/mo) logos here -->
+
+### 🛸 Booster
+
+<!-- Booster tier ($30/mo) logos here -->
+
+### ☕ Contributor
+
+<!-- Contributor tier ($10/mo) names here -->
+
+[Become a sponsor →](https://github.com/sponsors/first-fluke)
+
+See [SPONSORS.md](./SPONSORS.md) for a full list of supporters.
 
 ## Star History
 

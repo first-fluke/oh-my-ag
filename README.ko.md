@@ -29,6 +29,7 @@ Google Antigravity를 위한 궁극의 멀티 에이전트 프레임워크.
 - [스킬 아키텍처](#스킬-아키텍처)
 - [CLI 명령어](#cli-명령어)
 - [문제 해결](#문제-해결)
+- [후원하기](#후원하기)
 - [라이선스](#라이선스)
 
 ## 이게 뭔가요?
@@ -494,6 +495,30 @@ bunx oh-my-ag usage          # 모델 사용량 쿼터 조회
 1. `.gemini/antigravity/brain/`에서 산출물 검토
 2. 다른 에이전트의 산출물을 참조하여 재생성
 3. QA Agent로 최종 일관성 검사
+
+## 후원하기
+
+이 프로젝트는 후원자분들의 지원으로 유지됩니다.
+
+<a href="https://github.com/sponsors/first-fluke">
+  <img src="https://img.shields.io/badge/후원하기-♥-ea4aaa?style=for-the-badge" alt="Sponsor" />
+</a>
+
+### 🚀 Champion
+
+<!-- Champion 티어 ($100/월) 로고 -->
+
+### 🛸 Booster
+
+<!-- Booster 티어 ($30/월) 로고 -->
+
+### ☕ Contributor
+
+<!-- Contributor 티어 ($10/월) 이름 -->
+
+[후원자 되기 →](https://github.com/sponsors/first-fluke)
+
+전체 후원자 목록은 [SPONSORS.md](./SPONSORS.md)를 참고하세요.
 
 ## 스타 히스토리
 
