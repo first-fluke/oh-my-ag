@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.14.0](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.13.2...oh-my-ag-v1.14.0) (2026-02-08)
+
+
+### Features
+
+* add CD tracking and migrate verify.sh to CLI ([e90ba23](https://github.com/first-fluke/oh-my-ag/commit/e90ba23c3327a71388ce7bc55238b3f324940841))
+
+
+### Documentation
+
+* add demo simulation script for promotional GIF ([20eaa6b](https://github.com/first-fluke/oh-my-ag/commit/20eaa6b7131a8b0406b8dcf27bf2edd0eb87c865))
+
+
+### Miscellaneous
+
+* update prompt-manifest.json for 1.13.2 ([e53b402](https://github.com/first-fluke/oh-my-ag/commit/e53b4027f990b6979efc6c3050c6529fb6d0cec5))
+
 ## [1.13.2](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.13.1...oh-my-ag-v1.13.2) (2026-02-08)
 
 
