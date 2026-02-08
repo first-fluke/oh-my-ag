@@ -224,14 +224,7 @@ antigravity open .
 
 ### 3. 대시보드로 모니터링
 
-```bash
-# bun이 없으면 먼저 설치:
-# curl -fsSL https://bun.sh/install | bash
-
-bunx oh-my-ag dashboard      # 터미널 대시보드 (실시간)
-bunx oh-my-ag dashboard:web  # 웹 대시보드 (브라우저 UI)
-# → http://localhost:9847
-```
+대시보드 설정과 상세 사용법은 [`docs/USAGE.ko.md`](./docs/USAGE.ko.md#실시간-대시보드)를 참고하세요.
 
 ## 동작 원리
 
@@ -322,50 +315,12 @@ Orchestrator가 `.serena/memories/`에 구조화된 상태를 기록합니다:
 
 ## 실시간 대시보드
 
-### 터미널 대시보드
+대시보드는 orchestrator 세션 모니터링을 위한 선택 기능입니다.
 
-```bash
-# bun이 없으면 먼저 설치:
-# curl -fsSL https://bun.sh/install | bash
+- 터미널: `bunx oh-my-ag dashboard`
+- 웹: `bunx oh-my-ag dashboard:web` (`http://localhost:9847`)
 
-bunx oh-my-ag dashboard
-```
-
-`.serena/memories/`를 감시하여 터미널에 실시간 상태 테이블을 표시합니다:
-
-```
-╔════════════════════════════════════════════════════════╗
-║  Serena Memory Dashboard                              ║
-║  Session: session-20260128-143022 [RUNNING]           ║
-╠════════════════════════════════════════════════════════╣
-║  Agent        Status        Turn   Task               ║
-║  ──────────   ──────────    ────   ──────────         ║
-║  backend      ● running      12   JWT Auth API        ║
-║  frontend     ✓ completed    18   Login UI            ║
-║  qa           ○ blocked       -   Security Review     ║
-╠════════════════════════════════════════════════════════╣
-║  Latest Activity:                                     ║
-║  [backend] Turn 12 - Added tests and rate limit       ║
-║  [frontend] Completed - All criteria met              ║
-╠════════════════════════════════════════════════════════╣
-║  Updated: 2026-01-28 14:32:05  |  Ctrl+C to exit     ║
-╚════════════════════════════════════════════════════════╝
-```
-
-### 웹 대시보드
-
-```bash
-bunx oh-my-ag dashboard:web
-# → http://localhost:9847
-```
-
-기능:
-
-- WebSocket 실시간 푸시 (폴링 없음)
-- 연결 끊김 시 자동 재연결
-- 볼라색 Serena 테마 UI
-- 세션 상태, 에이전트 테이블, 활동 로그
-- chokidar 기반 이벤트 드리븐 파일 감시 (크로스 플랫폼)
+요구사항, 화면, 상세 동작은 [`docs/USAGE.ko.md`](./docs/USAGE.ko.md#실시간-대시보드)를 참고하세요.
 
 ## 스킬 아키텍처
 

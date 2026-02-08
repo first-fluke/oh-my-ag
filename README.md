@@ -220,11 +220,7 @@ This creates `.agent/config/user-preferences.yaml` for your project.
 
 ### 3. Monitor with Dashboards
 
-```bash
-bunx oh-my-ag dashboard      # Terminal dashboard (bash)
-bunx oh-my-ag dashboard:web  # Web dashboard (Node.js)
-# → http://localhost:9847
-```
+For dashboard setup and usage details, see [`docs/USAGE.md`](./docs/USAGE.md#real-time-dashboards).
 
 ## How It Works
 
@@ -315,47 +311,12 @@ Both dashboards watch these files for real-time monitoring.
 
 ## Real-time Dashboards
 
-### Terminal Dashboard
+Dashboards are optional monitoring tools for orchestrator sessions:
 
-```bash
-bunx oh-my-ag dashboard
-```
+- Terminal: `bunx oh-my-ag dashboard`
+- Web: `bunx oh-my-ag dashboard:web` (`http://localhost:9847`)
 
-Watches `.serena/memories/` and renders a live status table in your terminal:
-
-```
-╔════════════════════════════════════════════════════════╗
-║  Serena Memory Dashboard                              ║
-║  Session: session-20260128-143022 [RUNNING]           ║
-╠════════════════════════════════════════════════════════╣
-║  Agent        Status        Turn   Task               ║
-║  ──────────   ──────────    ────   ──────────         ║
-║  backend      ● running      12   JWT Auth API        ║
-║  frontend     ✓ completed    18   Login UI            ║
-║  qa           ○ blocked       -   Security Review     ║
-╠════════════════════════════════════════════════════════╣
-║  Latest Activity:                                     ║
-║  [backend] Turn 12 - Added tests and rate limit       ║
-║  [frontend] Completed - All criteria met              ║
-╠════════════════════════════════════════════════════════╣
-║  Updated: 2026-01-28 14:32:05  |  Ctrl+C to exit     ║
-╚════════════════════════════════════════════════════════╝
-```
-
-### Web Dashboard
-
-```bash
-bunx oh-my-ag dashboard:web
-# → http://localhost:9847
-```
-
-Features:
-
-- Real-time WebSocket push (no polling)
-- Auto-reconnect on disconnection
-- Purple Serena-themed UI
-- Session status, agent table, activity log
-- Event-driven file watching via chokidar (cross-platform)
+For requirements, screenshots, and detailed behavior, see [`docs/USAGE.md`](./docs/USAGE.md#real-time-dashboards).
 
 ## Skill Architecture
 
