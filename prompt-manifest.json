@@ -1,7 +1,7 @@
 {
   "name": "oh-my-ag",
   "version": "1.12.1",
-  "releaseDate": "2026-02-08T05:51:58.198Z",
+  "releaseDate": "2026-02-08T05:58:10.589Z",
   "repository": "https://github.com/first-fluke/oh-my-ag",
   "files": [
     {
@@ -121,7 +121,7 @@
     },
     {
       "path": ".agent/skills/commit/config/commit-config.yaml",
-      "sha256": "52cf1faa0d18ee63edeaab5443468493e69f4cd7f13f5c2bf38b403763250b5f",
+      "sha256": "a6443cb90e82b3beffe316c2331643a526bbc2a59f330e3f90added684a27e94",
       "size": 880
     },
     {
