@@ -209,6 +209,32 @@ function resolvePromptFlag(
   return defaults[vendor] ?? "-p";
 }
 
+// ============================================================================
+// Monorepo Workspace Detection
+// ============================================================================
+
+/**
+ * Keywords to match workspace directories to agent types.
+ * Order matters - first match wins.
+ */
+const AGENT_WORKSPACE_KEYWORDS: Record<string, string[]> = {
+  frontend: [
+    "web",
+    "frontend",
+    "client",
+    "ui",
+    "app",
+    "dashboard",
+    "admin",
+    "portal",
+  ],
+  backend: ["api", "backend", "server", "service", "gateway", "core"],
+  mobile: ["mobile", "ios", "android", "native", "rn", "expo"],
+};
+
+/**
+ * Fallback candidates when no monorepo config is found.
+ */
 const WORKSPACE_CANDIDATES: Record<string, string[]> = {
   frontend: [
     "apps/web",
@@ -233,7 +259,241 @@ const WORKSPACE_CANDIDATES: Record<string, string[]> = {
   mobile: ["apps/mobile", "apps/app", "packages/mobile", "mobile", "app"],
 };
 
+/**
+ * Expand simple glob patterns like "apps/*" or "packages/*".
+ * Supports patterns ending with /* or /** (treated the same for top-level).
+ */
+function expandGlobPattern(pattern: string, cwd: string): string[] {
+  // Handle negation patterns (skip them)
+  if (pattern.startsWith("!")) {
+    return [];
+  }
+
+  // Clean up pattern
+  const cleanPattern = pattern.replace(/\/\*\*?$/, "").replace(/\/$/, "");
+
+  // If no wildcard, it's a direct path
+  if (!pattern.includes("*")) {
+    const fullPath = path.join(cwd, cleanPattern);
+    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
+      return [cleanPattern];
+    }
+    return [];
+  }
+
+  // Handle patterns like "apps/*" or "packages/*"
+  const parentDir = path.join(cwd, cleanPattern);
+  if (!fs.existsSync(parentDir) || !fs.statSync(parentDir).isDirectory()) {
+    return [];
+  }
+
+  try {
+    const entries = fs.readdirSync(parentDir, { withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isDirectory() && !entry.name.startsWith("."))
+      .map((entry) => path.join(cleanPattern, entry.name));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Parse pnpm-workspace.yaml to get workspace patterns.
+ */
+function parsePnpmWorkspace(cwd: string): string[] {
+  const configPath = path.join(cwd, "pnpm-workspace.yaml");
+  if (!fs.existsSync(configPath)) return [];
+
+  try {
+    const content = fs.readFileSync(configPath, "utf-8");
+    const parsed = parseYaml(content) as { packages?: string[] };
+    return parsed?.packages ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Parse package.json workspaces field.
+ * Supports both array format and object format with packages field.
+ */
+function parsePackageJsonWorkspaces(cwd: string): string[] {
+  const configPath = path.join(cwd, "package.json");
+  if (!fs.existsSync(configPath)) return [];
+
+  try {
+    const content = fs.readFileSync(configPath, "utf-8");
+    const parsed = JSON.parse(content) as {
+      workspaces?: string[] | { packages?: string[] };
+    };
+
+    if (Array.isArray(parsed?.workspaces)) {
+      return parsed.workspaces;
+    }
+    if (parsed?.workspaces && typeof parsed.workspaces === "object") {
+      return parsed.workspaces.packages ?? [];
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Parse lerna.json packages field.
+ */
+function parseLernaConfig(cwd: string): string[] {
+  const configPath = path.join(cwd, "lerna.json");
+  if (!fs.existsSync(configPath)) return [];
+
+  try {
+    const content = fs.readFileSync(configPath, "utf-8");
+    const parsed = JSON.parse(content) as { packages?: string[] };
+    return parsed?.packages ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Check if Nx monorepo (nx.json exists) - use standard Nx conventions.
+ */
+function detectNxWorkspaces(cwd: string): string[] {
+  const configPath = path.join(cwd, "nx.json");
+  if (!fs.existsSync(configPath)) return [];
+
+  // Nx typically uses apps/* and libs/*
+  const patterns = ["apps/*", "libs/*", "packages/*"];
+  return patterns.flatMap((p) => expandGlobPattern(p, cwd));
+}
+
+/**
+ * Check Turbo monorepo via turbo.json - use package.json workspaces.
+ */
+function detectTurboWorkspaces(cwd: string): string[] {
+  const configPath = path.join(cwd, "turbo.json");
+  if (!fs.existsSync(configPath)) return [];
+
+  // Turbo uses package.json workspaces
+  return parsePackageJsonWorkspaces(cwd);
+}
+
+/**
+ * Parse mise.toml for project-specific workspace hints.
+ */
+function parseMiseConfig(cwd: string): string[] {
+  const configPath = path.join(cwd, "mise.toml");
+  if (!fs.existsSync(configPath)) return [];
+
+  try {
+    const content = fs.readFileSync(configPath, "utf-8");
+    // Look for [env] section with WORKSPACE patterns or custom keys
+    // mise.toml is TOML, but we can do simple regex for common patterns
+    const patterns: string[] = [];
+
+    // Match lines like: workspaces = ["apps/*", "packages/*"]
+    const workspacesMatch = content.match(/workspaces\s*=\s*\[([^\]]+)\]/);
+    if (workspacesMatch?.[1]) {
+      const items = workspacesMatch[1].match(/"([^"]+)"|'([^']+)'/g);
+      if (items) {
+        patterns.push(...items.map((s) => s.replace(/["']/g, "")));
+      }
+    }
+
+    return patterns;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Get all workspace directories from monorepo configuration files.
+ * Checks: pnpm-workspace.yaml, package.json, lerna.json, nx.json, turbo.json, mise.toml
+ */
+function getMonorepoWorkspaces(cwd: string): string[] {
+  const patterns = new Set<string>();
+
+  // Priority order: pnpm > package.json > lerna > nx > turbo > mise
+  const sources = [
+    parsePnpmWorkspace(cwd),
+    parsePackageJsonWorkspaces(cwd),
+    parseLernaConfig(cwd),
+    detectNxWorkspaces(cwd),
+    detectTurboWorkspaces(cwd),
+    parseMiseConfig(cwd),
+  ];
+
+  for (const source of sources) {
+    for (const pattern of source) {
+      patterns.add(pattern);
+    }
+  }
+
+  // Expand all patterns to actual directories
+  const workspaces = new Set<string>();
+  for (const pattern of patterns) {
+    for (const dir of expandGlobPattern(pattern, cwd)) {
+      workspaces.add(dir);
+    }
+  }
+
+  return [...workspaces];
+}
+
+/**
+ * Match a workspace directory to an agent type based on keywords.
+ * Returns a score (higher = better match).
+ */
+function scoreWorkspaceMatch(workspace: string, agentId: string): number {
+  const keywords = AGENT_WORKSPACE_KEYWORDS[agentId];
+  if (!keywords) return 0;
+
+  const dirName = path.basename(workspace).toLowerCase();
+  const fullPath = workspace.toLowerCase();
+
+  for (let i = 0; i < keywords.length; i++) {
+    const keyword = keywords[i];
+    // Exact match on directory name gets highest score
+    if (dirName === keyword) {
+      return 100 - i;
+    }
+    // Directory name contains keyword
+    if (dirName.includes(keyword)) {
+      return 50 - i;
+    }
+    // Full path contains keyword (e.g., apps/web-admin)
+    if (fullPath.includes(keyword)) {
+      return 25 - i;
+    }
+  }
+
+  return 0;
+}
+
+/**
+ * Detect the best workspace for an agent type.
+ * 1. First, try to detect from monorepo config files
+ * 2. Fall back to hardcoded candidates
+ */
 function detectWorkspace(agentId: string): string {
+  const cwd = process.cwd();
+
+  // Try monorepo detection first
+  const workspaces = getMonorepoWorkspaces(cwd);
+
+  if (workspaces.length > 0) {
+    // Score each workspace for this agent type
+    const scored = workspaces
+      .map((ws) => ({ workspace: ws, score: scoreWorkspaceMatch(ws, agentId) }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score);
+
+    if (scored.length > 0) {
+      return scored[0].workspace;
+    }
+  }
+
+  // Fall back to hardcoded candidates
   const candidates = WORKSPACE_CANDIDATES[agentId];
   if (candidates) {
     for (const candidate of candidates) {
@@ -243,6 +503,7 @@ function detectWorkspace(agentId: string): string {
       }
     }
   }
+
   return ".";
 }
 

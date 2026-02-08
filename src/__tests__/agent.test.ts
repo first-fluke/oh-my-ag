@@ -18,6 +18,9 @@ const mockFsFunctions = vi.hoisted(() => ({
   writeFileSync: vi.fn(),
   unlinkSync: vi.fn(),
   openSync: vi.fn(),
+  statSync: vi.fn(),
+  mkdirSync: vi.fn(),
+  readdirSync: vi.fn(),
 }));
 
 vi.mock("node:fs", async () => {
@@ -46,8 +49,25 @@ describe("agent command", () => {
   });
 
   describe("spawnAgent", () => {
-    it("should exit if prompt file missing", async () => {
-      mockFsFunctions.existsSync.mockReturnValue(false);
+    it("should exit if spawn returns no pid", async () => {
+      mockFsFunctions.existsSync.mockImplementation((pathArg: fs.PathLike) => {
+        const target = pathArg.toString();
+        if (target === "/tmp") return true;
+        return false;
+      });
+      mockFsFunctions.statSync.mockImplementation((pathArg: fs.PathLike) => {
+        const target = pathArg.toString();
+        if (target === "/tmp")
+          return { isDirectory: () => true, isFile: () => false };
+        return { isDirectory: () => false, isFile: () => false };
+      });
+      mockFsFunctions.openSync.mockReturnValue(123);
+
+      const mockChild = { pid: undefined, on: vi.fn(), unref: vi.fn() };
+      vi.mocked(child_process.spawn).mockReturnValue(
+        mockChild as unknown as child_process.ChildProcess,
+      );
+
       const exitSpy = vi
         .spyOn(process, "exit")
         .mockImplementation(
@@ -69,7 +89,15 @@ describe("agent command", () => {
         if (target.includes("cli-config.yaml")) return false;
         if (target.includes("prompt.md")) return true;
         if (target === "/tmp") return true;
-        return true;
+        return false;
+      });
+      mockFsFunctions.statSync.mockImplementation((pathArg: fs.PathLike) => {
+        const target = pathArg.toString();
+        if (target.includes("prompt.md"))
+          return { isDirectory: () => false, isFile: () => true };
+        if (target === "/tmp")
+          return { isDirectory: () => true, isFile: () => false };
+        return { isDirectory: () => false, isFile: () => false };
       });
       mockFsFunctions.readFileSync.mockImplementation(
         (pathArg: fs.PathLike) => {
