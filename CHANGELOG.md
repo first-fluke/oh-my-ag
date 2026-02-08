@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.13.1](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.13.0...oh-my-ag-v1.13.1) (2026-02-08)
+
+
+### Documentation
+
+* reduce dashboard duplication in readmes ([1b0524f](https://github.com/first-fluke/oh-my-ag/commit/1b0524feebac4919f76f79d1549b6632a707c68b))
+
+
+### Miscellaneous
+
+* update prompt-manifest.json for 1.13.0 ([cd4025a](https://github.com/first-fluke/oh-my-ag/commit/cd4025aca6e7b1f0579539066087332ed74a609d))
+
 ## [1.13.0](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.12.2...oh-my-ag-v1.13.0) (2026-02-08)
 
 
