@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.11.0](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.10.0...oh-my-ag-v1.11.0) (2026-02-08)
+
+
+### Features
+
+* **agent:** improve spawn UX with auto-detect workspace, inline prompt, and -w option ([473c32b](https://github.com/first-fluke/oh-my-ag/commit/473c32b170b784da464bb6f81573c1f9d39a3329))
+* **install,doctor:** add git rerere auto-detection and setup ([f027fc0](https://github.com/first-fluke/oh-my-ag/commit/f027fc033a1430e7731aefa07f6e2a78cfab9b68))
+
+
+### Miscellaneous
+
+* update prompt-manifest.json for 1.10.0 ([40badde](https://github.com/first-fluke/oh-my-ag/commit/40baddef05b50b4c74aa9b08215351d39b17e210))
+
 ## [1.10.0](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.9.3...oh-my-ag-v1.10.0) (2026-02-07)
 
 
