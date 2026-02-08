@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.13.0](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.12.2...oh-my-ag-v1.13.0) (2026-02-08)
+
+
+### Features
+
+* **install,doctor:** show support prompt last with sponsor link ([96624f3](https://github.com/first-fluke/oh-my-ag/commit/96624f3c758df51430bc2664f3f26314e54b4ccf))
+
+
+### Documentation
+
+* split project structure docs and sync Korean README registry ([fbdb3fb](https://github.com/first-fluke/oh-my-ag/commit/fbdb3fb968f78b7cb3fe3a9d17790677f02f4ac5))
+
+
+### Miscellaneous
+
+* update prompt-manifest.json for 1.12.2 ([583ddb0](https://github.com/first-fluke/oh-my-ag/commit/583ddb0f46ea79500b51a81138eb0fe015e30c8e))
+
 ## [1.12.2](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.12.1...oh-my-ag-v1.12.2) (2026-02-08)
 
 
