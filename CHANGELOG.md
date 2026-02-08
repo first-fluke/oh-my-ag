@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.13.2](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.13.1...oh-my-ag-v1.13.2) (2026-02-08)
+
+
+### Documentation
+
+* simplify installation options in README files ([b4c9a7a](https://github.com/first-fluke/oh-my-ag/commit/b4c9a7a1ac3010742e9d993ec244f9f16beb9c8e))
+
+
+### Miscellaneous
+
+* update prompt-manifest.json for 1.13.1 ([bfd0f72](https://github.com/first-fluke/oh-my-ag/commit/bfd0f72dd621cd8580be16819f520399bdabd091))
+
 ## [1.13.1](https://github.com/first-fluke/oh-my-ag/compare/oh-my-ag-v1.13.0...oh-my-ag-v1.13.1) (2026-02-08)
 
 
