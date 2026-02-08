@@ -414,9 +414,11 @@ bunx oh-my-ag dashboard:web
 ├── .serena/
 │   └── memories/                   # 런타임 상태 (gitignore 처리됨)
 ├── package.json
+├── docs/
+│   ├── USAGE.md                    # 상세 사용 가이드 (영문)
+│   └── USAGE.ko.md                 # 상세 사용 가이드 (한글)
 ├── README.md                       # 영문 가이드
-├── README.ko.md                    # 한글 가이드 (이 파일)
-└── USAGE.md                        # 상세 사용 가이드
+└── README.ko.md                    # 한글 가이드 (이 파일)
 ```
 
 ## 스킬 아키텍처
@@ -507,8 +509,8 @@ MIT
 |------|------|------|
 | [README.md](./README.md) | 사용자 | 프로젝트 개요 (영문) |
 | [README.ko.md](./README.ko.md) | 사용자 | 프로젝트 개요 (한글) |
-| [USAGE.md](./USAGE.md) | 사용자 | 스킬 사용 방법 (영문) |
-| [USAGE.ko.md](./USAGE.ko.md) | 사용자 | 스킬 사용 방법 (한글) |
+| [USAGE.md](./docs/USAGE.md) | 사용자 | 스킬 사용 방법 (영문) |
+| [USAGE.ko.md](./docs/USAGE.ko.md) | 사용자 | 스킬 사용 방법 (한글) |
 | [AGENT_GUIDE.md](./AGENT_GUIDE.md) | 개발자 | **기존 프로젝트에 통합하는 방법** |
 
 ---

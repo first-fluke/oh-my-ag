@@ -406,9 +406,11 @@ Features:
 ├── .serena/
 │   └── memories/                   # Runtime state (gitignored)
 ├── package.json
+├── docs/
+│   ├── USAGE.md                    # Detailed usage guide (English)
+│   └── USAGE.ko.md                 # Detailed usage guide (Korean)
 ├── README.md                       # This file (English)
-├── README.ko.md                    # Korean guide
-└── USAGE.md                        # Detailed usage guide
+└── README.ko.md                    # Korean guide
 ```
 
 ## Skill Architecture
@@ -573,8 +575,8 @@ MIT
 |----------|----------|---------|
 | [README.md](./README.md) | Users | Project overview (English) |
 | [README.ko.md](./README.ko.md) | Users | Project overview (Korean) |
-| [USAGE.md](./USAGE.md) | Users | How to use the skills (English) |
-| [USAGE.ko.md](./USAGE.ko.md) | Users | How to use the skills (Korean) |
+| [USAGE.md](./docs/USAGE.md) | Users | How to use the skills (English) |
+| [USAGE.ko.md](./docs/USAGE.ko.md) | Users | How to use the skills (Korean) |
 | [AGENT_GUIDE.md](./AGENT_GUIDE.md) | Developers | **How to integrate into your existing project** |
 
 ---

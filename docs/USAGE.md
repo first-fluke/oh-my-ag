@@ -40,8 +40,8 @@
 2. **PM Agent plans** — creates task breakdown with priorities
 3. **You spawn agents via CLI**:
    ```bash
-   .agent/skills/orchestrator/scripts/spawn-agent.sh backend "JWT authentication API" ./backend &
-   .agent/skills/orchestrator/scripts/spawn-agent.sh frontend "Login and TODO UI" ./frontend &
+   oh-my-ag agent:spawn backend "JWT authentication API" session-01 &
+   oh-my-ag agent:spawn frontend "Login and TODO UI" session-01 &
    wait
    ```
 4. **Agents work in parallel** — save outputs to Knowledge Base
@@ -67,13 +67,13 @@
 ### Example 4: CLI-based Parallel Execution
 
 ```bash
-# Single agent
-./scripts/spawn-subagent.sh backend "Implement JWT auth API" ./backend
+# Single agent (workspace auto-detected)
+oh-my-ag agent:spawn backend "Implement JWT auth API" session-01
 
 # Parallel agents
-./scripts/spawn-subagent.sh backend "Implement auth API" ./backend &
-./scripts/spawn-subagent.sh frontend "Create login form" ./frontend &
-./scripts/spawn-subagent.sh mobile "Build auth screens" ./mobile &
+oh-my-ag agent:spawn backend "Implement auth API" session-01 &
+oh-my-ag agent:spawn frontend "Create login form" session-01 &
+oh-my-ag agent:spawn mobile "Build auth screens" session-01 &
 wait
 ```
 
@@ -143,7 +143,7 @@ Shared resources live in `_shared/` (not a skill) and are referenced by all agen
 - Cross-session lessons learned accumulation
 
 ### CLI Agent Spawning
-Use `spawn-agent.sh` to run agents via CLI. Respects `agent_cli_mapping` in `user-preferences.yaml` to select the appropriate CLI (gemini, claude, codex) per agent type.
+Use `oh-my-ag agent:spawn` to run agents via CLI. Respects `agent_cli_mapping` in `user-preferences.yaml` to select the appropriate CLI (gemini, claude, codex, qwen) per agent type. Workspace is auto-detected from common monorepo conventions, or can be set explicitly with `-w`.
 
 ### Knowledge Base
 Agent outputs stored at `.gemini/antigravity/brain/`. Contains plans, code, reports, and coordination notes.
@@ -209,7 +209,7 @@ You: "Create a button component"
 You: "Build a TODO app with authentication"
   → workflow-guide activates automatically
   → PM Agent creates plan
-  → You spawn agents via CLI (spawn-agent.sh)
+  → You spawn agents via CLI (oh-my-ag agent:spawn)
   → Agents work in parallel
   → QA Agent reviews
   → Fix issues, iterate
@@ -237,8 +237,8 @@ You: "Login button throws TypeError"
 
 ```
 Terminal 1: bunx oh-my-ag dashboard:web
-Terminal 2: ./scripts/spawn-subagent.sh backend "task" ./backend &
-            ./scripts/spawn-subagent.sh frontend "task" ./frontend &
+Terminal 2: oh-my-ag agent:spawn backend "task" session-01 &
+            oh-my-ag agent:spawn frontend "task" session-01 &
 Browser:    http://localhost:9847 → real-time status
 ```
 
@@ -288,7 +288,7 @@ bunx oh-my-ag help           # Show help
 
 ## For Developers (Integration Guide)
 
-If you want to integrate these skills into your existing Antigravity project, see [AGENT_GUIDE.md](./AGENT_GUIDE.md) for:
+If you want to integrate these skills into your existing Antigravity project, see [AGENT_GUIDE.md](../AGENT_GUIDE.md) for:
 - Quick 3-step integration
 - Full dashboard integration
 - Customizing skills for your tech stack
@@ -296,4 +296,4 @@ If you want to integrate these skills into your existing Antigravity project, se
 
 ---
 
-**Just chat in Antigravity IDE.** For monitoring, use the dashboards. For CLI execution, use the orchestrator scripts. To integrate into your existing project, see [AGENT_GUIDE.md](./AGENT_GUIDE.md).
+**Just chat in Antigravity IDE.** For monitoring, use the dashboards. For CLI execution, use the orchestrator scripts. To integrate into your existing project, see [AGENT_GUIDE.md](../AGENT_GUIDE.md).

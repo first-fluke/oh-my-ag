@@ -40,8 +40,8 @@
 2. **PM Agent 기획** — 우선순위와 함께 태스크 분해
 3. **CLI로 에이전트 생성**:
    ```bash
-   .agent/skills/orchestrator/scripts/spawn-agent.sh backend "JWT 인증 API" ./backend &
-   .agent/skills/orchestrator/scripts/spawn-agent.sh frontend "로그인 및 TODO UI" ./frontend &
+   oh-my-ag agent:spawn backend "JWT 인증 API" session-01 &
+   oh-my-ag agent:spawn frontend "로그인 및 TODO UI" session-01 &
    wait
    ```
 4. **에이전트들이 병렬 작업** — Knowledge Base에 저장
@@ -67,13 +67,13 @@
 ### 예시 4: CLI 기반 병렬 실행
 
 ```bash
-# 단일 에이전트
-./scripts/spawn-subagent.sh backend "JWT 인증 API 구현" ./backend
+# 단일 에이전트 (workspace 자동 탐지)
+oh-my-ag agent:spawn backend "JWT 인증 API 구현" session-01
 
 # 병렬 에이전트
-./scripts/spawn-subagent.sh backend "인증 API 구현" ./backend &
-./scripts/spawn-subagent.sh frontend "로그인 폼 생성" ./frontend &
-./scripts/spawn-subagent.sh mobile "인증 화면 구축" ./mobile &
+oh-my-ag agent:spawn backend "인증 API 구현" session-01 &
+oh-my-ag agent:spawn frontend "로그인 폼 생성" session-01 &
+oh-my-ag agent:spawn mobile "인증 화면 구축" session-01 &
 wait
 ```
 
@@ -143,7 +143,7 @@ Antigravity가 자동으로 요청을 스킬에 매칭시킵니다. 스킬을 �
 - 크로스 세션 교훈 누적 시스템
 
 ### CLI 에이전트 실행
-`spawn-agent.sh`를 사용하여 CLI로 에이전트를 실행합니다. `user-preferences.yaml`의 `agent_cli_mapping`을 참조하여 에이전트 타입별로 적절한 CLI(gemini, claude, codex)를 선택합니다.
+`oh-my-ag agent:spawn`을 사용하여 CLI로 에이전트를 실행합니다. `user-preferences.yaml`의 `agent_cli_mapping`을 참조하여 에이전트 타입별로 적절한 CLI(gemini, claude, codex, qwen)를 선택합니다. Workspace는 모노레포 관례에 따라 자동 탐지되며, `-w` 옵션으로 명시적 지정도 가능합니다.
 
 ### Knowledge Base
 에이전트 산출물이 `.gemini/antigravity/brain/`에 저장됩니다. 기획서, 코드, 리포트, 조율 메모 포함.
@@ -209,7 +209,7 @@ Antigravity IDE 채팅에서 입력하여 단계별 워크플로우를 실행합
 입력: "인증이 있는 TODO 앱 만들어줘"
   → workflow-guide 자동 활성화
   → PM Agent 기획
-  → CLI로 에이전트 생성 (spawn-agent.sh)
+  → CLI로 에이전트 생성 (oh-my-ag agent:spawn)
   → 에이전트 병렬 작업
   → QA Agent 검토
   → 이슈 수정 & 반복
@@ -236,8 +236,8 @@ Antigravity IDE 채팅에서 입력하여 단계별 워크플로우를 실행합
 
 ```
 터미널 1: bunx oh-my-ag dashboard:web
-터미널 2: ./scripts/spawn-subagent.sh backend "task" ./backend &
-         ./scripts/spawn-subagent.sh frontend "task" ./frontend &
+터미널 2: oh-my-ag agent:spawn backend "task" session-01 &
+         oh-my-ag agent:spawn frontend "task" session-01 &
 브라우저:  http://localhost:9847 → 실시간 상태
 ```
 
@@ -287,7 +287,7 @@ bunx oh-my-ag help           # 도움말 표시
 
 ## 개발자용 (통합 가이드)
 
-기존 Antigravity 프로젝트에 이 스킬들을 통합하고 싶다면 [AGENT_GUIDE.md](./AGENT_GUIDE.md)를 참고하세요. 다음을 포함합니다:
+기존 Antigravity 프로젝트에 이 스킬들을 통합하고 싶다면 [AGENT_GUIDE.md](../AGENT_GUIDE.md)를 참고하세요. 다음을 포함합니다:
 - 빠른 3단계 통합
 - 전체 대시보드 통합
 - 본인 기술 스택에 맞게 스킬 커스터마이징
@@ -295,4 +295,4 @@ bunx oh-my-ag help           # 도움말 표시
 
 ---
 
-**Antigravity IDE에서 채팅하세요.** 모니터링을 위해 대시보드를 사용하고, CLI 실행을 위해 orchestrator 스크립트를 사용합니다. 기존 프로젝트에 통합하려면 [AGENT_GUIDE.md](./AGENT_GUIDE.md)를 참고하세요.
+**Antigravity IDE에서 채팅하세요.** 모니터링을 위해 대시보드를 사용하고, CLI 실행을 위해 orchestrator 스크립트를 사용합니다. 기존 프로젝트에 통합하려면 [AGENT_GUIDE.md](../AGENT_GUIDE.md)를 참고하세요.
