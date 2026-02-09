@@ -378,77 +378,11 @@ Memory files haven't been created yet. Run the orchestrator or manually create f
 
 ## Central Registry (For Multi-Repo Setup)
 
-This repository can serve as a **central registry** for agent skills, enabling multiple consumer projects to stay in sync with version-controlled updates.
+Moved to Guide:
 
-### Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  Central Registry (this repo)                           │
-│  • release-please for automatic versioning              │
-│  • CHANGELOG.md auto-generation                         │
-│  • prompt-manifest.json (version/files/checksums)       │
-│  • agent-skills.tar.gz release artifact                 │
-└─────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────┐
-│  Consumer Repo                                          │
-│  • .agent-registry.yaml for version pinning             │
-│  • New version detection → PR (no auto-merge)           │
-│  • Reusable Action for file sync                        │
-└─────────────────────────────────────────────────────────┘
-```
-
-### For Registry Maintainers
-
-Releases are automated via [release-please](https://github.com/googleapis/release-please):
-
-1. **Conventional Commits**: Use `feat:`, `fix:`, `chore:`, etc. prefixes
-2. **Release PR**: Automatically created/updated on push to `main`
-3. **Release**: Merge the Release PR to create a GitHub Release with:
-   - `CHANGELOG.md` (auto-generated)
-   - `prompt-manifest.json` (file list + SHA256 checksums)
-   - `agent-skills.tar.gz` (compressed `.agent/` directory)
-
-### For Consumer Projects
-
-1. **Copy templates** from `docs/consumer-templates/` to your project:
-
-   ```bash
-   # Configuration file
-   cp docs/consumer-templates/.agent-registry.yaml /path/to/your-project/
-
-   # GitHub workflows
-   cp docs/consumer-templates/check-registry-updates.yml /path/to/your-project/.github/workflows/
-   cp docs/consumer-templates/sync-agent-registry.yml /path/to/your-project/.github/workflows/
-   ```
-
-2. **Edit `.agent-registry.yaml`** to pin your desired version:
-
-   ```yaml
-   registry:
-     repo: first-fluke/oh-my-ag
-     version: "1.2.0"  # Pin to specific version
-   ```
-
-3. **Workflows**:
-   - `check-registry-updates.yml`: Weekly check for new versions → creates PR
-   - `sync-agent-registry.yml`: Syncs `.agent/` when version changes
-
-**Important**: Auto-merge is disabled by design. All version updates require manual review.
-
-### Using the Reusable Action
-
-Consumer projects can use the sync action directly:
-
-```yaml
-- uses: first-fluke/oh-my-ag/.github/actions/sync-agent-registry@main
-  with:
-    registry-repo: first-fluke/oh-my-ag
-    version: '1.2.0'  # or 'latest'
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-```
+- Content source (EN): [`web/content/en/guide/central-registry.md`](./web/content/en/guide/central-registry.md)
+- Content source (KO): [`web/content/ko/guide/central-registry.md`](./web/content/ko/guide/central-registry.md)
+- Docs site: `/en/guide/central-registry/` and `/ko/guide/central-registry/`
 
 ## Sponsors
 
