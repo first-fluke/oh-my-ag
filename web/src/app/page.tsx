@@ -64,7 +64,7 @@ export default function Home() {
         </div>
 
         <p className="mt-6 text-xs tracking-[0.3em] text-zinc-500">
-          MAKE ENGINNER GREAT AGAIN
+          MAKE ENGINEER GREAT AGAIN
         </p>
       </section>
     </main>
