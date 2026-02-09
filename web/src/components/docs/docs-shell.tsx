@@ -28,6 +28,8 @@ import {
 } from "@/lib/docs";
 import { cn } from "@/lib/utils";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 interface DocsShellProps {
   lang: Lang;
   currentGroup: DocGroupId;
@@ -92,7 +94,7 @@ function Brand() {
     <Link href="/" className="flex items-center gap-3">
       <span className="overflow-hidden rounded-lg shadow-[0_0_28px_rgba(178,58,52,0.45)]">
         <Image
-          src="/icons/android/android-launchericon-192-192.png"
+          src={`${basePath}/icons/android/android-launchericon-192-192.png`}
           alt="oh-my-ag icon"
           width={36}
           height={36}

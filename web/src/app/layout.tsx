@@ -8,30 +8,52 @@ import "@fontsource/space-grotesk/700.css";
 
 import "./globals.css";
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 export const metadata: Metadata = {
   title: "oh-my-ag Official Docs",
   description: "Official documentation site for oh-my-ag.",
-  manifest: "/manifest.webmanifest",
+  manifest: `${basePath}/manifest.webmanifest`,
   icons: {
     icon: [
-      { url: "/icons/ios/16.png", sizes: "16x16", type: "image/png" },
-      { url: "/icons/ios/32.png", sizes: "32x32", type: "image/png" },
       {
-        url: "/icons/android/android-launchericon-192-192.png",
+        url: `${basePath}/icons/ios/16.png`,
+        sizes: "16x16",
+        type: "image/png",
+      },
+      {
+        url: `${basePath}/icons/ios/32.png`,
+        sizes: "32x32",
+        type: "image/png",
+      },
+      {
+        url: `${basePath}/icons/android/android-launchericon-192-192.png`,
         sizes: "192x192",
         type: "image/png",
       },
       {
-        url: "/icons/android/android-launchericon-512-512.png",
+        url: `${basePath}/icons/android/android-launchericon-512-512.png`,
         sizes: "512x512",
         type: "image/png",
       },
     ],
-    shortcut: ["/icons/ios/16.png", "/icons/ios/32.png"],
+    shortcut: [`${basePath}/icons/ios/16.png`, `${basePath}/icons/ios/32.png`],
     apple: [
-      { url: "/icons/ios/152.png", sizes: "152x152", type: "image/png" },
-      { url: "/icons/ios/167.png", sizes: "167x167", type: "image/png" },
-      { url: "/icons/ios/180.png", sizes: "180x180", type: "image/png" },
+      {
+        url: `${basePath}/icons/ios/152.png`,
+        sizes: "152x152",
+        type: "image/png",
+      },
+      {
+        url: `${basePath}/icons/ios/167.png`,
+        sizes: "167x167",
+        type: "image/png",
+      },
+      {
+        url: `${basePath}/icons/ios/180.png`,
+        sizes: "180x180",
+        type: "image/png",
+      },
     ],
   },
 };
