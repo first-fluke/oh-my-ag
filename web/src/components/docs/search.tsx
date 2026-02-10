@@ -1,19 +1,18 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { FileText, Loader2, Search as SearchIcon } from "lucide-react";
+import { FileText, Search as SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import type { Lang } from "@/lib/docs";
 import { cn } from "@/lib/utils";
 
@@ -40,14 +39,9 @@ interface SearchProps {
 export function Search({ lang }: SearchProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchDocument[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const [index, setIndex] = useState<SearchIndex | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  // Load search index
   useEffect(() => {
     const loadIndex = async () => {
       try {
@@ -67,85 +61,33 @@ export function Search({ lang }: SearchProps) {
     }
   }, [open, index]);
 
-  // Simple search function (client-side filtering)
-  const performSearch = useCallback(
-    (searchQuery: string) => {
-      if (!index || !searchQuery.trim()) {
-        setResults([]);
-        return;
-      }
-
-      const query = searchQuery.toLowerCase();
-      const filtered = index.documents
-        .filter((doc) => doc.lang === lang)
-        .filter((doc) => {
-          const titleMatch = doc.title.toLowerCase().includes(query);
-          const descMatch = doc.description.toLowerCase().includes(query);
-          const contentMatch = doc.content.toLowerCase().includes(query);
-          return titleMatch || descMatch || contentMatch;
-        })
-        .slice(0, 10);
-
-      setResults(filtered);
-      setSelectedIndex(0);
-    },
-    [index, lang],
-  );
-
-  // Debounced search
   useEffect(() => {
-    const timer = setTimeout(() => {
-      performSearch(query);
-    }, 150);
-
-    return () => clearTimeout(timer);
-  }, [query, performSearch]);
-
-  // Keyboard shortcut (Cmd/Ctrl + K)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const down = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setOpen(true);
-      }
-      if (e.key === "Escape") {
-        setOpen(false);
+        setOpen((open) => !open);
       }
     };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
   }, []);
 
-  // Handle keyboard navigation
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setSelectedIndex((prev) =>
-          prev < results.length - 1 ? prev + 1 : prev,
-        );
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        if (results[selectedIndex]) {
-          const doc = results[selectedIndex];
-          setOpen(false);
-          setQuery("");
-          router.push(doc.href);
-        }
-      }
-    },
-    [results, selectedIndex, router],
+  const filteredDocs = index?.documents.filter(
+    (doc) =>
+      doc.lang === lang &&
+      (doc.title.toLowerCase().includes(query.toLowerCase()) ||
+        doc.description.toLowerCase().includes(query.toLowerCase()) ||
+        doc.content.toLowerCase().includes(query.toLowerCase())),
   );
 
-  const handleSelect = (doc: SearchDocument) => {
-    setOpen(false);
-    setQuery("");
-    router.push(doc.href);
-  };
+  const handleSelect = useCallback(
+    (href: string) => {
+      setOpen(false);
+      setQuery("");
+      router.push(href);
+    },
+    [router],
+  );
 
   const groupLabels: Record<string, string> = {
     "getting-started": lang === "ko" ? "시작하기" : "Getting Started",
@@ -153,6 +95,15 @@ export function Search({ lang }: SearchProps) {
     guide: lang === "ko" ? "가이드" : "Guide",
     "cli-interfaces": lang === "ko" ? "CLI 인터페이스" : "CLI Interfaces",
   };
+
+  const groupedDocs = filteredDocs?.reduce(
+    (acc, doc) => {
+      if (!acc[doc.group]) acc[doc.group] = [];
+      acc[doc.group].push(doc);
+      return acc;
+    },
+    {} as Record<string, SearchDocument[]>,
+  );
 
   return (
     <>
@@ -171,107 +122,61 @@ export function Search({ lang }: SearchProps) {
         </kbd>
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl gap-0 overflow-hidden border-white/10 bg-zinc-950 p-0">
-          <DialogHeader className="sr-only">
-            <DialogTitle>
-              {lang === "ko" ? "문서 검색" : "Search Documentation"}
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="flex items-center border-b border-white/10 px-4">
-            <SearchIcon className="size-5 text-zinc-400" />
-            <Input
-              ref={inputRef}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                lang === "ko" ? "문서 검색..." : "Search documentation..."
-              }
-              className="flex-1 border-0 bg-transparent text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-0 focus-visible:ring-offset-0"
-              autoFocus
-            />
-            {loading && (
-              <Loader2 className="size-4 animate-spin text-zinc-400" />
-            )}
-          </div>
-
-          <ScrollArea className="max-h-[60vh]">
-            {results.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-zinc-400">
-                {query ? (
-                  <>
-                    <FileText className="mb-2 size-8 opacity-50" />
-                    <p>
-                      {lang === "ko"
-                        ? "검색 결과가 없습니다"
-                        : "No results found"}
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm">
-                    {lang === "ko"
-                      ? "검색어를 입력하세요"
-                      : "Type to search documentation"}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="py-2">
-                {results.map((doc, index) => (
-                  <motion.button
+      <CommandDialog
+        open={open}
+        onOpenChange={setOpen}
+        title={lang === "ko" ? "문서 검색" : "Search Documentation"}
+        description={
+          lang === "ko" ? "문서를 검색하세요" : "Search for documentation"
+        }
+        className="max-w-2xl border-white/10 bg-zinc-950"
+      >
+        <CommandInput
+          placeholder={
+            lang === "ko" ? "검색어를 입력하세요..." : "Type to search..."
+          }
+          value={query}
+          onValueChange={setQuery}
+          className="border-white/10 text-zinc-100 placeholder:text-zinc-500"
+        />
+        <CommandList className="max-h-[60vh]">
+          <CommandEmpty className="flex flex-col items-center justify-center py-12 text-zinc-400">
+            <FileText className="mb-2 size-8 opacity-50" />
+            <p>{lang === "ko" ? "결과가 없습니다" : "No results found"}</p>
+          </CommandEmpty>
+          {groupedDocs &&
+            Object.entries(groupedDocs).map(([group, docs]) => (
+              <CommandGroup
+                key={group}
+                heading={groupLabels[group] || group}
+                className="text-zinc-400 [&_[cmdk-group-heading]]:text-[#B23A34] [&_[cmdk-group-heading]]:font-medium"
+              >
+                {docs.map((doc) => (
+                  <CommandItem
                     key={doc.id}
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.15, delay: index * 0.03 }}
-                    onClick={() => handleSelect(doc)}
+                    onSelect={() => handleSelect(doc.href)}
                     className={cn(
-                      "flex w-full flex-col items-start gap-1 px-4 py-3 text-left transition-colors",
-                      selectedIndex === index
-                        ? "bg-white/10"
-                        : "hover:bg-white/5",
+                      "cursor-pointer text-zinc-300",
+                      "data-[selected=true]:bg-white/10 data-[selected=true]:text-zinc-50",
+                      "[&_svg]:text-zinc-500",
                     )}
-                    onMouseEnter={() => setSelectedIndex(index)}
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-[#B23A34]">
-                        {groupLabels[doc.group] || doc.group}
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-medium text-zinc-100">
+                        {doc.title}
                       </span>
+                      {doc.description && (
+                        <span className="line-clamp-1 text-xs text-zinc-400">
+                          {doc.description}
+                        </span>
+                      )}
                     </div>
-                    <span className="font-medium text-zinc-100">
-                      {doc.title}
-                    </span>
-                    {doc.description && (
-                      <span className="line-clamp-1 text-sm text-zinc-400">
-                        {doc.description}
-                      </span>
-                    )}
-                  </motion.button>
+                  </CommandItem>
                 ))}
-              </div>
-            )}
-          </ScrollArea>
-
-          <div className="flex items-center justify-between border-t border-white/10 bg-white/5 px-4 py-2 text-xs text-zinc-400">
-            <div className="flex gap-3">
-              <span className="flex items-center gap-1">
-                <kbd className="rounded bg-white/10 px-1 font-mono">↑↓</kbd>
-                <span>{lang === "ko" ? "선택" : "Navigate"}</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <kbd className="rounded bg-white/10 px-1 font-mono">↵</kbd>
-                <span>{lang === "ko" ? "열기" : "Open"}</span>
-              </span>
-            </div>
-            <span>
-              {index
-                ? `${index.documents.length} ${lang === "ko" ? "문서" : "docs"}`
-                : ""}
-            </span>
-          </div>
-        </DialogContent>
-      </Dialog>
+              </CommandGroup>
+            ))}
+        </CommandList>
+      </CommandDialog>
     </>
   );
 }
