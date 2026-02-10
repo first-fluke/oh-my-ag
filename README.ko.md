@@ -148,11 +148,11 @@ bunx oh-my-ag
 
 ### 2. 채팅으로 사용
 
-**간단한 작업** (단일 에이전트 자동 활성화):
+**명시적 조율** (유저가 워크플로우 호출):
 
 ```
-"Tailwind CSS로 로그인 폼 만들어줘"
-→ frontend-agent 자동 활성화
+/coordinate
+→ 단계별: PM 기획 → 에이전트 생성 → QA 검토
 ```
 
 **복잡한 프로젝트** (workflow-guide가 조율):
@@ -162,11 +162,11 @@ bunx oh-my-ag
 → workflow-guide → PM Agent 기획 → Agent Manager에서 에이전트 생성
 ```
 
-**명시적 조율** (유저가 워크플로우 호출):
+**간단한 작업** (단일 에이전트 자동 활성화):
 
 ```
-/coordinate
-→ 단계별: PM 기획 → 에이전트 생성 → QA 검토
+"Tailwind CSS로 로그인 폼 만들어줘"
+→ frontend-agent 자동 활성화
 ```
 
 **변경사항 커밋** (Conventional Commits):

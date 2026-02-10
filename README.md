@@ -150,11 +150,11 @@ bunx oh-my-ag
 
 ### 2. Chat
 
-**Simple task** (single agent auto-activates):
+**Explicit coordination** (user-triggered workflow):
 
 ```
-"Create a login form with Tailwind CSS and form validation"
-→ frontend-agent activates
+/coordinate
+→ Step-by-step: PM planning → agent spawning → QA review
 ```
 
 **Complex project** (workflow-guide coordinates):
@@ -164,11 +164,11 @@ bunx oh-my-ag
 → workflow-guide → PM Agent plans → agents spawned in Agent Manager
 ```
 
-**Explicit coordination** (user-triggered workflow):
+**Simple task** (single agent auto-activates):
 
 ```
-/coordinate
-→ Step-by-step: PM planning → agent spawning → QA review
+"Create a login form with Tailwind CSS and form validation"
+→ frontend-agent activates
 ```
 
 **Commit changes** (conventional commits):
