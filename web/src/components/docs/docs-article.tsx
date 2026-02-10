@@ -25,7 +25,7 @@ export function DocsArticle({ markdown }: DocsArticleProps) {
         components={{
           pre: ({ children, ...props }) => (
             <pre
-              className="w-full max-w-full overflow-x-auto rounded-lg border border-white/10 bg-black/45 p-4 text-zinc-100"
+              className="w-full max-w-full overflow-x-auto rounded-lg border border-white/10 bg-zinc-900/80 p-4 text-zinc-100"
               {...props}
             >
               {children}
