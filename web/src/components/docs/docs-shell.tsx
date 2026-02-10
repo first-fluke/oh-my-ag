@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import { DocsArticle } from "@/components/docs/docs-article";
 import { LanguageSwitcher } from "@/components/docs/language-switcher";
+import { Search } from "@/components/docs/search";
 import { Toc } from "@/components/docs/toc";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -151,7 +152,18 @@ function Header({
 
         <Brand />
 
-        <NavigationMenu className="ml-auto">
+        <div className="flex flex-1 items-center justify-end gap-2">
+          <div className="hidden lg:block lg:max-w-xs lg:flex-1">
+            <div className="flex justify-end">
+              <Search lang={lang} />
+            </div>
+          </div>
+          <div className="lg:hidden">
+            <Search lang={lang} />
+          </div>
+        </div>
+
+        <NavigationMenu className="ml-2">
           <NavigationMenuList>
             <NavigationMenuItem>
               <NavigationMenuLink asChild>

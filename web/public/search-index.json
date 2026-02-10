@@ -1,0 +1,325 @@
+{
+  "documents": [
+    {
+      "id": "en/cli-interfaces/commands",
+      "lang": "en",
+      "group": "cli-interfaces",
+      "slug": "commands",
+      "title": "Commands",
+      "description": "Complete command surface from cli/cli.ts.",
+      "content": "Commands The command surface below mirrors the current implementation in cli/cli.ts. Core Commands Agent Commands Memory and Verification",
+      "href": "/en/cli-interfaces/commands"
+    },
+    {
+      "id": "en/cli-interfaces/options",
+      "lang": "en",
+      "group": "cli-interfaces",
+      "slug": "options",
+      "title": "Options",
+      "description": "All command options currently exposed by the CLI.",
+      "content": "Options Global -h, --help -V, --version usage --json --raw doctor --json stats --json --reset retro --json --interactive cleanup --dry-run --json agent:spawn -v, --vendor -w, --workspace agent:status -r, --root memory:init --json --force verify -w, --workspace --json Practical Example",
+      "href": "/en/cli-interfaces/options"
+    },
+    {
+      "id": "en/core-concepts/agents",
+      "lang": "en",
+      "group": "core-concepts",
+      "slug": "agents",
+      "title": "Agents",
+      "description": "Agent types, workspace strategy, and orchestration flow.",
+      "content": "Agents Agent Categories Planning: PM agent Implementation: Frontend, Backend, Mobile Assurance: QA, Debug Coordination: workflow-guide, orchestrator Workspace Strategy Separate workspaces reduce merge conflicts: Agent Manager Flow PM defines decomposition Domain agents execute in parallel Progress streams into Serena memories QA validates system-level consistency Serena Runtime Files orchestrator-session.md task-board.md progress-{agent}.md result-{agent}.md",
+      "href": "/en/core-concepts/agents"
+    },
+    {
+      "id": "en/core-concepts/parallel-execution",
+      "lang": "en",
+      "group": "core-concepts",
+      "slug": "parallel-execution",
+      "title": "Parallel Execution",
+      "description": "CLI orchestration patterns for running multiple agents concurrently.",
+      "content": "Parallel Execution Basic Pattern Workspace-Aware Pattern Monitoring Pattern CLI Vendor Resolution Priority --vendor agent cli mapping default cli active vendor (legacy) gemini fallback",
+      "href": "/en/core-concepts/parallel-execution"
+    },
+    {
+      "id": "en/core-concepts/project-structure",
+      "lang": "en",
+      "group": "core-concepts",
+      "slug": "project-structure",
+      "title": "Project Structure",
+      "description": "Updated repository tree after splitting CLI and web docs workspaces.",
+      "content": "Project Structure Updated directory tree for the current monorepo layout (cli + web workspaces). Top-Level Tree Key Notes CLI source moved from src/ to cli/. Documentation pages are now maintained under web/content/{lang}/{group}/ .md. Root docs/ is now reserved for templates and demos used by consumers.",
+      "href": "/en/core-concepts/project-structure"
+    },
+    {
+      "id": "en/core-concepts/skills",
+      "lang": "en",
+      "group": "core-concepts",
+      "slug": "skills",
+      "title": "Skills",
+      "description": "Progressive disclosure and token-optimized skill architecture.",
+      "content": "Skills Progressive Disclosure Skills are selected from request intent. Manual skill selection is usually unnecessary. Two-Layer Design Each skill uses a token-optimized two-layer design : | Layer | Content | Size | |-------|---------|------| | SKILL.md | Identity, routing conditions, core rules | ~40 lines (~800B) | | resources/ | Execution protocols, examples, checklists, playbooks, snippets, tech stack | Loaded on-demand | This achieves ~75% token savings on initial skill loading (3-7KB → ~800B per skill). Shared Resource Layer ( shared/) Common resources deduplicated across all skills: | Resource | Purpose | |----------|---------| | reasoning-templates.md | Structured fill-in-the-blank templates for multi-step reasoning | | clarification-protocol.md | When to ask vs. assume, ambiguity levels | | context-budget.md | Token-efficient file reading strategies per model tier | | context-loading.md | Task-type to resource mapping for orchestrator prompt construction | | skill-routing.md | Keyword-to-skill mapping and parallel execution rules | | difficulty-guide.md | Simple/Medium/Complex assessment with protocol branching | | lessons-learned.md | Cross-session accumulated domain gotchas | | verify.sh | Automated verification script run after agent completion | | api-contracts/ | PM creates contracts, backend implements, frontend/mobile consumes | | serena-memory-protocol.md | CLI mode memory read/write protocol | | common-checklist.md | Universal code quality checks | Per-Skill Resources Each skill provides domain-specific resources: | Resource | Purpose | |----------|---------| | execution-protocol.md | 4-step chain-of-thought workflow (Analyze → Plan → Implement → Verify) | | examples.md | 2-3 few-shot input/output examples | | checklist.md | Domain-specific self-verification checklist | | error-playbook.md | Failure recovery with \"3 strikes\" escalation rule | | tech-stack.md | Detailed technology specifications | | snippets.md | Copy-paste ready code patterns | Why It Matters This keeps initial context lean while still supporting deep execution when required.",
+      "href": "/en/core-concepts/skills"
+    },
+    {
+      "id": "en/core-concepts/workflows",
+      "lang": "en",
+      "group": "core-concepts",
+      "slug": "workflows",
+      "title": "Workflows",
+      "description": "Explicit slash-command workflows and when to use them.",
+      "content": "Workflows Workflow Commands /coordinate /orchestrate /plan /review /debug Skills vs Workflows Skills: auto-activated from request intent Workflows: explicit multi-step pipelines triggered by the user Typical Multi-Agent Sequence /plan for decomposition /coordinate for staged execution agent:spawn for parallel sub-agents /review for QA gate",
+      "href": "/en/core-concepts/workflows"
+    },
+    {
+      "id": "en/getting-started/installation",
+      "lang": "en",
+      "group": "getting-started",
+      "slug": "installation",
+      "title": "Installation",
+      "description": "Prerequisites, install options, and first-run setup.",
+      "content": "Installation Prerequisites Google Antigravity (2026+) Bun uv Option 1: Interactive Install Installs skills and workflows into .agent/ in the current project. Option 2: Global Install Recommended if you use orchestrator commands frequently. Option 3: Existing Project Integration CLI path Manual copy path Initial Setup Command Creates .agent/config/user-preferences.yaml. Required CLI Vendors Install and authenticate at least one: Gemini Claude Codex Qwen",
+      "href": "/en/getting-started/installation"
+    },
+    {
+      "id": "en/getting-started/introduction",
+      "lang": "en",
+      "group": "getting-started",
+      "slug": "introduction",
+      "title": "Introduction",
+      "description": "What oh-my-ag is and how multi-agent collaboration works.",
+      "content": "Introduction oh-my-ag is a multi-agent orchestrator for Antigravity IDE. It routes requests to specialized skills and coordinates agents through Serena memories. What You Get Request-driven skill routing Workflow-based execution for planning/review/debugging CLI orchestration for parallel agent runs Real-time dashboards for session monitoring Agent Roles | Agent | Responsibility | |---|---| | workflow-guide | Coordinates complex multi-domain projects | | pm-agent | Planning and architecture decomposition | | frontend-agent | React/Next.js implementation | | backend-agent | API/database/auth implementation | | mobile-agent | Flutter/mobile implementation | | qa-agent | Security/performance/accessibility review | | debug-agent | Root-cause analysis and regression-safe fixes | | orchestrator | CLI-based sub-agent orchestration | | commit | Conventional commit workflow | Project Structure .agent/skills/: skill definitions and resources .agent/workflows/: explicit workflow commands .serena/memories/: runtime orchestration state cli/cli.ts: source of truth for command interfaces Progressive Disclosure Identify request intent Load only required skill resources Execute with specialized agents Verify and iterate via QA/debug loops",
+      "href": "/en/getting-started/introduction"
+    },
+    {
+      "id": "en/guide/bug-fixing",
+      "lang": "en",
+      "group": "guide",
+      "slug": "bug-fixing",
+      "title": "Use Case: Bug Fixing",
+      "description": "Structured reproduce-diagnose-fix-regress loop with severity-based escalation.",
+      "content": "Use Case: Bug Fixing Intake format Start with a reproducible report: Severity triage Classify early to choose response speed: P0: data loss, auth bypass, production outage P1: major user flow broken P2: degraded behavior with workaround P3: minor/non-blocking P0/P1 should always involve QA/security review. Execution loop Reproduce exactly in a minimal environment. Isolate root cause (not just symptom patching). Implement smallest safe fix. Add regression tests for the failing path. Re-check adjacent paths likely to share the same failure mode. Prompt template for debug-agent Common escalation signals Escalate to QA or security when bug touches: authentication/session/token refresh permission boundaries payment/transaction consistency performance regressions under load Post-fix validation original repro no longer fails no new errors in related flows tests fail before fix and pass after fix rollback path is clear if hotfix is required Done criteria Bug-fixing is done when: root cause is identified and documented fix is verified through reproducible checks regression coverage is in place",
+      "href": "/en/guide/bug-fixing"
+    },
+    {
+      "id": "en/guide/central-registry",
+      "lang": "en",
+      "group": "guide",
+      "slug": "central-registry",
+      "title": "Central Registry for Multi-Repo Setup",
+      "description": "Operate this repository as a versioned central registry and safely sync consumer projects via PR-based updates.",
+      "content": "Central Registry for Multi-Repo Setup This repository can serve as a central registry for agent skills so multiple consumer repositories stay aligned with versioned updates. Architecture For Registry Maintainers Releases are automated via release-please: Use Conventional Commits (feat:, fix:, chore:, ...). Push to main to create/update the Release PR. Merge the Release PR to publish GitHub Release assets: - CHANGELOG.md (auto-generated) - prompt-manifest.json (file list + SHA256 checksums) - agent-skills.tar.gz (compressed .agent/ directory) For Consumer Projects Copy templates from docs/consumer-templates/ into your project: Then pin your desired version in .agent-registry.yaml: Workflow roles: check-registry-updates.yml: checks for new versions and opens a PR. sync-agent-registry.yml: syncs .agent/ when pinned version changes. Important : Auto-merge is intentionally disabled. All updates should be manually reviewed. Using the Reusable Action Consumer repos can call the sync action directly:",
+      "href": "/en/guide/central-registry"
+    },
+    {
+      "id": "en/guide/dashboard-monitoring",
+      "lang": "en",
+      "group": "guide",
+      "slug": "dashboard-monitoring",
+      "title": "Use Case: Dashboard Monitoring",
+      "description": "Operate orchestrator sessions with terminal/web dashboards and actionable runbook signals.",
+      "content": "Use Case: Dashboard Monitoring Start commands Web dashboard default URL: http://localhost:9847 Recommended terminal layout Use at least 3 terminals: terminal dashboard (oh-my-ag dashboard) agent spawn commands test/build logs Keep the web dashboard open for shared visibility during team sessions. What the dashboards watch Data source: .serena/memories/ Primary signals: session status (running, completed, failed) task board assignment and state changes per-agent progress turns result publication events Updates are event-driven from changed files; no full directory polling loop is required. Runbook: signal → action No agents detected - verify agents were spawned with the same session-id - confirm .serena/memories/ is being written Session stuck in running - inspect latest progress- file timestamps - restart failed or blocked agent with clearer prompt Frequent reconnects (web) - check local firewall/proxy - restart dashboard:web and re-open the page Missing activity while agents are active - verify orchestrator writes are not redirected to another workspace Pre-merge monitoring checklist all required agents reached completed state no unresolved high-severity QA findings latest result files are present for each agent integration tests executed after final agent outputs Done criteria Monitoring phase is done when: session reached terminal state (completed or intentionally stopped) activity history explains final output provenance release/merge decision is made with full status visibility",
+      "href": "/en/guide/dashboard-monitoring"
+    },
+    {
+      "id": "en/guide/integration",
+      "lang": "en",
+      "group": "guide",
+      "slug": "integration",
+      "title": "Existing Project Integration",
+      "description": "Safe and non-destructive integration workflow for adding oh-my-ag skills to an existing Antigravity project.",
+      "content": "Integrate Into an Existing Project This guide replaces the legacy root AGENT GUIDE.md workflow and reflects the current workspace structure (cli + web) and CLI behavior. Goal Add oh-my-ag skills to an existing project without overwriting current assets. Recommended Path (CLI) Run this in the target project root: What it does: Installs or updates .agent/skills/ Installs shared resources in .agent/skills/ shared Installs .agent/workflows/ Installs .agent/config/user-preferences.yaml Optionally installs global workflows under ~/.gemini/antigravity/global workflows Safe Manual Path Use this when you need full control over each copied directory. Verification Checklist Optional Dashboards Dashboards are optional and use the installed CLI: Web dashboard default URL: http://localhost:9847 Rollback Strategy Before integration, create a checkpoint commit in your project: If you need to undo, revert that commit with your normal team process. Notes Do not overwrite existing .agent/skills/ folders unless you intend to replace customized skills. Keep project-specific policy files (.agent/config/ ) under your repository ownership. For multi-agent orchestration patterns, continue with the Usage Guide.",
+      "href": "/en/guide/integration"
+    },
+    {
+      "id": "en/guide/multi-agent-project",
+      "lang": "en",
+      "group": "guide",
+      "slug": "multi-agent-project",
+      "title": "Use Case: Multi-Agent Project",
+      "description": "End-to-end flow for complex cross-domain delivery with explicit coordination gates.",
+      "content": "Use Case: Multi-Agent Project When to use this path Use this when a feature spans multiple domains (for example backend + frontend + QA) and parallel execution is beneficial. Coordination model Recommended sequence: /plan for decomposition and dependency mapping /coordinate for execution order and ownership parallel agent:spawn per domain /review for QA/security/perf gate Session and workspace strategy Use one session ID per feature stream: Assign isolated workspaces per domain to reduce merge conflicts: backend: ./apps/api frontend: ./apps/web mobile: ./apps/mobile Spawn example Contract-first rule Before parallel coding, lock shared contracts: request/response schemas error codes and messages auth/session lifecycle assumptions If contracts change mid-run, pause downstream agents and reissue prompts with the updated contract. Merge gates Do not merge unless all gates pass: domain-level tests pass integration points match agreed contracts QA high/critical issues resolved or explicitly waived changelog or release notes updated when externally visible behavior changes Operational anti-patterns Avoid: sharing one workspace across all agents changing contracts without notifying other agents merging backend/frontend independently before compatibility check Done criteria Multi-agent execution is done when: planned tasks are complete across all domains cross-domain integration is validated QA sign-off (or documented risk acceptance) is recorded",
+      "href": "/en/guide/multi-agent-project"
+    },
+    {
+      "id": "en/guide/single-skill",
+      "lang": "en",
+      "group": "guide",
+      "slug": "single-skill",
+      "title": "Use Case: Single Skill",
+      "description": "Fast path for focused, single-domain work with clear scope and quick feedback loops.",
+      "content": "Use Case: Single Skill When to use this path Use this when the output is narrowly scoped and mostly owned by one domain: one UI component one API endpoint one bug in one layer one refactor in one module If the task requires cross-domain coordination (API contract + UI + QA), use Multi-Agent Project. Preflight checklist Before prompting, define: exact output (file or behavior) target stack and versions acceptance criteria test expectations Prompt template Example prompt Expected execution flow The relevant skill is auto-selected. The agent proposes implementation and assumptions. You confirm or adjust assumptions. The agent ships code and tests. You run local verification and request small follow-ups. Quality gate before merge behavior matches acceptance criteria tests cover happy path and core edge cases no unrelated file changes no hidden breaking changes to shared modules Escalation signals Switch to multi-agent flow when: UI work requires new API contracts one fix creates cascading changes across layers scope grows beyond one domain after first iteration Done criteria Single-skill execution is done when: target artifact is implemented acceptance criteria are demonstrably satisfied tests are added or updated for the changed behavior",
+      "href": "/en/guide/single-skill"
+    },
+    {
+      "id": "en/guide/usage",
+      "lang": "en",
+      "group": "guide",
+      "slug": "usage",
+      "title": "Usage Guide",
+      "description": "Full usage guide including examples, workflows, dashboard operations, and troubleshooting.",
+      "content": "How to Use Antigravity Multi-Agent Skills If you are not sure where to start, type /coordinate first. Quick Start Open in Antigravity IDE Skills are automatically detected. Antigravity scans .agent/skills/ and indexes all available skills. Chat in the IDE. Describe what you want to build. Usage Examples Example 1: Simple Single-Domain Task You type: What happens: Antigravity detects this matches frontend-agent The skill loads automatically (Progressive Disclosure) You get a React component with TypeScript, Tailwind, form validation Example 2: Complex Multi-Domain Project You type: What happens: Workflow Guide activates — detects multi-domain complexity PM Agent plans — creates task breakdown with priorities You spawn agents via CLI : Agents work in parallel — save outputs to Knowledge Base You coordinate — review .gemini/antigravity/brain/ for consistency QA Agent reviews — security/performance audit Fix & iterate — re-spawn agents with corrections Example 3: Bug Fixing You type: What happens: debug-agent activates — analyzes error Root cause found — component maps over todos before data loads Fix provided — loading states and null checks added Regression test written — ensures bug won't return Similar patterns found — proactively fixes 3 other components Example 4: CLI-based Parallel Execution Monitor in real-time: Real-time Dashboards Terminal Dashboard Watches .serena/memories/ using fswatch (macOS) or inotifywait (Linux). Displays a live table with session status, agent states, turns, and latest activity. Updates automatically when memory files change. Requirements: macOS: brew install fswatch Linux: apt install inotify-tools Web Dashboard Open http://localhost:9847 in your browser. Features: Real-time updates via WebSocket (event-driven, not polling) Auto-reconnect if the connection drops Serena-themed UI with purple accent colors Session status — ID and running/completed/failed state Agent table — name, status (with colored dots), turn count, task description Activity log — latest changes from progress and result files The server watches .serena/memories/ using chokidar with debounce (100ms). Only changed files trigger reads — no full re-scan. Key Concepts Progressive Disclosure Antigravity automatically matches requests to skills. You never manually select a skill. Only the needed skill loads into context. Token-Optimized Skill Design Each skill uses a two-layer architecture for maximum token efficiency: SKILL.md (~40 lines): Identity, routing, core rules — loaded immediately resources/ : Execution protocols, examples, checklists, error playbooks — loaded on-demand Shared resources live in shared/ (not a skill) and are referenced by all agents: Chain-of-thought execution protocols with 4-step workflow Few-shot input/output examples for mid-tier model guidance Error recovery playbooks with \"3 strikes\" escalation Reasoning templates for structured multi-step analysis Context budget management for Flash/Pro model tiers Automated verification via verify.sh Cross-session lessons learned accumulation CLI Agent Spawning Use oh-my-ag agent:spawn to run agents via CLI. Respects agent cli mapping in user-preferences.yaml to select the appropriate CLI (gemini, claude, codex, qwen) per agent type. Workspace is auto-detected from common monorepo conventions, or can be set explicitly with -w. Knowledge Base Agent outputs stored at .gemini/antigravity/brain/. Contains plans, code, reports, and coordination notes. Serena Memory Structured runtime state at .serena/memories/. The orchestrator writes session info, task boards, per-agent progress, and results. Dashboards watch these files for monitoring. Workspaces Agents can work in separate directories to avoid conflicts. Workspace is auto-detected from common monorepo conventions: Available Skills | Skill | Auto-activates for | Output | |-------|-------------------|--------| | workflow-guide | Complex multi-domain projects | Step-by-step agent coordination | | pm-agent | \"plan this\", \"break down\" | .agent/plan.json | | frontend-agent | UI, components, styling | React components, tests | | backend-agent | APIs, databases, auth | API endpoints, models, tests | | mobile-agent | Mobile apps, iOS/Android | Flutter screens, state management | | qa-agent | \"review security\", \"audit\" | QA report with prioritized fixes | | debug-agent | Bug reports, error messages | Fixed code, regression tests | | orchestrator | CLI sub-agent execution | Results in .agent/results/ | | commit | \"commit\", \"커밋해줘\" | Git commits (auto-splits by feature) | Workflow Commands Type these in Antigravity IDE chat to trigger step-by-step workflows: | Command | Description | |---------|-------------| | /coordinate | Multi-agent orchestration via CLI with step-by-step guidance | | /orchestrate | Automated CLI-based parallel agent execution | | /plan | PM task decomposition with API contracts | | /review | Full QA pipeline (security, performance, accessibility, code quality) | | /debug | Structured bug fix",
+      "href": "/en/guide/usage"
+    },
+    {
+      "id": "ko/cli-interfaces/commands",
+      "lang": "ko",
+      "group": "cli-interfaces",
+      "slug": "commands",
+      "title": "Commands",
+      "description": "cli/cli.ts 기준 전체 커맨드 인터페이스.",
+      "content": "Commands 아래 명령 목록은 cli/cli.ts 구현을 기준으로 정리되었습니다. 기본 명령 에이전트 명령 메모리/검증 명령",
+      "href": "/ko/cli-interfaces/commands"
+    },
+    {
+      "id": "ko/cli-interfaces/options",
+      "lang": "ko",
+      "group": "cli-interfaces",
+      "slug": "options",
+      "title": "옵션",
+      "description": "현재 CLI에 노출된 전체 옵션 목록.",
+      "content": "옵션 전역 -h, --help -V, --version usage --json --raw doctor --json stats --json --reset retro --json --interactive cleanup --dry-run --json agent:spawn -v, --vendor -w, --workspace agent:status -r, --root memory:init --json --force verify -w, --workspace --json 실전 예시",
+      "href": "/ko/cli-interfaces/options"
+    },
+    {
+      "id": "ko/core-concepts/agents",
+      "lang": "ko",
+      "group": "core-concepts",
+      "slug": "agents",
+      "title": "Agents",
+      "description": "에이전트 타입, 워크스페이스 전략, 오케스트레이션 흐름.",
+      "content": "Agents 에이전트 분류 기획: PM agent 구현: Frontend, Backend, Mobile 검증: QA, Debug 조율: workflow-guide, orchestrator 워크스페이스 전략 워크스페이스 분리로 머지 충돌을 줄입니다. Agent Manager 흐름 PM이 태스크 분해 계획 수립 도메인별 에이전트 병렬 실행 Serena 메모리에 진행 상태 기록 QA가 시스템 일관성 검증 Serena 런타임 파일 orchestrator-session.md task-board.md progress-{agent}.md result-{agent}.md",
+      "href": "/ko/core-concepts/agents"
+    },
+    {
+      "id": "ko/core-concepts/parallel-execution",
+      "lang": "ko",
+      "group": "core-concepts",
+      "slug": "parallel-execution",
+      "title": "병렬 실행",
+      "description": "여러 에이전트를 동시에 실행하는 CLI 오케스트레이션 패턴.",
+      "content": "병렬 실행 기본 패턴 워크스페이스 지정 패턴 모니터링 패턴 CLI 벤더 선택 우선순위 --vendor agent cli mapping default cli active vendor (legacy) gemini fallback",
+      "href": "/ko/core-concepts/parallel-execution"
+    },
+    {
+      "id": "ko/core-concepts/project-structure",
+      "lang": "ko",
+      "group": "core-concepts",
+      "slug": "project-structure",
+      "title": "프로젝트 구조",
+      "description": "CLI와 web 문서 워크스페이스 분리 이후의 최신 레포 구조.",
+      "content": "프로젝트 구조 현재 모노레포(cli + web 워크스페이스) 기준 최신 디렉토리 트리입니다. 최상위 트리 핵심 변경점 CLI 소스가 src/에서 cli/로 이동했습니다. 문서 본문은 web/content/{lang}/{group}/ .md에서 관리합니다. 루트 docs/는 컨슈머용 템플릿/데모 전용으로 유지합니다.",
+      "href": "/ko/core-concepts/project-structure"
+    },
+    {
+      "id": "ko/core-concepts/skills",
+      "lang": "ko",
+      "group": "core-concepts",
+      "slug": "skills",
+      "title": "Skills",
+      "description": "점진적 공개와 토큰 최적화 스킬 아키텍처.",
+      "content": "Skills Progressive Disclosure 요청 의도에 따라 스킬이 자동 선택됩니다. 대부분의 경우 수동 선택이 필요 없습니다. 2계층 설계 각 스킬은 토큰 최적화된 2계층 설계 를 사용합니다: | 레이어 | 내용 | 크기 | |--------|------|------| | SKILL.md | 정체성, 라우팅 조건, 핵심 규칙 | ~40줄 (~800B) | | resources/ | 실행 프로토콜, 예시, 체크리스트, 플레이북, 스니펫, 기술 스택 | 필요 시 로드 | 이를 통해 초기 스킬 로딩 시 ~75% 토큰 절약 (스킬당 3-7KB → ~800B). 공통 리소스 레이어 ( shared/) 모든 스킬에서 중복 제거된 공통 리소스: | 리소스 | 용도 | |--------|------| | reasoning-templates.md | 다단계 추론을 위한 구조화된 빈칸 채우기 템플릿 | | clarification-protocol.md | 질문 vs 가정 판단, 모호성 수준별 대응 | | context-budget.md | 모델 등급별 토큰 효율적 파일 읽기 전략 | | context-loading.md | Orchestrator 프롬프트 구성을 위한 태스크-리소스 매핑 | | skill-routing.md | 키워드→스킬 매핑, 병렬 실행 규칙 | | difficulty-guide.md | Simple/Medium/Complex 평가 및 프로토콜 분기 | | lessons-learned.md | 크로스 세션 누적 도메인 교훈 | | verify.sh | 에이전트 완료 후 자동 검증 스크립트 | | api-contracts/ | PM이 작성, Backend가 구현, Frontend/Mobile이 소비 | | serena-memory-protocol.md | CLI 모드 메모리 읽기/쓰기 프로토콜 | | common-checklist.md | 범용 코드 품질 체크리스트 | 스킬별 리소스 각 스킬이 도메인 특화 리소스를 제공: | 리소스 | 용도 | |--------|------| | execution-protocol.md | 4단계 Chain-of-thought 워크플로우 (분석 → 설계 → 구현 → 검증) | | examples.md | 2-3개 few-shot 입출력 예시 | | checklist.md | 도메인별 셀프 검증 체크리스트 | | error-playbook.md | \"3 strikes\" 에스컬레이션 규칙을 포함한 장애 복구 | | tech-stack.md | 상세 기술 사양 | | snippets.md | 바로 사용 가능한 코드 패턴 | 설계 효과 초기 컨텍스트를 가볍게 유지하면서 필요 시 깊은 실행을 지원합니다.",
+      "href": "/ko/core-concepts/skills"
+    },
+    {
+      "id": "ko/core-concepts/workflows",
+      "lang": "ko",
+      "group": "core-concepts",
+      "slug": "workflows",
+      "title": "Workflows",
+      "description": "슬래시 커맨드 기반 명시적 워크플로우와 사용 시점.",
+      "content": "Workflows 워크플로우 명령 /coordinate /orchestrate /plan /review /debug Skills와 Workflows 차이 Skills: 요청 의도 기반 자동 활성화 Workflows: 사용자가 트리거하는 다단계 파이프라인 일반적인 멀티 에이전트 순서 /plan으로 태스크 분해 /coordinate로 단계별 실행 agent:spawn으로 병렬 서브에이전트 실행 /review로 QA 게이트 수행",
+      "href": "/ko/core-concepts/workflows"
+    },
+    {
+      "id": "ko/getting-started/installation",
+      "lang": "ko",
+      "group": "getting-started",
+      "slug": "installation",
+      "title": "설치",
+      "description": "사전 요구 사항, 설치 옵션, 초기 설정을 안내합니다.",
+      "content": "설치 사전 요구 사항 Google Antigravity (2026+) Bun uv 옵션 1: 대화형 설치 현재 프로젝트의 .agent/에 스킬과 워크플로우를 설치합니다. 옵션 2: 전역 설치 오케스트레이터 명령을 자주 사용할 때 권장합니다. 옵션 3: 기존 프로젝트 통합 CLI 방식 수동 복사 방식 초기 설정 명령 .agent/config/user-preferences.yaml이 생성됩니다. 필요한 CLI 벤더 최소 1개 이상 설치/인증 필요: Gemini Claude Codex Qwen",
+      "href": "/ko/getting-started/installation"
+    },
+    {
+      "id": "ko/getting-started/introduction",
+      "lang": "ko",
+      "group": "getting-started",
+      "slug": "introduction",
+      "title": "소개",
+      "description": "oh-my-ag와 멀티 에이전트 협업 동작 방식을 설명합니다.",
+      "content": "소개 oh-my-ag는 Antigravity IDE용 멀티 에이전트 오케스트레이터입니다. 요청을 스킬에 라우팅하고 Serena 메모리로 조율 상태를 관리합니다. 핵심 기능 요청 기반 자동 스킬 라우팅 기획/리뷰/디버깅 워크플로우 실행 CLI 기반 병렬 에이전트 오케스트레이션 실시간 대시보드 모니터링 에이전트 역할 | 에이전트 | 역할 | |---|---| | workflow-guide | 복잡한 멀티 도메인 프로젝트 조율 | | pm-agent | 기획, 태스크 분해, 아키텍처 | | frontend-agent | React/Next.js 구현 | | backend-agent | API/DB/인증 구현 | | mobile-agent | Flutter/모바일 구현 | | qa-agent | 보안/성능/접근성 리뷰 | | debug-agent | 원인 분석 및 회귀 방지 수정 | | orchestrator | CLI 기반 서브에이전트 오케스트레이션 | | commit | Conventional Commit 워크플로우 | 프로젝트 구조 .agent/skills/: 스킬 정의와 리소스 .agent/workflows/: 명시적 워크플로우 명령 .serena/memories/: 런타임 조율 상태 cli/cli.ts: 커맨드 인터페이스 기준 소스 Progressive Disclosure 요청 의도 식별 필요한 리소스만 로드 전문 에이전트 실행 QA/디버그 루프로 검증 및 반복",
+      "href": "/ko/getting-started/introduction"
+    },
+    {
+      "id": "ko/guide/bug-fixing",
+      "lang": "ko",
+      "group": "guide",
+      "slug": "bug-fixing",
+      "title": "유즈케이스: 버그 수정",
+      "description": "재현-진단-수정-회귀 루프를 심각도 기반으로 운영하는 표준 절차.",
+      "content": "유즈케이스: 버그 수정 인입 템플릿 재현 가능한 버그 리포트 형식으로 시작하세요: 심각도 분류 초기에 분류해야 대응 속도를 결정할 수 있습니다: P0: 데이터 손실, 인증 우회, 서비스 중단 P1: 핵심 사용자 흐름 장애 P2: 우회 가능하지만 기능 저하 P3: 경미/비차단 P0/P1은 QA/보안 리뷰를 반드시 포함하세요. 실행 루프 최소 환경에서 정확히 재현 증상 패치가 아닌 근본 원인 격리 최소 범위의 안전한 수정 실패 경로에 대한 회귀 테스트 추가 동일 실패 모드가 가능한 인접 경로 재검증 debug-agent 프롬프트 템플릿 연계/에스컬레이션 신호 다음 영역이면 QA 또는 보안 리뷰로 승격하세요: 인증/세션/토큰 갱신 권한 경계 결제/트랜잭션 일관성 부하 상황 성능 저하 수정 후 검증 원래 재현 절차가 더 이상 실패하지 않음 인접 흐름에서 신규 에러가 발생하지 않음 수정 전 실패/수정 후 성공 테스트가 존재함 긴급 핫픽스 시 롤백 경로가 명확함 완료 기준 버그 수정은 다음을 만족하면 완료입니다: 근본 원인이 문서화됨 재현 가능한 검증으로 수정이 확인됨 회귀 방지 테스트가 확보됨",
+      "href": "/ko/guide/bug-fixing"
+    },
+    {
+      "id": "ko/guide/central-registry",
+      "lang": "ko",
+      "group": "guide",
+      "slug": "central-registry",
+      "title": "중앙 레지스트리 멀티 레포 설정",
+      "description": "이 저장소를 버전 기반 중앙 레지스트리로 운영하고 컨슈머 프로젝트를 PR 기반으로 안전하게 동기화하는 방법.",
+      "content": "중앙 레지스트리 멀티 레포 설정 이 저장소는 에이전트 스킬의 중앙 레지스트리 로 사용할 수 있으며, 여러 컨슈머 저장소를 버전 기준으로 일관되게 동기화할 수 있습니다. 아키텍처 레지스트리 유지보수자용 릴리스는 release-please로 자동화됩니다. Conventional Commits (feat:, fix:, chore: 등) 규칙을 사용합니다. main에 푸시하면 Release PR이 자동 생성/업데이트됩니다. Release PR을 머지하면 GitHub Release 자산이 발행됩니다. - CHANGELOG.md (자동 생성) - prompt-manifest.json (파일 목록 + SHA256 체크섬) - agent-skills.tar.gz (.agent/ 디렉토리 압축본) 컨슈머 프로젝트용 docs/consumer-templates/의 템플릿을 프로젝트에 복사합니다. 그다음 .agent-registry.yaml에서 원하는 버전을 고정합니다. 워크플로우 역할: check-registry-updates.yml: 새 버전 확인 후 PR 생성 sync-agent-registry.yml: 고정 버전이 변경되면 .agent/ 동기화 중요 : 자동 머지는 의도적으로 비활성화되어 있습니다. 모든 업데이트는 수동 검토가 필요합니다. 재사용 가능한 액션 사용 컨슈머 저장소에서 동기화 액션을 직접 호출할 수 있습니다.",
+      "href": "/ko/guide/central-registry"
+    },
+    {
+      "id": "ko/guide/dashboard-monitoring",
+      "lang": "ko",
+      "group": "guide",
+      "slug": "dashboard-monitoring",
+      "title": "유즈케이스: 대시보드 모니터링",
+      "description": "터미널/웹 대시보드로 오케스트레이터 세션을 운영하고 이상 신호에 대응하는 런북.",
+      "content": "유즈케이스: 대시보드 모니터링 시작 명령 웹 대시보드 기본 주소: http://localhost:9847 권장 터미널 구성 최소 3개 터미널을 권장합니다: 대시보드 전용 (oh-my-ag dashboard) 에이전트 spawn 실행 테스트/빌드 로그 확인 팀 세션이라면 웹 대시보드를 함께 띄워 상태를 공유하세요. 대시보드가 보는 데이터 데이터 소스: .serena/memories/ 핵심 시그널: 세션 상태 (running, completed, failed) task board 할당/상태 변경 에이전트별 progress turn result 발행 이벤트 대시보드는 변경 파일 이벤트 기반으로 갱신되며, 전체 디렉토리 폴링 루프에 의존하지 않습니다. 런북: 신호 → 대응 No agents detected - 동일 session-id로 spawn 했는지 확인 - .serena/memories/에 쓰기가 발생하는지 확인 Session stuck in running - 최신 progress- 타임스탬프 확인 - 멈춘 에이전트를 더 명확한 프롬프트로 재실행 웹 대시보드 재연결 반복 - 로컬 방화벽/프록시 확인 - dashboard:web 재시작 후 페이지 새로고침 에이전트 실행 중인데 활동 로그 없음 - orchestrator 출력 경로가 다른 워크스페이스로 빠지지 않았는지 확인 머지 전 모니터링 체크리스트 필수 에이전트가 모두 완료 상태 high 이상 QA 이슈 미해결 항목 없음 에이전트별 result 파일이 최신 상태로 존재 최종 산출물 기준 통합 테스트 수행 완료 완료 기준 모니터링 단계는 다음을 만족하면 완료입니다: 세션이 종료 상태(completed 또는 의도된 중지)에 도달 활동 히스토리로 최종 산출물 출처 추적 가능 전체 상태를 바탕으로 릴리즈/머지 판단 완료",
+      "href": "/ko/guide/dashboard-monitoring"
+    },
+    {
+      "id": "ko/guide/integration",
+      "lang": "ko",
+      "group": "guide",
+      "slug": "integration",
+      "title": "기존 프로젝트 통합",
+      "description": "기존 Antigravity 프로젝트에 oh-my-ag 스킬을 안전하고 비파괴적으로 통합하는 가이드.",
+      "content": "기존 프로젝트에 통합하기 이 문서는 루트의 구버전 AGENT GUIDE.md를 대체하며, 현재 워크스페이스 구조(cli + web)와 최신 CLI 동작 기준으로 작성되었습니다. 목표 기존 프로젝트 자산을 덮어쓰지 않고 oh-my-ag 스킬을 추가합니다. 권장 경로 (CLI) 대상 프로젝트 루트에서 실행: 실행 시 작업: .agent/skills/ 설치/업데이트 .agent/skills/ shared 공통 리소스 설치 .agent/workflows/ 설치 .agent/config/user-preferences.yaml 설치 선택적으로 ~/.gemini/antigravity/global workflows 전역 워크플로우 설치 수동 통합 (안전 모드) 디렉토리별로 직접 통제해야 할 때 사용합니다. 검증 체크리스트 선택 기능: 대시보드 대시보드는 선택 기능이며 설치된 CLI로 실행합니다. 웹 대시보드 기본 주소: http://localhost:9847 롤백 전략 통합 전에 프로젝트에 체크포인트 커밋을 남기세요. 되돌려야 하면 팀 표준 절차에 맞춰 해당 커밋을 롤백하세요. 참고 커스터마이즈된 .agent/skills/ 가 있으면 의도하지 않은 덮어쓰기를 피하세요. 프로젝트 정책 파일(.agent/config/ )은 각 프로젝트 저장소 소유로 관리하세요. 멀티 에이전트 조율 패턴은 사용 가이드를 이어서 참고하세요.",
+      "href": "/ko/guide/integration"
+    },
+    {
+      "id": "ko/guide/multi-agent-project",
+      "lang": "ko",
+      "group": "guide",
+      "slug": "multi-agent-project",
+      "title": "유즈케이스: 멀티 에이전트 프로젝트",
+      "description": "복합 도메인 기능을 병렬로 안전하게 전달하기 위한 단계별 조율 흐름.",
+      "content": "유즈케이스: 멀티 에이전트 프로젝트 언제 이 경로를 쓰나 백엔드 + 프론트엔드 + QA처럼 여러 도메인이 동시에 필요한 기능에서 사용합니다. 조율 모델 권장 순서: /plan으로 태스크 분해 및 의존성 정리 /coordinate로 실행 순서/담당 정의 도메인별 agent:spawn 병렬 실행 /review로 QA/보안/성능 게이트 수행 세션 ID와 워크스페이스 전략 기능 스트림마다 session ID를 하나로 고정하세요: 도메인별 워크스페이스를 분리해 충돌을 줄입니다: backend: ./apps/api frontend: ./apps/web mobile: ./apps/mobile 실행 예시 계약 우선 원칙 병렬 코딩 전에 공유 계약을 먼저 고정하세요: 요청/응답 스키마 에러 코드/메시지 규칙 인증/세션 수명주기 가정 실행 중 계약이 바뀌면 하위 에이전트를 일시 중단하고, 갱신된 계약으로 프롬프트를 재발행하세요. 머지 게이트 다음 조건이 모두 충족되기 전에는 머지하지 않습니다: 도메인별 테스트 통과 통합 지점이 합의된 계약과 일치 QA의 high/critical 이슈 해결 또는 명시적 예외 승인 외부 동작이 바뀌면 릴리즈 노트/변경 기록 갱신 운영 안티패턴 다음을 피하세요: 모든 에이전트가 하나의 워크스페이스 공유 계약 변경을 다른 에이전트에 전파하지 않음 호환성 확인 없이 프론트/백 단독 머지 완료 기준 멀티 에이전트 프로젝트는 다음을 만족하면 완료입니다: 계획된 태스크가 도메인별로 완료 크로스 도메인 통합 검증 완료 QA 승인(또는 리스크 수용 근거)이 기록됨",
+      "href": "/ko/guide/multi-agent-project"
+    },
+    {
+      "id": "ko/guide/single-skill",
+      "lang": "ko",
+      "group": "guide",
+      "slug": "single-skill",
+      "title": "유즈케이스: 단일 스킬",
+      "description": "단일 도메인 작업을 빠르게 처리하되, 품질 기준을 명확히 하는 실전 흐름.",
+      "content": "유즈케이스: 단일 스킬 언제 이 경로를 쓰나 다음처럼 범위가 좁고 한 도메인 중심인 작업에 적합합니다: UI 컴포넌트 1개 API 엔드포인트 1개 특정 모듈 리팩터 1건 단일 레이어 버그 수정 API 계약 + UI + QA가 동시에 필요한 작업이면 멀티 에이전트 프로젝트를 사용하세요. 사전 체크리스트 프롬프트 전에 아래를 먼저 정리하세요: 정확한 산출물(파일/동작) 스택 및 버전 수용 기준(acceptance criteria) 테스트 범위 프롬프트 템플릿 프롬프트 예시 예상 실행 흐름 관련 스킬이 자동 선택됩니다. 에이전트가 구현과 가정을 제시합니다. 가정을 확인하거나 수정합니다. 코드와 테스트를 전달받습니다. 로컬 검증 후 작은 후속 요청으로 다듬습니다. 머지 전 품질 게이트 수용 기준을 모두 충족 해피패스 + 핵심 엣지케이스 테스트 확보 무관한 파일 변경 없음 공용 모듈에 숨은 브레이킹 체인지 없음 멀티 에이전트로 전환해야 하는 신호 UI 작업이 신규 API 계약을 요구함 한 번의 수정이 여러 레이어로 전파됨 1차 반복 후 범위가 단일 도메인을 넘어감 완료 기준 단일 스킬 작업은 다음을 만족하면 완료입니다: 목표 산출물 구현 완료 수용 기준 충족이 확인됨 변경 동작에 대한 테스트가 추가/수정됨",
+      "href": "/ko/guide/single-skill"
+    },
+    {
+      "id": "ko/guide/usage",
+      "lang": "ko",
+      "group": "guide",
+      "slug": "usage",
+      "title": "사용 가이드",
+      "description": "예시, 워크플로우, 대시보드 운영, 문제 해결을 포함한 전체 사용 가이드.",
+      "content": "Antigravity 멀티 에이전트 스킬 사용 가이드 시작이 막막하시면 /coordinate 를 먼저 입력해 주세요. 빠른 시작 Antigravity IDE에서 열기 스킬이 자동으로 감지됩니다. Antigravity가 .agent/skills/를 스캔하여 모든 스킬을 인덱싱합니다. IDE에서 채팅하세요. 만들고 싶은 것을 설명하면 됩니다. 사용 예시 예시 1: 간단한 단일 도메인 작업 입력: 결과: Antigravity가 frontend-agent 매칭 자동으로 스킬 로드 (Progressive Disclosure) TypeScript, Tailwind, 폼 검증이 있는 React 컴포넌트 받음 예시 2: 복잡한 멀티 도메인 프로젝트 입력: 결과: Workflow Guide 활성화 — 멀티 도메인 복잡도 감지 PM Agent 기획 — 우선순위와 함께 태스크 분해 CLI로 에이전트 생성 : 에이전트들이 병렬 작업 — Knowledge Base에 저장 조율 — .gemini/antigravity/brain/ 일관성 확인 QA Agent 검토 — 보안/성능 감사 수정 & 반복 — 필요시 에이전트 재생성 예시 3: 버그 수정 입력: 결과: debug-agent 활성화 — 에러 분석 근본 원인 발견 — todos 데이터 로드 전에 map 시도 수정 제공 — 로딩, 에러, 빈 상태 추가 회귀 테스트 작성 — 버그 재발 방지 유사 패턴 발견 — 다른 3개 컴포넌트도 사전 수정 예시 4: CLI 기반 병렬 실행 실시간 모니터링: 실시간 대시보드 터미널 대시보드 fswatch (macOS) 또는 inotifywait (Linux)로 .serena/memories/를 감시합니다. 세션 상태, 에이전트 상태, 턴 수, 최신 활동을 실시간 테이블로 표시합니다. 메모리 파일 변경 시 자동으로 업데이트됩니다. 요구 사항: macOS: brew install fswatch Linux: apt install inotify-tools 웹 대시보드 브라우저에서 http://localhost:9847 열기. 기능: WebSocket 실시간 업데이트 (폴링 아님) 자동 재연결 — 연결 끊어지면 자동 복구 Serena 테마 UI — 보라색 강조 세션 상태 — ID와 실행/완료/실패 상태 에이전트 테이블 — 이름, 상태 (컬러 도트), 턴 수, 태스크 설명 활동 로그 — progress 및 result 파일의 최신 변경 사항 서버는 chokidar로 .serena/memories/를 감시하며 debounce (100ms)를 적용합니다. 변경된 파일만 읽으므로 — 전체 재스캔 없음. 핵심 개념 Progressive Disclosure (점진적 공개) Antigravity가 자동으로 요청을 스킬에 매칭시킵니다. 스킬을 수동으로 선택할 필요 없습니다. 필요한 스킬만 컨텍스트에 로드됩니다. 토큰 최적화 스킬 설계 각 스킬은 토큰 효율을 극대화하는 2계층 아키텍처를 사용합니다: SKILL.md (~40줄): 정체성, 라우팅, 핵심 규칙 — 즉시 로드 resources/ : 실행 프로토콜, 예시, 체크리스트, 에러 플레이북 — 필요 시 로드 공통 리소스는 shared/에 위치하며 (스킬이 아님) 모든 에이전트가 참조합니다: 4단계 워크플로우의 Chain-of-thought 실행 프로토콜 중간급 모델 가이드를 위한 Few-shot 입출력 예시 \"3 strikes\" 에스컬레이션 규칙의 에러 복구 플레이북 구조화된 다단계 분석을 위한 추론 템플릿 Flash/Pro 모델 등급별 컨텍스트 예산 관리 verify.sh를 통한 자동 검증 크로스 세션 교훈 누적 시스템 CLI 에이전트 실행 oh-my-ag agent:spawn을 사용하여 CLI로 에이전트를 실행합니다. user-preferences.yaml의 agent cli mapping을 참조하여 에이전트 타입별로 적절한 CLI(gemini, claude, codex, qwen)를 선택합니다. Workspace는 모노레포 관례에 따라 자동 탐지되며, -w 옵션으로 명시적 지정도 가능합니다. Knowledge Base 에이전트 산출물이 .gemini/antigravity/brain/에 저장됩니다. 기획서, 코드, 리포트, 조율 메모 포함. Serena Memory 구조화된 런타임 상태가 .serena/memories/에 저장됩니다. Orchestrator가 세션 정보, 태스크 보드, 에이전트별 진행 상황, 결과를 기록합니다. 대시보드들이 이 파일들을 감시하여 모니터링합니다. Workspaces (워크스페이스) 에이전트들이 별도 디렉토리에서 작업하여 충돌을 피합니다: 사용 가능한 스킬 | 스킬 | 자동 활성화 조건 | 산출물 | |------|----------------|--------| | workflow-guide | 복잡한 멀티 도메인 프로젝트 | 에이전트 조율 가이드 | | pm-agent | \"기획해줘\", \"분석해줘\" | .agent/plan.json | | frontend-agent | UI, 컴포넌트, 스타일링 | React 컴포넌트, 테스트 | | backend-agent | API, 데이터베이스, 인증 | API 엔드포인트, 모델, 테스트 | | mobile-agent | 모바일 앱, iOS/Android | Flutter 화면, 상태 관리 | | qa-agent | \"보안 검토\", \"감사\" | 우선순위가 있는 QA 리포트 | | debug-agent | 버그 리포트, 에러 메시지 | 수정된 코드, 회귀 테스트 | | orchestrator | CLI 서브에이전트 실행 | .agent/results/에 결과 저장 | | commit | \"commit\", \"커밋해줘\" | Git 커밋 (기능별 자동 분리) | 워크플로우 명령어 Antigravity IDE 채팅에서 입력하여 단계별 워크플로우를 실행합니다: | 명령어 | 설명 | |--------|------| | /coordinate | CLI를 통한 단계별 멀티 에이전트 조율 | | /orchestrate | CLI 기반 자동 병렬 에이전트 실행 | | /plan | PM 태스크 분해 + API 계약 정의 | | /review | 전체 QA 파이프라인 (보안, 성능, 접근성, 코드 품질) | | /debug | 구조화된 버그 수정 (재현 → 진단 → 수정 → 회귀 테스트) | 이것들은 스킬 (자동 활성화)과 별개입니다. 워크플로우는 다단계 프로세스에 대한 명시적 제어를 제공합니다. 일반적인 워크플로우 워크플로우 A: 단일 스킬 워크플로우 B: 멀티 에이전트 프로젝트 (자동) 워크플로우 B-2: 멀티 에이전트 프로젝트 (명시적) 워크플로우 C: 버그 수정 워크플로우 D: CLI Orchestration + 대시보드 팁 구체적으로 — \"JWT 인증과 React 프론트엔드, FastAPI 백엔드가 있는 TODO 앱 만들어줘\"가 \"앱 만들어줘\"보다 낫습니다. 멀티 도메인은 CLI spawning 사용 — 한 채팅에서 모든 것을 하려고 하지 마세요. Knowledge Base 검토 — .gemini/antigravity/brain/에서 API 일관성 확인 재생성으로 반복 — 처음부터 다시 하지 말고, 명령을 다듬어 재생성하세요. 대시보드 사용 — bunx oh-my-ag dashboard 또는 bunx oh-my-ag dashboard:web로 orchestrator 세션 모니터링 별도 워크스페이스 — 각 에이전트에 고유 디렉토리 할당 문제 해결 | 문제 | 해결법 | |------|--------| | Antigravity에서 스킬이 로드되지 않음 | antigravity open .으로 프로젝트를 열고, .agent/skills/ 폴더와 SKILL.md 파일을 확인한 뒤 Antigravity IDE를 재시작하세요 | | CLI를 찾을 수 없음 | which gemini / which claude 확인, 누락된 CLI 설치 | | 에이전트 간 코드 불일치 | .gemini/antigravity/brain/에서 산출물을 검토하고, 한 에이전트를 다른 에이전트 출력 참조로 재실행한 뒤 QA Agent로 최종 일관성을 점검하세요 | | 대시보드에 \"No agents detected\" 표시 | 메모리 파일이 아직 생성되지 않았습니다. Orchestrator를 실행하거나 .serena/memories/에 수동으로 파일을 생성하세요 | | 웹 대시보드가 시작 안 됨 | bun install로 chokidar, ws 설치 | | fswatch not found | macOS: brew install fswatch, Linux: apt install inotify-tools | | QA 리포트에 50개 이상 이슈 | CRITICAL/HIGH부터 처리, 나머지는 문서화 후 나중에 | CLI 명령어 개발자용 (통합 가이드) 기존 Antigravity 프로젝트에 이 스킬들을 통합하고 싶다면 기존 프로젝트 통합을 참고하세요. 다음을 포함합니다: 빠른 3단계 통합 전체 대시보드 통합 본인 기술 스택에 맞게 스킬 커스터마이징 문제 해결 및 모범 사례 Antigravity IDE에서 채팅하세요. 모니터링을 위해 대시보드를 사용하고, CLI 실행을 위해 orchestrator 스크립트를 사용합니다. 기존 프로젝트 통합은 기존 프로젝트 통합을 참고하세요.",
+      "href": "/ko/guide/usage"
+    }
+  ],
+  "generatedAt": "2026-02-10T22:31:31.696Z"
+}
