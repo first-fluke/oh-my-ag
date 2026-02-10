@@ -278,43 +278,9 @@ Orchestrator가 `.serena/memories/`에 구조화된 상태를 기록합니다:
 
 ## 스킬 아키텍처
 
-각 스킬은 **토큰 최적화된 2계층 설계**를 사용합니다:
+스킬은 **토큰 최적화된 2계층 설계**를 사용하여 점진적 공개(progressive disclosure)를 구현합니다—핵심 규칙은 즉시 로드(~800B), 상세 리소스는 필요 시 로드됩니다.
 
-- **SKILL.md** (~40줄): Antigravity가 즉시 로드. 스킬 정체성, 라우팅 조건, 핵심 규칙만 포함.
-- **resources/**: 필요 시 로드. 실행 프로토콜, few-shot 예시, 체크리스트, 에러 플레이북, 코드 스니펫, 기술 스택 상세 포함.
-
-이를 통해 초기 스킬 로딩 시 **~75% 토큰 절약** (스킬당 3-7KB → ~800B).
-
-### 공통 리소스 (`_shared/`)
-
-모든 스킬에서 중복 제거된 공통 리소스:
-
-| 리소스 | 용도 |
-|--------|------|
-| `reasoning-templates.md` | 다단계 추론을 위한 구조화된 빈칸 채우기 템플릿 |
-| `clarification-protocol.md` | 질문 vs 가정 판단, 모호성 수준별 대응 |
-| `context-budget.md` | 모델 등급별 토큰 효율적 파일 읽기 전략 |
-| `context-loading.md` | Orchestrator 프롬프트 구성을 위한 태스크-리소스 매핑 |
-| `skill-routing.md` | 키워드→스킬 매핑, 병렬 실행 규칙 |
-| `difficulty-guide.md` | Simple/Medium/Complex 평가 및 프로토콜 분기 |
-| `lessons-learned.md` | 크로스 세션 누적 도메인 교훈 |
-| `verify.sh` | 에이전트 완료 후 자동 검증 스크립트 |
-| `api-contracts/` | PM이 작성, Backend가 구현, Frontend/Mobile이 소비 |
-| `serena-memory-protocol.md` | CLI 모드 메모리 읽기/쓰기 프로토콜 |
-| `common-checklist.md` | 범용 코드 품질 체크리스트 |
-
-### 스킬별 리소스
-
-각 스킬이 도메인 특화 리소스를 제공:
-
-| 리소스 | 용도 |
-|--------|------|
-| `execution-protocol.md` | 4단계 Chain-of-thought 워크플로우 (분석 → 설계 → 구현 → 검증) |
-| `examples.md` | 2-3개 few-shot 입출력 예시 |
-| `checklist.md` | 도메인별 셀프 검증 체크리스트 |
-| `error-playbook.md` | "3 strikes" 에스컬레이션 규칙을 포함한 장애 복구 |
-| `tech-stack.md` | 상세 기술 사양 |
-| `snippets.md` | 바로 사용 가능한 코드 패턴 |
+전체 아키텍처 상세 정보와 리소스 명세는 [`web/content/ko/core-concepts/skills.md`](./web/content/ko/core-concepts/skills.md)를 참고하세요.
 
 ## CLI 명령어
 

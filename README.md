@@ -280,43 +280,9 @@ For requirements, screenshots, and detailed behavior, see [`web/content/en/guide
 
 ## Skill Architecture
 
-Each skill uses a **token-optimized two-layer design**:
+Skills use a **token-optimized two-layer design** for progressive disclosure—core rules load immediately (~800B), detailed resources load on-demand.
 
-- **SKILL.md** (~40 lines): Loaded immediately by Antigravity. Contains only identity, routing conditions, and core rules.
-- **resources/**: Loaded on-demand. Contains execution protocols, few-shot examples, checklists, error playbooks, code snippets, and tech stack details.
-
-This achieves **~75% token savings** on initial skill loading (3-7KB → ~800B per skill).
-
-### Shared Resources (`_shared/`)
-
-Common resources deduplicated across all skills:
-
-| Resource | Purpose |
-|----------|---------|
-| `reasoning-templates.md` | Structured fill-in-the-blank templates for multi-step reasoning |
-| `clarification-protocol.md` | When to ask vs. assume, ambiguity levels |
-| `context-budget.md` | Token-efficient file reading strategies per model tier |
-| `context-loading.md` | Task-type to resource mapping for orchestrator prompt construction |
-| `skill-routing.md` | Keyword-to-skill mapping and parallel execution rules |
-| `difficulty-guide.md` | Simple/Medium/Complex assessment with protocol branching |
-| `lessons-learned.md` | Cross-session accumulated domain gotchas |
-| `verify.sh` | Automated verification script run after agent completion |
-| `api-contracts/` | PM creates contracts, backend implements, frontend/mobile consumes |
-| `serena-memory-protocol.md` | CLI mode memory read/write protocol |
-| `common-checklist.md` | Universal code quality checks |
-
-### Per-Skill Resources
-
-Each skill provides domain-specific resources:
-
-| Resource | Purpose |
-|----------|---------|
-| `execution-protocol.md` | 4-step chain-of-thought workflow (Analyze → Plan → Implement → Verify) |
-| `examples.md` | 2-3 few-shot input/output examples |
-| `checklist.md` | Domain-specific self-verification checklist |
-| `error-playbook.md` | Failure recovery with "3 strikes" escalation rule |
-| `tech-stack.md` | Detailed technology specifications |
-| `snippets.md` | Copy-paste ready code patterns |
+For full architecture details and resource specifications, see [`web/content/en/core-concepts/skills.md`](./web/content/en/core-concepts/skills.md).
 
 ## CLI Commands
 
