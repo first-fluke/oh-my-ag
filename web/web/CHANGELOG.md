@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.1.2](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.1...web-v0.1.2) (2026-02-10)
+
+
+### Features
+
+* **web:** add documentation search functionality ([0523012](https://github.com/first-fluke/oh-my-ag/commit/052301206e510a13b098f552b3ce7dd7e58ee4dc))
+
+
+### Bug Fixes
+
+* **web:** add list styling to markdown renderer ([d2680e2](https://github.com/first-fluke/oh-my-ag/commit/d2680e2ba3070e9cc6bcdf62360bc12bfc6f0bf1))
+* **web:** add table styling with proper padding and borders ([0adecbd](https://github.com/first-fluke/oh-my-ag/commit/0adecbd5198b55db23b9376b0274c38639e37f9b))
+* **web:** darker background for code blocks ([15318bc](https://github.com/first-fluke/oh-my-ag/commit/15318bc54fc2fba6013c93a21d4c21c38ab588c4))
+
+
+### Refactoring
+
+* **web:** migrate search to cmdk ([c282426](https://github.com/first-fluke/oh-my-ag/commit/c282426bd3596d74713ecc73f93550c983d1f94a))
+* **web:** migrate to TypeScript and motion package ([bc9233b](https://github.com/first-fluke/oh-my-ag/commit/bc9233b598bf28c2d5f98a427109074f53dd8b28))
+
+
+### Documentation
+
+* move skill architecture details to web docs ([028afdb](https://github.com/first-fluke/oh-my-ag/commit/028afdb1483bb547adf8691f73c9cae8d62d3b6b))
+
 ## [0.1.1](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.0...web-v0.1.1) (2026-02-09)
 
 
