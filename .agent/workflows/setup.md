@@ -47,7 +47,7 @@ Display results:
 
 Provide installation guide for missing CLIs:
 
-- **gemini**: `npm install -g @anthropic-ai/gemini-cli`
+- **gemini**: `npm install -g @google/gemini-cli`
 - **claude**: `npm install -g @anthropic-ai/claude-code`
 - **codex**: `npm install -g @openai/codex-cli`
 
