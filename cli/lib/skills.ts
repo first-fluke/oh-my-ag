@@ -175,7 +175,7 @@ export function getAllSkills(): SkillInfo[] {
 
 export type CliTool = "claude" | "opencode" | "amp" | "codex";
 
-const CLI_SKILLS_DIR: Record<CliTool, string> = {
+export const CLI_SKILLS_DIR: Record<CliTool, string> = {
   claude: ".claude/skills",
   opencode: ".opencode/skills",
   amp: ".agents/skills",
