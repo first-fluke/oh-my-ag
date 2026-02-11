@@ -67,32 +67,35 @@ export async function install(): Promise<void> {
     message: "Also develop with other CLI tools?",
     options: [
       {
+        value: "agents",
+        label: "OpenCode, Amp, Codex",
+        hint: ".agents/skills/",
+      },
+      {
         value: "claude",
         label: "Claude Code",
         hint: ".claude/skills/",
       },
       {
-        value: "opencode",
-        label: "OpenCode",
-        hint: ".agents/skills/",
-      },
-      {
-        value: "amp",
-        label: "Amp",
-        hint: ".agents/skills/",
-      },
-      {
-        value: "codex",
-        label: "Codex",
-        hint: ".agents/skills/",
+        value: "copilot",
+        label: "GitHub Copilot",
+        hint: ".github/skills/",
       },
     ],
     required: false,
   });
 
-  const selectedClis: CliTool[] = p.isCancel(cliSelection)
+  const rawSelection = p.isCancel(cliSelection)
     ? []
-    : (cliSelection as CliTool[]);
+    : (cliSelection as string[]);
+  const selectedClis: CliTool[] = [];
+  for (const value of rawSelection) {
+    if (value === "agents") {
+      selectedClis.push("opencode", "amp", "codex");
+    } else {
+      selectedClis.push(value as CliTool);
+    }
+  }
 
   const cwd = process.cwd();
   const spinner = p.spinner();

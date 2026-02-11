@@ -173,13 +173,14 @@ export function getAllSkills(): SkillInfo[] {
   return [...SKILLS.domain, ...SKILLS.coordination, ...SKILLS.utility];
 }
 
-export type CliTool = "claude" | "opencode" | "amp" | "codex";
+export type CliTool = "claude" | "opencode" | "amp" | "codex" | "copilot";
 
 export const CLI_SKILLS_DIR: Record<CliTool, string> = {
   claude: ".claude/skills",
   opencode: ".agents/skills",
   amp: ".agents/skills",
   codex: ".agents/skills",
+  copilot: ".github/skills",
 };
 
 export function createCliSymlinks(
