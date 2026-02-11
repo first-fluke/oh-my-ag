@@ -93,6 +93,37 @@ git commit -m "chore: checkpoint before oh-my-ag integration"
 
 If you need to undo, revert that commit with your normal team process.
 
+## Multi-CLI Symlink Support
+
+When you run `bunx oh-my-ag`, you'll see this prompt after selecting skills:
+
+```text
+Also develop with other CLI tools?
+  ○ Claude Code (.claude/skills/)
+  ○ OpenCode (.opencode/skills/)
+  ○ Amp (.agents/skills/)
+  ○ Codex (.codex/skills/)
+```
+
+Select any additional CLI tools you use alongside Antigravity. The installer will:
+
+1. Install skills to `.agent/skills/` (Antigravity's native location)
+2. Create symlinks from each selected CLI's skills directory to `.agent/skills/`
+
+This ensures a single source of truth while allowing skills to work across multiple CLI tools.
+
+### Symlink Structure
+
+```
+.agent/skills/frontend-agent/      ← Source (SSOT)
+.claude/skills/frontend-agent/     → ../../.agent/skills/frontend-agent/
+.opencode/skills/frontend-agent/   → ../../.agent/skills/frontend-agent/
+.agents/skills/frontend-agent/     → ../../.agent/skills/frontend-agent/
+.codex/skills/frontend-agent/      → ../../.agent/skills/frontend-agent/
+```
+
+The installer skips existing symlinks and warns if a real directory exists at the target location.
+
 ## Notes
 
 - Do not overwrite existing `.agent/skills/*` folders unless you intend to replace customized skills.

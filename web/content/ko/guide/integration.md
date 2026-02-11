@@ -93,6 +93,37 @@ git commit -m "chore: checkpoint before oh-my-ag integration"
 
 되돌려야 하면 팀 표준 절차에 맞춰 해당 커밋을 롤백하세요.
 
+## 멀티 CLI 심링크 지원
+
+`bunx oh-my-ag`를 실행하면 스킬 선택 후 다음과 같은 프롬프트가 표시됩니다:
+
+```text
+또 다른 CLI 도구로도 개발하시나요?
+  ○ Claude Code (.claude/skills/)
+  ○ OpenCode (.opencode/skills/)
+  ○ Amp (.agents/skills/)
+  ○ Codex (.codex/skills/)
+```
+
+Antigravity와 함께 사용하는 추가 CLI 도구를 선택하세요. 설치 프로그램은 다음을 수행합니다:
+
+1. 스킬을 `.agent/skills/`에 설치 (Antigravity의 기본 위치)
+2. 선택한 각 CLI의 skills 디렉토리에서 `.agent/skills/`로 심링크 생성
+
+이를 통해 단일 출처(스킬의 SSOT)를 유지하면서 여러 CLI 도구에서 스킬을 사용할 수 있습니다.
+
+### 심링크 구조
+
+```
+.agent/skills/frontend-agent/      ← 출처 (SSOT)
+.claude/skills/frontend-agent/     → ../../.agent/skills/frontend-agent/
+.opencode/skills/frontend-agent/   → ../../.agent/skills/frontend-agent/
+.agents/skills/frontend-agent/     → ../../.agent/skills/frontend-agent/
+.codex/skills/frontend-agent/      → ../../.agent/skills/frontend-agent/
+```
+
+설치 프로그램은 기존 심링크를 건 넘기고, 대상 위치에 실제 디렉토리가 있는 경우 경고합니다.
+
 ## 참고
 
 - 커스터마이즈된 `.agent/skills/*`가 있으면 의도하지 않은 덮어쓰기를 피하세요.
