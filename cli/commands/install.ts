@@ -79,12 +79,12 @@ export async function install(): Promise<void> {
       {
         value: "amp",
         label: "Amp",
-        hint: ".agents/skills/",
+        hint: ".agents/skills/ (also used by Codex)",
       },
       {
         value: "codex",
         label: "Codex",
-        hint: ".agents/skills/",
+        hint: ".agents/skills/ (shared with Amp)",
       },
     ],
     required: false,
