@@ -77,6 +77,11 @@ export async function install(): Promise<void> {
         hint: ".claude/skills/",
       },
       {
+        value: "cursor",
+        label: "Cursor",
+        hint: ".cursor/skills/",
+      },
+      {
         value: "copilot",
         label: "GitHub Copilot",
         hint: ".github/skills/",
