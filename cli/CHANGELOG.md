@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.19.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.18.0...cli-v1.19.0) (2026-02-11)
+
+
+### Features
+
+* merge OpenCode/Amp/Codex options and add GitHub Copilot support ([b2e7fa1](https://github.com/first-fluke/oh-my-ag/commit/b2e7fa1d8e6f748cfdf92f351d8f5d72f81eded6))
+
+
+### Bug Fixes
+
+* OpenCode, Amp, Codex all use .agents/skills/ ([ed4f9bd](https://github.com/first-fluke/oh-my-ag/commit/ed4f9bdf688d69620af22bc27234b0f7f8b0182e))
+* update Codex skills path from .codex/skills to .agents/skills ([8c30a97](https://github.com/first-fluke/oh-my-ag/commit/8c30a97cbe29d7117aa13322b11acad011a1a03d))
+
+
+### Miscellaneous
+
+* update CLI hints to show shared directories ([c0e78a2](https://github.com/first-fluke/oh-my-ag/commit/c0e78a221ab1a297affb9c91a9690efbf5978360))
+
 ## [1.18.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.17.0...cli-v1.18.0) (2026-02-11)
 
 
