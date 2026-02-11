@@ -4,6 +4,8 @@ import { join } from "node:path";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import {
+  type CliTool,
+  createCliSymlinks,
   getAllSkills,
   installConfigs,
   installGlobalWorkflows,
@@ -61,6 +63,37 @@ export async function install(): Promise<void> {
     selectedSkills = PRESETS[projectType as string] ?? [];
   }
 
+  const cliSelection = await p.multiselect({
+    message: "Also develop with other CLI tools?",
+    options: [
+      {
+        value: "claude",
+        label: "Claude Code",
+        hint: ".claude/skills/",
+      },
+      {
+        value: "opencode",
+        label: "OpenCode",
+        hint: ".opencode/skills/",
+      },
+      {
+        value: "amp",
+        label: "Amp",
+        hint: ".agents/skills/",
+      },
+      {
+        value: "codex",
+        label: "Codex",
+        hint: ".codex/skills/",
+      },
+    ],
+    required: false,
+  });
+
+  const selectedClis: CliTool[] = p.isCancel(cliSelection)
+    ? []
+    : (cliSelection as CliTool[]);
+
   const cwd = process.cwd();
   const spinner = p.spinner();
   spinner.start("Installing skills...");
@@ -76,16 +109,46 @@ export async function install(): Promise<void> {
       await installSkill(skillName, cwd);
     }
 
-    spinner.stop("Skills installed!");
+    if (selectedClis.length > 0) {
+      spinner.message("Creating symlinks...");
+      const { created, skipped } = createCliSymlinks(
+        cwd,
+        selectedClis,
+        selectedSkills,
+      );
 
-    p.note(
-      [
-        ...selectedSkills.map((s) => `${pc.green("✓")} ${s}`),
-        "",
-        pc.dim(`Location: ${join(cwd, ".agent", "skills")}`),
-      ].join("\n"),
-      "Installed",
-    );
+      spinner.stop("Skills installed!");
+
+      p.note(
+        [
+          ...selectedSkills.map((s) => `${pc.green("✓")} ${s}`),
+          "",
+          pc.dim(`Location: ${join(cwd, ".agent", "skills")}`),
+          ...(created.length > 0
+            ? [
+                "",
+                pc.cyan("Symlinks:"),
+                ...created.map((s) => `${pc.green("→")} ${s}`),
+              ]
+            : []),
+          ...(skipped.length > 0
+            ? ["", pc.dim("Skipped:"), ...skipped.map((s) => pc.dim(`  ${s}`))]
+            : []),
+        ].join("\n"),
+        "Installed",
+      );
+    } else {
+      spinner.stop("Skills installed!");
+
+      p.note(
+        [
+          ...selectedSkills.map((s) => `${pc.green("✓")} ${s}`),
+          "",
+          pc.dim(`Location: ${join(cwd, ".agent", "skills")}`),
+        ].join("\n"),
+        "Installed",
+      );
+    }
 
     // --- Git rerere Setup ---
     try {

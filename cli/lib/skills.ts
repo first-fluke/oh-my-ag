@@ -1,5 +1,13 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import {
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  readlinkSync,
+  symlinkSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
 import type { SkillInfo, SkillsRegistry } from "../types/index.js";
 
 export const REPO = "first-fluke/oh-my-ag";
@@ -163,6 +171,64 @@ export async function installConfigs(targetDir: string): Promise<void> {
 
 export function getAllSkills(): SkillInfo[] {
   return [...SKILLS.domain, ...SKILLS.coordination, ...SKILLS.utility];
+}
+
+export type CliTool = "claude" | "opencode" | "amp" | "codex";
+
+const CLI_SKILLS_DIR: Record<CliTool, string> = {
+  claude: ".claude/skills",
+  opencode: ".opencode/skills",
+  amp: ".agents/skills",
+  codex: ".codex/skills",
+};
+
+export function createCliSymlinks(
+  targetDir: string,
+  cliTools: CliTool[],
+  skillNames: string[],
+): { created: string[]; skipped: string[] } {
+  const created: string[] = [];
+  const skipped: string[] = [];
+  const ssotSkillsDir = resolve(targetDir, ".agent", "skills");
+
+  for (const cli of cliTools) {
+    const cliSkillsDir = join(targetDir, CLI_SKILLS_DIR[cli]);
+
+    if (!existsSync(cliSkillsDir)) {
+      mkdirSync(cliSkillsDir, { recursive: true });
+    }
+
+    for (const skillName of skillNames) {
+      const source = join(ssotSkillsDir, skillName);
+      const link = join(cliSkillsDir, skillName);
+
+      if (!existsSync(source)) {
+        skipped.push(`${cli}/${skillName} (source missing)`);
+        continue;
+      }
+
+      try {
+        const stat = lstatSync(link);
+        if (stat.isSymbolicLink()) {
+          const existing = resolve(dirname(link), readlinkSync(link));
+          if (existing === resolve(source)) {
+            skipped.push(`${cli}/${skillName} (already linked)`);
+            continue;
+          }
+          unlinkSync(link);
+        } else {
+          skipped.push(`${cli}/${skillName} (real dir exists)`);
+          continue;
+        }
+      } catch (_e) {}
+
+      const relativePath = relative(cliSkillsDir, source);
+      symlinkSync(relativePath, link, "dir");
+      created.push(`${CLI_SKILLS_DIR[cli]}/${skillName}`);
+    }
+  }
+
+  return { created, skipped };
 }
 
 export async function installGlobalWorkflows(): Promise<void> {
