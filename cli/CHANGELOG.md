@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.19.0...cli-v1.20.0) (2026-02-11)
+
+
+### Features
+
+* **cli:** add Cursor (.cursor/skills/) support to install, update, doctor ([b699b29](https://github.com/first-fluke/oh-my-ag/commit/b699b299bc2e8e531223ae70db8798ea3881e7a0))
+
 ## [1.19.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.18.0...cli-v1.19.0) (2026-02-11)
 
 
