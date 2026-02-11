@@ -2,7 +2,7 @@
 
 [한국어](./README.ko.md)
 
-The Ultimate Multi-Agent Framework for Google Antigravity.
+The Ultimate Multi-Agent Framework for Google Antigravity and beyond.
 
 Orchestrate 6 specialized domain agents (PM, Frontend, Backend, Mobile, QA, Debug) via **Serena Memory**. Features parallel CLI execution, real-time observability dashboards, and zero-config progressive skill loading. The batteries-included solution for agentic coding.
 
