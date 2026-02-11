@@ -100,9 +100,7 @@ When you run `bunx oh-my-ag`, you'll see this prompt after selecting skills:
 ```text
 Also develop with other CLI tools?
   ○ Claude Code (.claude/skills/)
-  ○ OpenCode (.opencode/skills/)
-  ○ Amp (.agents/skills/)
-  ○ Codex (.agents/skills/)
+  ○ OpenCode, Amp, Codex (.agents/skills/)
 ```
 
 Select any additional CLI tools you use alongside Antigravity. The installer will:
@@ -117,8 +115,7 @@ This ensures a single source of truth while allowing skills to work across multi
 ```
 .agent/skills/frontend-agent/      ← Source (SSOT)
 .claude/skills/frontend-agent/     → ../../.agent/skills/frontend-agent/
-.opencode/skills/frontend-agent/   → ../../.agent/skills/frontend-agent/
-.agents/skills/frontend-agent/     → ../../.agent/skills/frontend-agent/ (Amp & Codex)
+.agents/skills/frontend-agent/     → ../../.agent/skills/frontend-agent/ (OpenCode, Amp, Codex)
 ```
 
 The installer skips existing symlinks and warns if a real directory exists at the target location.

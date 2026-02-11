@@ -177,7 +177,7 @@ export type CliTool = "claude" | "opencode" | "amp" | "codex";
 
 export const CLI_SKILLS_DIR: Record<CliTool, string> = {
   claude: ".claude/skills",
-  opencode: ".opencode/skills",
+  opencode: ".agents/skills",
   amp: ".agents/skills",
   codex: ".agents/skills",
 };

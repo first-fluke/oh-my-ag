@@ -74,17 +74,17 @@ export async function install(): Promise<void> {
       {
         value: "opencode",
         label: "OpenCode",
-        hint: ".opencode/skills/",
+        hint: ".agents/skills/",
       },
       {
         value: "amp",
         label: "Amp",
-        hint: ".agents/skills/ (also used by Codex)",
+        hint: ".agents/skills/",
       },
       {
         value: "codex",
         label: "Codex",
-        hint: ".agents/skills/ (shared with Amp)",
+        hint: ".agents/skills/",
       },
     ],
     required: false,
