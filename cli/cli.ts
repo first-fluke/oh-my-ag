@@ -145,4 +145,18 @@ program
     verify(agentType, options.workspace, options.json).catch(console.error);
   });
 
+program
+  .command("help")
+  .description("Show help information")
+  .action(() => {
+    program.help();
+  });
+
+program
+  .command("version")
+  .description("Show version number")
+  .action(() => {
+    console.log(VERSION);
+  });
+
 program.parse();
