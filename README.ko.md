@@ -1,22 +1,8 @@
 # oh-my-ag: Antigravity를 위한 멀티 에이전트 오케스트레이터
 
-Google Antigravity를 위한 궁극의 멀티 에이전트 프레임워크.
+Google Antigravity 및 그 외 다양한 환경을 위한 궁극의 멀티 에이전트 프레임워크.
 
 **Serena Memory**를 통해 6개의 전문 도메인 에이전트(PM, Frontend, Backend, Mobile, QA, Debug)를 조율하세요. 병렬 CLI 실행, 실시간 관측 대시보드, 제로 설정(zero-config) 방식의 점진적 스킬 로딩을 지원합니다. 에이전트 기반 코딩을 위해 모든 것이 준비된 올인원 솔루션입니다.
-
-> **마음에 드셨나요?** 스타 눌러주세요!
->
-> ```bash
-> gh api --method PUT /user/starred/first-fluke/oh-my-ag
-> ```
->
-> **풀스택 개발이 처음이신가요?** 최적화된 스타터 템플릿으로 시작필보세요:
->
-> ```bash
-> git clone https://github.com/first-fluke/fullstack-starter
-> ```
->
-> 이 스킬들이 미리 설정되어 있어 바로 멀티 에이전트 협업이 가능합니다.
 
 ## 목차
 
@@ -308,6 +294,20 @@ bunx oh-my-ag usage          # 모델 사용량 쿼터 조회
 ## 후원하기
 
 이 프로젝트는 후원자분들의 지원으로 유지됩니다.
+
+> **마음에 드셨나요?** 스타 눌러주세요!
+>
+> ```bash
+> gh api --method PUT /user/starred/first-fluke/oh-my-ag
+> ```
+>
+> **풀스택 개발이 처음이신가요?** 최적화된 스타터 템플릿으로 시작해 보세요:
+>
+> ```bash
+> git clone https://github.com/first-fluke/fullstack-starter
+> ```
+>
+> 이 스킬들이 미리 설정되어 있어 바로 멀티 에이전트 협업이 가능합니다.
 
 <a href="https://github.com/sponsors/first-fluke">
   <img src="https://img.shields.io/badge/후원하기-♥-ea4aaa?style=for-the-badge" alt="Sponsor" />

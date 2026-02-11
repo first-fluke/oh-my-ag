@@ -2,23 +2,9 @@
 
 [한국어](./README.ko.md)
 
-The Ultimate Multi-Agent Framework for Google Antigravity.
+The Ultimate Multi-Agent Framework for Google Antigravity and beyond.
 
 Orchestrate 6 specialized domain agents (PM, Frontend, Backend, Mobile, QA, Debug) via **Serena Memory**. Features parallel CLI execution, real-time observability dashboards, and zero-config progressive skill loading. The batteries-included solution for agentic coding.
-
-> **Like this project?** Give it a star!
->
-> ```bash
-> gh api --method PUT /user/starred/first-fluke/oh-my-ag
-> ```
->
-> **New to fullstack development?** Try our optimized starter template:
->
-> ```bash
-> git clone https://github.com/first-fluke/fullstack-starter
-> ```
->
-> Pre-configured with these skills for instant multi-agent collaboration.
 
 ## Table of Contents
 
@@ -310,6 +296,20 @@ Troubleshooting and multi-repo registry docs are now in the web guide:
 ## Sponsors
 
 This project is maintained thanks to our generous sponsors.
+
+> **Like this project?** Give it a star!
+>
+> ```bash
+> gh api --method PUT /user/starred/first-fluke/oh-my-ag
+> ```
+>
+> **New to fullstack development?** Try our optimized starter template:
+>
+> ```bash
+> git clone https://github.com/first-fluke/fullstack-starter
+> ```
+>
+> Pre-configured with these skills for instant multi-agent collaboration.
 
 <a href="https://github.com/sponsors/first-fluke">
   <img src="https://img.shields.io/badge/Sponsor-♥-ea4aaa?style=for-the-badge" alt="Sponsor" />
