@@ -87,8 +87,9 @@ program
   .description("Clean up orphaned subagent processes and temp files")
   .option("--dry-run", "Show what would be cleaned without making changes")
   .option("--json", "Output as JSON")
+  .option("-y, --yes", "Skip confirmation prompts and clean everything")
   .action((options) => {
-    cleanup(options.dryRun, options.json).catch(console.error);
+    cleanup(options.dryRun, options.json, options.yes).catch(console.error);
   });
 
 program

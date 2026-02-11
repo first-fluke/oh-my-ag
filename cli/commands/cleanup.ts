@@ -5,7 +5,77 @@ import * as p from "@clack/prompts";
 import pc from "picocolors";
 import type { CleanupResult } from "../types/index.js";
 
-export async function cleanup(dryRun = false, jsonMode = false): Promise<void> {
+interface GeminiCleanupConfig {
+  shouldCleanupBrain: boolean;
+  shouldCleanupImplicit: boolean;
+  shouldCleanupKnowledge: boolean;
+}
+
+async function shouldCleanupGeminiDirs(
+  cwd: string,
+  jsonMode: boolean,
+  skipConfirm: boolean,
+): Promise<GeminiCleanupConfig> {
+  const geminiDir = join(cwd, ".gemini", "antigravity");
+  const brainDir = join(geminiDir, "brain");
+  const implicitDir = join(geminiDir, "implicit");
+  const knowledgeDir = join(geminiDir, "knowledge");
+
+  const brainExists = existsSync(brainDir);
+  const implicitExists = existsSync(implicitDir);
+  const knowledgeExists = existsSync(knowledgeDir);
+
+  if (!brainExists && !implicitExists && !knowledgeExists) {
+    return {
+      shouldCleanupBrain: false,
+      shouldCleanupImplicit: false,
+      shouldCleanupKnowledge: false,
+    };
+  }
+
+  if (jsonMode) {
+    return {
+      shouldCleanupBrain: brainExists,
+      shouldCleanupImplicit: implicitExists,
+      shouldCleanupKnowledge: knowledgeExists,
+    };
+  }
+
+  const dirList = [
+    brainExists && "  - brain",
+    implicitExists && "  - implicit",
+    knowledgeExists && "  - knowledge",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const shouldCleanup = skipConfirm
+    ? true
+    : await p.confirm({
+        message: `Clean up Antigravity garbage?\n${dirList}`,
+        initialValue: true,
+      });
+
+  if (p.isCancel(shouldCleanup) || !shouldCleanup) {
+    return {
+      shouldCleanupBrain: false,
+      shouldCleanupImplicit: false,
+      shouldCleanupKnowledge: false,
+    };
+  }
+
+  return {
+    shouldCleanupBrain: brainExists,
+    shouldCleanupImplicit: implicitExists,
+    shouldCleanupKnowledge: knowledgeExists,
+  };
+}
+
+export async function cleanup(
+  dryRun = false,
+  jsonMode = false,
+  skipConfirm = false,
+): Promise<void> {
   const cwd = process.cwd();
   const resultsDir = join(cwd, ".agent", "results");
   const tmpDir = tmpdir();
@@ -15,6 +85,12 @@ export async function cleanup(dryRun = false, jsonMode = false): Promise<void> {
     skipped: 0,
     details: [],
   };
+
+  const geminiConfig = await shouldCleanupGeminiDirs(
+    cwd,
+    jsonMode,
+    skipConfirm,
+  );
 
   const logAction = (msg: string) => {
     result.details.push(dryRun ? `[DRY-RUN] ${msg}` : `[CLEAN] ${msg}`);
@@ -160,6 +236,56 @@ export async function cleanup(dryRun = false, jsonMode = false): Promise<void> {
     } catch {}
   } else {
     logSkip(`No results directory found: ${resultsDir}`);
+  }
+
+  if (
+    geminiConfig.shouldCleanupBrain ||
+    geminiConfig.shouldCleanupImplicit ||
+    geminiConfig.shouldCleanupKnowledge
+  ) {
+    const geminiDir = join(cwd, ".gemini", "antigravity");
+
+    if (geminiConfig.shouldCleanupBrain) {
+      const brainDir = join(geminiDir, "brain");
+      try {
+        if (existsSync(brainDir)) {
+          const files = readdirSync(brainDir);
+          for (const file of files) {
+            const filePath = join(brainDir, file);
+            logAction(`Removing brain file: ${filePath}`);
+            safeRemove(filePath);
+          }
+        }
+      } catch {}
+    }
+
+    if (geminiConfig.shouldCleanupImplicit) {
+      const implicitDir = join(geminiDir, "implicit");
+      try {
+        if (existsSync(implicitDir)) {
+          const files = readdirSync(implicitDir);
+          for (const file of files) {
+            const filePath = join(implicitDir, file);
+            logAction(`Removing implicit file: ${filePath}`);
+            safeRemove(filePath);
+          }
+        }
+      } catch {}
+    }
+
+    if (geminiConfig.shouldCleanupKnowledge) {
+      const knowledgeDir = join(geminiDir, "knowledge");
+      try {
+        if (existsSync(knowledgeDir)) {
+          const files = readdirSync(knowledgeDir);
+          for (const file of files) {
+            const filePath = join(knowledgeDir, file);
+            logAction(`Removing knowledge file: ${filePath}`);
+            safeRemove(filePath);
+          }
+        }
+      } catch {}
+    }
   }
 
   if (jsonMode) {
