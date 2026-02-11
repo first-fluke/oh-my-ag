@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.17.0...cli-v1.18.0) (2026-02-11)
+
+
+### Features
+
+* **cleanup:** add Gemini directory cleanup with -y flag ([061d193](https://github.com/first-fluke/oh-my-ag/commit/061d193b4f3b20eebf411ae3c190d75de37c6a7d))
+
 ## [1.17.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.16.0...cli-v1.17.0) (2026-02-11)
 
 
