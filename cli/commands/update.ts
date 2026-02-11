@@ -1,3 +1,5 @@
+import { existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import * as p from "@clack/prompts";
 import pMap from "p-map";
 import pc from "picocolors";
@@ -7,6 +9,11 @@ import {
   getLocalVersion,
   saveLocalVersion,
 } from "../lib/manifest.js";
+import {
+  CLI_SKILLS_DIR,
+  type CliTool,
+  createCliSymlinks,
+} from "../lib/skills.js";
 
 export async function update(): Promise<void> {
   console.clear();
@@ -51,7 +58,60 @@ export async function update(): Promise<void> {
 
     await saveLocalVersion(cwd, remoteManifest.version);
 
+    const ssotSkillsDir = join(cwd, ".agent", "skills");
+    const activeClis: CliTool[] = [];
+
+    for (const [cli, skillsDir] of Object.entries(CLI_SKILLS_DIR)) {
+      const cliSkillsDir = join(cwd, skillsDir);
+      if (existsSync(cliSkillsDir)) {
+        activeClis.push(cli as CliTool);
+      }
+    }
+
+    let symlinkCreated: string[] = [];
+    let symlinkSkipped: string[] = [];
+
+    if (activeClis.length > 0 && existsSync(ssotSkillsDir)) {
+      spinner.message("Updating CLI symlinks...");
+
+      const installedSkills = readdirSync(ssotSkillsDir).filter(
+        (name) => name !== "_shared" && existsSync(join(ssotSkillsDir, name)),
+      );
+
+      const { created, skipped } = createCliSymlinks(
+        cwd,
+        activeClis,
+        installedSkills,
+      );
+      symlinkCreated = created;
+      symlinkSkipped = skipped;
+    }
+
     const successCount = results.length - failures.length;
+
+    if (symlinkCreated.length > 0 || symlinkSkipped.length > 0) {
+      p.note(
+        [
+          `${pc.green("✓")} ${successCount} files updated`,
+          ...(symlinkCreated.length > 0
+            ? [
+                "",
+                pc.cyan("Symlinks created:"),
+                ...symlinkCreated.map((s) => `${pc.green("→")} ${s}`),
+              ]
+            : []),
+          ...(symlinkSkipped.length > 0
+            ? [
+                "",
+                pc.dim("Symlinks skipped:"),
+                ...symlinkSkipped.map((s) => pc.dim(`  ${s}`)),
+              ]
+            : []),
+        ].join("\n"),
+        "Update Complete",
+      );
+    }
+
     p.outro(
       failures.length > 0
         ? `${successCount} files updated, ${failures.length} failed`
