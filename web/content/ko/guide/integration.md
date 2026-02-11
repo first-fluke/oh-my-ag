@@ -102,7 +102,7 @@ git commit -m "chore: checkpoint before oh-my-ag integration"
   ○ Claude Code (.claude/skills/)
   ○ OpenCode (.opencode/skills/)
   ○ Amp (.agents/skills/)
-  ○ Codex (.codex/skills/)
+  ○ Codex (.agents/skills/)
 ```
 
 Antigravity와 함께 사용하는 추가 CLI 도구를 선택하세요. 설치 프로그램은 다음을 수행합니다:
@@ -118,8 +118,7 @@ Antigravity와 함께 사용하는 추가 CLI 도구를 선택하세요. 설치 
 .agent/skills/frontend-agent/      ← 출처 (SSOT)
 .claude/skills/frontend-agent/     → ../../.agent/skills/frontend-agent/
 .opencode/skills/frontend-agent/   → ../../.agent/skills/frontend-agent/
-.agents/skills/frontend-agent/     → ../../.agent/skills/frontend-agent/
-.codex/skills/frontend-agent/      → ../../.agent/skills/frontend-agent/
+.agents/skills/frontend-agent/     → ../../.agent/skills/frontend-agent/ (Amp & Codex)
 ```
 
 설치 프로그램은 기존 심링크를 건 넘기고, 대상 위치에 실제 디렉토리가 있는 경우 경고합니다.

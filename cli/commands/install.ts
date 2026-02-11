@@ -84,7 +84,7 @@ export async function install(): Promise<void> {
       {
         value: "codex",
         label: "Codex",
-        hint: ".codex/skills/",
+        hint: ".agents/skills/",
       },
     ],
     required: false,

@@ -179,7 +179,7 @@ export const CLI_SKILLS_DIR: Record<CliTool, string> = {
   claude: ".claude/skills",
   opencode: ".opencode/skills",
   amp: ".agents/skills",
-  codex: ".codex/skills",
+  codex: ".agents/skills",
 };
 
 export function createCliSymlinks(
