@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import * as p from "@clack/prompts";
 import pMap from "p-map";
@@ -13,6 +13,7 @@ import {
   CLI_SKILLS_DIR,
   type CliTool,
   createCliSymlinks,
+  getAllSkills,
 } from "../lib/skills.js";
 
 export async function update(): Promise<void> {
@@ -74,8 +75,9 @@ export async function update(): Promise<void> {
     if (activeClis.length > 0 && existsSync(ssotSkillsDir)) {
       spinner.message("Updating CLI symlinks...");
 
-      const installedSkills = readdirSync(ssotSkillsDir).filter(
-        (name) => name !== "_shared" && existsSync(join(ssotSkillsDir, name)),
+      const allSkillNames = getAllSkills().map((s) => s.name);
+      const installedSkills = allSkillNames.filter((name) =>
+        existsSync(join(ssotSkillsDir, name)),
       );
 
       const { created, skipped } = createCliSymlinks(
