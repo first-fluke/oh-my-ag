@@ -6,7 +6,6 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SPAWN_SCRIPT="${SCRIPT_DIR}/spawn-agent.sh"
 RESULTS_DIR=".agent/results"
 
 # Colors
@@ -208,7 +207,7 @@ spawn_task() {
     [[ -n "$VENDOR" ]] && VENDOR_FLAG="--vendor $VENDOR"
 
     (
-        "$SPAWN_SCRIPT" "$agent" "$task" "$workspace" $VENDOR_FLAG \
+        oh-my-ag agent:spawn "$agent" "$task" "parallel-${TIMESTAMP}" -w "$workspace" $VENDOR_FLAG \
             > "${RUN_DIR}/${agent}-${idx}.log" 2>&1
     ) &
 
@@ -242,7 +241,7 @@ parse_yaml_simple() {
             [[ -n "$VENDOR" ]] && VENDOR_FLAG="--vendor $VENDOR"
 
             (
-                "$SPAWN_SCRIPT" "$agent" "$task" "$workspace" $VENDOR_FLAG \
+                oh-my-ag agent:spawn "$agent" "$task" "parallel-${TIMESTAMP}" -w "$workspace" $VENDOR_FLAG \
                     > "${RUN_DIR}/${agent}-${idx}.log" 2>&1
             ) &
 
