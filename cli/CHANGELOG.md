@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.1](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.20.0...cli-v1.20.1) (2026-02-12)
+
+
+### Bug Fixes
+
+* **cli:** use SKILLS registry whitelist for symlink creation ([8f87501](https://github.com/first-fluke/oh-my-ag/commit/8f875015993a011316b4e018a4ae9979b5c518b8))
+
 ## [1.20.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.19.0...cli-v1.20.0) (2026-02-11)
 
 
