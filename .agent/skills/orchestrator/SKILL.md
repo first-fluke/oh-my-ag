@@ -122,7 +122,7 @@ See `../_shared/memory-protocol.md`.
 - Prompt template: `resources/subagent-prompt-template.md`
 - Memory schema: `resources/memory-schema.md`
 - Config: `config/cli-config.yaml`
-- Scripts: `scripts/spawn-agent.sh`, `scripts/parallel-run.sh`
+- Scripts: `scripts/parallel-run.sh`
 - Task templates: `templates/`
 - Skill routing: `../_shared/skill-routing.md`
 - Verification: `oh-my-ag verify <agent-type>`
