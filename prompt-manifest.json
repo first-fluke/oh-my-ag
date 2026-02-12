@@ -1,7 +1,7 @@
 {
   "name": "oh-my-ag",
-  "version": "1.20.1",
-  "releaseDate": "2026-02-12T06:43:06.204Z",
+  "version": "1.21.0",
+  "releaseDate": "2026-02-12T10:03:38.269Z",
   "repository": "https://github.com/first-fluke/oh-my-ag",
   "files": [
     {
@@ -256,8 +256,8 @@
     },
     {
       "path": ".agent/skills/orchestrator/SKILL.md",
-      "sha256": "c124f6252db3514ff25a83279c33eb531744f2f46b43d7185c393b4e998c1365",
-      "size": 5115
+      "sha256": "edda65499d31083f03a42327e5de8802b60f70eb5570c110cc0b566148834767",
+      "size": 5100
     },
     {
       "path": ".agent/skills/orchestrator/config/cli-config.yaml",
@@ -273,11 +273,6 @@
       "path": ".agent/skills/orchestrator/resources/subagent-prompt-template.md",
       "sha256": "7379cee06482b91258bfe27a1464352c9274c6984c149820fbef8de3d07fc3cc",
       "size": 5505
-    },
-    {
-      "path": ".agent/skills/orchestrator/scripts/parallel-run.sh",
-      "sha256": "f3def59c8e71f2b90602bf7d7dc527af6f793d5807d3d7784e9f5bffb7c0db65",
-      "size": 9463
     },
     {
       "path": ".agent/skills/orchestrator/templates/backend-task.md",
@@ -416,6 +411,6 @@
   "metadata": {
     "skillCount": 9,
     "workflowCount": 7,
-    "totalFiles": 81
+    "totalFiles": 80
   }
 }
