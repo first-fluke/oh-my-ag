@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.20.1...cli-v1.21.0) (2026-02-12)
+
+
+### Features
+
+* **cli:** add agent:parallel command to replace parallel-run.sh ([1527d6b](https://github.com/first-fluke/oh-my-ag/commit/1527d6b5619c98ba28fbe9a1ea9b7a3466085be2))
+
 ## [1.20.1](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.20.0...cli-v1.20.1) (2026-02-12)
 
 
