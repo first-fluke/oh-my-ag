@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-import { checkStatus, spawnAgent } from "./commands/agent.js";
+import { checkStatus, parallelRun, spawnAgent } from "./commands/agent.js";
 import { bridge } from "./commands/bridge.js";
 import { cleanup } from "./commands/cleanup.js";
 import { doctor } from "./commands/doctor.js";
@@ -126,6 +126,23 @@ program
   .option("-r, --root <path>", "Root path for memory checks", process.cwd())
   .action((sessionId, agentIds, options) => {
     checkStatus(sessionId, agentIds, options.root).catch(console.error);
+  });
+
+program
+  .command("agent:parallel [tasks...]")
+  .description("Run multiple sub-agents in parallel")
+  .option(
+    "-v, --vendor <vendor>",
+    "CLI vendor override (gemini/claude/codex/qwen)",
+  )
+  .option("-i, --inline", "Inline mode: specify tasks as agent:task arguments")
+  .option("--no-wait", "Don't wait for completion (background mode)")
+  .action((tasks, options) => {
+    parallelRun(tasks, {
+      vendor: options.vendor,
+      inline: options.inline,
+      noWait: !options.wait,
+    }).catch(console.error);
   });
 
 program

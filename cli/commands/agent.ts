@@ -703,3 +703,341 @@ export async function checkStatus(
     console.log(`${agent}:${status}`);
   }
 }
+
+type TaskDefinition = {
+  agent: string;
+  task: string;
+  workspace?: string;
+};
+
+const TaskDefinitionSchema = z.object({
+  agent: z.string(),
+  task: z.string(),
+  workspace: z.string().optional(),
+});
+
+const TasksFileSchema = z.object({
+  tasks: z.array(TaskDefinitionSchema),
+});
+
+function parseTasksFile(filePath: string): TaskDefinition[] {
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Tasks file not found: ${filePath}`);
+  }
+
+  const content = fs.readFileSync(filePath, "utf-8");
+  const parsed = parseYaml(content);
+  const result = TasksFileSchema.safeParse(parsed);
+
+  if (!result.success) {
+    throw new Error(`Invalid tasks file format: ${result.error.message}`);
+  }
+
+  return result.data.tasks;
+}
+
+function parseInlineTasks(taskSpecs: string[]): TaskDefinition[] {
+  return taskSpecs.map((spec) => {
+    const parts = spec.split(":");
+    if (parts.length < 2 || !parts[0]) {
+      throw new Error(
+        `Invalid task format: "${spec}". Expected "agent:task" or "agent:task:workspace"`,
+      );
+    }
+
+    const agent = parts[0];
+    const rest = parts.slice(1);
+    let task: string;
+    let workspace: string | undefined;
+
+    if (rest.length >= 2) {
+      const lastPart = rest[rest.length - 1] ?? "";
+      if (
+        lastPart.startsWith("./") ||
+        lastPart.startsWith("/") ||
+        lastPart === "."
+      ) {
+        workspace = lastPart;
+        task = rest.slice(0, -1).join(":");
+      } else {
+        task = rest.join(":");
+      }
+    } else {
+      task = rest.join(":");
+    }
+
+    return { agent, task, workspace };
+  });
+}
+
+export async function parallelRun(
+  tasksOrFile: string[],
+  options: {
+    vendor?: string;
+    inline?: boolean;
+    noWait?: boolean;
+  } = {},
+) {
+  const cwd = process.cwd();
+  const resultsDir = path.join(cwd, ".agent", "results");
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const runDir = path.join(resultsDir, `parallel-${timestamp}`);
+
+  fs.mkdirSync(runDir, { recursive: true });
+
+  const pidListFile = path.join(runDir, "pids.txt");
+
+  let tasks: TaskDefinition[];
+  try {
+    if (options.inline) {
+      if (tasksOrFile.length === 0) {
+        console.error(color.red("Error: No tasks specified"));
+        console.log(
+          'Usage: oh-my-ag agent:parallel --inline "agent:task" "agent:task" ...',
+        );
+        process.exit(1);
+      }
+      tasks = parseInlineTasks(tasksOrFile);
+    } else {
+      if (tasksOrFile.length === 0) {
+        console.error(color.red("Error: No tasks file specified"));
+        console.log("Usage: oh-my-ag agent:parallel <tasks-file.yaml>");
+        process.exit(1);
+      }
+      const tasksFile = tasksOrFile[0];
+      if (!tasksFile) {
+        console.error(color.red("Error: No tasks file specified"));
+        process.exit(1);
+      }
+      tasks = parseTasksFile(tasksFile);
+    }
+  } catch (error) {
+    console.error(color.red(`Error: ${(error as Error).message}`));
+    process.exit(1);
+  }
+
+  console.log(color.cyan("======================================"));
+  console.log(color.cyan("  Parallel SubAgent Execution"));
+  console.log(color.cyan("======================================"));
+  console.log("");
+  console.log(color.blue("Starting parallel execution..."));
+  console.log("");
+
+  const childProcesses: Array<{
+    pid: number;
+    agent: string;
+    idx: number;
+    promise: Promise<number | null>;
+  }> = [];
+
+  for (let idx = 0; idx < tasks.length; idx++) {
+    const taskDef = tasks[idx];
+    if (!taskDef) continue;
+    const { agent, task, workspace = "." } = taskDef;
+    const effectiveWorkspace =
+      workspace === "." ? detectWorkspace(agent) : workspace;
+    const resolvedWorkspace = path.resolve(effectiveWorkspace);
+    const logFile = path.join(runDir, `${agent}-${idx}.log`);
+
+    console.log(
+      color.blue(`[${idx}]`) + ` Spawning ${color.yellow(agent)} agent...`,
+    );
+    console.log(
+      `    Task: ${task.slice(0, 60)}${task.length > 60 ? "..." : ""}`,
+    );
+    console.log(`    Workspace: ${effectiveWorkspace}`);
+
+    if (!fs.existsSync(resolvedWorkspace)) {
+      fs.mkdirSync(resolvedWorkspace, { recursive: true });
+    }
+
+    const { vendor, config } = resolveVendor(agent, options.vendor);
+    const vendorConfig = config?.vendors?.[vendor] || {};
+    const command = vendorConfig.command || vendor;
+    const subcommand = vendorConfig.subcommand;
+
+    const optionArgs: string[] = [];
+    const promptFlag = resolvePromptFlag(vendor, vendorConfig.prompt_flag);
+    const promptContent = resolvePromptContent(task);
+
+    if (vendorConfig.output_format_flag && vendorConfig.output_format) {
+      optionArgs.push(
+        vendorConfig.output_format_flag,
+        vendorConfig.output_format,
+      );
+    } else if (vendorConfig.output_format_flag) {
+      optionArgs.push(vendorConfig.output_format_flag);
+    }
+
+    if (vendorConfig.model_flag && vendorConfig.default_model) {
+      optionArgs.push(vendorConfig.model_flag, vendorConfig.default_model);
+    }
+
+    if (vendorConfig.isolation_flags) {
+      optionArgs.push(...splitArgs(vendorConfig.isolation_flags));
+    }
+
+    if (vendorConfig.auto_approve_flag) {
+      optionArgs.push(vendorConfig.auto_approve_flag);
+    } else {
+      const defaultAutoApprove: Record<string, string> = {
+        gemini: "--approval-mode=yolo",
+        codex: "--full-auto",
+        qwen: "--yolo",
+      };
+      const fallbackFlag = defaultAutoApprove[vendor];
+      if (fallbackFlag) {
+        optionArgs.push(fallbackFlag);
+      }
+    }
+
+    if (promptFlag) {
+      optionArgs.push(promptFlag, promptContent);
+    }
+
+    const args: string[] = [];
+    if (subcommand) args.push(subcommand);
+    args.push(...optionArgs);
+    if (!promptFlag) {
+      args.push(promptContent);
+    }
+
+    const env = { ...process.env };
+    if (vendorConfig.isolation_env) {
+      const [key, ...rest] = vendorConfig.isolation_env.split("=");
+      const rawValue = rest.join("=");
+      if (key && rawValue) {
+        env[key] = rawValue.replace("$$", String(process.pid));
+      }
+    }
+
+    const logStream = fs.openSync(logFile, "w");
+
+    const child = spawnProcess(command, args, {
+      cwd: resolvedWorkspace,
+      stdio: ["ignore", logStream, logStream],
+      detached: false,
+      env,
+    });
+
+    if (!child.pid) {
+      console.error(color.red(`[${idx}] Failed to spawn ${agent} process`));
+      continue;
+    }
+
+    fs.appendFileSync(pidListFile, `${child.pid}:${agent}\n`);
+
+    const exitPromise = new Promise<number | null>((resolve) => {
+      child.on("exit", (code: number | null) => {
+        fs.closeSync(logStream);
+        resolve(code);
+      });
+      child.on("error", () => {
+        fs.closeSync(logStream);
+        resolve(null);
+      });
+    });
+
+    childProcesses.push({
+      pid: child.pid,
+      agent,
+      idx,
+      promise: exitPromise,
+    });
+  }
+
+  console.log("");
+  console.log(
+    color.blue("[Parallel]") +
+      ` Started ${color.yellow(String(childProcesses.length))} agents`,
+  );
+
+  if (options.noWait) {
+    console.log(color.blue("[Parallel]") + " Running in background mode");
+    console.log(color.blue("[Parallel]") + ` Results will be in: ${runDir}`);
+    console.log(color.blue("[Parallel]") + ` PID list: ${pidListFile}`);
+    return;
+  }
+
+  console.log(color.blue("[Parallel]") + " Waiting for completion...");
+  console.log("");
+
+  const cleanup = () => {
+    console.log("");
+    console.log(color.yellow("[Parallel]") + " Cleaning up child processes...");
+    for (const { pid, agent } of childProcesses) {
+      if (isProcessRunning(pid)) {
+        try {
+          process.kill(pid);
+          console.log(
+            color.yellow("[Parallel]") + ` Killed PID ${pid} (${agent})`,
+          );
+        } catch {
+          // empty
+        }
+      }
+    }
+    try {
+      if (fs.existsSync(pidListFile)) {
+        fs.unlinkSync(pidListFile);
+      }
+    } catch {
+      // empty
+    }
+  };
+
+  process.on("SIGINT", () => {
+    cleanup();
+    process.exit(130);
+  });
+  process.on("SIGTERM", () => {
+    cleanup();
+    process.exit(143);
+  });
+
+  let completed = 0;
+  let failed = 0;
+
+  for (const { agent, idx, promise } of childProcesses) {
+    const exitCode = await promise;
+    if (exitCode === 0) {
+      console.log(color.green("[DONE]") + ` ${agent} agent (${idx}) completed`);
+      completed++;
+    } else {
+      console.log(
+        color.red("[FAIL]") +
+          ` ${agent} agent (${idx}) failed (exit code: ${exitCode})`,
+      );
+      failed++;
+    }
+  }
+
+  try {
+    if (fs.existsSync(pidListFile)) {
+      fs.unlinkSync(pidListFile);
+    }
+  } catch {
+    // empty
+  }
+
+  console.log("");
+  console.log(color.cyan("======================================"));
+  console.log(color.cyan("  Execution Summary"));
+  console.log(color.cyan("======================================"));
+  console.log(`Total:     ${childProcesses.length}`);
+  console.log(`Completed: ${color.green(String(completed))}`);
+  console.log(`Failed:    ${color.red(String(failed))}`);
+  console.log(`Results:   ${runDir}`);
+  console.log(color.cyan("======================================"));
+
+  console.log("");
+  console.log(color.blue("Result files:"));
+  const logFiles = fs.readdirSync(runDir).filter((f) => f.endsWith(".log"));
+  for (const f of logFiles) {
+    console.log(`  - ${path.join(runDir, f)}`);
+  }
+
+  if (failed > 0) {
+    process.exit(1);
+  }
+}
