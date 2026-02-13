@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - ".agent/**"
+      - "cli/generate-manifest.ts"
 
 jobs:
   sync-manifest:
