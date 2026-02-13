@@ -226,4 +226,4 @@ See [SPONSORS.md](./SPONSORS.md) for a full list of supporters.
 MIT
 
 ---
-**Built for Google Antigravity 2026** | **Integration guide:** [EN](./web/content/en/guide/integration.md) · [KO](./web/content/ko/guide/integration.md)
+**Built for Google Antigravity 2026** | **Integration guide:** [EN](./web/content/en/guide/integration.md) · [KO](./web/content/ko/guide/integration.md) · [ZH](./web/content/zh/guide/integration.md) · [PT](./web/content/pt/guide/integration.md) · [JA](./web/content/ja/guide/integration.md) · [FR](./web/content/fr/guide/integration.md) · [ES](./web/content/es/guide/integration.md) · [NL](./web/content/nl/guide/integration.md) · [PL](./web/content/pl/guide/integration.md) · [UK](./web/content/uk/guide/integration.md) · [RU](./web/content/ru/guide/integration.md) · [DE](./web/content/de/guide/integration.md)
