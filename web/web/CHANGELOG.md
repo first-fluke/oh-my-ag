@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.5](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.4...web-v0.1.5) (2026-02-13)
+
+
+### Documentation
+
+* add Simplified Chinese (zh) translations ([a4d4c24](https://github.com/first-fluke/oh-my-ag/commit/a4d4c2490c825d8b507666b1aef600530498ac99))
+* move translated docs to web/content/{lang}/ structure ([dcd634a](https://github.com/first-fluke/oh-my-ag/commit/dcd634a58defd251744a03bd1f603ed8c27f7680))
+* translate all 14 remaining web/content docs to 9 languages ([407187d](https://github.com/first-fluke/oh-my-ag/commit/407187d79172ae2ce1f780d768ce626e32b4d819))
+
 ## [0.1.4](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.3...web-v0.1.4) (2026-02-13)
 
 
