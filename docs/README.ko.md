@@ -1,6 +1,6 @@
 # oh-my-ag: Antigravity를 위한 멀티 에이전트 오케스트레이터
 
-[English](./README.md) | [Português](./README.pt.md) | [日本語](./README.ja.md) | [Français](./README.fr.md) | [Español](./README.es.md) | [Nederlands](./README.nl.md) | [Polski](./README.pl.md) | [Українська](./README.uk.md) | [Русский](./README.ru.md) | [Deutsch](./README.de.md)
+[English](../README.md) | [Português](./README.pt.md) | [日本語](./README.ja.md) | [Français](./README.fr.md) | [Español](./README.es.md) | [Nederlands](./README.nl.md) | [Polski](./README.pl.md) | [Українська](./README.uk.md) | [Русский](./README.ru.md) | [Deutsch](./README.de.md)
 
 Google Antigravity 및 그 외 다양한 환경을 위한 궁극의 멀티 에이전트 프레임워크.
 

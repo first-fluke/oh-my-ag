@@ -1,5 +1,7 @@
 # oh-my-ag: Мультиагентний Оркестратор для Antigravity
 
+[English](../README.md) | [한국어](./README.ko.md) | [Português](./README.pt.md) | [日本語](./README.ja.md) | [Français](./README.fr.md) | [Español](./README.es.md) | [Nederlands](./README.nl.md) | [Polski](./README.pl.md) | [Русский](./README.ru.md) | [Deutsch](./README.de.md)
+
 Найкраща мультиагентна платформа для Google Antigravity.
 
 Керуйте 6 спеціалізованими доменними агентами (PM, Frontend, Backend, Mobile, QA, Debug) через **Serena Memory**. Підтримка паралельного виконання CLI, дашборди спостереження в реальному часі та прогресивне завантаження навичок без налаштувань. Комплексне рішення для агентного програмування.
