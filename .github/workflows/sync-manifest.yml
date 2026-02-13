@@ -1,0 +1,42 @@
+name: Sync Manifest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".agent/**"
+
+jobs:
+  sync-manifest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Get current version
+        id: version
+        run: |
+          VERSION=$(jq -r '.cli' .release-please-manifest.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Generate prompt-manifest.json
+        run: bunx tsx cli/generate-manifest.ts "${{ steps.version.outputs.version }}"
+
+      - name: Check for changes
+        id: diff
+        run: |
+          git diff --quiet prompt-manifest.json && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit prompt-manifest.json
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add prompt-manifest.json
+          git commit -m "chore: sync prompt-manifest.json"
+          git push
