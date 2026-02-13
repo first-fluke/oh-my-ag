@@ -12,20 +12,13 @@ Orkestreer 6 gespecialiseerde domein agents (PM, Frontend, Backend, Mobile, QA, 
 > gh api --method PUT /user/starred/first-fluke/oh-my-ag
 > ```
 >
-> **Nieuw met fullstack ontwikkeling?** Probeer onze geoptimaliseerde starter template:
->
-> ```bash
-> git clone https://github.com/first-fluke/fullstack-starter
-> ```
->
-> Vooraf geconfigureerd met deze skills voor directe multi-agent samenwerking.
+> Probeer onze geoptimaliseerde starter template: [fullstack-starter](https://github.com/first-fluke/fullstack-starter)
 
 ## Inhoudsopgave
 
 - [Architectuur](#architectuur)
 - [Wat is dit?](#wat-is-dit)
 - [Snel starten](#snel-starten)
-- [Documentatie](#documentatie)
 - [Sponsors](#sponsors)
 - [Licentie](#licentie)
 
@@ -177,17 +170,6 @@ bunx oh-my-ag
 
 Voor dashboard setup en gebruiksdetails, zie [`web/content/nl/guide/usage.md`](./web/content/nl/guide/usage.md#realtime-dashboards).
 
-## Documentatie
-
-Voor gedetailleerde documentatie, bezoek de [webgids](./web/content/en/guide/usage.md):
-
-- [Gebruikshandleiding (EN)](./web/content/en/guide/usage.md) · [KO](./web/content/ko/guide/usage.md)
-- [Skill-architectuur (EN)](./web/content/en/core-concepts/skills.md) · [KO](./web/content/ko/core-concepts/skills.md)
-- [Parallelle uitvoering (EN)](./web/content/en/core-concepts/parallel-execution.md) · [KO](./web/content/ko/core-concepts/parallel-execution.md)
-- [Dashboard-monitoring (EN)](./web/content/en/guide/dashboard-monitoring.md) · [KO](./web/content/ko/guide/dashboard-monitoring.md)
-- [CLI-commando's (EN)](./web/content/en/cli-interfaces/commands.md) · [KO](./web/content/ko/cli-interfaces/commands.md)
-- [Centraal register (EN)](./web/content/en/guide/central-registry.md) · [KO](./web/content/ko/guide/central-registry.md)
-
 ## Sponsors
 
 Dit project wordt onderhouden dankzij onze genereuze sponsors.
@@ -222,6 +204,3 @@ Zie [SPONSORS.md](./SPONSORS.md) voor een volledige lijst van supporters.
 ## Licentie
 
 MIT
-
----
-**Built for Google Antigravity 2026** | **Integration guide:** [EN](./web/content/en/guide/integration.md) · [KO](./web/content/ko/guide/integration.md)

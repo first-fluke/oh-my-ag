@@ -12,21 +12,13 @@ Orquesta 6 agentes de dominio especializados (PM, Frontend, Backend, Mobile, QA,
 > gh api --method PUT /user/starred/first-fluke/oh-my-ag
 > ```
 >
-> **¿Nuevo en desarrollo fullstack?** Prueba nuestra plantilla inicial optimizada:
->
-> ```bash
-> git clone https://github.com/first-fluke/fullstack-starter
-> ```
->
-> Pre-configurada con estos skills para colaboración multi-agente instantánea.
+> Prueba nuestra plantilla inicial optimizada: [fullstack-starter](https://github.com/first-fluke/fullstack-starter)
 
 ## Tabla de Contenidos
 
 - [Arquitectura](#arquitectura)
 - [¿Qué es esto?](#qué-es-esto)
 - [Inicio Rápido](#inicio-rápido)
-- [Documentación](#documentación)
-- [Documentación](#documentación)
 - [Patrocinadores](#patrocinadores)
 - [Licencia](#licencia)
 
@@ -177,14 +169,6 @@ bunx oh-my-ag
 ### 3. Monitorear con Dashboards
 
 Para detalles de configuración y uso del dashboard, consulta [`web/content/es/guide/usage.md`](./web/content/es/guide/usage.md#dashboards-en-tiempo-real).
-
-## Documentación
-
-Para documentación detallada, visita la [guía web](./web/content/en/guide/usage.md):
-
-- [Guía de Uso (EN)](./web/content/en/guide/usage.md) · [KO](./web/content/ko/guide/usage.md)
-- [Ejecución Paralela (EN)](./web/content/en/core-concepts/parallel-execution.md) · [KO](./web/content/ko/core-concepts/parallel-execution.md)
-- [Monitoreo de Dashboard (EN)](./web/content/en/guide/dashboard-monitoring.md) · [KO](./web/content/ko/guide/dashboard-monitoring.md)
 
 ## Patrocinadores
 

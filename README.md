@@ -11,7 +11,6 @@ Orchestrate 6 specialized domain agents (PM, Frontend, Backend, Mobile, QA, Debu
 - [Architecture](#architecture)
 - [What Is This?](#what-is-this)
 - [Quick Start](#quick-start)
-- [Documentation](#documentation)
 - [Sponsors](#sponsors)
 - [License](#license)
 
@@ -165,17 +164,6 @@ bunx oh-my-ag
 
 For dashboard setup and usage details, see [`web/content/en/guide/usage.md`](./web/content/en/guide/usage.md#real-time-dashboards).
 
-## Documentation
-
-For detailed documentation, visit the [web guide](./web/content/en/guide/usage.md):
-
-- [Usage Guide (EN)](./web/content/en/guide/usage.md) · [KO](./web/content/ko/guide/usage.md)
-- [Skills Architecture (EN)](./web/content/en/core-concepts/skills.md) · [KO](./web/content/ko/core-concepts/skills.md)
-- [Parallel Execution (EN)](./web/content/en/core-concepts/parallel-execution.md) · [KO](./web/content/ko/core-concepts/parallel-execution.md)
-- [Dashboard Monitoring (EN)](./web/content/en/guide/dashboard-monitoring.md) · [KO](./web/content/ko/guide/dashboard-monitoring.md)
-- [CLI Commands (EN)](./web/content/en/cli-interfaces/commands.md) · [KO](./web/content/ko/cli-interfaces/commands.md)
-- [Central Registry (EN)](./web/content/en/guide/central-registry.md) · [KO](./web/content/ko/guide/central-registry.md)
-
 ## Sponsors
 
 This project is maintained thanks to our generous sponsors.
@@ -186,13 +174,7 @@ This project is maintained thanks to our generous sponsors.
 > gh api --method PUT /user/starred/first-fluke/oh-my-ag
 > ```
 >
-> **New to fullstack development?** Try our optimized starter template:
->
-> ```bash
-> git clone https://github.com/first-fluke/fullstack-starter
-> ```
->
-> Pre-configured with these skills for instant multi-agent collaboration.
+> Try our optimized starter template: [fullstack-starter](https://github.com/first-fluke/fullstack-starter)
 
 <a href="https://github.com/sponsors/first-fluke">
   <img src="https://img.shields.io/badge/Sponsor-♥-ea4aaa?style=for-the-badge" alt="Sponsor" />
@@ -224,6 +206,3 @@ See [SPONSORS.md](./SPONSORS.md) for a full list of supporters.
 ## License
 
 MIT
-
----
-**Built for Google Antigravity 2026** | **Integration guide:** [EN](./web/content/en/guide/integration.md) · [KO](./web/content/ko/guide/integration.md) · [ZH](./web/content/zh/guide/integration.md) · [PT](./web/content/pt/guide/integration.md) · [JA](./web/content/ja/guide/integration.md) · [FR](./web/content/fr/guide/integration.md) · [ES](./web/content/es/guide/integration.md) · [NL](./web/content/nl/guide/integration.md) · [PL](./web/content/pl/guide/integration.md) · [UK](./web/content/uk/guide/integration.md) · [RU](./web/content/ru/guide/integration.md) · [DE](./web/content/de/guide/integration.md)

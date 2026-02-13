@@ -11,7 +11,6 @@ Google Antigravity 및 그 외 다양한 환경을 위한 궁극의 멀티 에�
 - [아키텍처](#아키텍처)
 - [이게 뭔가요?](#이게-뭔가요)
 - [빠른 시작](#빠른-시작)
-- [문서](#문서)
 - [후원하기](#후원하기)
 - [라이선스](#라이선스)
 
@@ -165,17 +164,6 @@ bunx oh-my-ag
 
 대시보드 설정과 상세 사용법은 [`web/content/ko/guide/usage.md`](./web/content/ko/guide/usage.md#실시간-대시보드)를 참고하세요.
 
-## 문서
-
-자세한 문서는 [웹 가이드](./web/content/ko/guide/usage.md)를 참고하세요:
-
-- [사용 가이드 (EN)](./web/content/en/guide/usage.md) · [KO](./web/content/ko/guide/usage.md)
-- [스킬 아키텍처 (EN)](./web/content/en/core-concepts/skills.md) · [KO](./web/content/ko/core-concepts/skills.md)
-- [병렬 실행 (EN)](./web/content/en/core-concepts/parallel-execution.md) · [KO](./web/content/ko/core-concepts/parallel-execution.md)
-- [대시보드 모니터링 (EN)](./web/content/en/guide/dashboard-monitoring.md) · [KO](./web/content/ko/guide/dashboard-monitoring.md)
-- [CLI 명령어 (EN)](./web/content/en/cli-interfaces/commands.md) · [KO](./web/content/ko/cli-interfaces/commands.md)
-- [중앙 레지스트리 (EN)](./web/content/en/guide/central-registry.md) · [KO](./web/content/ko/guide/central-registry.md)
-
 ## 후원하기
 
 이 프로젝트는 후원자분들의 지원으로 유지됩니다.
@@ -186,13 +174,7 @@ bunx oh-my-ag
 > gh api --method PUT /user/starred/first-fluke/oh-my-ag
 > ```
 >
-> **풀스택 개발이 처음이신가요?** 최적화된 스타터 템플릿으로 시작해 보세요:
->
-> ```bash
-> git clone https://github.com/first-fluke/fullstack-starter
-> ```
->
-> 이 스킬들이 미리 설정되어 있어 바로 멀티 에이전트 협업이 가능합니다.
+> 최적화된 스타터 템플릿을 사용해 보세요: [fullstack-starter](https://github.com/first-fluke/fullstack-starter)
 
 <a href="https://github.com/sponsors/first-fluke">
   <img src="https://img.shields.io/badge/후원하기-♥-ea4aaa?style=for-the-badge" alt="Sponsor" />
@@ -224,6 +206,3 @@ bunx oh-my-ag
 ## 라이선스
 
 MIT
-
----
-**Google Antigravity 2026용** | **통합 가이드:** [EN](./web/content/en/guide/integration.md) · [KO](./web/content/ko/guide/integration.md)

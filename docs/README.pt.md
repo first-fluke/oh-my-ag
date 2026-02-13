@@ -12,20 +12,13 @@ Orquestre 6 agentes especializados de domínio (PM, Frontend, Backend, Mobile, Q
 > gh api --method PUT /user/starred/first-fluke/oh-my-ag
 > ```
 >
-> **Novo no desenvolvimento fullstack?** Experimente nosso template inicial otimizado:
->
-> ```bash
-> git clone https://github.com/first-fluke/fullstack-starter
-> ```
->
-> Pré-configurado com essas habilidades para colaboração multi-agente instantânea.
+> Experimente nosso template inicial otimizado: [fullstack-starter](https://github.com/first-fluke/fullstack-starter)
 
 ## Índice
 
 - [Arquitetura](#arquitetura)
 - [O Que É Isso?](#o-que-é-isso)
 - [Início Rápido](#início-rápido)
-- [Documentação](#documentação)
 - [Patrocinadores](#patrocinadores)
 - [Licença](#licença)
 
@@ -176,17 +169,6 @@ bunx oh-my-ag
 ### 3. Monitorar com Dashboards
 
 Para detalhes de configuração e uso do dashboard, veja [`docs/USAGE.pt.md`](./docs/USAGE.pt.md#dashboards-em-tempo-real).
-
-## Documentação
-
-Para documentação detalhada, visite o [guia web](./web/content/en/guide/usage.md):
-
-- [Usage Guide (EN)](./web/content/en/guide/usage.md) · [KO](./web/content/ko/guide/usage.md)
-- [Skills Architecture (EN)](./web/content/en/core-concepts/skills.md) · [KO](./web/content/ko/core-concepts/skills.md)
-- [Parallel Execution (EN)](./web/content/en/core-concepts/parallel-execution.md) · [KO](./web/content/ko/core-concepts/parallel-execution.md)
-- [Dashboard Monitoring (EN)](./web/content/en/guide/dashboard-monitoring.md) · [KO](./web/content/ko/guide/dashboard-monitoring.md)
-- [CLI Commands (EN)](./web/content/en/cli-interfaces/commands.md) · [KO](./web/content/ko/cli-interfaces/commands.md)
-- [Central Registry (EN)](./web/content/en/guide/central-registry.md) · [KO](./web/content/ko/guide/central-registry.md)
 
 ## Patrocinadores
 

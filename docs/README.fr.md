@@ -12,21 +12,13 @@ Orchestrez 6 agents de domaine spécialisés (PM, Frontend, Backend, Mobile, QA,
 > gh api --method PUT /user/starred/first-fluke/oh-my-ag
 > ```
 >
-> **Nouveau dans le développement fullstack ?** Essayez notre template de démarrage optimisé :
->
-> ```bash
-> git clone https://github.com/first-fluke/fullstack-starter
-> ```
->
-> Pré-configuré avec ces compétences pour une collaboration multi-agents instantanée.
+> Essayez notre template de démarrage optimisé : [fullstack-starter](https://github.com/first-fluke/fullstack-starter)
 
 ## Table des matières
 
 - [Architecture](#architecture)
 - [Qu'est-ce que c'est ?](#quest-ce-que-cest-)
 - [Démarrage rapide](#démarrage-rapide)
-- [Documentation](#documentation)
-- [Documentation](#documentation)
 - [Sponsors](#sponsors)
 - [Licence](#licence)
 
@@ -177,14 +169,6 @@ bunx oh-my-ag
 ### 3. Surveiller avec les tableaux de bord
 
 Pour la configuration et les détails d'utilisation des tableaux de bord, voir [`web/content/fr/guide/usage.md`](./web/content/fr/guide/usage.md#tableaux-de-bord-en-temps-réel).
-
-## Documentation
-
-Pour la documentation détaillée, visitez le [guide web](./web/content/en/guide/usage.md) :
-
-- [Guide d'utilisation (EN)](./web/content/en/guide/usage.md) · [KO](./web/content/ko/guide/usage.md)
-- [Exécution parallèle (EN)](./web/content/en/core-concepts/parallel-execution.md) · [KO](./web/content/ko/core-concepts/parallel-execution.md)
-- [Surveillance des tableaux de bord (EN)](./web/content/en/guide/dashboard-monitoring.md) · [KO](./web/content/ko/guide/dashboard-monitoring.md)
 
 ## Sponsors
 
