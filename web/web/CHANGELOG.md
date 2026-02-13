@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.3...web-v0.1.4) (2026-02-13)
+
+
+### Documentation
+
+* move detailed sections from READMEs to web/content ([552b654](https://github.com/first-fluke/oh-my-ag/commit/552b654348ae1d8797976bf029aff3bc1b3166a4))
+
 ## [0.1.3](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.2...web-v0.1.3) (2026-02-11)
 
 
