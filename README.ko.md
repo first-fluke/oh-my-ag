@@ -9,10 +9,7 @@ Google Antigravity 및 그 외 다양한 환경을 위한 궁극의 멀티 에�
 - [아키텍처](#아키텍처)
 - [이게 뭔가요?](#이게-뭔가요)
 - [빠른 시작](#빠른-시작)
-- [동작 원리](#동작-원리)
-- [실시간 대시보드](#실시간-대시보드)
-- [스킬 아키텍처](#스킬-아키텍처)
-- [CLI 명령어](#cli-명령어)
+- [문서](#문서)
 - [후원하기](#후원하기)
 - [라이선스](#라이선스)
 
@@ -166,130 +163,16 @@ bunx oh-my-ag
 
 대시보드 설정과 상세 사용법은 [`web/content/ko/guide/usage.md`](./web/content/ko/guide/usage.md#실시간-대시보드)를 참고하세요.
 
-## 동작 원리
+## 문서
 
-### Progressive Disclosure (점진적 공개)
+자세한 문서는 [웹 가이드](./web/content/ko/guide/usage.md)를 참고하세요:
 
-스킬을 수동으로 선택할 필요 없습니다. Antigravity가 자동으로:
-
-1. 채팅 요청을 분석
-2. `.agent/skills/`의 스킬 설명과 매칭
-3. 필요한 스킬만 컨텍스트에 로드
-4. 지연 로딩으로 토큰 절약
-
-### Agent Manager UI
-
-복잡한 프로젝트에는 Antigravity **Agent Manager** (Mission Control)를 사용합니다:
-
-1. PM Agent가 기획서 작성
-2. Agent Manager UI에서 에이전트 생성
-3. 에이전트들이 별도 워크스페이스에서 병렬 작업
-4. 인박스 알림으로 진행 상황 확인
-5. QA Agent가 최종 검토
-
-### SubAgent Orchestrator (CLI)
-
-프로그래밍 방식의 병렬 실행:
-
-```bash
-# 인라인 프롬프트 (workspace 자동 탐지)
-oh-my-ag agent:spawn backend "인증 API 구현" session-01
-
-# 파일에서 프롬프트 읽기
-oh-my-ag agent:spawn backend .agent/tasks/backend-auth.json session-01
-
-# 명시적 workspace 지정
-oh-my-ag agent:spawn backend "인증 API 구현" session-01 -w ./apps/api
-
-# 병렬 실행
-oh-my-ag agent:spawn backend "인증 API 구현" session-01 &
-oh-my-ag agent:spawn frontend "로그인 폼 생성" session-01 &
-wait
-```
-
-지원 CLI: **Gemini**, **Claude**, **Codex**, **Qwen**
-
-### 멀티-CLI 설정
-
-`.agent/config/user-preferences.yaml`에서 에이전트별 CLI 설정:
-
-```yaml
-# 응답 언어
-language: ko  # ko, en, ja, zh, ...
-
-# 기본 CLI (단일 작업)
-default_cli: gemini
-
-# 에이전트별 CLI 매핑 (멀티-CLI 모드)
-agent_cli_mapping:
-  frontend: gemini
-  backend: codex
-  mobile: gemini
-  pm: claude
-  qa: claude
-  debug: gemini
-```
-
-**CLI 우선순위**:
-
-1. `--vendor` 명령줄 인자
-2. `user-preferences.yaml`의 `agent_cli_mapping`
-3. `user-preferences.yaml`의 `default_cli`
-4. `cli-config.yaml`의 `active_vendor` (레거시)
-5. 하드코딩 기본값: `gemini`
-
-대화형으로 설정하려면 `/setup` 실행.
-
-### Serena Memory 조율
-
-Orchestrator가 `.serena/memories/`에 구조화된 상태를 기록합니다:
-
-| 파일 | 용도 |
-|------|------|
-| `orchestrator-session.md` | 세션 ID, 상태, 단계 |
-| `task-board.md` | 에이전트 할당 및 상태 테이블 |
-| `progress-{agent}.md` | 에이전트별 턴 단위 진행 상황 |
-| `result-{agent}.md` | 에이전트별 완료 결과 |
-
-두 대시보드 모두 이 파일들을 감시하여 실시간 모니터링합니다.
-
-## 실시간 대시보드
-
-대시보드는 orchestrator 세션 모니터링을 위한 선택 기능입니다.
-
-- 터미널: `bunx oh-my-ag dashboard`
-- 웹: `bunx oh-my-ag dashboard:web` (`http://localhost:9847`)
-
-요구사항, 화면, 상세 동작은 [`web/content/ko/guide/usage.md`](./web/content/ko/guide/usage.md#실시간-대시보드)를 참고하세요.
-
-## 스킬 아키텍처
-
-스킬은 **토큰 최적화된 2계층 설계**를 사용하여 점진적 공개(progressive disclosure)를 구현합니다—핵심 규칙은 즉시 로드(~800B), 상세 리소스는 필요 시 로드됩니다.
-
-전체 아키텍처 상세 정보와 리소스 명세는 [`web/content/ko/core-concepts/skills.md`](./web/content/ko/core-concepts/skills.md)를 참고하세요.
-
-## CLI 명령어
-
-```bash
-bunx oh-my-ag                # 대화형 스킬 설치
-bunx oh-my-ag bridge         # MCP stdio - SSE 브릿지 (Serena용)
-bunx oh-my-ag dashboard      # 터미널 실시간 대시보드
-bunx oh-my-ag dashboard:web  # 웹 대시보드 (http://localhost:9847)
-bunx oh-my-ag doctor         # 설정 확인 & 누락된 스킬 보강
-bunx oh-my-ag help           # 도움말 표시
-bunx oh-my-ag memory:init    # Serena 메모리 스키마 초기화
-bunx oh-my-ag retro          # 세션 회고 (배운 점 & 다음 단계)
-bunx oh-my-ag stats          # 생산성 메트릭 조회
-bunx oh-my-ag update         # 스킬을 최신 버전으로 업데이트
-bunx oh-my-ag usage          # 모델 사용량 쿼터 조회
-```
-
-문제 해결과 멀티-레포 중앙 레지스트리 문서는 웹 가이드로 이동했습니다:
-
-- 사용 가이드 (EN): [`web/content/en/guide/usage.md`](./web/content/en/guide/usage.md)
-- 사용 가이드 (KO): [`web/content/ko/guide/usage.md`](./web/content/ko/guide/usage.md)
-- 중앙 레지스트리 (EN): [`web/content/en/guide/central-registry.md`](./web/content/en/guide/central-registry.md)
-- 중앙 레지스트리 (KO): [`web/content/ko/guide/central-registry.md`](./web/content/ko/guide/central-registry.md)
+- [사용 가이드 (EN)](./web/content/en/guide/usage.md) · [KO](./web/content/ko/guide/usage.md)
+- [스킬 아키텍처 (EN)](./web/content/en/core-concepts/skills.md) · [KO](./web/content/ko/core-concepts/skills.md)
+- [병렬 실행 (EN)](./web/content/en/core-concepts/parallel-execution.md) · [KO](./web/content/ko/core-concepts/parallel-execution.md)
+- [대시보드 모니터링 (EN)](./web/content/en/guide/dashboard-monitoring.md) · [KO](./web/content/ko/guide/dashboard-monitoring.md)
+- [CLI 명령어 (EN)](./web/content/en/cli-interfaces/commands.md) · [KO](./web/content/ko/cli-interfaces/commands.md)
+- [중앙 레지스트리 (EN)](./web/content/en/guide/central-registry.md) · [KO](./web/content/ko/guide/central-registry.md)
 
 ## 후원하기
 

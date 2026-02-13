@@ -11,10 +11,7 @@ Orchestrate 6 specialized domain agents (PM, Frontend, Backend, Mobile, QA, Debu
 - [Architecture](#architecture)
 - [What Is This?](#what-is-this)
 - [Quick Start](#quick-start)
-- [How It Works](#how-it-works)
-- [Real-time Dashboards](#real-time-dashboards)
-- [Skill Architecture](#skill-architecture)
-- [CLI Commands](#cli-commands)
+- [Documentation](#documentation)
 - [Sponsors](#sponsors)
 - [License](#license)
 
@@ -168,130 +165,16 @@ bunx oh-my-ag
 
 For dashboard setup and usage details, see [`web/content/en/guide/usage.md`](./web/content/en/guide/usage.md#real-time-dashboards).
 
-## How It Works
+## Documentation
 
-### Progressive Disclosure
+For detailed documentation, visit the [web guide](./web/content/en/guide/usage.md):
 
-You don't manually select skills. Antigravity automatically:
-
-1. Scans your chat request
-2. Matches against skill descriptions in `.agent/skills/`
-3. Loads the relevant skill only when needed
-4. Saves tokens via lazy loading
-
-### Agent Manager UI
-
-For complex projects, use Antigravity's **Agent Manager** (Mission Control):
-
-1. PM Agent creates a plan
-2. You spawn agents in the Agent Manager UI
-3. Agents work in parallel with separate workspaces
-4. Monitor progress via inbox notifications
-5. QA Agent reviews the final output
-
-### SubAgent Orchestrator (CLI)
-
-For programmatic parallel execution:
-
-```bash
-# Inline prompt (workspace auto-detected)
-oh-my-ag agent:spawn backend "Implement auth API" session-01
-
-# Prompt from file
-oh-my-ag agent:spawn backend .agent/tasks/backend-auth.json session-01
-
-# With explicit workspace
-oh-my-ag agent:spawn backend "Implement auth API" session-01 -w ./apps/api
-
-# Parallel agents
-oh-my-ag agent:spawn backend "Implement auth API" session-01 &
-oh-my-ag agent:spawn frontend "Create login form" session-01 &
-wait
-```
-
-Supports multiple CLI vendors: **Gemini**, **Claude**, **Codex**, **Qwen**
-
-### Multi-CLI Configuration
-
-Configure different CLIs per agent type in `.agent/config/user-preferences.yaml`:
-
-```yaml
-# Response language
-language: ko  # ko, en, ja, zh, ...
-
-# Default CLI (single tasks)
-default_cli: gemini
-
-# Per-agent CLI mapping (multi-CLI mode)
-agent_cli_mapping:
-  frontend: gemini
-  backend: codex
-  mobile: gemini
-  pm: claude
-  qa: claude
-  debug: gemini
-```
-
-**CLI Resolution Priority**:
-
-1. `--vendor` command line argument
-2. `agent_cli_mapping` from user-preferences.yaml
-3. `default_cli` from user-preferences.yaml
-4. `active_vendor` from cli-config.yaml (legacy)
-5. Hardcoded fallback: `gemini`
-
-Run `/setup` to configure interactively.
-
-### Serena Memory Coordination
-
-The Orchestrator writes structured state to `.serena/memories/`:
-
-| File | Purpose |
-|------|---------|
-| `orchestrator-session.md` | Session ID, status, phase |
-| `task-board.md` | Agent assignments and status table |
-| `progress-{agent}.md` | Per-agent turn-by-turn progress |
-| `result-{agent}.md` | Completion results per agent |
-
-Both dashboards watch these files for real-time monitoring.
-
-## Real-time Dashboards
-
-Dashboards are optional monitoring tools for orchestrator sessions:
-
-- Terminal: `bunx oh-my-ag dashboard`
-- Web: `bunx oh-my-ag dashboard:web` (`http://localhost:9847`)
-
-For requirements, screenshots, and detailed behavior, see [`web/content/en/guide/usage.md`](./web/content/en/guide/usage.md#real-time-dashboards).
-
-## Skill Architecture
-
-Skills use a **token-optimized two-layer design** for progressive disclosure—core rules load immediately (~800B), detailed resources load on-demand.
-
-For full architecture details and resource specifications, see [`web/content/en/core-concepts/skills.md`](./web/content/en/core-concepts/skills.md).
-
-## CLI Commands
-
-```bash
-bunx oh-my-ag                # Interactive skill installer
-bunx oh-my-ag bridge         # Bridge MCP stdio to SSE (for Serena)
-bunx oh-my-ag dashboard      # Terminal real-time dashboard
-bunx oh-my-ag dashboard:web  # Web dashboard (http://localhost:9847)
-bunx oh-my-ag doctor         # Check setup & repair missing skills
-bunx oh-my-ag help           # Show help
-bunx oh-my-ag memory:init    # Initialize Serena memory schema
-bunx oh-my-ag retro          # Session retrospective (learnings & next steps)
-bunx oh-my-ag stats          # View productivity metrics
-bunx oh-my-ag update         # Update skills to latest version
-bunx oh-my-ag usage          # Show model usage quotas
-```
-
-Troubleshooting and multi-repo registry docs are now in the web guide:
-
-- Usage guide (EN): [`web/content/en/guide/usage.md`](./web/content/en/guide/usage.md)
-- Usage guide (KO): [`web/content/ko/guide/usage.md`](./web/content/ko/guide/usage.md)
-- Central registry (EN): [`web/content/en/guide/central-registry.md`](./web/content/en/guide/central-registry.md)
-- Central registry (KO): [`web/content/ko/guide/central-registry.md`](./web/content/ko/guide/central-registry.md)
+- [Usage Guide (EN)](./web/content/en/guide/usage.md) · [KO](./web/content/ko/guide/usage.md)
+- [Skills Architecture (EN)](./web/content/en/core-concepts/skills.md) · [KO](./web/content/ko/core-concepts/skills.md)
+- [Parallel Execution (EN)](./web/content/en/core-concepts/parallel-execution.md) · [KO](./web/content/ko/core-concepts/parallel-execution.md)
+- [Dashboard Monitoring (EN)](./web/content/en/guide/dashboard-monitoring.md) · [KO](./web/content/ko/guide/dashboard-monitoring.md)
+- [CLI Commands (EN)](./web/content/en/cli-interfaces/commands.md) · [KO](./web/content/ko/cli-interfaces/commands.md)
+- [Central Registry (EN)](./web/content/en/guide/central-registry.md) · [KO](./web/content/ko/guide/central-registry.md)
 
 ## Sponsors
 

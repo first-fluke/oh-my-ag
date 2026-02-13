@@ -27,10 +27,33 @@ bunx oh-my-ag dashboard:web
 # open http://localhost:9847
 ```
 
+## Multi-CLI Configuration
+
+Configure different CLIs per agent type in `.agent/config/user-preferences.yaml`:
+
+```yaml
+# Response language
+language: ko  # ko, en, ja, zh, ...
+
+# Default CLI (single tasks)
+default_cli: gemini
+
+# Per-agent CLI mapping (multi-CLI mode)
+agent_cli_mapping:
+  frontend: gemini
+  backend: codex
+  mobile: gemini
+  pm: claude
+  qa: claude
+  debug: gemini
+```
+
+Run `/setup` to configure interactively.
+
 ## CLI Vendor Resolution Priority
 
-1. `--vendor`
-2. `agent_cli_mapping`
-3. `default_cli`
-4. `active_vendor` (legacy)
-5. `gemini` fallback
+1. `--vendor` command line argument
+2. `agent_cli_mapping` from user-preferences.yaml
+3. `default_cli` from user-preferences.yaml
+4. `active_vendor` from cli-config.yaml (legacy)
+5. Hardcoded fallback: `gemini`
