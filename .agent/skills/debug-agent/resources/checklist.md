@@ -20,7 +20,7 @@ Run through every item before submitting your fix.
 - [ ] Noted if systemic issue needs architectural fix
 
 ## Documentation
-- [ ] Bug report saved to `.gemini/antigravity/brain/bugs/`
+- [ ] Bug report saved to `.agent/brain/bugs/`
 - [ ] Root cause clearly explained
 - [ ] Prevention advice included
 - [ ] Files modified listed

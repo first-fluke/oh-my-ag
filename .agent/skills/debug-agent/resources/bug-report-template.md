@@ -2,7 +2,7 @@
 
 Use this template when documenting bugs in the Knowledge Base.
 
-Save to: `.gemini/antigravity/brain/bugs/bug-YYYYMMDD-[short-description].md`
+Save to: `.agent/brain/bugs/bug-YYYYMMDD-[short-description].md`
 
 ---
 

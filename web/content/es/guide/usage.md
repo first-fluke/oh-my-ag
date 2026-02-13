@@ -50,7 +50,7 @@ description: Guía completa de uso incluyendo ejemplos, flujos de trabajo, opera
    wait
    ```
 4. **Los agentes trabajan en paralelo** — guardan outputs en Knowledge Base
-5. **Tú coordinas** — revisas `.gemini/antigravity/brain/` para consistencia
+5. **Tú coordinas** — revisas `.agent/brain/` para consistencia
 6. **QA Agent revisa** — auditoría de seguridad/rendimiento
 7. **Corregir e iterar** — re-generar agentes con correcciones
 
@@ -155,7 +155,7 @@ Usa `oh-my-ag agent:spawn` para ejecutar agentes mediante CLI. Respeta `agent_cl
 
 ### Knowledge Base
 
-Outputs de agentes almacenados en `.gemini/antigravity/brain/`. Contiene planes, código, reportes y notas de coordinación.
+Outputs de agentes almacenados en `.agent/brain/`. Contiene planes, código, reportes y notas de coordinación.
 
 ### Serena Memory
 
@@ -259,7 +259,7 @@ Browser:    http://localhost:9847 → estado en tiempo real
 
 1. **Sé específico** — "Construir una app TODO con autenticación JWT, frontend React, backend FastAPI" es mejor que "hacer una app"
 2. **Usa generación CLI** para proyectos multi-dominio — no intentes hacer todo en un chat
-3. **Revisa Knowledge Base** — verifica `.gemini/antigravity/brain/` para consistencia de API
+3. **Revisa Knowledge Base** — verifica `.agent/brain/` para consistencia de API
 4. **Itera con re-generaciones** — refina instrucciones, no comiences de nuevo
 5. **Usa dashboards** — `bunx oh-my-ag dashboard` o `bunx oh-my-ag dashboard:web` para monitorear sesiones del orchestrator
 6. **Separa workspaces** — asigna a cada agente su propio directorio

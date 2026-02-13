@@ -33,7 +33,7 @@ Follow these steps in order (adjust depth by difficulty).
 - Minimize dependencies for maximum parallel execution
 - Priority tiers: 1 = independent (run first), 2 = depends on tier 1, etc.
 - Complexity: Low / Medium / High / Very High
-- Save to `.agent/plan.json` and `.gemini/antigravity/brain/current-plan.md`
+- Save to `.agent/plan.json` and `.agent/brain/current-plan.md`
 
 ## Step 4: Validate Plan
 - Check: Can each task be done independently given its dependencies?

@@ -50,7 +50,7 @@ description: Vollständige Nutzungsanleitung mit Beispielen, Workflows, Dashboar
    wait
    ```
 4. **Agenten arbeiten parallel** — speichern Outputs in Knowledge Base
-5. **Sie koordinieren** — überprüfen `.gemini/antigravity/brain/` auf Konsistenz
+5. **Sie koordinieren** — überprüfen `.agent/brain/` auf Konsistenz
 6. **QA Agent überprüft** — Sicherheits-/Performance-Audit
 7. **Korrigieren & iterieren** — Agenten mit Korrekturen neu spawnen
 
@@ -155,7 +155,7 @@ Verwenden Sie `oh-my-ag agent:spawn`, um Agenten via CLI auszuführen. Respektie
 
 ### Knowledge Base
 
-Agent-Outputs gespeichert in `.gemini/antigravity/brain/`. Enthält Pläne, Code, Reports und Koordinationsnotizen.
+Agent-Outputs gespeichert in `.agent/brain/`. Enthält Pläne, Code, Reports und Koordinationsnotizen.
 
 ### Serena Memory
 
@@ -259,7 +259,7 @@ Browser:    http://localhost:9847 → Echtzeit-Status
 
 1. **Seien Sie spezifisch** — "Baue eine TODO-App mit JWT-Auth, React-Frontend, FastAPI-Backend" ist besser als "mache eine App"
 2. **Verwenden Sie CLI-Spawning** für Multi-Domain-Projekte — versuchen Sie nicht, alles in einem Chat zu machen
-3. **Überprüfen Sie Knowledge Base** — prüfen Sie `.gemini/antigravity/brain/` auf API-Konsistenz
+3. **Überprüfen Sie Knowledge Base** — prüfen Sie `.agent/brain/` auf API-Konsistenz
 4. **Iterieren Sie mit Re-Spawns** — verfeinern Sie Anweisungen, starten Sie nicht von vorne
 5. **Verwenden Sie Dashboards** — `bunx oh-my-ag dashboard` oder `bunx oh-my-ag dashboard:web` zur Überwachung von Orchestrator-Sessions
 6. **Separate Workspaces** — weisen Sie jedem Agenten sein eigenes Verzeichnis zu

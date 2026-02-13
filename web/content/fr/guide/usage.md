@@ -50,7 +50,7 @@ description: Guide complet incluant exemples, workflows, opérations de tableau 
    wait
    ```
 4. **Les agents travaillent en parallèle** — enregistrent sorties dans Knowledge Base
-5. **Vous coordonnez** — examinez `.gemini/antigravity/brain/` pour cohérence
+5. **Vous coordonnez** — examinez `.agent/brain/` pour cohérence
 6. **QA Agent examine** — audit sécurité/performance
 7. **Corriger & itérer** — régénérer agents avec corrections
 
@@ -151,7 +151,7 @@ Les ressources partagées vivent dans `_shared/` (pas une compétence) et sont r
 Utilisez `oh-my-ag agent:spawn` pour exécuter agents via CLI. Respecte `agent_cli_mapping` dans `user-preferences.yaml` pour sélectionner le CLI approprié (gemini, claude, codex, qwen) par type d'agent. L'espace de travail est auto-détecté depuis conventions monorepo communes, ou peut être défini explicitement avec `-w`.
 
 ### Knowledge Base
-Sorties agents stockées à `.gemini/antigravity/brain/`. Contient plans, code, rapports et notes de coordination.
+Sorties agents stockées à `.agent/brain/`. Contient plans, code, rapports et notes de coordination.
 
 ### Serena Memory
 État d'exécution structuré à `.serena/memories/`. L'orchestrator écrit infos session, tableaux tâches, progression par agent et résultats. Les tableaux de bord surveillent ces fichiers pour monitoring.
@@ -253,7 +253,7 @@ Navigateur: http://localhost:9847 → statut temps réel
 
 1. **Soyez spécifique** — "Construire une application TODO avec auth JWT, frontend React, backend FastAPI" est meilleur que "faire une app"
 2. **Utilisez génération CLI** pour projets multi-domaine — n'essayez pas de tout faire dans une discussion
-3. **Examinez Knowledge Base** — vérifiez `.gemini/antigravity/brain/` pour cohérence API
+3. **Examinez Knowledge Base** — vérifiez `.agent/brain/` pour cohérence API
 4. **Itérez avec régénérations** — affinez instructions, ne recommencez pas de zéro
 5. **Utilisez tableaux de bord** — `bunx oh-my-ag dashboard` ou `bunx oh-my-ag dashboard:web` pour surveiller sessions orchestrator
 6. **Espaces de travail séparés** — assignez à chaque agent son propre répertoire

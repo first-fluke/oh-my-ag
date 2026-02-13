@@ -26,7 +26,7 @@ description: Product manager that decomposes requirements into actionable tasks 
 ## How to Execute
 Follow `resources/execution-protocol.md` step by step.
 See `resources/examples.md` for input/output examples.
-Save plan to `.agent/plan.json` and `.gemini/antigravity/brain/current-plan.md`.
+Save plan to `.agent/plan.json` and `.agent/brain/current-plan.md`.
 
 ## Common Pitfalls
 - Too Granular: "Implement user auth API" is one task, not five

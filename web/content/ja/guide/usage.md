@@ -50,7 +50,7 @@ description: 使用例、ワークフロー、ダッシュボード操作、ト�
    wait
    ```
 4. **エージェントが並列作業** — Knowledge Baseに出力を保存
-5. **調整** — 一貫性のために`.gemini/antigravity/brain/`をレビュー
+5. **調整** — 一貫性のために`.agent/brain/`をレビュー
 6. **QA Agentがレビュー** — セキュリティ/パフォーマンス監査
 7. **修正と反復** — 修正を含めてエージェントを再起動
 
@@ -151,7 +151,7 @@ Antigravityは自動的にリクエストをスキルにマッチングします
 `oh-my-ag agent:spawn`を使用してCLI経由でエージェントを実行します。`user-preferences.yaml`の`agent_cli_mapping`を尊重して、エージェントタイプごとに適切なCLI（gemini、claude、codex、qwen）を選択します。ワークスペースは一般的なモノレポ規約から自動検出されるか、`-w`で明示的に設定できます。
 
 ### Knowledge Base
-`.gemini/antigravity/brain/`に保存されたエージェント出力。計画、コード、レポート、調整メモを含みます。
+`.agent/brain/`に保存されたエージェント出力。計画、コード、レポート、調整メモを含みます。
 
 ### Serena Memory
 `.serena/memories/`の構造化されたランタイム状態。orchestratorはセッション情報、タスクボード、エージェントごとの進捗、結果を書き込みます。ダッシュボードはこれらのファイルを監視して監視を提供します。
@@ -253,7 +253,7 @@ Antigravity IDEチャットでこれらを入力してステップバイステ�
 
 1. **具体的に** — "JWT認証、Reactフロントエンド、FastAPIバックエンドでTODOアプリを構築"は"アプリを作る"よりも良い
 2. **CLI起動を使用** マルチドメインプロジェクトには — 1つのチャットですべてをやろうとしない
-3. **Knowledge Baseをレビュー** — API一貫性のために`.gemini/antigravity/brain/`をチェック
+3. **Knowledge Baseをレビュー** — API一貫性のために`.agent/brain/`をチェック
 4. **再起動で反復** — 指示を洗練させ、最初からやり直さない
 5. **ダッシュボードを使用** — orchestratorセッションを監視するために`bunx oh-my-ag dashboard`または`bunx oh-my-ag dashboard:web`
 6. **ワークスペースを分離** — 各エージェントに独自のディレクトリを割り当てる

@@ -312,7 +312,7 @@ Escalate to other agents if:
 
 ## 📝 Documentation Template
 
-After fixing, document in `.gemini/antigravity/brain/bugs/`:
+After fixing, document in `.agent/brain/bugs/`:
 
 ```markdown
 # Bug: [Title]

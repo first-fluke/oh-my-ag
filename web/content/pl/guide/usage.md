@@ -50,7 +50,7 @@ description: Kompletny przewodnik użytkowania z przykładami, przepływami prac
    wait
    ```
 4. **Agenci pracują równolegle** — zapisują wyniki do bazy wiedzy
-5. **Ty koordynujesz** — przeglądasz `.gemini/antigravity/brain/` pod kątem spójności
+5. **Ty koordynujesz** — przeglądasz `.agent/brain/` pod kątem spójności
 6. **QA Agent przegląda** — audyt bezpieczeństwa/wydajności
 7. **Napraw i iteruj** — ponownie uruchom agentów z poprawkami
 
@@ -151,7 +151,7 @@ Współdzielone zasoby znajdują się w `_shared/` (nie jest to umiejętność) 
 Użyj `oh-my-ag agent:spawn` aby uruchamiać agentów przez CLI. Respektuje `agent_cli_mapping` w `user-preferences.yaml` aby wybrać odpowiednie CLI (gemini, claude, codex, qwen) dla typu agenta. Workspace jest wykrywany automatycznie z typowych konwencji monorepo lub może być ustawiony jawnie z `-w`.
 
 ### Baza wiedzy
-Wyniki agentów przechowywane w `.gemini/antigravity/brain/`. Zawiera plany, kod, raporty i notatki koordynacyjne.
+Wyniki agentów przechowywane w `.agent/brain/`. Zawiera plany, kod, raporty i notatki koordynacyjne.
 
 ### Pamięć Serena
 Ustrukturyzowany stan runtime w `.serena/memories/`. Orchestrator zapisuje informacje o sesji, tablice zadań, postęp dla poszczególnych agentów i wyniki. Dashboardy obserwują te pliki do monitorowania.
@@ -253,7 +253,7 @@ Przeglądarka: http://localhost:9847 → status w czasie rzeczywistym
 
 1. **Bądź konkretny** — "Zbuduj aplikację TODO z uwierzytelnianiem JWT, frontendem React, backendem FastAPI" jest lepsze niż "zrób aplikację"
 2. **Użyj uruchamiania przez CLI** dla projektów wielodomenowych — nie próbuj robić wszystkiego w jednym czacie
-3. **Przeglądaj bazę wiedzy** — sprawdź `.gemini/antigravity/brain/` pod kątem spójności API
+3. **Przeglądaj bazę wiedzy** — sprawdź `.agent/brain/` pod kątem spójności API
 4. **Iteruj z ponownymi uruchomieniami** — udoskonalaj instrukcje, nie zaczynaj od nowa
 5. **Używaj dashboardów** — `bunx oh-my-ag dashboard` lub `bunx oh-my-ag dashboard:web` do monitorowania sesji orchestratora
 6. **Oddzielne przestrzenie robocze** — przypisz każdemu agentowi własny katalog

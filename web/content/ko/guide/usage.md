@@ -52,7 +52,7 @@ description: 예시, 워크플로우, 대시보드 운영, 문제 해결을 포�
    wait
    ```
 4. **에이전트들이 병렬 작업** — Knowledge Base에 저장
-5. **조율** — `.gemini/antigravity/brain/` 일관성 확인
+5. **조율** — `.agent/brain/` 일관성 확인
 6. **QA Agent 검토** — 보안/성능 감사
 7. **수정 & 반복** — 필요시 에이전트 재생성
 
@@ -153,7 +153,7 @@ Antigravity가 자동으로 요청을 스킬에 매칭시킵니다. 스킬을 �
 `oh-my-ag agent:spawn`을 사용하여 CLI로 에이전트를 실행합니다. `user-preferences.yaml`의 `agent_cli_mapping`을 참조하여 에이전트 타입별로 적절한 CLI(gemini, claude, codex, qwen)를 선택합니다. Workspace는 모노레포 관례에 따라 자동 탐지되며, `-w` 옵션으로 명시적 지정도 가능합니다.
 
 ### Knowledge Base
-에이전트 산출물이 `.gemini/antigravity/brain/`에 저장됩니다. 기획서, 코드, 리포트, 조율 메모 포함.
+에이전트 산출물이 `.agent/brain/`에 저장됩니다. 기획서, 코드, 리포트, 조율 메모 포함.
 
 ### Serena Memory
 구조화된 런타임 상태가 `.serena/memories/`에 저장됩니다. Orchestrator가 세션 정보, 태스크 보드, 에이전트별 진행 상황, 결과를 기록합니다. 대시보드들이 이 파일들을 감시하여 모니터링합니다.
@@ -254,7 +254,7 @@ Antigravity IDE 채팅에서 입력하여 단계별 워크플로우를 실행합
 
 1. **구체적으로** — "JWT 인증과 React 프론트엔드, FastAPI 백엔드가 있는 TODO 앱 만들어줘"가 "앱 만들어줘"보다 낫습니다.
 2. **멀티 도메인은 CLI spawning 사용** — 한 채팅에서 모든 것을 하려고 하지 마세요.
-3. **Knowledge Base 검토** — `.gemini/antigravity/brain/`에서 API 일관성 확인
+3. **Knowledge Base 검토** — `.agent/brain/`에서 API 일관성 확인
 4. **재생성으로 반복** — 처음부터 다시 하지 말고, 명령을 다듬어 재생성하세요.
 5. **대시보드 사용** — `bunx oh-my-ag dashboard` 또는 `bunx oh-my-ag dashboard:web`로 orchestrator 세션 모니터링
 6. **별도 워크스페이스** — 각 에이전트에 고유 디렉토리 할당
@@ -267,7 +267,7 @@ Antigravity IDE 채팅에서 입력하여 단계별 워크플로우를 실행합
 |------|--------|
 | Antigravity에서 스킬이 로드되지 않음 | `antigravity open .`으로 프로젝트를 열고, `.agent/skills/` 폴더와 `SKILL.md` 파일을 확인한 뒤 Antigravity IDE를 재시작하세요 |
 | CLI를 찾을 수 없음 | `which gemini` / `which claude` 확인, 누락된 CLI 설치 |
-| 에이전트 간 코드 불일치 | `.gemini/antigravity/brain/`에서 산출물을 검토하고, 한 에이전트를 다른 에이전트 출력 참조로 재실행한 뒤 QA Agent로 최종 일관성을 점검하세요 |
+| 에이전트 간 코드 불일치 | `.agent/brain/`에서 산출물을 검토하고, 한 에이전트를 다른 에이전트 출력 참조로 재실행한 뒤 QA Agent로 최종 일관성을 점검하세요 |
 | 대시보드에 "No agents detected" 표시 | 메모리 파일이 아직 생성되지 않았습니다. Orchestrator를 실행하거나 `.serena/memories/`에 수동으로 파일을 생성하세요 |
 | 웹 대시보드가 시작 안 됨 | `bun install`로 chokidar, ws 설치 |
 | fswatch not found | macOS: `brew install fswatch`, Linux: `apt install inotify-tools` |

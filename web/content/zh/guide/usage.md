@@ -52,7 +52,7 @@ description: 完整使用指南，包括示例、工作流、仪表盘操作和�
    wait
    ```
 4. **代理并行工作** — 将输出保存到知识库
-5. **您协调** — 检查 `.gemini/antigravity/brain/` 的一致性
+5. **您协调** — 检查 `.agent/brain/` 的一致性
 6. **QA Agent 评审** — 安全/性能审计
 7. **修复与迭代** — 使用修正内容重新启动代理
 
@@ -153,7 +153,7 @@ Antigravity 自动将请求匹配到技能。您无需手动选择技能。只�
 使用 `oh-my-ag agent:spawn` 通过 CLI 运行代理。遵循 `user-preferences.yaml` 中的 `agent_cli_mapping` 为每种代理类型选择合适的 CLI（gemini、claude、codex、qwen）。工作区从常见 monorepo 约定自动检测，也可通过 `-w` 显式设置。
 
 ### 知识库
-代理输出存储在 `.gemini/antigravity/brain/`。包含规划、代码、报告和协调笔记。
+代理输出存储在 `.agent/brain/`。包含规划、代码、报告和协调笔记。
 
 ### Serena 记忆
 结构化运行时状态位于 `.serena/memories/`。编排器写入会话信息、任务看板、每代理进度和结果。仪表盘监控这些文件。
@@ -255,7 +255,7 @@ Antigravity 自动将请求匹配到技能。您无需手动选择技能。只�
 
 1. **具体明确** — "Build a TODO app with JWT auth, React frontend, FastAPI backend" 优于 "make an app"
 2. **使用 CLI 启动** 进行多领域项目 — 不要试图在一个聊天中完成所有事情
-3. **检查知识库** — 查看 `.gemini/antigravity/brain/` 以确保 API 一致性
+3. **检查知识库** — 查看 `.agent/brain/` 以确保 API 一致性
 4. **通过重新启动迭代** — 优化指令，而非从头开始
 5. **使用仪表盘** — `bunx oh-my-ag dashboard` 或 `bunx oh-my-ag dashboard:web` 监控编排器会话
 6. **分离工作区** — 为每个代理分配独立目录
@@ -268,7 +268,7 @@ Antigravity 自动将请求匹配到技能。您无需手动选择技能。只�
 |------|----------|
 | 技能未在 Antigravity 中加载 | 使用 `antigravity open .` 打开项目，验证 `.agent/skills/` 和 `SKILL.md`，然后重启 Antigravity IDE |
 | 找不到 CLI | 检查 `which gemini` / `which claude`，安装缺失的 CLI |
-| 代理生成不兼容的代码 | 检查 `.gemini/antigravity/brain/` 中的输出，引用另一代理的输出重新启动一个代理，然后使用 QA Agent 做最终一致性检查 |
+| 代理生成不兼容的代码 | 检查 `.agent/brain/` 中的输出，引用另一代理的输出重新启动一个代理，然后使用 QA Agent 做最终一致性检查 |
 | 仪表盘显示 "No agents detected" | 记忆文件尚未创建。运行编排器或手动在 `.serena/memories/` 中创建文件 |
 | Web 仪表盘无法启动 | 运行 `bun install` 以安装 chokidar 和 ws |
 | 找不到 fswatch | macOS：`brew install fswatch`，Linux：`apt install inotify-tools` |
