@@ -1,3 +1,8 @@
+---
+title: Struktura Projektu
+description: Zaktualizowane drzewo katalogów po rozdzieleniu workspace CLI i dokumentacji web.
+---
+
 # Struktura projektu
 
 Szczegółowe drzewo katalogów dla tego repozytorium.

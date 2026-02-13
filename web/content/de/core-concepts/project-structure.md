@@ -1,3 +1,8 @@
+---
+title: Projektstruktur
+description: Aktualisierter Verzeichnisbaum nach Trennung der CLI- und Web-Docs-Workspaces.
+---
+
 # Projektstruktur
 
 Detaillierter Verzeichnisbaum für dieses Repository.

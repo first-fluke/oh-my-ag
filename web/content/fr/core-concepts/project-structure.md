@@ -1,3 +1,8 @@
+---
+title: Structure du Projet
+description: Arborescence mise à jour après la séparation des workspaces CLI et docs web.
+---
+
 # Structure du projet
 
 Arborescence détaillée des répertoires pour ce dépôt.

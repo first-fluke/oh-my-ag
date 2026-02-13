@@ -1,3 +1,8 @@
+---
+title: Projectstructuur
+description: Bijgewerkte directorystructuur na het splitsen van CLI en web docs workspaces.
+---
+
 # Project structuur
 
 Gedetailleerde directory tree voor deze repository.

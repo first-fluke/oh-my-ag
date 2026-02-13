@@ -1,3 +1,8 @@
+---
+title: Estrutura do Projeto
+description: Árvore de diretórios atualizada após a separação dos workspaces CLI e web docs.
+---
+
 # Estrutura do Projeto
 
 Árvore detalhada de diretórios para este repositório.

@@ -1,3 +1,8 @@
+---
+title: Guía de Uso
+description: Guía completa de uso incluyendo ejemplos, flujos de trabajo, operaciones de dashboard y solución de problemas.
+---
+
 # Cómo Usar los Skills Multi-Agente de Antigravity
 
 ## Inicio Rápido

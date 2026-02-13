@@ -1,3 +1,8 @@
+---
+title: Przewodnik użytkowania
+description: Kompletny przewodnik użytkowania z przykładami, przepływami pracy, obsługą dashboardu i rozwiązywaniem problemów.
+---
+
 # Jak używać umiejętności Multi-Agent Antigravity
 
 ## Szybki start

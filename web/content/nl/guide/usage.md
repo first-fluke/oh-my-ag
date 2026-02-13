@@ -1,3 +1,8 @@
+---
+title: Gebruiksgids
+description: Volledige gebruiksgids met voorbeelden, workflows, dashboardbewerkingen en probleemoplossing.
+---
+
 # Hoe Antigravity Multi-Agent Skills te gebruiken
 
 ## Snel starten

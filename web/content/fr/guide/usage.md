@@ -1,3 +1,8 @@
+---
+title: Guide d'utilisation
+description: Guide complet incluant exemples, workflows, opérations de tableau de bord et dépannage.
+---
+
 # Comment utiliser les compétences multi-agents Antigravity
 
 ## Démarrage rapide

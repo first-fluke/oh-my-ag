@@ -1,3 +1,8 @@
+---
+title: Nutzungsanleitung
+description: Vollständige Nutzungsanleitung mit Beispielen, Workflows, Dashboard-Operationen und Fehlerbehebung.
+---
+
 # Verwendung der Antigravity Multi-Agent Skills
 
 ## Schnellstart
