@@ -1,9 +1,14 @@
 {
   "name": "oh-my-ag",
   "version": "1.21.0",
-  "releaseDate": "2026-02-12T10:03:38.269Z",
+  "releaseDate": "2026-02-13T13:47:36.245Z",
   "repository": "https://github.com/first-fluke/oh-my-ag",
   "files": [
+    {
+      "path": ".agent/brain/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
     {
       "path": ".agent/config/user-preferences.yaml",
       "sha256": "d0c4e6a49f9452c1bdddb0e4352e143b53b784364123c1573b7e903d7a490a90",
@@ -131,18 +136,18 @@
     },
     {
       "path": ".agent/skills/debug-agent/SKILL.md",
-      "sha256": "3489436f30820ec44bec2be72cab67e88435f98e8b4451c7ed96019f1b4ca005",
-      "size": 1813
+      "sha256": "82cb571b447b7a6ee8535189c1d03a6a4b12947382bd6d1c06d50ba8e0a6fc95",
+      "size": 1800
     },
     {
       "path": ".agent/skills/debug-agent/resources/bug-report-template.md",
-      "sha256": "37956e06aec3fce5a27f1fa0364fa1ae7e361ccb57e03c55ffb735ed63bdc0d8",
-      "size": 7556
+      "sha256": "9f0d1df4ea1b8d2ade140ce0fca7eda1a1702d4eae7842f3600d911145f5de0d",
+      "size": 7543
     },
     {
       "path": ".agent/skills/debug-agent/resources/checklist.md",
-      "sha256": "734989597cc120cf98d96327709d73e1223e28787e771c7cfd6d86c43f866417",
-      "size": 997
+      "sha256": "788f8c49d6508519c07607d6c6d8318c3aead79b318a323bf3ae2cfe5cb66d49",
+      "size": 984
     },
     {
       "path": ".agent/skills/debug-agent/resources/common-patterns.md",
@@ -151,8 +156,8 @@
     },
     {
       "path": ".agent/skills/debug-agent/resources/debugging-checklist.md",
-      "sha256": "66c06c0e738ba12013ef08143925ba7c0aafa793c4cb2d9e90cfdf1d5884deb1",
-      "size": 10033
+      "sha256": "ec62950b2fadb85e0516d9faf3ad6bb6c209893e7ae8a0fe5df739912b1d92f4",
+      "size": 10020
     },
     {
       "path": ".agent/skills/debug-agent/resources/error-playbook.md",
@@ -166,8 +171,8 @@
     },
     {
       "path": ".agent/skills/debug-agent/resources/execution-protocol.md",
-      "sha256": "2284363dc13f4aac244a6c155224d34d08783eba4003dd1c5b0c9b6e915b9297",
-      "size": 2363
+      "sha256": "0cc398799f58e06615d028abcc47c0677eb40a2e46bd7d7b8082c1a35065af6b",
+      "size": 2350
     },
     {
       "path": ".agent/skills/frontend-agent/SKILL.md",
@@ -256,8 +261,8 @@
     },
     {
       "path": ".agent/skills/orchestrator/SKILL.md",
-      "sha256": "edda65499d31083f03a42327e5de8802b60f70eb5570c110cc0b566148834767",
-      "size": 5100
+      "sha256": "1435dd837a0eaa7d184da11074d0fb4258df9bdd9858609860b1712209ebd655",
+      "size": 5138
     },
     {
       "path": ".agent/skills/orchestrator/config/cli-config.yaml",
@@ -273,6 +278,21 @@
       "path": ".agent/skills/orchestrator/resources/subagent-prompt-template.md",
       "sha256": "7379cee06482b91258bfe27a1464352c9274c6984c149820fbef8de3d07fc3cc",
       "size": 5505
+    },
+    {
+      "path": ".agent/skills/orchestrator/scripts/parallel-run.sh",
+      "sha256": "2de5576770bd5ff5414c379804aaf9bbcd02e8563802601e5463c0e6e461d3a5",
+      "size": 241
+    },
+    {
+      "path": ".agent/skills/orchestrator/scripts/spawn-agent.sh",
+      "sha256": "da5684b699173b413ac068c3debdcab270eec3eb1fd5882fa4b8e3aaa4a8dc94",
+      "size": 182
+    },
+    {
+      "path": ".agent/skills/orchestrator/scripts/verify.sh",
+      "sha256": "d80d3674d2264b034a409dc3974bdfb4a9347cf38ac7862ba5d63bf43b0a9b32",
+      "size": 207
     },
     {
       "path": ".agent/skills/orchestrator/templates/backend-task.md",
@@ -306,8 +326,8 @@
     },
     {
       "path": ".agent/skills/pm-agent/SKILL.md",
-      "sha256": "816e43cc331110b2336c54b94f5181da8c0109d75bb944da37b4197fdcf15cd5",
-      "size": 1971
+      "sha256": "2cc53ce0ac9f1d8416331003e91fb212575868b5c520c7521f6d9524782681e7",
+      "size": 1958
     },
     {
       "path": ".agent/skills/pm-agent/resources/error-playbook.md",
@@ -321,8 +341,8 @@
     },
     {
       "path": ".agent/skills/pm-agent/resources/execution-protocol.md",
-      "sha256": "ff11234f8ee7fb3392c47ece84ac4273a152c99f9e7d14ff1e43313fca4b2147",
-      "size": 2321
+      "sha256": "c973361a8444aa6f9ab08163f9073ef8437d3560d7fee19920d8f34e1c2ef7c6",
+      "size": 2308
     },
     {
       "path": ".agent/skills/pm-agent/resources/task-template.json",
@@ -411,6 +431,6 @@
   "metadata": {
     "skillCount": 9,
     "workflowCount": 7,
-    "totalFiles": 80
+    "totalFiles": 84
   }
 }
