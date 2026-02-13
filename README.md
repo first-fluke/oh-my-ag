@@ -1,6 +1,6 @@
 # oh-my-ag: Multi-Agent Orchestrator for Antigravity
 
-[한국어](./README.ko.md)
+[한국어](./README.ko.md) | [Português](./README.pt.md) | [日本語](./README.ja.md) | [Français](./README.fr.md) | [Español](./README.es.md) | [Nederlands](./README.nl.md) | [Polski](./README.pl.md) | [Українська](./README.uk.md) | [Русский](./README.ru.md) | [Deutsch](./README.de.md)
 
 The Ultimate Multi-Agent Framework for Google Antigravity and beyond.
 
