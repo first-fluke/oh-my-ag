@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.5...web-v0.1.6) (2026-02-13)
+
+
+### Refactoring
+
+* move brain output directory from .gemini/antigravity/brain/ to .agent/brain/ ([f093e52](https://github.com/first-fluke/oh-my-ag/commit/f093e52bac47f3938381bc48bdacde02c56be4e5))
+
 ## [0.1.5](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.4...web-v0.1.5) (2026-02-13)
 
 
