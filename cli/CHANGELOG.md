@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.1](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.21.0...cli-v1.21.1) (2026-02-15)
+
+
+### Bug Fixes
+
+* resolve user-preferences.yaml by walking up parent directories ([0d1d68b](https://github.com/first-fluke/oh-my-ag/commit/0d1d68b0bd2d6e4922f35005f34f770698f7bdac))
+
 ## [1.21.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.20.1...cli-v1.21.0) (2026-02-12)
 
 
