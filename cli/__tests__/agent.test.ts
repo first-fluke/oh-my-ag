@@ -129,6 +129,133 @@ describe("agent command", () => {
         "12345",
       );
     });
+
+    it("should resolve vendor from user-preferences.yaml found in parent directory", async () => {
+      const USER_PREFS_YAML = [
+        "default_cli: codex",
+        "agent_cli_mapping:",
+        "  frontend: codex",
+        "  backend: codex",
+        "  mobile: gemini",
+      ].join("\n");
+
+      // Simulate monorepo: cwd is /project/apps/api,
+      // user-preferences.yaml is at /project/.agent/config/user-preferences.yaml
+      const cwdSpy = vi
+        .spyOn(process, "cwd")
+        .mockReturnValue("/project/apps/api");
+
+      mockFsFunctions.existsSync.mockImplementation((pathArg: fs.PathLike) => {
+        const target = pathArg.toString();
+        // user-preferences.yaml only exists at project root, not in apps/api
+        if (
+          target === "/project/.agent/config/user-preferences.yaml"
+        )
+          return true;
+        if (
+          target.includes("apps/api/.agent") &&
+          target.includes("user-preferences.yaml")
+        )
+          return false;
+        if (target.includes("cli-config.yaml")) return false;
+        if (target === "/project/apps/api") return true;
+        return false;
+      });
+      mockFsFunctions.readFileSync.mockImplementation(
+        (pathArg: fs.PathLike) => {
+          const target = pathArg.toString();
+          if (target.includes("user-preferences.yaml")) return USER_PREFS_YAML;
+          return "";
+        },
+      );
+      mockFsFunctions.openSync.mockReturnValue(123);
+
+      const mockChild = {
+        pid: 99999,
+        on: vi.fn(),
+        unref: vi.fn(),
+      };
+      vi.mocked(child_process.spawn).mockReturnValue(
+        mockChild as unknown as child_process.ChildProcess,
+      );
+
+      await spawnAgent(
+        "backend",
+        "implement feature",
+        "session1",
+        "/project/apps/api",
+      );
+
+      // Should spawn codex (from agent_cli_mapping), NOT gemini
+      expect(child_process.spawn).toHaveBeenCalledWith(
+        "codex",
+        expect.arrayContaining(["implement feature"]),
+        expect.objectContaining({
+          cwd: expect.stringContaining("/project/apps/api"),
+        }),
+      );
+
+      cwdSpy.mockRestore();
+    });
+
+    it("should use default_cli when agent has no specific mapping", async () => {
+      const USER_PREFS_YAML = [
+        "default_cli: codex",
+        "agent_cli_mapping:",
+        "  frontend: codex",
+      ].join("\n");
+
+      const cwdSpy = vi
+        .spyOn(process, "cwd")
+        .mockReturnValue("/project/apps/api");
+
+      mockFsFunctions.existsSync.mockImplementation((pathArg: fs.PathLike) => {
+        const target = pathArg.toString();
+        if (
+          target === "/project/.agent/config/user-preferences.yaml"
+        )
+          return true;
+        if (target.includes("user-preferences.yaml")) return false;
+        if (target.includes("cli-config.yaml")) return false;
+        if (target === "/project/apps/api") return true;
+        return false;
+      });
+      mockFsFunctions.readFileSync.mockImplementation(
+        (pathArg: fs.PathLike) => {
+          const target = pathArg.toString();
+          if (target.includes("user-preferences.yaml")) return USER_PREFS_YAML;
+          return "";
+        },
+      );
+      mockFsFunctions.openSync.mockReturnValue(123);
+
+      const mockChild = {
+        pid: 88888,
+        on: vi.fn(),
+        unref: vi.fn(),
+      };
+      vi.mocked(child_process.spawn).mockReturnValue(
+        mockChild as unknown as child_process.ChildProcess,
+      );
+
+      await spawnAgent(
+        "backend",
+        "implement feature",
+        "session1",
+        "/project/apps/api",
+      );
+
+      // backend has no mapping, should fall back to default_cli: codex
+      expect(child_process.spawn).toHaveBeenCalledWith(
+        "codex",
+        expect.arrayContaining(["implement feature"]),
+        expect.objectContaining({
+          cwd: expect.stringContaining("/project/apps/api"),
+        }),
+      );
+
+      cwdSpy.mockRestore();
+    });
   });
 
   describe("checkStatus", () => {

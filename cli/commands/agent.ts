@@ -99,7 +99,7 @@ const VendorConfigSchema = z
 const CliConfigSchema = z
   .object({
     active_vendor: z.string().optional(),
-    vendors: z.record(VendorConfigSchema).optional(),
+    vendors: z.record(z.string(), VendorConfigSchema).optional(),
   })
   .passthrough()
   .transform((value) => ({
@@ -127,22 +127,33 @@ function parseCliConfig(content: string): CliConfig {
   const result = CliConfigSchema.safeParse(parsed);
   if (!result.success) return { vendors: {} };
 
-  const vendors: Record<string, VendorConfig> = {};
-  for (const [vendor, cfg] of Object.entries(result.data.vendors)) {
-    vendors[vendor] = { ...cfg };
-  }
+  return {
+    active_vendor: result.data.active_vendor,
+    vendors: result.data.vendors as Record<string, VendorConfig>,
+  };
+}
 
-  return result.data;
+function findConfigFileUp(
+  startDir: string,
+  relativePath: string,
+): string | null {
+  let current = path.resolve(startDir);
+  const root = path.parse(current).root;
+
+  while (current !== root) {
+    const configPath = path.join(current, relativePath);
+    if (fs.existsSync(configPath)) return configPath;
+    current = path.dirname(current);
+  }
+  return null;
 }
 
 function readUserPreferences(cwd: string): UserPreferences | null {
-  const configPath = path.join(
+  const configPath = findConfigFileUp(
     cwd,
-    ".agent",
-    "config",
-    "user-preferences.yaml",
+    path.join(".agent", "config", "user-preferences.yaml"),
   );
-  if (!fs.existsSync(configPath)) return null;
+  if (!configPath) return null;
   try {
     const content = fs.readFileSync(configPath, "utf-8");
     return parseUserPreferences(content);
@@ -152,15 +163,11 @@ function readUserPreferences(cwd: string): UserPreferences | null {
 }
 
 function readCliConfig(cwd: string): CliConfig | null {
-  const configPath = path.join(
+  const configPath = findConfigFileUp(
     cwd,
-    ".agent",
-    "skills",
-    "orchestrator",
-    "config",
-    "cli-config.yaml",
+    path.join(".agent", "skills", "orchestrator", "config", "cli-config.yaml"),
   );
-  if (!fs.existsSync(configPath)) return null;
+  if (!configPath) return null;
   try {
     const content = fs.readFileSync(configPath, "utf-8");
     return parseCliConfig(content);
@@ -453,6 +460,7 @@ function scoreWorkspaceMatch(workspace: string, agentId: string): number {
 
   for (let i = 0; i < keywords.length; i++) {
     const keyword = keywords[i];
+    if (!keyword) continue;
     // Exact match on directory name gets highest score
     if (dirName === keyword) {
       return 100 - i;
@@ -488,7 +496,7 @@ function detectWorkspace(agentId: string): string {
       .filter((item) => item.score > 0)
       .sort((a, b) => b.score - a.score);
 
-    if (scored.length > 0) {
+    if (scored.length > 0 && scored[0]) {
       return scored[0].workspace;
     }
   }
@@ -648,7 +656,7 @@ export async function spawnAgent(
   process.on("SIGINT", cleanAndExit);
   process.on("SIGTERM", cleanAndExit);
 
-  child.on("exit", (code) => {
+  (child as unknown as NodeJS.EventEmitter).on("exit", (code: number | null) => {
     console.log(color.blue(`[${agentId}] Exited with code ${code}`));
     cleanup();
     process.exit(code ?? 0);
@@ -928,11 +936,11 @@ export async function parallelRun(
     fs.appendFileSync(pidListFile, `${child.pid}:${agent}\n`);
 
     const exitPromise = new Promise<number | null>((resolve) => {
-      child.on("exit", (code: number | null) => {
+      (child as unknown as NodeJS.EventEmitter).on("exit", (code: number | null) => {
         fs.closeSync(logStream);
         resolve(code);
       });
-      child.on("error", () => {
+      (child as unknown as NodeJS.EventEmitter).on("error", () => {
         fs.closeSync(logStream);
         resolve(null);
       });
