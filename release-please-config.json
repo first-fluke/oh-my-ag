@@ -17,6 +17,11 @@
           "type": "json",
           "path": "prompt-manifest.json",
           "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": ".agent/skills/_version.json",
+          "jsonpath": "$.version"
         }
       ]
     },
