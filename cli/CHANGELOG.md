@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.22.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.21.1...cli-v1.22.0) (2026-02-16)
+
+
+### Features
+
+* **cli:** add infrastructure skills category with terraform and mise support ([48cae1a](https://github.com/first-fluke/oh-my-ag/commit/48cae1aa3113608b99259b2d8397c80581c1d185))
+
+
+### Bug Fixes
+
+* **cli:** fetch reference files during skill installation ([05be60d](https://github.com/first-fluke/oh-my-ag/commit/05be60d19c7738cdb914afc29e7f85dd42c3a294))
+
+
+### Refactoring
+
+* rename references to resources and add dynamic file fetching ([7493587](https://github.com/first-fluke/oh-my-ag/commit/7493587fcaff96e9109ca5989932c6fb7b3c9ee2))
+* **skills:** rename mise-devops-runner to developer-workflow ([7a34b46](https://github.com/first-fluke/oh-my-ag/commit/7a34b46c44b060afc08c1634e6b66bedb54a5035))
+
 ## [1.21.1](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.21.0...cli-v1.21.1) (2026-02-15)
 
 
