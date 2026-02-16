@@ -1,7 +1,7 @@
 {
   "name": "oh-my-ag",
   "version": "1.21.1",
-  "releaseDate": "2026-02-16T08:57:29.418Z",
+  "releaseDate": "2026-02-16T14:01:41.240Z",
   "repository": "https://github.com/first-fluke/oh-my-ag",
   "files": [
     {
@@ -193,6 +193,41 @@
       "path": ".agent/skills/debug-agent/resources/execution-protocol.md",
       "sha256": "0cc398799f58e06615d028abcc47c0677eb40a2e46bd7d7b8082c1a35065af6b",
       "size": 2350
+    },
+    {
+      "path": ".agent/skills/developer-workflow/SKILL.md",
+      "sha256": "8d4c95cf8c71ad12221af541b601971d702863faeb0559af0673141ec533eb70",
+      "size": 8024
+    },
+    {
+      "path": ".agent/skills/developer-workflow/resources/api-workflows.md",
+      "sha256": "f4e5a077e6b0190b0c1852323fc421ae48e78297dded29749700df02ad1d9eae",
+      "size": 1135
+    },
+    {
+      "path": ".agent/skills/developer-workflow/resources/database-patterns.md",
+      "sha256": "57989ebc5f2ffe1d63437a0f21b79319d841d142766377d0022e021a63d5930b",
+      "size": 2332
+    },
+    {
+      "path": ".agent/skills/developer-workflow/resources/i18n-patterns.md",
+      "sha256": "3ddc1bfd11428a33be4363e16524130976e4dd93f46ce9115e1aa32a97e08663",
+      "size": 1198
+    },
+    {
+      "path": ".agent/skills/developer-workflow/resources/release-coordination.md",
+      "sha256": "f297f6c932acfdcbbb566f1cdf75c8d3f81ff214bbe4f9189e808f0f84a20e64",
+      "size": 5687
+    },
+    {
+      "path": ".agent/skills/developer-workflow/resources/troubleshooting.md",
+      "sha256": "cfcbca5b977b9dadde9dd67cd720f3c6ccbacfbf9a73e944401ac346e2d29b72",
+      "size": 1008
+    },
+    {
+      "path": ".agent/skills/developer-workflow/resources/validation-pipeline.md",
+      "sha256": "4d2b5a4d9e0f7c9bcaf000048490bb52c255545cb86de789c391f915c52054d1",
+      "size": 7761
     },
     {
       "path": ".agent/skills/frontend-agent/SKILL.md",
@@ -410,6 +445,26 @@
       "size": 2346
     },
     {
+      "path": ".agent/skills/terraform-infra-engineer/SKILL.md",
+      "sha256": "29b3e67ebe70518c55fd11715b921d8efc0401b91bfc5e4156c3da70b8b36689",
+      "size": 13801
+    },
+    {
+      "path": ".agent/skills/terraform-infra-engineer/resources/cost-optimization.md",
+      "sha256": "c923dcf10b373a7eefd2ff788b5010f1ba23713e666473625d3717222a869b70",
+      "size": 12742
+    },
+    {
+      "path": ".agent/skills/terraform-infra-engineer/resources/multi-cloud-examples.md",
+      "sha256": "6e9182810eab6ba0da796382aa61e359d7f242c1913259a5605d559851c59b2a",
+      "size": 5011
+    },
+    {
+      "path": ".agent/skills/terraform-infra-engineer/resources/policy-testing-examples.md",
+      "sha256": "9015b3ee1aa30ac0fab7a8712440bbb64100225a1b5b6bfcd7e08d676126badf",
+      "size": 6038
+    },
+    {
       "path": ".agent/skills/workflow-guide/SKILL.md",
       "sha256": "aabc7660f7e12185d1b930303d800563a2e313ce7abb0c0d26f8faa3209f3457",
       "size": 2085
@@ -464,8 +519,8 @@
     "algorithm": "sha256"
   },
   "metadata": {
-    "skillCount": 9,
+    "skillCount": 11,
     "workflowCount": 8,
-    "totalFiles": 91
+    "totalFiles": 102
   }
 }
