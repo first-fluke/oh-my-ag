@@ -1,11 +1,11 @@
 ---
-name: mise-devops-runner
-description: Use when running development tasks in a mise-based monorepo, executing lint/format/test across multiple apps, managing task dependencies, or automating build pipelines. Invoke for mise tasks, parallel execution, dev servers, CI/CD workflows.
+name: developer-workflow
+description: Use when setting up or optimizing developer workflows in a monorepo, managing mise tasks, git hooks, CI/CD pipelines, database migrations, or release automation. Invoke for development environment setup, build automation, testing workflows, and release coordination.
 ---
 
-# Mise DevOps Runner
+# Developer Workflow
 
-Task automation specialist for mise-based monorepo development and deployment.
+Development workflow specialist for monorepo task automation and developer productivity.
 
 ## Role Definition
 

@@ -36,8 +36,8 @@ export const SKILLS: SkillsRegistry = {
       desc: "Multi-cloud infrastructure with Terraform - AWS, GCP, Azure, OCI support",
     },
     {
-      name: "mise-devops-runner",
-      desc: "mise-based monorepo automation - dev servers, tests, migrations, builds",
+      name: "developer-workflow",
+      desc: "Monorepo developer workflows - mise tasks, git hooks, CI/CD, release automation",
     },
   ],
 };
@@ -51,7 +51,7 @@ export const PRESETS: Record<string, string[]> = {
     "debug-agent",
     "commit",
     "terraform-infra-engineer",
-    "mise-devops-runner",
+    "developer-workflow",
   ],
   frontend: ["frontend-agent", "pm-agent", "qa-agent", "debug-agent", "commit"],
   backend: [
@@ -60,12 +60,12 @@ export const PRESETS: Record<string, string[]> = {
     "qa-agent",
     "debug-agent",
     "commit",
-    "mise-devops-runner",
+    "developer-workflow",
   ],
   mobile: ["mobile-agent", "pm-agent", "qa-agent", "debug-agent", "commit"],
   infrastructure: [
     "terraform-infra-engineer",
-    "mise-devops-runner",
+    "developer-workflow",
     "pm-agent",
     "qa-agent",
     "debug-agent",
