@@ -1,7 +1,7 @@
 {
   "name": "oh-my-ag",
   "version": "1.21.1",
-  "releaseDate": "2026-02-13T13:47:36.245Z",
+  "releaseDate": "2026-02-16T08:57:29.418Z",
   "repository": "https://github.com/first-fluke/oh-my-ag",
   "files": [
     {
@@ -65,6 +65,21 @@
       "size": 1874
     },
     {
+      "path": ".agent/skills/_shared/multi-review-protocol.md",
+      "sha256": "41c26316eab324a879884d6625e23b289a2412c5ac8c898726b0857821047d77",
+      "size": 2425
+    },
+    {
+      "path": ".agent/skills/_shared/phase-gates.md",
+      "sha256": "d6aa6b68f4664fb8663b803854dac8e69e67e0d5b831ceaee7b5e3bec88278b8",
+      "size": 2073
+    },
+    {
+      "path": ".agent/skills/_shared/quality-principles.md",
+      "sha256": "db9c7bcf8550a6f3a51cf7c72c37f0f966a9a2723d8b4abb2e50322ca1936bd3",
+      "size": 2031
+    },
+    {
       "path": ".agent/skills/_shared/reasoning-templates.md",
       "sha256": "c7490ea50c4abf45c9d204daff74b555d204438d49fc18293f0a1c6adc787bbb",
       "size": 4826
@@ -78,6 +93,11 @@
       "path": ".agent/skills/_shared/skill-routing.md",
       "sha256": "2274edddacf3b08b923f61b65e0679f57d437759f16e0b56749fa4344001cd9c",
       "size": 3053
+    },
+    {
+      "path": ".agent/skills/_version.json",
+      "sha256": "b15365dcd4205f542a03fe346221cec8891dc247dd7619b1776cfb63e6f191a2",
+      "size": 25
     },
     {
       "path": ".agent/skills/backend-agent/SKILL.md",
@@ -345,6 +365,11 @@
       "size": 2308
     },
     {
+      "path": ".agent/skills/pm-agent/resources/plan-phase-protocol.md",
+      "sha256": "e319f2891e3ca606865eebc4be1ddea2e7cb9f71040b396610eec2fbf414a984",
+      "size": 1334
+    },
+    {
       "path": ".agent/skills/pm-agent/resources/task-template.json",
       "sha256": "ab28aad9dfb4ec4c5075f3f5be5f490dc42f4177b2f0784608b9bcff4b2e11bf",
       "size": 1087
@@ -380,6 +405,11 @@
       "size": 1061
     },
     {
+      "path": ".agent/skills/qa-agent/resources/verify-ship-protocol.md",
+      "sha256": "4910fabc7950a0378d9853ca72236b5c4896f83bd95e6ebaa5b9cdfa0e1f317c",
+      "size": 2346
+    },
+    {
       "path": ".agent/skills/workflow-guide/SKILL.md",
       "sha256": "aabc7660f7e12185d1b930303d800563a2e313ce7abb0c0d26f8faa3209f3457",
       "size": 2085
@@ -388,6 +418,11 @@
       "path": ".agent/skills/workflow-guide/resources/examples.md",
       "sha256": "e72d8be4021090cb80790430e4bd4f4f6feac70269911da81155bb05a8ef2fc3",
       "size": 2171
+    },
+    {
+      "path": ".agent/workflows/coordinate-pro.md",
+      "sha256": "338032f1613d3c8aa30f87ae61391e0f3785b5fe448a9e5e01b1677278a2798d",
+      "size": 4519
     },
     {
       "path": ".agent/workflows/coordinate.md",
@@ -430,7 +465,7 @@
   },
   "metadata": {
     "skillCount": 9,
-    "workflowCount": 7,
-    "totalFiles": 84
+    "workflowCount": 8,
+    "totalFiles": 91
   }
 }
