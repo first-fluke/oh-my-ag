@@ -81,6 +81,7 @@ export const PRESETS: Record<string, string[]> = {
 
 export async function fetchSkillFiles(skillName: string): Promise<string[]> {
   const files = ["SKILL.md"];
+
   const resourceFiles = [
     "resources/execution-protocol.md",
     "resources/tech-stack.md",
@@ -90,6 +91,24 @@ export async function fetchSkillFiles(skillName: string): Promise<string[]> {
   ];
 
   for (const file of resourceFiles) {
+    const url = `${GITHUB_RAW}/${skillName}/${file}`;
+    const res = await fetch(url, { method: "HEAD" });
+    if (res.ok) files.push(file);
+  }
+
+  const referenceFiles = [
+    "references/validation-pipeline.md",
+    "references/database-patterns.md",
+    "references/api-workflows.md",
+    "references/i18n-patterns.md",
+    "references/release-coordination.md",
+    "references/troubleshooting.md",
+    "references/multi-cloud-examples.md",
+    "references/policy-testing-examples.md",
+    "references/cost-optimization.md",
+  ];
+
+  for (const file of referenceFiles) {
     const url = `${GITHUB_RAW}/${skillName}/${file}`;
     const res = await fetch(url, { method: "HEAD" });
     if (res.ok) files.push(file);
