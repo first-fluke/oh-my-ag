@@ -30,6 +30,16 @@ export const SKILLS: SkillsRegistry = {
     { name: "debug-agent", desc: "Bug fixing specialist" },
     { name: "commit", desc: "Conventional Commits helper" },
   ],
+  infrastructure: [
+    {
+      name: "terraform-infra-engineer",
+      desc: "Multi-cloud infrastructure with Terraform - AWS, GCP, Azure, OCI support",
+    },
+    {
+      name: "mise-devops-runner",
+      desc: "mise-based monorepo automation - dev servers, tests, migrations, builds",
+    },
+  ],
 };
 
 export const PRESETS: Record<string, string[]> = {
@@ -40,13 +50,33 @@ export const PRESETS: Record<string, string[]> = {
     "qa-agent",
     "debug-agent",
     "commit",
+    "terraform-infra-engineer",
+    "mise-devops-runner",
   ],
   frontend: ["frontend-agent", "pm-agent", "qa-agent", "debug-agent", "commit"],
-  backend: ["backend-agent", "pm-agent", "qa-agent", "debug-agent", "commit"],
+  backend: [
+    "backend-agent",
+    "pm-agent",
+    "qa-agent",
+    "debug-agent",
+    "commit",
+    "mise-devops-runner",
+  ],
   mobile: ["mobile-agent", "pm-agent", "qa-agent", "debug-agent", "commit"],
-  all: [...SKILLS.domain, ...SKILLS.coordination, ...SKILLS.utility].map(
-    (s) => s.name,
-  ),
+  infrastructure: [
+    "terraform-infra-engineer",
+    "mise-devops-runner",
+    "pm-agent",
+    "qa-agent",
+    "debug-agent",
+    "commit",
+  ],
+  all: [
+    ...SKILLS.domain,
+    ...SKILLS.coordination,
+    ...SKILLS.utility,
+    ...SKILLS.infrastructure,
+  ].map((s) => s.name),
 };
 
 export async function fetchSkillFiles(skillName: string): Promise<string[]> {
@@ -170,7 +200,12 @@ export async function installConfigs(targetDir: string): Promise<void> {
 }
 
 export function getAllSkills(): SkillInfo[] {
-  return [...SKILLS.domain, ...SKILLS.coordination, ...SKILLS.utility];
+  return [
+    ...SKILLS.domain,
+    ...SKILLS.coordination,
+    ...SKILLS.utility,
+    ...SKILLS.infrastructure,
+  ];
 }
 
 export type CliTool =

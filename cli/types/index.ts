@@ -73,6 +73,7 @@ export interface SkillsRegistry {
   domain: SkillInfo[];
   coordination: SkillInfo[];
   utility: SkillInfo[];
+  infrastructure: SkillInfo[];
 }
 
 export interface VerifyCheck {
