@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import {
   existsSync,
   lstatSync,
@@ -13,6 +14,55 @@ import type { SkillInfo, SkillsRegistry } from "../types/index.js";
 export const REPO = "first-fluke/oh-my-ag";
 export const GITHUB_RAW = `https://raw.githubusercontent.com/${REPO}/main/.agent/skills`;
 export const GITHUB_AGENT_ROOT = `https://raw.githubusercontent.com/${REPO}/main/.agent`;
+
+function ghCliAvailable(): boolean {
+  try {
+    execSync("gh --version", { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function fetchDirectoryContentsGh(
+  skillName: string,
+  dir: string,
+): Promise<string[]> {
+  try {
+    const output = execSync(
+      `gh api repos/${REPO}/contents/.agent/skills/${skillName}/${dir} --jq '.[] | select(.type == "file") | .name'`,
+      { encoding: "utf-8", stdio: ["pipe", "pipe", "ignore"] },
+    );
+    const files = output.trim().split("\n").filter(Boolean);
+    return files.map((f) => `${dir}/${f}`);
+  } catch {
+    return [];
+  }
+}
+
+async function fetchDirectoryContentsApi(
+  skillName: string,
+  dir: string,
+): Promise<string[]> {
+  const url = `https://api.github.com/repos/${REPO}/contents/.agent/skills/${skillName}/${dir}`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+
+  const items = (await res.json()) as Array<{ type: string; name: string }>;
+  return items
+    .filter((item) => item.type === "file")
+    .map((item) => `${dir}/${item.name}`);
+}
+
+async function fetchDirectoryContents(
+  skillName: string,
+  dir: string,
+): Promise<string[]> {
+  if (ghCliAvailable()) {
+    return fetchDirectoryContentsGh(skillName, dir);
+  }
+  return fetchDirectoryContentsApi(skillName, dir);
+}
 
 export const SKILLS: SkillsRegistry = {
   domain: [
@@ -79,39 +129,14 @@ export const PRESETS: Record<string, string[]> = {
   ].map((s) => s.name),
 };
 
+const SKILL_DIRECTORIES = ["resources", "config", "scripts", "templates"];
+
 export async function fetchSkillFiles(skillName: string): Promise<string[]> {
   const files = ["SKILL.md"];
 
-  const resourceFiles = [
-    "resources/execution-protocol.md",
-    "resources/tech-stack.md",
-    "resources/checklist.md",
-    "resources/templates.md",
-    "resources/error-playbook.md",
-  ];
-
-  for (const file of resourceFiles) {
-    const url = `${GITHUB_RAW}/${skillName}/${file}`;
-    const res = await fetch(url, { method: "HEAD" });
-    if (res.ok) files.push(file);
-  }
-
-  const referenceFiles = [
-    "references/validation-pipeline.md",
-    "references/database-patterns.md",
-    "references/api-workflows.md",
-    "references/i18n-patterns.md",
-    "references/release-coordination.md",
-    "references/troubleshooting.md",
-    "references/multi-cloud-examples.md",
-    "references/policy-testing-examples.md",
-    "references/cost-optimization.md",
-  ];
-
-  for (const file of referenceFiles) {
-    const url = `${GITHUB_RAW}/${skillName}/${file}`;
-    const res = await fetch(url, { method: "HEAD" });
-    if (res.ok) files.push(file);
+  for (const dir of SKILL_DIRECTORIES) {
+    const dirFiles = await fetchDirectoryContents(skillName, dir);
+    files.push(...dirFiles);
   }
 
   return files;

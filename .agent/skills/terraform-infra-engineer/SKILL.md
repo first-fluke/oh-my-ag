@@ -99,19 +99,19 @@ apps/infra/
 
 ### Reference Guide
 
-| Topic | Reference File | When to Load |
-|-------|----------------|--------------|
-| Container Service Templates (ECS, Cloud Run, Container Apps) | `references/multi-cloud-examples.md` | Creating compute resources |
-| OIDC/Workload Identity Setup | `references/multi-cloud-examples.md` | Configuring CI/CD authentication |
-| Secret Management Patterns | `references/multi-cloud-examples.md` | Handling sensitive data |
-| OPA Policies | `references/policy-testing-examples.md` | Policy enforcement setup |
-| Sentinel Rules | `references/policy-testing-examples.md` | Terraform Cloud policies |
-| Terratest Examples | `references/policy-testing-examples.md` | Writing infrastructure tests |
-| CI/CD Integration | `references/policy-testing-examples.md` | GitHub Actions, validation scripts |
-| Cost Optimization | `references/cost-optimization.md` | Reducing infrastructure costs |
-| Reserved Instances & Savings Plans | `references/cost-optimization.md` | Long-term cost savings |
-| Spot/Preemptible Instances | `references/cost-optimization.md` | Fault-tolerant workload savings |
-| Storage Lifecycle Rules | `references/cost-optimization.md` | Storage cost management |
+| Topic | Resource File | When to Load |
+|-------|---------------|--------------|
+| Container Service Templates (ECS, Cloud Run, Container Apps) | `resources/multi-cloud-examples.md` | Creating compute resources |
+| OIDC/Workload Identity Setup | `resources/multi-cloud-examples.md` | Configuring CI/CD authentication |
+| Secret Management Patterns | `resources/multi-cloud-examples.md` | Handling sensitive data |
+| OPA Policies | `resources/policy-testing-examples.md` | Policy enforcement setup |
+| Sentinel Rules | `resources/policy-testing-examples.md` | Terraform Cloud policies |
+| Terratest Examples | `resources/policy-testing-examples.md` | Writing infrastructure tests |
+| CI/CD Integration | `resources/policy-testing-examples.md` | GitHub Actions, validation scripts |
+| Cost Optimization | `resources/cost-optimization.md` | Reducing infrastructure costs |
+| Reserved Instances & Savings Plans | `resources/cost-optimization.md` | Long-term cost savings |
+| Spot/Preemptible Instances | `resources/cost-optimization.md` | Fault-tolerant workload savings |
+| Storage Lifecycle Rules | `resources/cost-optimization.md` | Storage cost management |
 
 ### Module Composability
 
@@ -163,7 +163,7 @@ module "database" {
 
 ### Policy as Code
 
-Enforce organizational standards using policy checks. See `references/policy-testing-examples.md` for:
+Enforce organizational standards using policy checks. See `resources/policy-testing-examples.md` for:
 - OPA (Open Policy Agent) policies for required tags, encryption
 - Sentinel rules for Terraform Cloud/Enterprise
 - CI/CD integration patterns
@@ -180,7 +180,7 @@ Validate infrastructure using automated tests at multiple levels:
 | Compliance | OPA/Sentinel | Organizational policy enforcement |
 | E2E | Custom scripts | Full workflow validation |
 
-See `references/policy-testing-examples.md` for Terratest, Kitchen-Terraform, and CI/CD integration examples.
+See `resources/policy-testing-examples.md` for Terratest, Kitchen-Terraform, and CI/CD integration examples.
 
 ## Constraints
 

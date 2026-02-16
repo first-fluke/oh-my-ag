@@ -102,14 +102,14 @@ mise run //apps/web:build
 
 ### Reference Guide
 
-| Topic | Reference File | When to Load |
-|-------|----------------|--------------|
-| Validation Pipeline | `references/validation-pipeline.md` | Git hooks, CI/CD, change-based testing |
-| Database & Infrastructure | `references/database-patterns.md` | Migrations, local Docker infra |
-| API Generation | `references/api-workflows.md` | Generating API clients |
-| i18n Patterns | `references/i18n-patterns.md` | Internationalization |
-| Release Coordination | `references/release-coordination.md` | Versioning, changelog, releases |
-| Troubleshooting | `references/troubleshooting.md` | Debugging issues |
+| Topic | Resource File | When to Load |
+|-------|---------------|--------------|
+| Validation Pipeline | `resources/validation-pipeline.md` | Git hooks, CI/CD, change-based testing |
+| Database & Infrastructure | `resources/database-patterns.md` | Migrations, local Docker infra |
+| API Generation | `resources/api-workflows.md` | Generating API clients |
+| i18n Patterns | `resources/i18n-patterns.md` | Internationalization |
+| Release Coordination | `resources/release-coordination.md` | Versioning, changelog, releases |
+| Troubleshooting | `resources/troubleshooting.md` | Debugging issues |
 
 ### Task Dependencies
 
