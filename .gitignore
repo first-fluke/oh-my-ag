@@ -58,4 +58,4 @@ __pycache__/
 *.pyc
 
 .opencode/mimic/
-./mimic   
+.mimic/
