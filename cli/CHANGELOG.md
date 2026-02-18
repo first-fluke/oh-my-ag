@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.23.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.22.0...cli-v1.23.0) (2026-02-18)
+
+
+### Features
+
+* delegate coordinate-pro steps to agents via CLI spawning ([bd9752b](https://github.com/first-fluke/oh-my-ag/commit/bd9752b5c9e9819d0f5c34a0f9032e0031eee4b2))
+
 ## [1.22.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.21.1...cli-v1.22.0) (2026-02-16)
 
 
