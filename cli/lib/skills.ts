@@ -194,6 +194,7 @@ export async function installWorkflows(targetDir: string): Promise<void> {
   const workflowsDir = join(targetDir, ".agent", "workflows");
   const files = [
     "coordinate.md",
+    "coordinate-pro.md",
     "debug.md",
     "orchestrate.md",
     "plan.md",
@@ -307,7 +308,7 @@ export function createCliSymlinks(
           skipped.push(`${cli}/${skillName} (real dir exists)`);
           continue;
         }
-      } catch (_e) {}
+      } catch (_e) { }
 
       const relativePath = relative(cliSkillsDir, source);
       symlinkSync(relativePath, link, "dir");
