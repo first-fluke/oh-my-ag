@@ -25,6 +25,13 @@
         }
       ]
     },
+    ".agent": {
+      "component": "cli",
+      "release-type": "simple",
+      "changelog-path": "cli/CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true
+    },
     "web": {
       "component": "web",
       "package-name": "oh-my-ag-web",
