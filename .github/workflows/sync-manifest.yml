@@ -6,7 +6,6 @@ on:
     paths:
       - ".agent/**"
       - "cli/generate-manifest.ts"
-      - ".release-please-manifest.json"
 
 jobs:
   sync-manifest:
