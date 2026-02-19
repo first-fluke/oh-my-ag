@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.24.0...cli-v1.25.0) (2026-02-19)
+
+
+### Features
+
+* broaden dashboard file filtering to all markdown files and enhance activity name parsing by removing additional prefixes and suffixes ([513d0ec](https://github.com/first-fluke/oh-my-ag/commit/513d0ec8bc647b0311528f1c3156a3d42631f62a))
+
 ## [1.24.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.23.0...cli-v1.24.0) (2026-02-19)
 
 
