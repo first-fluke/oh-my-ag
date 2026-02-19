@@ -1,7 +1,7 @@
 {
   "name": "oh-my-ag",
   "version": "1.21.1",
-  "releaseDate": "2026-02-16T14:01:41.240Z",
+  "releaseDate": "2026-02-19T03:43:38.249Z",
   "repository": "https://github.com/first-fluke/oh-my-ag",
   "files": [
     {
@@ -46,8 +46,8 @@
     },
     {
       "path": ".agent/skills/_shared/context-loading.md",
-      "sha256": "304916ac0582309240ad37f1135d68fc03b062eeecb354c5c60a2524eb67fa9b",
-      "size": 3760
+      "sha256": "b7b463c39fa3ff2838c0ec17cf78b4eb2cfa66d2398436c37f4f4005ebbd5e43",
+      "size": 5948
     },
     {
       "path": ".agent/skills/_shared/difficulty-guide.md",
@@ -476,8 +476,8 @@
     },
     {
       "path": ".agent/workflows/coordinate-pro.md",
-      "sha256": "338032f1613d3c8aa30f87ae61391e0f3785b5fe448a9e5e01b1677278a2798d",
-      "size": 4519
+      "sha256": "20bcb1efa64ba060c5b7f363eaede49966f3eef24381124afbf20ae51e655094",
+      "size": 6721
     },
     {
       "path": ".agent/workflows/coordinate.md",
