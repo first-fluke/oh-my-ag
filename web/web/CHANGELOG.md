@@ -1,5 +1,69 @@
 # Changelog
 
+## [0.1.7](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.6...web-v0.1.7) (2026-02-19)
+
+
+### Features
+
+* merge OpenCode/Amp/Codex options and add GitHub Copilot support ([b2e7fa1](https://github.com/first-fluke/oh-my-ag/commit/b2e7fa1d8e6f748cfdf92f351d8f5d72f81eded6))
+* split cli/web workspaces and docs release flow ([5609032](https://github.com/first-fluke/oh-my-ag/commit/5609032bf657e4e4d71e0acaa2e319effcdf8a35))
+* **web:** add app icons and manifest metadata ([b4b6296](https://github.com/first-fluke/oh-my-ag/commit/b4b62969b4b0e075789e06920c2a630babf78b58))
+* **web:** add documentation search functionality ([0523012](https://github.com/first-fluke/oh-my-ag/commit/052301206e510a13b098f552b3ce7dd7e58ee4dc))
+* **web:** add landing page and expand docs guides ([b18e4a1](https://github.com/first-fluke/oh-my-ag/commit/b18e4a137c852381edf31a4d4e98a5d96d476782))
+* **web:** retheme docs with #B23A34 and fix code block overflow ([cf67ed6](https://github.com/first-fluke/oh-my-ag/commit/cf67ed68d128572885924d638b5a365e66f0d335))
+
+
+### Bug Fixes
+
+* correct ENGINEER typo in hero text ([c9e3fc3](https://github.com/first-fluke/oh-my-ag/commit/c9e3fc31d395369ab54f230bee3d833576b27e4e))
+* OpenCode, Amp, Codex all use .agents/skills/ ([ed4f9bd](https://github.com/first-fluke/oh-my-ag/commit/ed4f9bdf688d69620af22bc27234b0f7f8b0182e))
+* **pwa:** set pages start_url/id and primary theme color ([f0b8278](https://github.com/first-fluke/oh-my-ag/commit/f0b8278a9e014ee364186f91936f0a4c9d8ad97b))
+* update Codex skills path from .codex/skills to .agents/skills ([8c30a97](https://github.com/first-fluke/oh-my-ag/commit/8c30a97cbe29d7117aa13322b11acad011a1a03d))
+* **web-docs:** quote guide frontmatter titles to prevent 404 ([be2d3d6](https://github.com/first-fluke/oh-my-ag/commit/be2d3d6f01a28d9e1b6d8ac17d45a686bb597cce))
+* **web:** add list styling to markdown renderer ([d2680e2](https://github.com/first-fluke/oh-my-ag/commit/d2680e2ba3070e9cc6bcdf62360bc12bfc6f0bf1))
+* **web:** add table styling with proper padding and borders ([0adecbd](https://github.com/first-fluke/oh-my-ag/commit/0adecbd5198b55db23b9376b0274c38639e37f9b))
+* **web:** apply basePath to icon and manifest URLs ([8ddbfd5](https://github.com/first-fluke/oh-my-ag/commit/8ddbfd5604c20577a5066a2fcd25ff72bea933bf))
+* **web:** darker background for code blocks ([15318bc](https://github.com/first-fluke/oh-my-ag/commit/15318bc54fc2fba6013c93a21d4c21c38ab588c4))
+* **web:** increase hero icon contrast ([8235148](https://github.com/first-fluke/oh-my-ag/commit/82351486e0ca68ee860378b80015aa22c9de8534))
+
+
+### Refactoring
+
+* move brain output directory from .gemini/antigravity/brain/ to .agent/brain/ ([f093e52](https://github.com/first-fluke/oh-my-ag/commit/f093e52bac47f3938381bc48bdacde02c56be4e5))
+* **web:** migrate search to cmdk ([c282426](https://github.com/first-fluke/oh-my-ag/commit/c282426bd3596d74713ecc73f93550c983d1f94a))
+* **web:** migrate to TypeScript and motion package ([bc9233b](https://github.com/first-fluke/oh-my-ag/commit/bc9233b598bf28c2d5f98a427109074f53dd8b28))
+
+
+### Documentation
+
+* add multi-CLI symlink documentation ([fc1475f](https://github.com/first-fluke/oh-my-ag/commit/fc1475f77ced043e230304037d9ec2120ded9d4a))
+* add Simplified Chinese (zh) translations ([a4d4c24](https://github.com/first-fluke/oh-my-ag/commit/a4d4c2490c825d8b507666b1aef600530498ac99))
+* move detailed sections from READMEs to web/content ([552b654](https://github.com/first-fluke/oh-my-ag/commit/552b654348ae1d8797976bf029aff3bc1b3166a4))
+* move skill architecture details to web docs ([028afdb](https://github.com/first-fluke/oh-my-ag/commit/028afdb1483bb547adf8691f73c9cae8d62d3b6b))
+* move translated docs to web/content/{lang}/ structure ([dcd634a](https://github.com/first-fluke/oh-my-ag/commit/dcd634a58defd251744a03bd1f603ed8c27f7680))
+* soften Korean usage quick-start prompt ([d8faabe](https://github.com/first-fluke/oh-my-ag/commit/d8faabe64370d78f8b4a5635287e8e7e628bcfbd))
+* translate all 14 remaining web/content docs to 9 languages ([407187d](https://github.com/first-fluke/oh-my-ag/commit/407187d79172ae2ce1f780d768ce626e32b4d819))
+* **web:** add public llms.txt for guide pages ([157625d](https://github.com/first-fluke/oh-my-ag/commit/157625d2e42925c44ba04116d12b2712fac965f9))
+* **web:** move central registry guide into docs navigation ([1d50070](https://github.com/first-fluke/oh-my-ag/commit/1d50070b1083adc867e08e7d797d1c2442995c7c))
+
+
+### Miscellaneous
+
+* **main:** release web 0.1.1 ([5201765](https://github.com/first-fluke/oh-my-ag/commit/5201765eaec1249efcd6345ee031bfd64593bca6))
+* **main:** release web 0.1.1 ([b09ebf9](https://github.com/first-fluke/oh-my-ag/commit/b09ebf924699c44b429bfde4b890f7b505cc3a40))
+* **main:** release web 0.1.2 ([935ec9a](https://github.com/first-fluke/oh-my-ag/commit/935ec9ac036a35f503689cb644268196646e0f39))
+* **main:** release web 0.1.2 ([a873b46](https://github.com/first-fluke/oh-my-ag/commit/a873b468f6d4e29e757e304ab567f17ea82d3a8d))
+* **main:** release web 0.1.3 ([6ce48ea](https://github.com/first-fluke/oh-my-ag/commit/6ce48eaa0c633f68317f9b69f93bdc988c457a88))
+* **main:** release web 0.1.3 ([13caa49](https://github.com/first-fluke/oh-my-ag/commit/13caa4902b387e713465f484039326f5ce8fcd6a))
+* **main:** release web 0.1.4 ([6208978](https://github.com/first-fluke/oh-my-ag/commit/6208978eb301a9eeb975ffe6eafef0b42560c285))
+* **main:** release web 0.1.4 ([9015c8b](https://github.com/first-fluke/oh-my-ag/commit/9015c8b35b23364c735377dfa6a5b7e06d50d55d))
+* **main:** release web 0.1.5 ([7bbb64b](https://github.com/first-fluke/oh-my-ag/commit/7bbb64baa612c8e774ddbce1ad88e183a579178b))
+* **main:** release web 0.1.5 ([96299c8](https://github.com/first-fluke/oh-my-ag/commit/96299c884447d05000062923eee35893e626f0f3))
+* **main:** release web 0.1.6 ([4a1594c](https://github.com/first-fluke/oh-my-ag/commit/4a1594c198b576660d26f4a7cd3b1aa20440b483))
+* **main:** release web 0.1.6 ([9274d5e](https://github.com/first-fluke/oh-my-ag/commit/9274d5ebe053cbda4a5535634157f9d9a5e09a2d))
+* push remaining local updates ([cb80127](https://github.com/first-fluke/oh-my-ag/commit/cb80127fae0a99c68f70ee500d087ec428e01cf6))
+* **web:** simplify docs header brand text ([a476226](https://github.com/first-fluke/oh-my-ag/commit/a47622621e36dcadadb955815a4ac77355c4c307))
+
 ## [0.1.6](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.5...web-v0.1.6) (2026-02-13)
 
 
