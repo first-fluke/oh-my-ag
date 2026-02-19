@@ -1,4 +1,9 @@
 {
+<<<<<<< release-please--branches--main--components--web
   "cli": "1.23.0",
   "web": "0.1.7"
+=======
+  "cli": "1.24.0",
+  "web": "0.1.6"
+>>>>>>> main
 }
