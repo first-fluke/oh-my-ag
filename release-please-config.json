@@ -15,12 +15,12 @@
       "extra-files": [
         {
           "type": "json",
-          "path": "prompt-manifest.json",
+          "path": "../prompt-manifest.json",
           "jsonpath": "$.version"
         },
         {
           "type": "json",
-          "path": ".agent/skills/_version.json",
+          "path": "../.agent/skills/_version.json",
           "jsonpath": "$.version"
         }
       ]
@@ -35,11 +35,29 @@
     }
   },
   "changelog-sections": [
-    { "type": "feat", "section": "Features" },
-    { "type": "fix", "section": "Bug Fixes" },
-    { "type": "perf", "section": "Performance" },
-    { "type": "refactor", "section": "Refactoring" },
-    { "type": "docs", "section": "Documentation" },
-    { "type": "chore", "section": "Miscellaneous" }
+    {
+      "type": "feat",
+      "section": "Features"
+    },
+    {
+      "type": "fix",
+      "section": "Bug Fixes"
+    },
+    {
+      "type": "perf",
+      "section": "Performance"
+    },
+    {
+      "type": "refactor",
+      "section": "Refactoring"
+    },
+    {
+      "type": "docs",
+      "section": "Documentation"
+    },
+    {
+      "type": "chore",
+      "section": "Miscellaneous"
+    }
   ]
 }
