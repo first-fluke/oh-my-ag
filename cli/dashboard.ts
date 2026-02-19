@@ -115,24 +115,22 @@ function getAgentTurn(memoriesDir: string, agent: string): number | null {
 
 function getLatestActivity(memoriesDir: string) {
   try {
-    // Only show progress-* and result-* files (like the original sh script)
     const files = readdirSync(memoriesDir)
-      .filter(
-        (f) =>
-          (f.startsWith("progress-") || f.startsWith("result-")) &&
-          f.endsWith(".md"),
-      )
+      .filter((f) => f.endsWith(".md") && f !== ".gitkeep")
       .map((f) => ({ name: f, mtime: statSync(join(memoriesDir, f)).mtimeMs }))
       .sort((a, b) => b.mtime - a.mtime)
       .slice(0, 5);
 
     return files
       .map((f) => {
-        const name = f.name
-          .replace(/^(progress|result)-/, "")
-          .replace(/\.md$/, "")
-          .replace(/[-_]/g, " ")
-          .trim();
+        const name =
+          f.name
+            .replace(/^(progress|result|session|debug|task)-?/, "")
+            .replace(/[-_]agent/, "")
+            .replace(/[-_]completion/, "")
+            .replace(/\.md$/, "")
+            .replace(/[-_]/g, " ")
+            .trim() || f.name.replace(/\.md$/, "");
 
         const content = readFileSafe(join(memoriesDir, f.name));
         const lines = content
@@ -143,14 +141,13 @@ function getLatestActivity(memoriesDir: string) {
         let message = "";
         for (let i = lines.length - 1; i >= 0; i--) {
           const line = lines[i];
-          if (line) {
-            if (/^\*\*|^#+|^-|^\d+\.|Status|Result|Action|Step/i.test(line)) {
-              message = line
-                .replace(/^[#*\-\d.]+\s*/, "")
-                .replace(/\*\*/g, "")
-                .trim();
-              if (message.length > 5) break;
-            }
+          if (!line) continue;
+          if (/^\*\*|^#+|^-|^\d+\.|Status|Result|Action|Step/i.test(line)) {
+            message = line
+              .replace(/^[#*\-\d.]+\s*/, "")
+              .replace(/\*\*/g, "")
+              .trim();
+            if (message.length > 5) break;
           }
         }
         if (message.length > 80) message = `${message.substring(0, 77)}...`;
@@ -172,13 +169,8 @@ function discoverAgentsFromFiles(memoriesDir: string) {
   const seen = new Set<string>();
 
   try {
-    // Only look at progress-* and result-* files for agent discovery
     const files = readdirSync(memoriesDir)
-      .filter(
-        (f) =>
-          (f.startsWith("progress-") || f.startsWith("result-")) &&
-          f.endsWith(".md"),
-      )
+      .filter((f) => f.endsWith(".md") && f !== ".gitkeep")
       .map((f) => ({ name: f, mtime: statSync(join(memoriesDir, f)).mtimeMs }))
       .sort((a, b) => b.mtime - a.mtime);
 
