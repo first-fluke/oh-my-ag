@@ -5,17 +5,23 @@ description: Thorough version of coordinate - high-quality development workflow 
 # MANDATORY RULES — VIOLATION IS FORBIDDEN
 
 - **Response language follows `language` setting in `.agent/config/user-preferences.yaml` if configured.**
-- **NEVER skip steps.** Execute all review steps in order. Report completion of each step to user.
-- **You MUST use MCP tools throughout the entire workflow.**
-- **Follow multi-review protocol.** See `_shared/multi-review-protocol.md`.
+- **NEVER skip steps.** Execute from Step 0 in order. Explicitly report completion of each step to the user before proceeding to the next.
+- **You MUST use MCP tools throughout the entire workflow.** This is NOT optional.
+  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for code exploration.
+  - Use memory tools (read/write/edit) for progress tracking.
+  - Memory path: configurable via `memoryConfig.basePath` (default: `.serena/memories`)
+  - Tool names: configurable via `memoryConfig.tools` in `mcp.json`
+  - Do NOT use raw file reads or grep as substitutes. MCP tools are the primary interface for code and memory operations.
+- **Read the workflow-guide BEFORE starting.** Read `.agent/skills/workflow-guide/SKILL.md` and follow its Core Rules.
+- **Follow the context-loading guide.** Read `.agent/skills/_shared/context-loading.md` and load only task-relevant resources.
 
 ---
 
 ## Phase 0: Initialization (DO NOT SKIP)
 
-1. Read `_shared/multi-review-protocol.md` (11 review guides)
-2. Read `_shared/quality-principles.md` (4 principles)
-3. Read `_shared/phase-gates.md` (gate definitions)
+1. Read `.agent/skills/_shared/multi-review-protocol.md` (11 review guides)
+2. Read `.agent/skills/_shared/quality-principles.md` (4 principles)
+3. Read `.agent/skills/_shared/phase-gates.md` (gate definitions)
 4. Record session in memory: `session-coordinate-pro.md`
 
 ---
@@ -25,7 +31,7 @@ description: Thorough version of coordinate - high-quality development workflow 
 ### Step 1: Create Plan & Review
 // turbo
 Spawn PM Agent to execute Steps 1-4 (Creation + 3 Reviews).
-Command: `oh-my-ag agent:spawn pm-agent "Analyze requirements. Execute Step 1: Create Plan. Then execute Step 2 (Completeness), Step 3 (Meta Review), and Step 4 (Over-Engineering Review). Save plan to .agent/plan.json and memory." session-id`
+Command: `oh-my-ag agent:spawn pm-agent "Analyze requirements. Execute Step 1: Create Plan. Then execute Step 2 (Completeness), Step 3 (Meta Review), and Step 4 (Over-Engineering Review). Save plan to .agent/plan.json and memory. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id`
 
 ### Step 2: Plan Review (Completeness)
 - **Delegated to PM Agent**: Ensure requirements are fully mapped.
@@ -54,8 +60,8 @@ Command: `oh-my-ag agent:spawn pm-agent "Analyze requirements. Execute Step 1: C
 Spawn Implementation Agents (Backend/Frontend/Mobile) in parallel.
 Command:
 ```bash
-oh-my-ag agent:spawn backend "Implement backend tasks per plan..." session-id -w ./backend &
-oh-my-ag agent:spawn frontend "Implement frontend tasks per plan..." session-id -w ./frontend &
+oh-my-ag agent:spawn backend "Implement backend tasks per plan. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id -w ./backend &
+oh-my-ag agent:spawn frontend "Implement frontend tasks per plan. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id -w ./frontend &
 wait
 ```
 
@@ -73,7 +79,7 @@ wait
 ### Step 6-8: QA Verification
 // turbo
 Spawn QA Agent to execute Steps 6-8.
-Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 3 Verification. Step 6: Alignment Review. Step 7: Security/Bug Review (npm audit, OWASP). Step 8: Improvement/Regression Review." session-id`
+Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 3 Verification. Step 6: Alignment Review. Step 7: Security/Bug Review (npm audit, OWASP). Step 8: Improvement/Regression Review. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id`
 
 ### Step 6: Alignment Review
 - **Delegated to QA Agent**: Compare implementation vs plan.
@@ -99,7 +105,7 @@ Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 3 Verification. Step 6: A
 ### Step 9-13: Deep Refinement
 // turbo
 Spawn Debug Agent (or Senior Dev Agent) to execute Steps 9-13.
-Command: `oh-my-ag agent:spawn debug-agent "Execute Phase 4 Refine. Step 9: Split large files. Step 10: Integration check. Step 11: Side Effect analysis (find_referencing_symbols). Step 12: Consistency review. Step 13: Cleanup dead code." session-id`
+Command: `oh-my-ag agent:spawn debug-agent "Execute Phase 4 Refine. Step 9: Split large files. Step 10: Integration check. Step 11: Side Effect analysis (find_referencing_symbols). Step 12: Consistency review. Step 13: Cleanup dead code. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id`
 
 ### Step 9: Split Large Files/Functions
 - **Delegated to Debug Agent**: Files > 500 lines, Functions > 50 lines.
@@ -131,7 +137,7 @@ Command: `oh-my-ag agent:spawn debug-agent "Execute Phase 4 Refine. Step 9: Spli
 ### Step 14-17: Final QA & Deployment Readiness
 // turbo
 Spawn QA Agent to execute Steps 14-17.
-Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 5 Ship. Step 14: Quality Review (lint/coverage). Step 15: UX Flow Verification. Step 16: Related Issues Review. Step 17: Deployment Readiness." session-id`
+Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 5 Ship. Step 14: Quality Review (lint/coverage). Step 15: UX Flow Verification. Step 16: Related Issues Review. Step 17: Deployment Readiness. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id`
 
 ### Step 14: Code Quality Review
 - **Delegated to QA Agent**: Lint, Types, Coverage.
