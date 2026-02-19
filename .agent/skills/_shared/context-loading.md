@@ -31,60 +31,76 @@ This saves context window and prevents confusion from irrelevant information.
 
 ### Backend Agent
 
-| Task Type | Required Resources |
-|-----------|-------------------|
-| CRUD API creation | snippets.md (route, schema, model, test) |
+| Task Type                     | Required Resources                          |
+| ----------------------------- | ------------------------------------------- |
+| CRUD API creation             | snippets.md (route, schema, model, test)    |
 | Authentication implementation | snippets.md (JWT, password) + tech-stack.md |
-| DB migration | snippets.md (migration) |
-| Performance optimization | examples.md (N+1 example) |
-| Existing code modification | examples.md + Serena MCP |
+| DB migration                  | snippets.md (migration)                     |
+| Performance optimization      | examples.md (N+1 example)                   |
+| Existing code modification    | examples.md + Serena MCP                    |
 
 ### Frontend Agent
 
-| Task Type | Required Resources |
-|-----------|-------------------|
-| Component creation | snippets.md (component, test) + component-template.tsx |
-| Form implementation | snippets.md (form + Zod) |
-| API integration | snippets.md (TanStack Query) |
-| Styling | tailwind-rules.md |
-| Page layout | snippets.md (grid) + examples.md |
+| Task Type           | Required Resources                                     |
+| ------------------- | ------------------------------------------------------ |
+| Component creation  | snippets.md (component, test) + component-template.tsx |
+| Form implementation | snippets.md (form + Zod)                               |
+| API integration     | snippets.md (TanStack Query)                           |
+| Styling             | tailwind-rules.md                                      |
+| Page layout         | snippets.md (grid) + examples.md                       |
 
 ### Mobile Agent
 
-| Task Type | Required Resources |
-|-----------|-------------------|
-| Screen creation | snippets.md (screen, provider) + screen-template.dart |
-| API integration | snippets.md (repository, Dio) |
-| Navigation | snippets.md (GoRouter) |
-| Offline features | examples.md (offline example) |
-| State management | snippets.md (Riverpod) |
+| Task Type        | Required Resources                                    |
+| ---------------- | ----------------------------------------------------- |
+| Screen creation  | snippets.md (screen, provider) + screen-template.dart |
+| API integration  | snippets.md (repository, Dio)                         |
+| Navigation       | snippets.md (GoRouter)                                |
+| Offline features | examples.md (offline example)                         |
+| State management | snippets.md (Riverpod)                                |
 
 ### Debug Agent
 
-| Task Type | Required Resources |
-|-----------|-------------------|
-| Frontend bug | common-patterns.md (Frontend section) |
-| Backend bug | common-patterns.md (Backend section) |
-| Mobile bug | common-patterns.md (Mobile section) |
+| Task Type       | Required Resources                                                |
+| --------------- | ----------------------------------------------------------------- |
+| Frontend bug    | common-patterns.md (Frontend section)                             |
+| Backend bug     | common-patterns.md (Backend section)                              |
+| Mobile bug      | common-patterns.md (Mobile section)                               |
 | Performance bug | common-patterns.md (Performance section) + debugging-checklist.md |
-| Security bug | common-patterns.md (Security section) |
+| Security bug    | common-patterns.md (Security section)                             |
 
 ### QA Agent
 
-| Task Type | Required Resources |
-|-----------|-------------------|
-| Security review | checklist.md (Security section) |
-| Performance review | checklist.md (Performance section) |
+| Task Type            | Required Resources                   |
+| -------------------- | ------------------------------------ |
+| Security review      | checklist.md (Security section)      |
+| Performance review   | checklist.md (Performance section)   |
 | Accessibility review | checklist.md (Accessibility section) |
-| Full audit | checklist.md (full) + self-check.md |
+| Full audit           | checklist.md (full) + self-check.md  |
+
+### Developer Workflow Expert
+
+| Task Type                   | Required Resources                                            |
+| --------------------------- | ------------------------------------------------------------- |
+| API Workflow Setup          | resources/api-workflows.md + resources/validation-pipeline.md |
+| Database Migration Workflow | resources/database-patterns.md                                |
+| Release Coordination        | resources/release-coordination.md                             |
+| Troubleshooting             | resources/troubleshooting.md                                  |
+
+### Terraform Infra Engineer
+
+| Task Type                   | Required Resources                                                       |
+| --------------------------- | ------------------------------------------------------------------------ |
+| Infrastructure Provisioning | resources/multi-cloud-examples.md + resources/policy-testing-examples.md |
+| Cost Analysis               | resources/cost-optimization.md                                           |
 
 ### PM Agent
 
-| Task Type | Required Resources |
-|-----------|-------------------|
-| New project planning | examples.md + task-template.json + api-contracts/template.md |
-| Feature addition planning | examples.md + Serena MCP (understand existing structure) |
-| Refactoring planning | Serena MCP only |
+| Task Type                 | Required Resources                                           |
+| ------------------------- | ------------------------------------------------------------ |
+| New project planning      | examples.md + task-template.json + api-contracts/template.md |
+| Feature addition planning | examples.md + Serena MCP (understand existing structure)     |
+| Refactoring planning      | Serena MCP only                                              |
 
 ---
 

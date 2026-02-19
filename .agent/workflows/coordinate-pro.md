@@ -5,38 +5,42 @@ description: Thorough version of coordinate - high-quality development workflow 
 # MANDATORY RULES — VIOLATION IS FORBIDDEN
 
 - **Response language follows `language` setting in `.agent/config/user-preferences.yaml` if configured.**
-- **NEVER skip steps.** Execute all review steps in order. Report completion of each step to user.
-- **You MUST use MCP tools throughout the entire workflow.**
-- **Follow multi-review protocol.** See `_shared/multi-review-protocol.md`.
+- **NEVER skip steps.** Execute from Step 0 in order. Explicitly report completion of each step to the user before proceeding to the next.
+- **You MUST use MCP tools throughout the entire workflow.** This is NOT optional.
+  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for code exploration.
+  - Use memory tools (read/write/edit) for progress tracking.
+  - Memory path: configurable via `memoryConfig.basePath` (default: `.serena/memories`)
+  - Tool names: configurable via `memoryConfig.tools` in `mcp.json`
+  - Do NOT use raw file reads or grep as substitutes. MCP tools are the primary interface for code and memory operations.
+- **Read the workflow-guide BEFORE starting.** Read `.agent/skills/workflow-guide/SKILL.md` and follow its Core Rules.
+- **Follow the context-loading guide.** Read `.agent/skills/_shared/context-loading.md` and load only task-relevant resources.
 
 ---
 
 ## Phase 0: Initialization (DO NOT SKIP)
 
-1. Read `_shared/multi-review-protocol.md` (11 review guides)
-2. Read `_shared/quality-principles.md` (4 principles)
-3. Read `_shared/phase-gates.md` (gate definitions)
+1. Read `.agent/skills/_shared/multi-review-protocol.md` (11 review guides)
+2. Read `.agent/skills/_shared/quality-principles.md` (4 principles)
+3. Read `.agent/skills/_shared/phase-gates.md` (gate definitions)
 4. Record session in memory: `session-coordinate-pro.md`
 
 ---
 
 ## Phase 1: PLAN (Steps 1-4)
 
-### Step 1: Create Plan
-Activate PM Agent → Requirements analysis, task decomposition, architecture design
+### Step 1: Create Plan & Review
+// turbo
+Spawn PM Agent to execute Steps 1-4 (Creation + 3 Reviews).
+Command: `oh-my-ag agent:spawn pm-agent "Analyze requirements. Execute Step 1: Create Plan. Then execute Step 2 (Completeness), Step 3 (Meta Review), and Step 4 (Over-Engineering Review). Save plan to .agent/plan.json and memory. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id`
 
 ### Step 2: Plan Review (Completeness)
-- **Question**: "Is anything missing?"
-- Verify requirements mapped to plan items
+- **Delegated to PM Agent**: Ensure requirements are fully mapped.
 
 ### Step 3: Review Verification (Meta Review)
-- **Question**: "Was the review done properly?"
-- Self-verify Step 2 review was sufficient
+- **Delegated to PM Agent**: Self-verify if the review was sufficient.
 
 ### Step 4: Over-Engineering Review (Simplicity)
-- **Question**: "Is this over-engineered?"
-- Ask "Is this needed for MVP?" for each component
-- Remove speculative features
+- **Delegated to PM Agent**: Check for unnecessary complexity (MVP focus).
 
 ### PLAN_GATE
 - [ ] Plan documented
@@ -52,7 +56,14 @@ Activate PM Agent → Requirements analysis, task decomposition, architecture de
 ## Phase 2: IMPL (Step 5)
 
 ### Step 5: Implementation
-Spawn agents → Implement according to plan
+// turbo
+Spawn Implementation Agents (Backend/Frontend/Mobile) in parallel.
+Command:
+```bash
+oh-my-ag agent:spawn backend "Implement backend tasks per plan. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id -w ./backend &
+oh-my-ag agent:spawn frontend "Implement frontend tasks per plan. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id -w ./frontend &
+wait
+```
 
 ### IMPL_GATE
 - [ ] Build succeeds
@@ -65,19 +76,19 @@ Spawn agents → Implement according to plan
 
 ## Phase 3: VERIFY (Steps 6-8)
 
+### Step 6-8: QA Verification
+// turbo
+Spawn QA Agent to execute Steps 6-8.
+Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 3 Verification. Step 6: Alignment Review. Step 7: Security/Bug Review (npm audit, OWASP). Step 8: Improvement/Regression Review. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id`
+
 ### Step 6: Alignment Review
-- **Question**: "Did we build what was requested?"
-- Compare plan vs implementation 1:1
+- **Delegated to QA Agent**: Compare implementation vs plan.
 
 ### Step 7: Security/Bug Review (Safety)
-- **Question**: "Is there anything dangerous?"
-- Tools: npm audit, bandit, lighthouse
-- OWASP Top 10 check
+- **Delegated to QA Agent**: Check for vulnerabilities (Safety).
 
 ### Step 8: Improvement Review (Regression Prevention)
-- **Question**: "Did improvements break anything?"
-- Run all existing tests
-- Verify existing features work
+- **Delegated to QA Agent**: Run regression tests.
 
 ### VERIFY_GATE
 - [ ] Implementation = Requirements
@@ -91,27 +102,25 @@ Spawn agents → Implement according to plan
 
 ## Phase 4: REFINE (Steps 9-13)
 
+### Step 9-13: Deep Refinement
+// turbo
+Spawn Debug Agent (or Senior Dev Agent) to execute Steps 9-13.
+Command: `oh-my-ag agent:spawn debug-agent "Execute Phase 4 Refine. Step 9: Split large files. Step 10: Integration check. Step 11: Side Effect analysis (find_referencing_symbols). Step 12: Consistency review. Step 13: Cleanup dead code. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id`
+
 ### Step 9: Split Large Files/Functions
-- Files > 500 lines → Split
-- Functions > 50 lines → Split
+- **Delegated to Debug Agent**: Files > 500 lines, Functions > 50 lines.
 
 ### Step 10: Integration/Reuse Review (Reusability)
-- **Question**: "Can we leverage existing code?"
-- Check for similar functions/components
-- Integrate if reusable
+- **Delegated to Debug Agent**: Check for duplicate logic.
 
 ### Step 11: Side Effect Review (Cascade Impact)
-- **Question**: "Did we break anything elsewhere?"
-- Use `find_referencing_symbols` for impact scope
+- **Delegated to Debug Agent**: Analyze impact scope.
 
 ### Step 12: Full Change Review (Consistency)
-- **Question**: "Is everything harmonious?"
-- Review complete diff
-- Check naming, style consistency
+- **Delegated to Debug Agent**: Review naming and style.
 
 ### Step 13: Clean Up Unused Code
-- Remove dead code created by this implementation
-- Don't touch pre-existing dead code
+- **Delegated to Debug Agent**: Remove newly created dead code.
 
 ### REFINE_GATE
 - [ ] No large files/functions
@@ -125,26 +134,22 @@ Spawn agents → Implement according to plan
 
 ## Phase 5: SHIP (Steps 14-17)
 
+### Step 14-17: Final QA & Deployment Readiness
+// turbo
+Spawn QA Agent to execute Steps 14-17.
+Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 5 Ship. Step 14: Quality Review (lint/coverage). Step 15: UX Flow Verification. Step 16: Related Issues Review. Step 17: Deployment Readiness. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id`
+
 ### Step 14: Code Quality Review
-- **Question**: "Does it meet quality standards?"
-- lint, type check, coverage >= 80%
-- Run `_shared/common-checklist.md`
+- **Delegated to QA Agent**: Lint, Types, Coverage.
 
 ### Step 15: UX Flow Verification
-- End-to-end user journey test
-- Check error states
-- Accessibility verification
+- **Delegated to QA Agent**: User journey check.
 
 ### Step 16: Related Issues Review (Cascade Impact 2nd)
-- Check issues discovered during review
-- Verify related areas not broken
-- Document deferred items
+- **Delegated to QA Agent**: Final impact check.
 
 ### Step 17: Deployment Readiness Review (Final)
-- **Question**: "Is this ready to deploy?"
-- No secrets exposed
-- Environment variables documented
-- Migrations safe
+- **Delegated to QA Agent**: Secrets, Migrations, checklist.
 
 ### SHIP_GATE
 - [ ] Quality checks pass
@@ -155,13 +160,14 @@ Spawn agents → Implement according to plan
 
 ---
 
-## Review Steps Summary
+## Review Steps Summary (Delegated)
 
-| Phase | Review Steps | Perspective |
-|-------|-------------|-------------|
-| PLAN | 2, 3, 4 | Completeness, Meta, Simplicity |
-| VERIFY | 6, 7, 8 | Alignment, Safety, Regression |
-| REFINE | 10, 11, 12 | Reusability, Cascade, Consistency |
-| SHIP | 14, 15, 16, 17 | Quality, UX, Cascade 2nd, Deploy |
+| Phase  | Steps | Agent       | Perspective                       |
+| ------ | ----- | ----------- | --------------------------------- |
+| PLAN   | 1-4   | PM Agent    | Completeness, Meta, Simplicity    |
+| IMPL   | 5     | Dev Agents  | Implementation                    |
+| VERIFY | 6-8   | QA Agent    | Alignment, Safety, Regression     |
+| REFINE | 9-13  | Debug Agent | Reusability, Cascade, Consistency |
+| SHIP   | 14-17 | QA Agent    | Quality, UX, Cascade 2nd, Deploy  |
 
-**Total 11 review steps → High quality guaranteed**
+**Total 11 review steps → High quality guaranteed (via Agent Delegation)**
