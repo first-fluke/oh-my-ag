@@ -81,10 +81,18 @@ oh-my-ag agent:spawn frontend "Implement frontend tasks per plan. IMPORTANT: Fol
 wait
 ```
 
-### Monitor Implementation Progress
-- Use memory read tool to poll `progress-{agent}.md` files
-- Use MCP code analysis tools to verify implementation alignment
-- Use memory edit tool to record monitoring results in `session-coordinate-pro.md`
+---
+
+### Step 5.1: Monitor & Wait for Completion
+
+**Wait for all implementation agents to complete before proceeding.**
+
+1. Use memory read tool to poll `progress-{agent}.md` files
+2. Use MCP code analysis tools to verify implementation alignment
+3. Check for `result-{agent}.md` files to confirm completion
+4. Use memory edit tool to record monitoring results in `session-coordinate-pro.md`
+
+**Continue polling until all agents report completion or failure.**
 
 ### IMPL_GATE
 - [ ] Build succeeds
@@ -93,7 +101,7 @@ wait
 
 **On gate pass**: Use memory edit tool to record phase completion in `session-coordinate-pro.md`
 
-**Gate failure → Re-run Step 5**
+**Gate failure → Return to Step 5, re-spawn failed agents, and repeat monitoring until GATE passes.**
 
 ---
 
@@ -104,14 +112,26 @@ wait
 Spawn QA Agent to execute Steps 6-8.
 Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 3 Verification. Step 6: Alignment Review. Step 7: Security/Bug Review (npm audit, OWASP). Step 8: Improvement/Regression Review. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id`
 
+---
+
+### Monitor QA Agent Progress
+
+**Wait for QA Agent to complete verification before proceeding.**
+
+1. Use memory read tool to poll `progress-qa-agent.md`
+2. Check for `result-qa-agent.md` to confirm completion
+3. Use memory edit tool to record QA results in `session-coordinate-pro.md`
+
+**Continue polling until QA Agent reports completion.**
+
 ### Step 6: Alignment Review
-- **Delegated to QA Agent**: Compare implementation vs plan.
+- **Executed by QA Agent**: Compare implementation vs plan.
 
 ### Step 7: Security/Bug Review (Safety)
-- **Delegated to QA Agent**: Check for vulnerabilities (Safety).
+- **Executed by QA Agent**: Check for vulnerabilities (Safety).
 
 ### Step 8: Improvement Review (Regression Prevention)
-- **Delegated to QA Agent**: Run regression tests.
+- **Executed by QA Agent**: Run regression tests.
 
 ### VERIFY_GATE
 - [ ] Implementation = Requirements
@@ -121,7 +141,7 @@ Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 3 Verification. Step 6: A
 
 **On gate pass**: Use memory edit tool to record phase completion in `session-coordinate-pro.md`
 
-**Gate failure → Return to Step 5 (fix implementation)**
+**Gate failure → Return to Step 5, fix implementation issues, and repeat VERIFY phase until GATE passes.**
 
 ---
 
@@ -132,20 +152,32 @@ Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 3 Verification. Step 6: A
 Spawn Debug Agent (or Senior Dev Agent) to execute Steps 9-13.
 Command: `oh-my-ag agent:spawn debug-agent "Execute Phase 4 Refine. Step 9: Split large files. Step 10: Integration check. Step 11: Side Effect analysis (find_referencing_symbols). Step 12: Consistency review. Step 13: Cleanup dead code. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id`
 
+---
+
+### Monitor Debug Agent Progress
+
+**Wait for Debug Agent to complete refinement before proceeding.**
+
+1. Use memory read tool to poll `progress-debug-agent.md`
+2. Check for `result-debug-agent.md` to confirm completion
+3. Use memory edit tool to record refinement results in `session-coordinate-pro.md`
+
+**Continue polling until Debug Agent reports completion.**
+
 ### Step 9: Split Large Files/Functions
-- **Delegated to Debug Agent**: Files > 500 lines, Functions > 50 lines.
+- **Executed by Debug Agent**: Files > 500 lines, Functions > 50 lines.
 
 ### Step 10: Integration/Reuse Review (Reusability)
-- **Delegated to Debug Agent**: Check for duplicate logic.
+- **Executed by Debug Agent**: Check for duplicate logic.
 
 ### Step 11: Side Effect Review (Cascade Impact)
-- **Delegated to Debug Agent**: Analyze impact scope.
+- **Executed by Debug Agent**: Analyze impact scope.
 
 ### Step 12: Full Change Review (Consistency)
-- **Delegated to Debug Agent**: Review naming and style.
+- **Executed by Debug Agent**: Review naming and style.
 
 ### Step 13: Clean Up Unused Code
-- **Delegated to Debug Agent**: Remove newly created dead code.
+- **Executed by Debug Agent**: Remove newly created dead code.
 
 ### REFINE_GATE
 - [ ] No large files/functions
@@ -154,6 +186,8 @@ Command: `oh-my-ag agent:spawn debug-agent "Execute Phase 4 Refine. Step 9: Spli
 - [ ] Code cleaned
 
 **On gate pass**: Use memory edit tool to record phase completion in `session-coordinate-pro.md`
+
+**Gate failure → Re-spawn Debug Agent with specific issues and repeat until GATE passes.**
 
 **Skip conditions**: Simple tasks < 50 lines
 
@@ -166,17 +200,29 @@ Command: `oh-my-ag agent:spawn debug-agent "Execute Phase 4 Refine. Step 9: Spli
 Spawn QA Agent to execute Steps 14-17.
 Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 5 Ship. Step 14: Quality Review (lint/coverage). Step 15: UX Flow Verification. Step 16: Related Issues Review. Step 17: Deployment Readiness. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id`
 
+---
+
+### Monitor Final QA Progress
+
+**Wait for QA Agent to complete final review before proceeding.**
+
+1. Use memory read tool to poll `progress-qa-agent.md`
+2. Check for `result-qa-agent.md` to confirm completion
+3. Use memory edit tool to record final QA results in `session-coordinate-pro.md`
+
+**Continue polling until QA Agent reports completion.**
+
 ### Step 14: Code Quality Review
-- **Delegated to QA Agent**: Lint, Types, Coverage.
+- **Executed by QA Agent**: Lint, Types, Coverage.
 
 ### Step 15: UX Flow Verification
-- **Delegated to QA Agent**: User journey check.
+- **Executed by QA Agent**: User journey check.
 
 ### Step 16: Related Issues Review (Cascade Impact 2nd)
-- **Delegated to QA Agent**: Final impact check.
+- **Executed by QA Agent**: Final impact check.
 
 ### Step 17: Deployment Readiness Review (Final)
-- **Delegated to QA Agent**: Secrets, Migrations, checklist.
+- **Executed by QA Agent**: Secrets, Migrations, checklist.
 
 ### SHIP_GATE
 - [ ] Quality checks pass
@@ -186,6 +232,8 @@ Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 5 Ship. Step 14: Quality 
 - [ ] **User final approval**
 
 **On gate pass**: Use memory write tool to record final results in `session-coordinate-pro.md`
+
+**Gate failure → Address issues, re-run affected steps, and repeat until GATE passes.**
 
 ---
 
