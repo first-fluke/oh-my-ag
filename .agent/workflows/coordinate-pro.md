@@ -19,10 +19,15 @@ description: Thorough version of coordinate - high-quality development workflow 
 
 ## Phase 0: Initialization (DO NOT SKIP)
 
-1. Read `.agent/skills/_shared/multi-review-protocol.md` (11 review guides)
-2. Read `.agent/skills/_shared/quality-principles.md` (4 principles)
-3. Read `.agent/skills/_shared/phase-gates.md` (gate definitions)
-4. Record session in memory: `session-coordinate-pro.md`
+1. Read `.agent/skills/workflow-guide/SKILL.md` and confirm Core Rules.
+2. Read `.agent/skills/_shared/context-loading.md` for resource loading strategy.
+3. Read `.agent/skills/_shared/memory-protocol.md` for memory protocol.
+4. Read `.agent/skills/_shared/multi-review-protocol.md` (11 review guides)
+5. Read `.agent/skills/_shared/quality-principles.md` (4 principles)
+6. Read `.agent/skills/_shared/phase-gates.md` (gate definitions)
+7. Record session start using memory write tool:
+   - Create `session-coordinate-pro.md` in the memory base path
+   - Include: session start time, user request summary, workflow version (pro)
 
 ---
 
@@ -49,6 +54,8 @@ Command: `oh-my-ag agent:spawn pm-agent "Analyze requirements. Execute Step 1: C
 - [ ] Over-engineering review done
 - [ ] **User confirmation**
 
+**On gate pass**: Use memory edit tool to record phase completion in `session-coordinate-pro.md`
+
 **Gate failure → Return to Step 1**
 
 ---
@@ -65,10 +72,17 @@ oh-my-ag agent:spawn frontend "Implement frontend tasks per plan. IMPORTANT: Fol
 wait
 ```
 
+### Monitor Implementation Progress
+- Use memory read tool to poll `progress-{agent}.md` files
+- Use MCP code analysis tools to verify implementation alignment
+- Use memory edit tool to record monitoring results in `session-coordinate-pro.md`
+
 ### IMPL_GATE
 - [ ] Build succeeds
 - [ ] Tests pass
 - [ ] Only planned files modified
+
+**On gate pass**: Use memory edit tool to record phase completion in `session-coordinate-pro.md`
 
 **Gate failure → Re-run Step 5**
 
@@ -95,6 +109,8 @@ Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 3 Verification. Step 6: A
 - [ ] CRITICAL count: 0
 - [ ] HIGH count: 0
 - [ ] No regressions
+
+**On gate pass**: Use memory edit tool to record phase completion in `session-coordinate-pro.md`
 
 **Gate failure → Return to Step 5 (fix implementation)**
 
@@ -128,6 +144,8 @@ Command: `oh-my-ag agent:spawn debug-agent "Execute Phase 4 Refine. Step 9: Spli
 - [ ] Side effects verified
 - [ ] Code cleaned
 
+**On gate pass**: Use memory edit tool to record phase completion in `session-coordinate-pro.md`
+
 **Skip conditions**: Simple tasks < 50 lines
 
 ---
@@ -157,6 +175,8 @@ Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 5 Ship. Step 14: Quality 
 - [ ] Related issues resolved
 - [ ] Deployment checklist complete
 - [ ] **User final approval**
+
+**On gate pass**: Use memory write tool to record final results in `session-coordinate-pro.md`
 
 ---
 
