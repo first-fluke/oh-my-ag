@@ -35,17 +35,26 @@ description: Thorough version of coordinate - high-quality development workflow 
 
 ### Step 1: Create Plan & Review
 // turbo
-Spawn PM Agent to execute Steps 1-4 (Creation + 3 Reviews).
-Command: `oh-my-ag agent:spawn pm-agent "Analyze requirements. Execute Step 1: Create Plan. Then execute Step 2 (Completeness), Step 3 (Meta Review), and Step 4 (Over-Engineering Review). Save plan to .agent/plan.json and memory. IMPORTANT: Follow .agent/skills/_shared/context-loading.md rules." session-id`
+Activate PM Agent to execute Steps 1-4:
+
+1. Analyze requirements.
+2. Define API contracts.
+3. Create a prioritized task breakdown.
+4. Execute Plan Review - Completeness (Step 2).
+5. Execute Meta Review (Step 3).
+6. Execute Over-Engineering Review (Step 4).
+7. Save plan to `.agent/plan.json`.
+8. Create `task-board.md` in memory path for dashboard compatibility.
+9. Use memory write tool to record plan completion.
 
 ### Step 2: Plan Review (Completeness)
-- **Delegated to PM Agent**: Ensure requirements are fully mapped.
+- **Executed by PM Agent**: Ensure requirements are fully mapped.
 
 ### Step 3: Review Verification (Meta Review)
-- **Delegated to PM Agent**: Self-verify if the review was sufficient.
+- **Executed by PM Agent**: Self-verify if the review was sufficient.
 
 ### Step 4: Over-Engineering Review (Simplicity)
-- **Delegated to PM Agent**: Check for unnecessary complexity (MVP focus).
+- **Executed by PM Agent**: Check for unnecessary complexity (MVP focus).
 
 ### PLAN_GATE
 - [ ] Plan documented
@@ -180,14 +189,14 @@ Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 5 Ship. Step 14: Quality 
 
 ---
 
-## Review Steps Summary (Delegated)
+## Review Steps Summary
 
-| Phase  | Steps | Agent       | Perspective                       |
-| ------ | ----- | ----------- | --------------------------------- |
-| PLAN   | 1-4   | PM Agent    | Completeness, Meta, Simplicity    |
-| IMPL   | 5     | Dev Agents  | Implementation                    |
-| VERIFY | 6-8   | QA Agent    | Alignment, Safety, Regression     |
-| REFINE | 9-13  | Debug Agent | Reusability, Cascade, Consistency |
-| SHIP   | 14-17 | QA Agent    | Quality, UX, Cascade 2nd, Deploy  |
+| Phase  | Steps | Agent       | Execution | Perspective                       |
+| ------ | ----- | ----------- | --------- | --------------------------------- |
+| PLAN   | 1-4   | PM Agent    | Inline    | Completeness, Meta, Simplicity    |
+| IMPL   | 5     | Dev Agents  | Spawn     | Implementation                    |
+| VERIFY | 6-8   | QA Agent    | Spawn     | Alignment, Safety, Regression     |
+| REFINE | 9-13  | Debug Agent | Spawn     | Reusability, Cascade, Consistency |
+| SHIP   | 14-17 | QA Agent    | Spawn     | Quality, UX, Cascade 2nd, Deploy  |
 
-**Total 11 review steps → High quality guaranteed (via Agent Delegation)**
+**Total 11 review steps → High quality guaranteed (PM Agent inline, others spawned)**
