@@ -9,7 +9,9 @@ description: Create comprehensive, hierarchical AGENTS.md documentation across t
 - **You MUST use MCP tools throughout the entire workflow.** This is NOT optional.
   - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `search_for_pattern`, `list_dir`, `view_file`) for code exploration.
   - Use file writing tools to generate `AGENTS.md` files.
-- **Exclude directories:** Respect the project's `.gitignore` as the source of truth for excluding directories (e.g., `node_modules`, `dist`, `build`, etc.). Do not generate `AGENTS.md` for ignored paths.
+- **Exclude directories:**
+  - Respect the project's `.gitignore` as the source of truth for excluding directories (e.g., `node_modules`, `dist`, `build`, etc.). Do not generate `AGENTS.md` for ignored paths.
+  - Automatically skip framework-generated cross-platform build/project directories (e.g., Flutter/React Native's `android`, `ios`, `macos`, `linux`, `windows`, `web` folders) since they derive from the core source folder (e.g., `lib/` or `src/`).
 
 ---
 
