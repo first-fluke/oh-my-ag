@@ -1,7 +1,7 @@
 {
   "name": "oh-my-ag",
   "version": "1.25.0",
-  "releaseDate": "2026-02-20T05:00:04.263Z",
+  "releaseDate": "2026-03-02T02:35:24.729Z",
   "repository": "https://github.com/first-fluke/oh-my-ag",
   "files": [
     {
@@ -490,6 +490,11 @@
       "size": 2531
     },
     {
+      "path": ".agent/workflows/deepinit.md",
+      "sha256": "445959aef0c50458d950308349970dadf72ce1722113bb3967853d7c68534aed",
+      "size": 3785
+    },
+    {
       "path": ".agent/workflows/orchestrate.md",
       "sha256": "1be1f66f1b744b4e9885d7c764741951b74ee750518faab43c651173f0008470",
       "size": 3762
@@ -520,7 +525,7 @@
   },
   "metadata": {
     "skillCount": 11,
-    "workflowCount": 8,
-    "totalFiles": 102
+    "workflowCount": 9,
+    "totalFiles": 103
   }
 }
