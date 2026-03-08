@@ -7,6 +7,7 @@ import { doctor } from "./commands/doctor.js";
 import { install } from "./commands/install.js";
 import { initMemory } from "./commands/memory.js";
 import { retro } from "./commands/retro.js";
+import { star } from "./commands/star.js";
 import { stats } from "./commands/stats.js";
 import { update } from "./commands/update.js";
 import { usage } from "./commands/usage.js";
@@ -161,6 +162,13 @@ program
   .option("--json", "Output as JSON")
   .action((agentType, options) => {
     verify(agentType, options.workspace, options.json).catch(console.error);
+  });
+
+program
+  .command("star")
+  .description("Star oh-my-ag on GitHub")
+  .action(() => {
+    star().catch(console.error);
   });
 
 program
