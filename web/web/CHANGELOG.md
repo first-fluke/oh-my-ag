@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.7...web-v0.1.8) (2026-03-08)
+
+
+### Bug Fixes
+
+* **docs:** inline sync-agent-registry action and rename .yaml to .yml ([c25475c](https://github.com/first-fluke/oh-my-ag/commit/c25475cee6908a197ac17d3211e6405b620597fd))
+
 ## [0.1.7](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.6...web-v0.1.7) (2026-02-19)
 
 
