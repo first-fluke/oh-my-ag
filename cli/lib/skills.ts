@@ -83,7 +83,7 @@ export const SKILLS: SkillsRegistry = {
   ],
   infrastructure: [
     {
-      name: "terraform-infra-engineer",
+      name: "tf-infra-agent",
       desc: "Multi-cloud infrastructure with Terraform - AWS, GCP, Azure, OCI support",
     },
     {
@@ -102,7 +102,7 @@ export const PRESETS: Record<string, string[]> = {
     "qa-agent",
     "debug-agent",
     "commit",
-    "terraform-infra-engineer",
+    "tf-infra-agent",
     "developer-workflow",
   ],
   frontend: ["brainstorm", "frontend-agent", "pm-agent", "qa-agent", "debug-agent", "commit"],
@@ -118,7 +118,7 @@ export const PRESETS: Record<string, string[]> = {
   mobile: ["brainstorm", "mobile-agent", "pm-agent", "qa-agent", "debug-agent", "commit"],
   infrastructure: [
     "brainstorm",
-    "terraform-infra-engineer",
+    "tf-infra-agent",
     "developer-workflow",
     "pm-agent",
     "qa-agent",

@@ -49,6 +49,7 @@ flowchart TD
         FE[frontend-agent]
         BE[backend-agent]
         MB[mobile-agent]
+        TF[tf-infra-agent]
     end
 
     subgraph Quality["Qualität"]
@@ -57,7 +58,14 @@ flowchart TD
         DBG[debug-agent]
     end
 
-    Workflows --> Orchestration
+    subgraph Ideation["Ideenfindung & DevOps"]
+        direction TB
+        BS[brainstorm]
+        DW[developer-workflow]
+    end
+
+    Workflows --> Ideation
+    Ideation --> Orchestration
     Orchestration --> Domain
     Domain --> Quality
     Quality --> CMT([commit])
@@ -79,7 +87,7 @@ Eine Sammlung von **Antigravity Skills**, die kollaborative Multi-Agent-Entwickl
 | **Debug Agent** | Bug-Diagnose, Root-Cause-Analyse, Regressionstests | "Bug", "Fehler", "Absturz" |
 | **Brainstorm** | Design-First-Ideenfindung, Erkundung von Absichten und Einschränkungen vor der Planung | "Ich habe eine Idee", "lass uns entwerfen", "Ansätze erkunden" |
 | **Developer Workflow** | Monorepo-Aufgabenautomatisierung, mise-Tasks, CI/CD, Migrationen, Release | "Dev-Workflow", "mise-Tasks", "CI/CD-Pipeline" |
-| **Terraform Infra Engineer** | Multi-Cloud-IaC-Bereitstellung (AWS, GCP, Azure, OCI) | "Infrastruktur", "Terraform", "Cloud-Setup" |
+| **TF Infra Agent** | Multi-Cloud-IaC-Bereitstellung (AWS, GCP, Azure, OCI) | "Infrastruktur", "Terraform", "Cloud-Setup" |
 | **Orchestrator** | CLI-basierte parallele Agent-Ausführung mit Serena Memory | "Agent spawnen", "parallele Ausführung" |
 | **Commit** | Conventional Commits mit projektspezifischen Regeln | "commit", "Änderungen speichern" |
 

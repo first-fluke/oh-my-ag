@@ -49,6 +49,7 @@ flowchart TD
         FE[frontend-agent]
         BE[backend-agent]
         MB[mobile-agent]
+        TF[tf-infra-agent]
     end
 
     subgraph Quality["品質"]
@@ -57,7 +58,14 @@ flowchart TD
         DBG[debug-agent]
     end
 
-    Workflows --> Orchestration
+    subgraph Ideation["アイデア & DevOps"]
+        direction TB
+        BS[brainstorm]
+        DW[developer-workflow]
+    end
+
+    Workflows --> Ideation
+    Ideation --> Orchestration
     Orchestration --> Domain
     Domain --> Quality
     Quality --> CMT([commit])
@@ -79,7 +87,7 @@ flowchart TD
 | **Debug Agent** | バグ診断、根本原因分析、リグレッションテスト | "bug"、"error"、"crash" |
 | **Brainstorm** | デザインファーストのアイデア発想、計画前の意図と制約の探索 | 「アイデアがある」「設計しよう」「アプローチを探る」 |
 | **Developer Workflow** | モノレポタスク自動化、mise タスク、CI/CD、マイグレーション、リリース | 「開発ワークフロー」「mise タスク」「CI/CD パイプライン」 |
-| **Terraform Infra Engineer** | マルチクラウド IaC プロビジョニング（AWS、GCP、Azure、OCI） | 「インフラ」「terraform」「クラウドセットアップ」 |
+| **TF Infra Agent** | マルチクラウド IaC プロビジョニング（AWS、GCP、Azure、OCI） | 「インフラ」「terraform」「クラウドセットアップ」 |
 | **Orchestrator** | CLIベースの並列エージェント実行とSerena Memory | "spawn agent"、"parallel execution" |
 | **Commit** | Conventional Commitsによるプロジェクト固有のルール | "commit"、"save changes" |
 

@@ -49,6 +49,7 @@ flowchart TD
         FE[frontend-agent]
         BE[backend-agent]
         MB[mobile-agent]
+        TF[tf-infra-agent]
     end
 
     subgraph Quality["Qualité"]
@@ -57,7 +58,14 @@ flowchart TD
         DBG[debug-agent]
     end
 
-    Workflows --> Orchestration
+    subgraph Ideation["Idéation & DevOps"]
+        direction TB
+        BS[brainstorm]
+        DW[developer-workflow]
+    end
+
+    Workflows --> Ideation
+    Ideation --> Orchestration
     Orchestration --> Domain
     Domain --> Quality
     Quality --> CMT([commit])
@@ -79,7 +87,7 @@ Une collection de **Compétences Antigravity** permettant le développement coll
 | **Debug Agent** | Diagnostic de bugs, analyse de cause racine, tests de régression | "bug", "erreur", "crash" |
 | **Brainstorm** | Idéation design-first, exploration des intentions et contraintes avant planification | "j'ai une idée", "concevons", "explorer les approches" |
 | **Developer Workflow** | Automatisation des tâches monorepo, tâches mise, CI/CD, migrations, release | "workflow dev", "tâches mise", "pipeline CI/CD" |
-| **Terraform Infra Engineer** | Provisionnement IaC multi-cloud (AWS, GCP, Azure, OCI) | "infrastructure", "terraform", "config cloud" |
+| **TF Infra Agent** | Provisionnement IaC multi-cloud (AWS, GCP, Azure, OCI) | "infrastructure", "terraform", "config cloud" |
 | **Orchestrator** | Exécution parallèle d'agents via CLI avec Serena Memory | "lancer agent", "exécution parallèle" |
 | **Commit** | Commits conventionnels avec règles spécifiques au projet | "commit", "enregistrer changements" |
 

@@ -1,7 +1,7 @@
 {
   "name": "oh-my-ag",
-  "version": "1.26.0",
-  "releaseDate": "2026-03-08T13:08:24.142Z",
+  "version": "1.25.1",
+  "releaseDate": "2026-03-08T21:55:57.629Z",
   "repository": "https://github.com/first-fluke/oh-my-ag",
   "files": [
     {
@@ -46,8 +46,8 @@
     },
     {
       "path": ".agent/skills/_shared/context-loading.md",
-      "sha256": "b7b463c39fa3ff2838c0ec17cf78b4eb2cfa66d2398436c37f4f4005ebbd5e43",
-      "size": 5948
+      "sha256": "6785e56d03b42c7b6aba0172192adb04246aeeceee2325b4ac671a8a9573bb7c",
+      "size": 5938
     },
     {
       "path": ".agent/skills/_shared/difficulty-guide.md",
@@ -450,22 +450,22 @@
       "size": 2346
     },
     {
-      "path": ".agent/skills/terraform-infra-engineer/SKILL.md",
-      "sha256": "29b3e67ebe70518c55fd11715b921d8efc0401b91bfc5e4156c3da70b8b36689",
-      "size": 13801
+      "path": ".agent/skills/tf-infra-agent/SKILL.md",
+      "sha256": "9538d78a63cef66b9027befc8d65cb789661d33e99c985793b0a726b805a016a",
+      "size": 13781
     },
     {
-      "path": ".agent/skills/terraform-infra-engineer/resources/cost-optimization.md",
+      "path": ".agent/skills/tf-infra-agent/resources/cost-optimization.md",
       "sha256": "c923dcf10b373a7eefd2ff788b5010f1ba23713e666473625d3717222a869b70",
       "size": 12742
     },
     {
-      "path": ".agent/skills/terraform-infra-engineer/resources/multi-cloud-examples.md",
+      "path": ".agent/skills/tf-infra-agent/resources/multi-cloud-examples.md",
       "sha256": "6e9182810eab6ba0da796382aa61e359d7f242c1913259a5605d559851c59b2a",
       "size": 5011
     },
     {
-      "path": ".agent/skills/terraform-infra-engineer/resources/policy-testing-examples.md",
+      "path": ".agent/skills/tf-infra-agent/resources/policy-testing-examples.md",
       "sha256": "9015b3ee1aa30ac0fab7a8712440bbb64100225a1b5b6bfcd7e08d676126badf",
       "size": 6038
     },

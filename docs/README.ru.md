@@ -49,6 +49,7 @@ flowchart TD
         FE[frontend-agent]
         BE[backend-agent]
         MB[mobile-agent]
+        TF[tf-infra-agent]
     end
 
     subgraph Quality["Качество"]
@@ -57,7 +58,14 @@ flowchart TD
         DBG[debug-agent]
     end
 
-    Workflows --> Orchestration
+    subgraph Ideation["Идеация & DevOps"]
+        direction TB
+        BS[brainstorm]
+        DW[developer-workflow]
+    end
+
+    Workflows --> Ideation
+    Ideation --> Orchestration
     Orchestration --> Domain
     Domain --> Quality
     Quality --> CMT([commit])
@@ -79,7 +87,7 @@ flowchart TD
 | **Debug Agent** | Диагностика багов, анализ первопричин, регрессионные тесты | "баг", "ошибка", "краш" |
 | **Brainstorm** | Design-first идеация, исследование намерений и ограничений перед планированием | "у меня есть идея", "давайте спроектируем", "исследовать подходы" |
 | **Developer Workflow** | Автоматизация задач монорепо, задачи mise, CI/CD, миграции, релиз | "dev workflow", "задачи mise", "CI/CD пайплайн" |
-| **Terraform Infra Engineer** | Мультиоблачное IaC провизионирование (AWS, GCP, Azure, OCI) | "инфраструктура", "terraform", "настройка облака" |
+| **TF Infra Agent** | Мультиоблачное IaC провизионирование (AWS, GCP, Azure, OCI) | "инфраструктура", "terraform", "настройка облака" |
 | **Orchestrator** | CLI-основанное параллельное выполнение агентов с Serena Memory | "запустить агента", "параллельное выполнение" |
 | **Commit** | Conventional Commits с проектными правилами | "коммит", "сохранить изменения" |
 

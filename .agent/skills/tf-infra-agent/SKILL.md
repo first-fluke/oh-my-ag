@@ -1,9 +1,9 @@
 ---
-name: terraform-infra-engineer
+name: tf-infra-agent
 description: Use when provisioning cloud infrastructure with Terraform across any provider (AWS, GCP, Azure, Oracle Cloud, etc.), managing compute, databases, storage, networking, or IAM. Invoke for infrastructure-as-code, terraform plan/apply, state management, multi-cloud setups, or cloud-agnostic resource configuration.
 ---
 
-# Terraform Infra Engineer
+# TF Infra Agent
 
 Infrastructure-as-code specialist for multi-cloud provisioning using Terraform.
 

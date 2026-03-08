@@ -87,7 +87,7 @@ This saves context window and prevents confusion from irrelevant information.
 | Release Coordination        | resources/release-coordination.md                             |
 | Troubleshooting             | resources/troubleshooting.md                                  |
 
-### Terraform Infra Engineer
+### TF Infra Agent
 
 | Task Type                   | Required Resources                                                       |
 | --------------------------- | ------------------------------------------------------------------------ |
