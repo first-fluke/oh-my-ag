@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.25.1...cli-v1.26.0) (2026-03-08)
+
+
+### Features
+
+* add brainstorm skill for design-first ideation pipeline ([7fd31b8](https://github.com/first-fluke/oh-my-ag/commit/7fd31b8800046a51121d33ba0dc72e75f713db06))
+
 ## [1.25.1](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.25.0...cli-v1.25.1) (2026-03-04)
 
 
