@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.9](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.8...web-v0.1.9) (2026-03-11)
+
+
+### Features
+
+* switch skills ssot to .agents ([c4b63a2](https://github.com/first-fluke/oh-my-ag/commit/c4b63a295e96aa471cf575495bc048cf0e3cda69))
+
 ## [0.1.8](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.7...web-v0.1.8) (2026-03-08)
 
 
