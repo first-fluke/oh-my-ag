@@ -4,7 +4,8 @@
   "description": "Professional agent skills for Google Antigravity IDE - PM, Frontend, Backend, Mobile, QA, and Debug specialists that work together seamlessly",
   "type": "module",
   "bin": {
-    "oh-my-ag": "./bin/cli.js"
+    "oh-my-ag": "./bin/cli.js",
+    "oma": "./bin/cli.js"
   },
   "files": [
     "bin"

@@ -380,6 +380,10 @@ program
   .version(VERSION)
   .showSuggestionAfterError()
   .showHelpAfterError()
+  .addHelpText(
+    "after",
+    "\nAliases:\n  oma  Alias for oh-my-ag after global installation.\n",
+  )
   .action(
     runAction(async () => {
       await install();
