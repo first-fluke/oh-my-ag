@@ -1,5 +1,40 @@
 # Changelog
 
+## [2.0.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.29.0...cli-v2.0.0) (2026-03-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* .agents/ replaces .agent/ as the canonical root directory. Cursor and Antigravity now natively support .agents/, so legacy symlinks (.cursor/skills/, .claude/skills/, .github/skills/) are no longer needed.
+
+### Features
+
+* adopt .agents/ as canonical root with auto-migration ([a2ade10](https://github.com/first-fluke/oh-my-ag/commit/a2ade10bb92be61d2d8f4b433b9f00481a900c56))
+* **cli:** add oma command alias ([c7a8a6b](https://github.com/first-fluke/oh-my-ag/commit/c7a8a6b7fd1bdd83b4db64e339bf0ce48a13e746))
+* **skills:** apply harness engineering patterns ([f73405a](https://github.com/first-fluke/oh-my-ag/commit/f73405a184aee8a3745154a5df9b242baf8d7d15))
+
+
+### Bug Fixes
+
+* correct manifest version lookup for release-please key change ([aab419f](https://github.com/first-fluke/oh-my-ag/commit/aab419f07dd21103681e864189cf56d7bb74a964))
+* correct release-please extra file paths ([ae0da99](https://github.com/first-fluke/oh-my-ag/commit/ae0da997514a5e727028ccf17c7be070adf64b0c))
+* route all non-web commits to cli release ([26c4753](https://github.com/first-fluke/oh-my-ag/commit/26c4753204e62ba950ed8f8f57a5cc71e8db31fe))
+
+
+### Refactoring
+
+* rename .agent/ to .agents/ as canonical root ([ca3ca3f](https://github.com/first-fluke/oh-my-ag/commit/ca3ca3f658ed3ead256dad96dc1196b92d8a81c6))
+* **workflow:** redesign deepinit as harness initializer ([568f332](https://github.com/first-fluke/oh-my-ag/commit/568f3321d37672f8b7430a33ee6b2c9708de36dc))
+
+
+### Miscellaneous
+
+* **main:** release web 0.2.0 ([5609d11](https://github.com/first-fluke/oh-my-ag/commit/5609d11ed3b19d82cdca9d328e61ff1a1db8d27f))
+* **main:** release web 0.2.0 ([d1cc988](https://github.com/first-fluke/oh-my-ag/commit/d1cc988288361588e04846f6c470fb601efe4536))
+* sync prompt-manifest.json ([c442789](https://github.com/first-fluke/oh-my-ag/commit/c442789f5850c77ce6f38d23105aadf982432b1c))
+* sync prompt-manifest.json ([884fc20](https://github.com/first-fluke/oh-my-ag/commit/884fc20c3197ccbbdc1a32b5fdc3b6f6afe04bd0))
+* sync prompt-manifest.json ([82f05bf](https://github.com/first-fluke/oh-my-ag/commit/82f05bf30c1fd5f93bcb1738253e910e8a900021))
+
 ## [1.29.0](https://github.com/first-fluke/oh-my-ag/compare/cli-v1.28.0...cli-v1.29.0) (2026-03-11)
 
 
