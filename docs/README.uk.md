@@ -88,7 +88,7 @@ flowchart TD
 
 ### Передумови
 
-- **AI IDE** (Amp, Claude Code, Gemini CLI, etc.)
+- **AI IDE** (Antigravity, Claude Code, Codex, Gemini, etc.)
 - **Bun** (для CLI та дашбордів)
 - **uv** (для налаштування Serena)
 

@@ -88,7 +88,7 @@ Une collection de **Compétences Agent** permettant le développement collaborat
 
 ### Prérequis
 
-- **AI IDE** (Amp, Claude Code, Gemini CLI, etc.)
+- **AI IDE** (Antigravity, Claude Code, Codex, Gemini, etc.)
 - **Bun** (pour CLI et tableaux de bord)
 - **uv** (pour configuration Serena)
 

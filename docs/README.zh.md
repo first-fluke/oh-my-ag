@@ -81,7 +81,7 @@ flowchart TD
 
 ### 前置条件
 
-- **AI IDE**（Amp, Claude Code, Gemini CLI, etc.）
+- **AI IDE**（Antigravity, Claude Code, Codex, Gemini, etc.）
 - **Bun**（用于 CLI 和仪表盘）
 - **uv**（用于 Serena 配置）
 

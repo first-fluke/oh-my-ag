@@ -88,7 +88,7 @@ flowchart TD
 
 ### 前提条件
 
-- **AI IDE** (Amp, Claude Code, Gemini CLI, etc.)
+- **AI IDE** (Antigravity, Claude Code, Codex, Gemini, etc.)
 - **Bun** (CLIとダッシュボード用)
 - **uv** (Serenaセットアップ用)
 

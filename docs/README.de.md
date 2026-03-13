@@ -88,7 +88,7 @@ Eine Sammlung von **Agent Skills**, die kollaborative Multi-Agent-Entwicklung er
 
 ### Voraussetzungen
 
-- **AI IDE** (Amp, Claude Code, Gemini CLI, etc.)
+- **AI IDE** (Antigravity, Claude Code, Codex, Gemini, etc.)
 - **Bun** (für CLI und Dashboards)
 - **uv** (für Serena-Setup)
 

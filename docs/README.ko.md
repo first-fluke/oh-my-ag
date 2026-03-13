@@ -80,7 +80,7 @@ flowchart TD
 
 ### 사전 요구 사항
 
-- **AI IDE** (Amp, Claude Code, Gemini CLI, etc.)
+- **AI IDE** (Antigravity, Claude Code, Codex, Gemini, etc.)
 - **Bun** (CLI 및 대시보드용)
 - **uv** (Serena 설정용)
 

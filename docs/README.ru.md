@@ -88,7 +88,7 @@ flowchart TD
 
 ### Предварительные требования
 
-- **AI IDE** (Amp, Claude Code, Gemini CLI, etc.)
+- **AI IDE** (Antigravity, Claude Code, Codex, Gemini, etc.)
 - **Bun** (для CLI и информационных панелей)
 - **uv** (для настройки Serena)
 
