@@ -70,6 +70,10 @@ export const SKILLS: SkillsRegistry = {
   domain: [
     { name: "frontend-agent", desc: "React/Next.js UI specialist" },
     { name: "backend-agent", desc: "FastAPI/SQLAlchemy API specialist" },
+    {
+      name: "db-agent",
+      desc: "SQL/NoSQL data modeling, normalization, integrity, and capacity specialist",
+    },
     { name: "mobile-agent", desc: "Flutter/Dart mobile specialist" },
   ],
   coordination: [
@@ -100,6 +104,7 @@ export const PRESETS: Record<string, string[]> = {
     "brainstorm",
     "frontend-agent",
     "backend-agent",
+    "db-agent",
     "pm-agent",
     "qa-agent",
     "debug-agent",
@@ -118,6 +123,7 @@ export const PRESETS: Record<string, string[]> = {
   backend: [
     "brainstorm",
     "backend-agent",
+    "db-agent",
     "pm-agent",
     "qa-agent",
     "debug-agent",

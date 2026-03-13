@@ -6,7 +6,7 @@
 
 终极代理编排器，适用于智能编程及更多场景。
 
-通过 **Serena Memory** 编排 9 个专业领域代理（PM、Frontend、Backend、Mobile、QA、Debug、Brainstorm、DevWorkflow、Terraform）。支持并行 CLI 执行、实时可观测性仪表盘，以及零配置渐进式技能加载。开箱即用的代理编程解决方案。
+通过 **Serena Memory** 编排 10 个专业领域代理（PM、Frontend、Backend、DB、Mobile、QA、Debug、Brainstorm、DevWorkflow、Terraform）。支持并行 CLI 执行、实时可观测性仪表盘，以及零配置渐进式技能加载。开箱即用的代理编程解决方案。
 
 ## 目录
 
@@ -43,6 +43,7 @@ flowchart TD
         direction TB
         FE[frontend-agent]
         BE[backend-agent]
+        DB[db-agent]
         MB[mobile-agent]
         TF[tf-infra-agent]
     end
@@ -71,6 +72,7 @@ flowchart TD
 | **PM Agent** | 需求分析、任务分解、架构设计 | "plan", "break down", "what should we build" |
 | **Frontend Agent** | React/Next.js、TypeScript、Tailwind CSS | "UI", "component", "styling" |
 | **Backend Agent** | FastAPI、PostgreSQL、JWT 认证 | "API", "database", "authentication" |
+| **DB Agent** | SQL/NoSQL 建模、规范化、完整性、备份、容量规划 | "ERD", "schema", "database design", "index tuning" |
 | **Mobile Agent** | Flutter 跨平台开发 | "mobile app", "iOS/Android" |
 | **QA Agent** | OWASP Top 10 安全、性能、可访问性 | "review security", "audit", "check performance" |
 | **Debug Agent** | Bug 诊断、根因分析、回归测试 | "bug", "error", "crash" |
@@ -104,9 +106,9 @@ bunx oh-my-agent
 | 预设 | 技能 |
 |------|------|
 | ✨ 全部 | 所有技能 |
-| 🌐 全栈 | brainstorm, frontend, backend, pm, qa, debug, commit |
+| 🌐 全栈 | brainstorm, frontend, backend, db, pm, qa, debug, commit |
 | 🎨 前端 | brainstorm, frontend, pm, qa, debug, commit |
-| ⚙️ 后端 | brainstorm, backend, pm, qa, debug, commit |
+| ⚙️ 后端 | brainstorm, backend, db, pm, qa, debug, commit |
 | 📱 移动端 | brainstorm, mobile, pm, qa, debug, commit |
 | 🚀 DevOps | brainstorm, tf-infra, dev-workflow, pm, qa, debug, commit |
 

@@ -1,7 +1,7 @@
 {
   "name": "oh-my-agent",
-  "version": "2.3.0",
-  "releaseDate": "2026-03-13T13:27:28.264Z",
+  "version": "2.2.0",
+  "releaseDate": "2026-03-13T13:59:03.549Z",
   "repository": "https://github.com/first-fluke/oh-my-agent",
   "files": [
     {
@@ -183,6 +183,46 @@
       "path": ".agents/skills/commit/resources/conventional-commits.md",
       "sha256": "da9c24e92065d7b1bfe30b7a50cc888d33cb79487e95f300d651fd5b5302d1ad",
       "size": 4037
+    },
+    {
+      "path": ".agents/skills/db-agent/SKILL.md",
+      "sha256": "538840ed80a47dc15b62bf69bbbc1984b2ce633427042cf197b987923e028e88",
+      "size": 6137
+    },
+    {
+      "path": ".agents/skills/db-agent/resources/anti-patterns.md",
+      "sha256": "99af4875fe3c02fd3d732192d2983aabbef31dc9893ea1242dd0c4fc2a6ac39f",
+      "size": 6755
+    },
+    {
+      "path": ".agents/skills/db-agent/resources/checklist.md",
+      "sha256": "9f2a7f51a77630ea617dba0903325a9aac33948594fd7d1371913e1d6e3b5578",
+      "size": 2811
+    },
+    {
+      "path": ".agents/skills/db-agent/resources/document-templates.md",
+      "sha256": "c6b2719feda04d2c42a1717c3c4917be518b2f1b86608948966480da0326dd31",
+      "size": 2124
+    },
+    {
+      "path": ".agents/skills/db-agent/resources/error-playbook.md",
+      "sha256": "12a6cd6255cccf1eea83a0ed10c0d82275ff2bc8e6c03b8e6d663fbcbcc243b2",
+      "size": 1243
+    },
+    {
+      "path": ".agents/skills/db-agent/resources/examples.md",
+      "sha256": "3e76601a39667eddd8adb076c2254e6c0c335201bc8a93ab1b3629d0e5987aac",
+      "size": 4049
+    },
+    {
+      "path": ".agents/skills/db-agent/resources/execution-protocol.md",
+      "sha256": "222af2d4a10151bfab8f1a964eebe1d5095237c57e97291a18701f0909c68d3c",
+      "size": 4828
+    },
+    {
+      "path": ".agents/skills/db-agent/resources/vector-db.md",
+      "sha256": "6654475284858fc2e770da0f51f053d1fc402a3bf6dbcf10519694bf8bf7ea99",
+      "size": 4036
     },
     {
       "path": ".agents/skills/debug-agent/SKILL.md",
@@ -564,8 +604,8 @@
     "algorithm": "sha256"
   },
   "metadata": {
-    "skillCount": 12,
+    "skillCount": 13,
     "workflowCount": 11,
-    "totalFiles": 111
+    "totalFiles": 119
   }
 }

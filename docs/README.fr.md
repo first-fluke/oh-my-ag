@@ -6,7 +6,7 @@
 
 L'Orchestrateur d'Agents Ultime pour le codage agentique.
 
-Orchestrez 9 agents de domaine spécialisés (PM, Frontend, Backend, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) via **Serena Memory**. Comprend l'exécution CLI parallèle, des tableaux de bord d'observabilité en temps réel et un chargement progressif de compétences sans configuration. La solution tout-en-un pour le codage agentique.
+Orchestrez 10 agents de domaine spécialisés (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) via **Serena Memory**. Comprend l'exécution CLI parallèle, des tableaux de bord d'observabilité en temps réel et un chargement progressif de compétences sans configuration. La solution tout-en-un pour le codage agentique.
 
 > **Ce projet vous plaît ?** Donnez-lui une étoile !
 >
@@ -50,6 +50,7 @@ flowchart TD
         direction TB
         FE[frontend-agent]
         BE[backend-agent]
+        DB[db-agent]
         MB[mobile-agent]
         TF[tf-infra-agent]
     end
@@ -78,6 +79,7 @@ Une collection de **Compétences Agent** permettant le développement collaborat
 | **PM Agent** | Analyse des exigences, décomposition des tâches, architecture | "planifier", "décomposer", "que devons-nous construire" |
 | **Frontend Agent** | React/Next.js, TypeScript, Tailwind CSS | "UI", "composant", "style" |
 | **Backend Agent** | FastAPI, PostgreSQL, authentification JWT | "API", "base de données", "authentification" |
+| **DB Agent** | Modélisation SQL/NoSQL, normalisation, intégrité, sauvegarde, capacité | "ERD", "schéma", "database design", "index tuning" |
 | **Mobile Agent** | Développement multiplateforme Flutter | "application mobile", "iOS/Android" |
 | **QA Agent** | Sécurité OWASP Top 10, performance, accessibilité | "vérifier sécurité", "audit", "vérifier performance" |
 | **Debug Agent** | Diagnostic de bugs, analyse de cause racine, tests de régression | "bug", "erreur", "crash" |
@@ -111,9 +113,9 @@ Sélectionnez votre type de projet et les compétences seront installées dans `
 | Préréglage | Compétences |
 |------------|-------------|
 | ✨ All | Tout |
-| 🌐 Fullstack | brainstorm, frontend, backend, pm, qa, debug, commit |
+| 🌐 Fullstack | brainstorm, frontend, backend, db, pm, qa, debug, commit |
 | 🎨 Frontend | brainstorm, frontend, pm, qa, debug, commit |
-| ⚙️ Backend | brainstorm, backend, pm, qa, debug, commit |
+| ⚙️ Backend | brainstorm, backend, db, pm, qa, debug, commit |
 | 📱 Mobile | brainstorm, mobile, pm, qa, debug, commit |
 | 🚀 DevOps | brainstorm, tf-infra, dev-workflow, pm, qa, debug, commit |
 

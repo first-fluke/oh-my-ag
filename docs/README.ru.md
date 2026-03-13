@@ -6,7 +6,7 @@
 
 Идеальный мультиагентный оркестратор для агентного программирования.
 
-Управляйте 9 специализированными доменными агентами (PM, Frontend, Backend, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) через **Serena Memory**. Параллельное выполнение через CLI, информационные панели реального времени и постепенная загрузка навыков без настройки. Готовое решение для агентного программирования.
+Управляйте 10 специализированными доменными агентами (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) через **Serena Memory**. Параллельное выполнение через CLI, информационные панели реального времени и постепенная загрузка навыков без настройки. Готовое решение для агентного программирования.
 
 > **Понравился проект?** Поставьте звезду!
 >
@@ -50,6 +50,7 @@ flowchart TD
         direction TB
         FE[frontend-agent]
         BE[backend-agent]
+        DB[db-agent]
         MB[mobile-agent]
         TF[tf-infra-agent]
     end
@@ -78,6 +79,7 @@ flowchart TD
 | **PM Agent** | Анализ требований, декомпозиция задач, архитектура | "план", "разбить", "что нужно построить" |
 | **Frontend Agent** | React/Next.js, TypeScript, Tailwind CSS | "UI", "компонент", "стилизация" |
 | **Backend Agent** | FastAPI, PostgreSQL, JWT аутентификация | "API", "база данных", "аутентификация" |
+| **DB Agent** | SQL/NoSQL моделирование, нормализация, целостность, резервное копирование, оценка емкости | "ERD", "схема", "проектирование БД", "настройка индексов" |
 | **Mobile Agent** | Flutter кроссплатформенная разработка | "мобильное приложение", "iOS/Android" |
 | **QA Agent** | Безопасность OWASP Top 10, производительность, доступность | "проверка безопасности", "аудит", "проверка производительности" |
 | **Debug Agent** | Диагностика багов, анализ первопричин, регрессионные тесты | "баг", "ошибка", "краш" |
@@ -111,9 +113,9 @@ bunx oh-my-agent
 | Пресет | Навыки |
 |--------|--------|
 | ✨ All | Все |
-| 🌐 Fullstack | brainstorm, frontend, backend, pm, qa, debug, commit |
+| 🌐 Fullstack | brainstorm, frontend, backend, db, pm, qa, debug, commit |
 | 🎨 Frontend | brainstorm, frontend, pm, qa, debug, commit |
-| ⚙️ Backend | brainstorm, backend, pm, qa, debug, commit |
+| ⚙️ Backend | brainstorm, backend, db, pm, qa, debug, commit |
 | 📱 Mobile | brainstorm, mobile, pm, qa, debug, commit |
 | 🚀 DevOps | brainstorm, tf-infra, dev-workflow, pm, qa, debug, commit |
 
