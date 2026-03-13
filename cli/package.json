@@ -1,7 +1,7 @@
 {
   "name": "oh-my-agent",
   "version": "2.4.0",
-  "description": "Professional agent skills for Google Antigravity IDE - PM, Frontend, Backend, Mobile, QA, and Debug specialists that work together seamlessly",
+  "description": "Portable multi-agent harness for .agents-based skills and workflows across Antigravity, Claude Code, Codex, OpenCode, and more",
   "type": "module",
   "bin": {
     "oh-my-ag": "./bin/cli.js",
@@ -13,6 +13,7 @@
   "keywords": [
     "oh-my-agent",
     "antigravity",
+    ".agents",
     "agent",
     "skills",
     "agent-skills",
@@ -21,6 +22,8 @@
     "claude",
     "claude-code",
     "codex",
+    "opencode",
+    "copilot",
     "cursor",
     "chatgpt",
     "pm",
@@ -29,6 +32,9 @@
     "mobile",
     "qa",
     "debug",
+    "terraform",
+    "database",
+    "workflow",
     "bug-fixing",
     "gemini"
   ],
@@ -87,10 +93,14 @@
       "pm-agent",
       "frontend-agent",
       "backend-agent",
+      "db-agent",
       "mobile-agent",
       "qa-agent",
       "debug-agent",
-      "orchestrator"
+      "orchestrator",
+      "dev-workflow",
+      "tf-infra-agent",
+      "commit"
     ]
   }
 }

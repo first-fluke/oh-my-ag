@@ -1,16 +1,19 @@
-# oh-my-agent: Multi-Agent Harness
+# oh-my-agent: Portable Multi-Agent Harness
 
 [![npm version](https://img.shields.io/npm/v/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![npm downloads](https://img.shields.io/npm/dm/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![GitHub stars](https://img.shields.io/github/stars/first-fluke/oh-my-agent?style=flat&logo=github)](https://github.com/first-fluke/oh-my-agent) [![License](https://img.shields.io/github/license/first-fluke/oh-my-agent)](https://github.com/first-fluke/oh-my-agent/blob/main/LICENSE) [![Last Updated](https://img.shields.io/github/last-commit/first-fluke/oh-my-agent?label=updated&logo=git)](https://github.com/first-fluke/oh-my-agent/commits/main)
 
-[한국어](./docs/README.ko.md) | [中文](./docs/README.zh.md) | [Português](./docs/README.pt.md) | [日本語](./docs/README.ja.md) | [Français](./docs/README.fr.md) | [Español](./docs/README.es.md) | [Nederlands](./docs/README.nl.md) | [Polski](./docs/README.pl.md) | [Українська](./docs/README.uk.md) | [Русский](./docs/README.ru.md) | [Deutsch](./docs/README.de.md)
+[한국어](./docs/README.ko.md) | [中文](./docs/README.zh.md) | [Português](./docs/README.pt.md) | [日本語](./docs/README.ja.md) | [Français](./docs/README.fr.md) | [Español](./docs/README.es.md) | [Nederlands](./docs/README.nl.md) | [Polski](./docs/README.pl.md) | [Русский](./docs/README.ru.md) | [Deutsch](./docs/README.de.md)
 
-The Ultimate Agent Orchestrator for agentic coding.
+The portable, role-based agent harness for serious AI-assisted engineering.
 
-Orchestrate 10 specialized domain agents (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) via **Serena Memory**. Features parallel CLI execution, real-time observability dashboards, and zero-config progressive skill loading. The batteries-included solution for agentic coding.
+Orchestrate 10 specialized domain agents (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) via **Serena Memory**. `oh-my-agent` uses `.agents/` as the source of truth for portable skills and workflows, then projects compatibility to other AI IDEs and CLIs. It combines role-based agents, explicit workflows, real-time observability, and standards-aware guidance for teams that want less AI slop and more disciplined execution.
 
 ## Table of Contents
 
 - [Architecture](#architecture)
+- [Why Different](#why-different)
+- [Compatibility](#compatibility)
+- [The `.agents` Spec](#the-agents-spec)
 - [What Is This?](#what-is-this)
 - [Quick Start](#quick-start)
 - [Sponsors](#sponsors)
@@ -59,9 +62,45 @@ flowchart TD
     Quality --> CMT([commit])
 ```
 
+## Why Different
+
+- **`.agents/` is the source of truth**: skills, workflows, shared resources, and config live in one portable project structure instead of being trapped inside one IDE plugin.
+- **Role-shaped agent teams**: PM, QA, DB, Infra, Frontend, Backend, Mobile, Debug, and Workflow agents are modeled like an engineering org, not just a pile of prompts.
+- **Workflow-first orchestration**: planning, review, debug, and coordinated execution are first-class workflows, not afterthoughts.
+- **Standards-aware by design**: agents now carry focused guidance for ISO-driven planning, QA, database continuity/security, and infrastructure governance.
+- **Built for verification**: dashboards, manifest generation, shared execution protocols, and structured outputs favor traceability over vibe-only generation.
+
+## Compatibility
+
+`oh-my-agent` is designed around `.agents/` and then bridges to other tool-specific skill folders when needed.
+
+| Tool / IDE | Skills Source | Interop Mode | Notes |
+|------------|---------------|--------------|-------|
+| Antigravity | `.agents/skills/` | Native | Primary source-of-truth layout |
+| Claude Code | `.claude/skills/` | Symlink to `.agents/skills/` | Managed by installer |
+| OpenCode | `.agents/skills/` | Native-compatible | Uses the same project-level skill source |
+| Amp | `.agents/skills/` | Native-compatible | Shares the same project-level source |
+| Codex CLI | `.agents/skills/` | Native-compatible | Works from the same project skill source |
+| Cursor | `.agents/skills/` | Native-compatible | Can consume the same project-level skill source |
+| GitHub Copilot | `.github/skills/` | Optional symlink | Installed when selected during setup |
+
+See [SUPPORTED_AGENTS.md](./docs/SUPPORTED_AGENTS.md) for the current support matrix and interoperability notes.
+
+## The `.agents` Spec
+
+`oh-my-agent` treats `.agents/` as a portable project convention for agent skills, workflows, and shared context.
+
+- Skills live in `.agents/skills/<skill-name>/SKILL.md`
+- Shared resources live in `.agents/skills/_shared/`
+- Workflows live in `.agents/workflows/*.md`
+- Project config lives in `.agents/config/`
+- CLI metadata and packaging stay aligned through generated manifests
+
+See [AGENTS_SPEC.md](./docs/AGENTS_SPEC.md) for the project layout, required files, interoperability rules, and source-of-truth model.
+
 ## What Is This?
 
-A collection of **Agent Skills** enabling collaborative multi-agent development. Work is distributed across expert agents:
+A collection of **Agent Skills** enabling collaborative multi-agent development. Work is distributed across expert agents with explicit roles, workflows, and verification boundaries:
 
 | Agent | Specialization | Triggers |
 |-------|---------------|----------|
