@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.2.0](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.9...web-v0.2.0) (2026-03-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* .agents/ replaces .agent/ as the canonical root directory. Cursor and Antigravity now natively support .agents/, so legacy symlinks (.cursor/skills/, .claude/skills/, .github/skills/) are no longer needed.
+
+### Features
+
+* adopt .agents/ as canonical root with auto-migration ([a2ade10](https://github.com/first-fluke/oh-my-ag/commit/a2ade10bb92be61d2d8f4b433b9f00481a900c56))
+
+
+### Refactoring
+
+* rename .agent/ to .agents/ as canonical root ([ca3ca3f](https://github.com/first-fluke/oh-my-ag/commit/ca3ca3f658ed3ead256dad96dc1196b92d8a81c6))
+
 ## [0.1.9](https://github.com/first-fluke/oh-my-ag/compare/web-v0.1.8...web-v0.1.9) (2026-03-11)
 
 
