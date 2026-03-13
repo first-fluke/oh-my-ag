@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.0.2](https://github.com/first-fluke/oh-my-agent/compare/cli-v2.0.1...cli-v2.0.2) (2026-03-13)
+
+
+### Bug Fixes
+
+* **ci:** refine release-please publish flow ([1c98953](https://github.com/first-fluke/oh-my-agent/commit/1c989531d7df063bc216634e37871d4c9e05fa24))
+* **deps:** sync bun lockfile metadata ([d46dff4](https://github.com/first-fluke/oh-my-agent/commit/d46dff44cbacbf98f93d5aeb0aec34ad5d8e6294))
+
+
+### Documentation
+
+* update usage command references to usage:anti in CHANGELOG ([d739d2c](https://github.com/first-fluke/oh-my-agent/commit/d739d2cf07bac097cfefdc8e939bb025ebb7599b))
+* update usage command to usage:anti across all documentation ([c696920](https://github.com/first-fluke/oh-my-agent/commit/c6969203005ce46eae40d5a3fd0ccea77c0cba84))
+
+
+### Miscellaneous
+
+* **main:** release web 0.2.2 ([a24121d](https://github.com/first-fluke/oh-my-agent/commit/a24121dfc8f4913ba73a914674826109afdc06e0))
+* **main:** release web 0.2.2 ([821d1bb](https://github.com/first-fluke/oh-my-agent/commit/821d1bb7bd9953237be4d5e59def00f3207d6d0f))
+* sync prompt-manifest.json ([e3db65d](https://github.com/first-fluke/oh-my-agent/commit/e3db65d410920aba196ba3242a3c39a1215e1c02))
+* sync prompt-manifest.json ([43dc2b6](https://github.com/first-fluke/oh-my-agent/commit/43dc2b6b3ac922477acda6e32e7f0fd0e42d9f2b))
+
 ## [2.0.1](https://github.com/first-fluke/oh-my-agent/compare/cli-v2.0.0...cli-v2.0.1) (2026-03-13)
 
 
