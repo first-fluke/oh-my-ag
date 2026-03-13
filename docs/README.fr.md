@@ -1,12 +1,12 @@
-# oh-my-agent : Orchestrateur Multi-Agents
+# oh-my-agent : Harnais Multi-Agents Portable
 
 [![npm version](https://img.shields.io/npm/v/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![npm downloads](https://img.shields.io/npm/dm/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![GitHub stars](https://img.shields.io/github/stars/first-fluke/oh-my-agent?style=flat&logo=github)](https://github.com/first-fluke/oh-my-agent) [![License](https://img.shields.io/github/license/first-fluke/oh-my-agent)](https://github.com/first-fluke/oh-my-agent/blob/main/LICENSE) [![Last Updated](https://img.shields.io/github/last-commit/first-fluke/oh-my-agent?label=updated&logo=git)](https://github.com/first-fluke/oh-my-agent/commits/main)
 
 [English](../README.md) | [한국어](./README.ko.md) | [中文](./README.zh.md) | [Português](./README.pt.md) | [日本語](./README.ja.md) | [Español](./README.es.md) | [Nederlands](./README.nl.md) | [Polski](./README.pl.md) | [Русский](./README.ru.md) | [Deutsch](./README.de.md)
 
-L'Orchestrateur d'Agents Ultime pour le codage agentique.
+Le harnais d'agent portable, basé sur les rôles, pour l'ingénierie sérieuse assistée par l'IA.
 
-Orchestrez 10 agents de domaine spécialisés (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) via **Serena Memory**. Comprend l'exécution CLI parallèle, des tableaux de bord d'observabilité en temps réel et un chargement progressif de compétences sans configuration. La solution tout-en-un pour le codage agentique.
+Orchestrez 10 agents de domaine spécialisés (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) via **Serena Memory**. `oh-my-agent` utilise `.agents/` comme source de vérité pour les compétences et les flux de travail portables, puis projette la compatibilité vers d'autres IDE et CLI d'IA. Il combine des agents basés sur les rôles, des flux de travail explicites, une observabilité en temps réel et des conseils tenant compte des normes pour les équipes qui souhaitent moins de déchets liés à l'IA et une exécution plus disciplinée.
 
 > **Ce projet vous plaît ?** Donnez-lui une étoile !
 >

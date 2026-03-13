@@ -1,12 +1,12 @@
-# oh-my-agent: 멀티 에이전트 오케스트레이터
+# oh-my-agent: 휴대용 멀티 에이전트 하네스
 
 [![npm version](https://img.shields.io/npm/v/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![npm downloads](https://img.shields.io/npm/dm/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![GitHub stars](https://img.shields.io/github/stars/first-fluke/oh-my-agent?style=flat&logo=github)](https://github.com/first-fluke/oh-my-agent) [![License](https://img.shields.io/github/license/first-fluke/oh-my-agent)](https://github.com/first-fluke/oh-my-agent/blob/main/LICENSE) [![Last Updated](https://img.shields.io/github/last-commit/first-fluke/oh-my-agent?label=updated&logo=git)](https://github.com/first-fluke/oh-my-agent/commits/main)
 
 [English](../README.md) | [中文](./README.zh.md) | [Português](./README.pt.md) | [日本語](./README.ja.md) | [Français](./README.fr.md) | [Español](./README.es.md) | [Nederlands](./README.nl.md) | [Polski](./README.pl.md) | [Русский](./README.ru.md) | [Deutsch](./README.de.md)
 
-에이전트 코딩을 위한 궁극의 멀티 에이전트 오케스트레이터.
+진지한 AI 지원 엔지니어링을 위한 휴대용, 역할 기반 에이전트 하네스입니다.
 
-**Serena Memory**를 통해 10개의 전문 도메인 에이전트(PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform)를 조율하세요. 병렬 CLI 실행, 실시간 관측 대시보드, 제로 설정(zero-config) 방식의 점진적 스킬 로딩을 지원합니다. 에이전트 기반 코딩을 위해 모든 것이 준비된 올인원 솔루션입니다.
+**Serena Memory**를 통해 10개의 전문 도메인 에이전트(PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform)를 조율하세요. `oh-my-agent`는 휴대용 스킬 및 워크플로우의 단일 진실 공급원(source of truth)으로 `.agents/`를 사용한 다음 다른 AI IDE 및 CLI에 호환성을 투영합니다. 역할 기반 에이전트, 명시적 워크플로우, 실시간 관측 가능성 및 표준 인식 지침을 결합하여, AI 슬롭(slop)을 줄이고 더 훈련된 실행을 원하는 팀을 위한 것입니다.
 
 ## 목차
 

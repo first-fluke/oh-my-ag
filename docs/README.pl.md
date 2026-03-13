@@ -1,12 +1,12 @@
-# oh-my-agent: Orkiestrator Multi-Agentowy
+# oh-my-agent: Przenośna Uprząż Wielu Agentów
 
 [![npm version](https://img.shields.io/npm/v/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![npm downloads](https://img.shields.io/npm/dm/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![GitHub stars](https://img.shields.io/github/stars/first-fluke/oh-my-agent?style=flat&logo=github)](https://github.com/first-fluke/oh-my-agent) [![License](https://img.shields.io/github/license/first-fluke/oh-my-agent)](https://github.com/first-fluke/oh-my-agent/blob/main/LICENSE) [![Last Updated](https://img.shields.io/github/last-commit/first-fluke/oh-my-agent?label=updated&logo=git)](https://github.com/first-fluke/oh-my-agent/commits/main)
 
 [English](../README.md) | [한국어](./README.ko.md) | [中文](./README.zh.md) | [Português](./README.pt.md) | [日本語](./README.ja.md) | [Français](./README.fr.md) | [Español](./README.es.md) | [Nederlands](./README.nl.md) | [Русский](./README.ru.md) | [Deutsch](./README.de.md)
 
-Najlepszy multi-agent orchestrator dla kodowania agentowego.
+Przenośna, oparta na rolach uprząż dla agentów do poważnej inżynierii wspomaganej przez AI.
 
-Orkiestruj 10 wyspecjalizowanych agentów domenowych (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) za pomocą **Serena Memory**. Oferuje równoległe wykonywanie CLI, dashboardy z obserwacją w czasie rzeczywistym i progresywne ładowanie umiejętności bez konfiguracji. Kompleksowe rozwiązanie dla kodowania agentowego.
+Orkiestruj 10 wyspecjalizowanymi agentami domenowymi (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) za pośrednictwem **Serena Memory**. `oh-my-agent` używa `.agents/` jako źródła prawdy dla przenośnych umiejętności i przepływów pracy, a następnie projektuje kompatybilność na inne środowiska IDE i interfejsy CLI AI. Łączy opartych na rolach agentów, jawne przepływy pracy, obserwowalność w czasie rzeczywistym i wskazówki uwzględniające standardy dla zespołów, które chcą mniej bałaganu związanego z AI i bardziej zdyscyplinowanego wykonywania zadań.
 
 > **Podoba Ci się ten projekt?** Daj mu gwiazdkę!
 >

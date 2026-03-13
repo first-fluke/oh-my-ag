@@ -1,12 +1,12 @@
-# oh-my-agent: Orquestrador Multi-Agente
+# oh-my-agent: Arnês Multi-Agente Portátil
 
 [![npm version](https://img.shields.io/npm/v/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![npm downloads](https://img.shields.io/npm/dm/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![GitHub stars](https://img.shields.io/github/stars/first-fluke/oh-my-agent?style=flat&logo=github)](https://github.com/first-fluke/oh-my-agent) [![License](https://img.shields.io/github/license/first-fluke/oh-my-agent)](https://github.com/first-fluke/oh-my-agent/blob/main/LICENSE) [![Last Updated](https://img.shields.io/github/last-commit/first-fluke/oh-my-agent?label=updated&logo=git)](https://github.com/first-fluke/oh-my-agent/commits/main)
 
 [English](../README.md) | [한국어](./README.ko.md) | [中文](./README.zh.md) | [日本語](./README.ja.md) | [Français](./README.fr.md) | [Español](./README.es.md) | [Nederlands](./README.nl.md) | [Polski](./README.pl.md) | [Русский](./README.ru.md) | [Deutsch](./README.de.md)
 
-O Orquestrador de Agentes Definitivo para codificação agêntica.
+O arnês de agente portátil e baseado em funções para engenharia séria assistida por IA.
 
-Orquestre 10 agentes especializados de domínio (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) via **Serena Memory**. Apresenta execução paralela via CLI, dashboards de observabilidade em tempo real e carregamento progressivo de habilidades com configuração zero. A solução completa para codificação agêntica.
+Orquestre 10 agentes de domínio especializados (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) via **Serena Memory**. O `oh-my-agent` usa `.agents/` como a fonte de verdade para habilidades e fluxos de trabalho portáteis e, em seguida, projeta compatibilidade com outras IDEs e CLIs de IA. Ele combina agentes baseados em funções, fluxos de trabalho explícitos, observabilidade em tempo real e orientação com reconhecimento de padrões para equipes que desejam menos confusão de IA e uma execução mais disciplinada.
 
 > **Gostou deste projeto?** Dê uma estrela!
 >

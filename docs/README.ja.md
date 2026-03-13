@@ -1,12 +1,12 @@
-# oh-my-agent: マルチエージェントオーケストレーター
+# oh-my-agent: ポータブル・マルチエージェント・ハーネス
 
 [![npm version](https://img.shields.io/npm/v/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![npm downloads](https://img.shields.io/npm/dm/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![GitHub stars](https://img.shields.io/github/stars/first-fluke/oh-my-agent?style=flat&logo=github)](https://github.com/first-fluke/oh-my-agent) [![License](https://img.shields.io/github/license/first-fluke/oh-my-agent)](https://github.com/first-fluke/oh-my-agent/blob/main/LICENSE) [![Last Updated](https://img.shields.io/github/last-commit/first-fluke/oh-my-agent?label=updated&logo=git)](https://github.com/first-fluke/oh-my-agent/commits/main)
 
 [English](../README.md) | [한국어](./README.ko.md) | [中文](./README.zh.md) | [Português](./README.pt.md) | [Français](./README.fr.md) | [Español](./README.es.md) | [Nederlands](./README.nl.md) | [Polski](./README.pl.md) | [Русский](./README.ru.md) | [Deutsch](./README.de.md)
 
-エージェントコーディングのための究極のマルチエージェントオーケストレーター。
+本格的なAI支援エンジニアリングのための、ポータブルな役割ベースのエージェント・ハーネス。
 
-**Serena Memory**を通じて10の専門ドメインエージェント(PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform)を統合管理します。並列CLI実行、リアルタイム監視ダッシュボード、ゼロコンフィグの段階的スキルロードをサポート。エージェントベースのコーディングに必要なものすべてが揃ったオールインワンソリューションです。
+**Serena Memory**を介して10の専門ドメインエージェント（PM、Frontend、Backend、DB、Mobile、QA、Debug、Brainstorm、DevWorkflow、Terraform）をオーケストレーションします。`oh-my-agent`は、ポータブルなスキルとワークフローの真の情報源（source of truth）として`.agents/`を使用し、その後他のAI IDEやCLIに互換性を投影します。役割ベースのエージェント、明示的なワークフロー、リアルタイムの可観測性、および標準を認識したガイダンスを組み合わせており、AIによる不要なコード（slop）を減らし、より規律ある実行を求めるチーム向けです。
 
 > **このプロジェクトが気に入りましたか？** スターをお願いします！
 >

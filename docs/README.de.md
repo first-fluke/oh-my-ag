@@ -1,12 +1,12 @@
-# oh-my-agent: Multi-Agent Harness
+# oh-my-agent: Tragbares Multi-Agenten-Harness
 
 [![npm version](https://img.shields.io/npm/v/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![npm downloads](https://img.shields.io/npm/dm/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![GitHub stars](https://img.shields.io/github/stars/first-fluke/oh-my-agent?style=flat&logo=github)](https://github.com/first-fluke/oh-my-agent) [![License](https://img.shields.io/github/license/first-fluke/oh-my-agent)](https://github.com/first-fluke/oh-my-agent/blob/main/LICENSE) [![Last Updated](https://img.shields.io/github/last-commit/first-fluke/oh-my-agent?label=updated&logo=git)](https://github.com/first-fluke/oh-my-agent/commits/main)
 
 [English](../README.md) | [한국어](./README.ko.md) | [中文](./README.zh.md) | [Português](./README.pt.md) | [日本語](./README.ja.md) | [Français](./README.fr.md) | [Español](./README.es.md) | [Nederlands](./README.nl.md) | [Polski](./README.pl.md) | [Русский](./README.ru.md)
 
-Der ultimative Agent Orchestrator für agentisches Coding.
+Das tragbare, rollenbasierte Agenten-Harness für ernsthaftes KI-gestütztes Engineering.
 
-Orchestrieren Sie 10 spezialisierte Domain-Agenten (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) über **Serena Memory**. Mit paralleler CLI-Ausführung, Echtzeit-Observability-Dashboards und Zero-Config Progressive Skill Loading. Die All-in-One-Lösung für agentisches Coding.
+Orchestrieren Sie 10 spezialisierte Domain-Agenten (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) über **Serena Memory**. `oh-my-agent` verwendet `.agents/` als Single Source of Truth für tragbare Fähigkeiten und Workflows und projiziert dann Kompatibilität auf andere KI-IDEs und CLIs. Es kombiniert rollenbasierte Agenten, explizite Workflows, Echtzeit-Observability und standardbewusste Anleitung für Teams, die weniger KI-Chaos und eine diszipliniertere Ausführung wünschen.
 
 > **Gefällt Ihnen dieses Projekt?** Geben Sie ihm einen Stern!
 >

@@ -1,12 +1,12 @@
-# oh-my-agent: Multi-Agent Harness
+# oh-my-agent: Draagbaar Multi-Agent Harnas
 
 [![npm version](https://img.shields.io/npm/v/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![npm downloads](https://img.shields.io/npm/dm/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![GitHub stars](https://img.shields.io/github/stars/first-fluke/oh-my-agent?style=flat&logo=github)](https://github.com/first-fluke/oh-my-agent) [![License](https://img.shields.io/github/license/first-fluke/oh-my-agent)](https://github.com/first-fluke/oh-my-agent/blob/main/LICENSE) [![Last Updated](https://img.shields.io/github/last-commit/first-fluke/oh-my-agent?label=updated&logo=git)](https://github.com/first-fluke/oh-my-agent/commits/main)
 
 [English](../README.md) | [한국어](./README.ko.md) | [中文](./README.zh.md) | [Português](./README.pt.md) | [日本語](./README.ja.md) | [Français](./README.fr.md) | [Español](./README.es.md) | [Polski](./README.pl.md) | [Русский](./README.ru.md) | [Deutsch](./README.de.md)
 
-De Ultimate Agent Orchestrator voor agentisch programmeren.
+Het draagbare, rolgebaseerde agentharnas voor serieuze AI-ondersteunde engineering.
 
-Orkestreer 10 gespecialiseerde domein agents (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) via **Serena Memory**. Biedt parallelle CLI-uitvoering, realtime observability dashboards en zero-config progressieve skill loading. De alles-inbegrepen oplossing voor agentisch programmeren.
+Orkestreer 10 gespecialiseerde domeinagents (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) via **Serena Memory**. `oh-my-agent` gebruikt `.agents/` als de enige bron van waarheid voor draagbare vaardigheden en workflows, en projecteert vervolgens compatibiliteit naar andere AI IDE's en CLI's. Het combineert rolgebaseerde agents, expliciete workflows, realtime waarneembaarheid en standaardbewuste begeleiding voor teams die minder AI-rommel en een meer gedisciplineerde uitvoering willen.
 
 > **Vind je dit project leuk?** Geef het een ster!
 >

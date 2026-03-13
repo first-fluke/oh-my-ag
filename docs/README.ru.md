@@ -1,12 +1,12 @@
-# oh-my-agent: Мультиагентный оркестратор
+# oh-my-agent: Портативная мультиагентная среда
 
 [![npm version](https://img.shields.io/npm/v/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![npm downloads](https://img.shields.io/npm/dm/oh-my-agent?color=cb3837&logo=npm)](https://www.npmjs.com/package/oh-my-agent) [![GitHub stars](https://img.shields.io/github/stars/first-fluke/oh-my-agent?style=flat&logo=github)](https://github.com/first-fluke/oh-my-agent) [![License](https://img.shields.io/github/license/first-fluke/oh-my-agent)](https://github.com/first-fluke/oh-my-agent/blob/main/LICENSE) [![Last Updated](https://img.shields.io/github/last-commit/first-fluke/oh-my-agent?label=updated&logo=git)](https://github.com/first-fluke/oh-my-agent/commits/main)
 
 [English](../README.md) | [한국어](./README.ko.md) | [中文](./README.zh.md) | [Português](./README.pt.md) | [日本語](./README.ja.md) | [Français](./README.fr.md) | [Español](./README.es.md) | [Nederlands](./README.nl.md) | [Polski](./README.pl.md) | [Deutsch](./README.de.md)
 
-Идеальный мультиагентный оркестратор для агентного программирования.
+Портативная ролевая среда агентов для серьезной разработки с использованием ИИ.
 
-Управляйте 10 специализированными доменными агентами (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) через **Serena Memory**. Параллельное выполнение через CLI, информационные панели реального времени и постепенная загрузка навыков без настройки. Готовое решение для агентного программирования.
+Управляйте 10 специализированными доменными агентами (PM, Frontend, Backend, DB, Mobile, QA, Debug, Brainstorm, DevWorkflow, Terraform) через **Serena Memory**. `oh-my-agent` использует `.agents/` в качестве источника истины для портативных навыков и рабочих процессов, а затем проецирует совместимость на другие ИИ IDE и CLI. Он сочетает в себе ролевых агентов, явные рабочие процессы, наблюдаемость в реальном времени и руководство с учетом стандартов для команд, которым нужно меньше ИИ-мусора и более дисциплинированное выполнение.
 
 > **Понравился проект?** Поставьте звезду!
 >
