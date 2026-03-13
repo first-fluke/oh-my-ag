@@ -1,9 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import {
-  createManifest,
-  REPOSITORY_URL,
-} from "../generate-manifest.js";
+import { createManifest, REPOSITORY_URL } from "../generate-manifest.js";
 
 function readJson(path: URL) {
   return JSON.parse(readFileSync(path, "utf-8")) as Record<string, unknown>;
@@ -36,7 +33,8 @@ describe("package metadata", () => {
     );
 
     expect(workspacePackage.name).toBe("oh-my-agent-workspace");
-    expect(workspacePackage.version).toBe("2.0.0");
+    const cliPackage = readJson(new URL("../package.json", import.meta.url));
+    expect(workspacePackage.version).toBe(cliPackage.version);
   });
 });
 
