@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.4.2](https://github.com/first-fluke/oh-my-agent/compare/cli-v2.4.1...cli-v2.4.2) (2026-03-14)
+
+
+### Documentation
+
+* **backend-agent:** add ORM guidance ([f9a9339](https://github.com/first-fluke/oh-my-agent/commit/f9a93393dc55c40e88db7d34b32cc2913e88a07e))
+
+
+### Miscellaneous
+
+* sync prompt-manifest.json [skip ci] ([adbd40f](https://github.com/first-fluke/oh-my-agent/commit/adbd40fffab3a80f6f69ac0a9cf84ca6b0c3ce9d))
+
 ## [2.4.1](https://github.com/first-fluke/oh-my-agent/compare/cli-v2.4.0...cli-v2.4.1) (2026-03-13)
 
 
