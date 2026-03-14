@@ -1,5 +1,5 @@
 ---
-description: Thorough version of coordinate - high-quality development workflow with 11 review steps out of 17
+description: Ultrawork - high-quality 5-phase development workflow with 11 review steps out of 17
 ---
 
 # MANDATORY RULES — VIOLATION IS FORBIDDEN
@@ -26,8 +26,8 @@ description: Thorough version of coordinate - high-quality development workflow 
 5. Read `.agents/skills/_shared/quality-principles.md` (4 principles)
 6. Read `.agents/skills/_shared/phase-gates.md` (gate definitions)
 7. Record session start using memory write tool:
-   - Create `session-coordinate-pro.md` in the memory base path
-   - Include: session start time, user request summary, workflow version (pro)
+   - Create `session-ultrawork.md` in the memory base path
+   - Include: session start time, user request summary, workflow version (ultrawork)
 
 ---
 
@@ -63,7 +63,7 @@ Activate PM Agent to execute Steps 1-4:
 - [ ] Over-engineering review done
 - [ ] **User confirmation**
 
-**On gate pass**: Use memory edit tool to record phase completion in `session-coordinate-pro.md`
+**On gate pass**: Use memory edit tool to record phase completion in `session-ultrawork.md`
 
 **Gate failure → Return to Step 1**
 
@@ -90,7 +90,7 @@ wait
 1. Use memory read tool to poll `progress-{agent}.md` files
 2. Use MCP code analysis tools to verify implementation alignment
 3. Check for `result-{agent}.md` files to confirm completion
-4. Use memory edit tool to record monitoring results in `session-coordinate-pro.md`
+4. Use memory edit tool to record monitoring results in `session-ultrawork.md`
 
 **Continue polling until all agents report completion or failure.**
 
@@ -99,7 +99,7 @@ wait
 - [ ] Tests pass
 - [ ] Only planned files modified
 
-**On gate pass**: Use memory edit tool to record phase completion in `session-coordinate-pro.md`
+**On gate pass**: Use memory edit tool to record phase completion in `session-ultrawork.md`
 
 **Gate failure → Return to Step 5, re-spawn failed agents, and repeat monitoring until GATE passes.**
 
@@ -120,7 +120,7 @@ Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 3 Verification. Step 6: A
 
 1. Use memory read tool to poll `progress-qa-agent.md`
 2. Check for `result-qa-agent.md` to confirm completion
-3. Use memory edit tool to record QA results in `session-coordinate-pro.md`
+3. Use memory edit tool to record QA results in `session-ultrawork.md`
 
 **Continue polling until QA Agent reports completion.**
 
@@ -139,7 +139,7 @@ Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 3 Verification. Step 6: A
 - [ ] HIGH count: 0
 - [ ] No regressions
 
-**On gate pass**: Use memory edit tool to record phase completion in `session-coordinate-pro.md`
+**On gate pass**: Use memory edit tool to record phase completion in `session-ultrawork.md`
 
 **Gate failure → Return to Step 5, fix implementation issues, and repeat VERIFY phase until GATE passes.**
 
@@ -160,7 +160,7 @@ Command: `oh-my-ag agent:spawn debug-agent "Execute Phase 4 Refine. Step 9: Spli
 
 1. Use memory read tool to poll `progress-debug-agent.md`
 2. Check for `result-debug-agent.md` to confirm completion
-3. Use memory edit tool to record refinement results in `session-coordinate-pro.md`
+3. Use memory edit tool to record refinement results in `session-ultrawork.md`
 
 **Continue polling until Debug Agent reports completion.**
 
@@ -185,7 +185,7 @@ Command: `oh-my-ag agent:spawn debug-agent "Execute Phase 4 Refine. Step 9: Spli
 - [ ] Side effects verified
 - [ ] Code cleaned
 
-**On gate pass**: Use memory edit tool to record phase completion in `session-coordinate-pro.md`
+**On gate pass**: Use memory edit tool to record phase completion in `session-ultrawork.md`
 
 **Gate failure → Re-spawn Debug Agent with specific issues and repeat until GATE passes.**
 
@@ -208,7 +208,7 @@ Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 5 Ship. Step 14: Quality 
 
 1. Use memory read tool to poll `progress-qa-agent.md`
 2. Check for `result-qa-agent.md` to confirm completion
-3. Use memory edit tool to record final QA results in `session-coordinate-pro.md`
+3. Use memory edit tool to record final QA results in `session-ultrawork.md`
 
 **Continue polling until QA Agent reports completion.**
 
@@ -231,7 +231,7 @@ Command: `oh-my-ag agent:spawn qa-agent "Execute Phase 5 Ship. Step 14: Quality 
 - [ ] Deployment checklist complete
 - [ ] **User final approval**
 
-**On gate pass**: Use memory write tool to record final results in `session-coordinate-pro.md`
+**On gate pass**: Use memory write tool to record final results in `session-ultrawork.md`
 
 **Gate failure → Address issues, re-run affected steps, and repeat until GATE passes.**
 

@@ -63,7 +63,7 @@ flowchart TD
         direction TB
         W0["/brainstorm"]
         W1["/coordinate"]
-        W1b["/coordinate-pro"]
+        W1b["/ultrawork"]
         W2["/orchestrate"]
         W3["/plan"]
         W4["/review"]
@@ -124,10 +124,16 @@ flowchart TD
 ### 前置条件
 
 - **AI IDE**（Antigravity, Claude Code, Codex, Gemini, etc.）
-- **Bun**（用于 CLI 和仪表盘）
-- **uv**（用于 Serena 配置）
 
-### 选项 1：交互式 CLI（推荐）
+### 选项 1：一行安装（推荐）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.sh | bash
+```
+
+自动检测并安装缺失的依赖项（bun、uv），然后启动交互式设置。
+
+### 选项 2：手动安装
 
 ```bash
 # Install bun if you don't have it:
@@ -150,7 +156,7 @@ bunx oh-my-agent
 | 📱 移动端 | brainstorm, mobile, pm, qa, debug, commit |
 | 🚀 DevOps | brainstorm, tf-infra, dev-workflow, pm, qa, debug, commit |
 
-### 选项 2：全局安装（用于编排器）
+### 选项 3：全局安装（用于编排器）
 
 若要全局使用核心工具或运行 SubAgent Orchestrator：
 
@@ -167,7 +173,7 @@ bun install --global oh-my-agent
 | Codex | `bun install --global @openai/codex` | `codex auth` |
 | Qwen | `bun install --global @qwen-code/qwen` | `qwen auth` |
 
-### 选项 3：集成到现有项目
+### 选项 4：集成到现有项目
 
 **推荐（CLI）：**
 

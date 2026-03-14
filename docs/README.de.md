@@ -71,7 +71,7 @@ flowchart TD
         direction TB
         W0["/brainstorm"]
         W1["/coordinate"]
-        W1b["/coordinate-pro"]
+        W1b["/ultrawork"]
         W2["/orchestrate"]
         W3["/plan"]
         W4["/review"]
@@ -132,10 +132,16 @@ Eine Sammlung von **Agent Skills**, die kollaborative Multi-Agent-Entwicklung er
 ### Voraussetzungen
 
 - **AI IDE** (Antigravity, Claude Code, Codex, Gemini, etc.)
-- **Bun** (für CLI und Dashboards)
-- **uv** (für Serena-Setup)
 
-### Option 1: Interaktive CLI (Empfohlen)
+### Option 1: Ein-Zeilen-Installation (Empfohlen)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.sh | bash
+```
+
+Erkennt und installiert automatisch fehlende Abhängigkeiten (bun, uv) und startet dann die interaktive Einrichtung.
+
+### Option 2: Manuelle Installation
 
 ```bash
 # Installieren Sie bun, falls noch nicht vorhanden:
@@ -158,7 +164,7 @@ Wählen Sie Ihren Projekttyp und Skills werden in `.agents/skills/` installiert.
 | 📱 Mobile | brainstorm, mobile, pm, qa, debug, commit |
 | 🚀 DevOps | brainstorm, tf-infra, dev-workflow, pm, qa, debug, commit |
 
-### Option 2: Globale Installation (Für Orchestrator)
+### Option 3: Globale Installation (Für Orchestrator)
 
 Um die Core-Tools global zu verwenden oder den SubAgent Orchestrator auszuführen:
 
@@ -175,7 +181,7 @@ Sie benötigen außerdem mindestens ein CLI-Tool:
 | Codex | `bun install --global @openai/codex` | `codex auth` |
 | Qwen | `bun install --global @qwen-code/qwen` | `qwen auth` |
 
-### Option 3: In bestehendes Projekt integrieren
+### Option 4: In bestehendes Projekt integrieren
 
 **Empfohlen (CLI):**
 

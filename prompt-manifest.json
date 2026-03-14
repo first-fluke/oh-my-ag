@@ -1,7 +1,7 @@
 {
   "name": "oh-my-agent",
   "version": "2.5.0",
-  "releaseDate": "2026-03-14T12:40:10.273Z",
+  "releaseDate": "2026-03-14T12:49:14.527Z",
   "repository": "https://github.com/first-fluke/oh-my-agent",
   "files": [
     {
@@ -486,8 +486,8 @@
     },
     {
       "path": ".agents/skills/pm-agent/resources/plan-phase-protocol.md",
-      "sha256": "e319f2891e3ca606865eebc4be1ddea2e7cb9f71040b396610eec2fbf414a984",
-      "size": 1334
+      "sha256": "94f3ac117ab56b1575c825be252a6bf7dd7342476f80b12d6e9f1673df851a51",
+      "size": 1329
     },
     {
       "path": ".agents/skills/pm-agent/resources/task-template.json",
@@ -531,8 +531,8 @@
     },
     {
       "path": ".agents/skills/qa-agent/resources/verify-ship-protocol.md",
-      "sha256": "4910fabc7950a0378d9853ca72236b5c4896f83bd95e6ebaa5b9cdfa0e1f317c",
-      "size": 2346
+      "sha256": "bed7d4368fdba49c095f4046c0b9bb509a45ef7bad750359a5b85708b7f0e894",
+      "size": 2341
     },
     {
       "path": ".agents/skills/tf-infra-agent/SKILL.md",
@@ -573,11 +573,6 @@
       "path": ".agents/workflows/brainstorm.md",
       "sha256": "715869f165e994c58e52a847f250abf1e278e6bcf9224fe76f0fd2a1b7c59d16",
       "size": 2921
-    },
-    {
-      "path": ".agents/workflows/coordinate-pro.md",
-      "sha256": "6cbd28195f9c118bc5c2e4328828112d6b751b361a95d6a936dbc13f10efd24c",
-      "size": 9536
     },
     {
       "path": ".agents/workflows/coordinate.md",
@@ -623,6 +618,11 @@
       "path": ".agents/workflows/tools.md",
       "sha256": "549d6180fb3f68b6a603e18c15b699cb995b2d620c0fc786004ace4372a2b174",
       "size": 4917
+    },
+    {
+      "path": ".agents/workflows/ultrawork.md",
+      "sha256": "14569e2092e35479f2edceee73368fd7b8d03fb31c754fd08a0f4620ad50cb10",
+      "size": 9479
     }
   ],
   "checksums": {

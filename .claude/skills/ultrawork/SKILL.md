@@ -1,6 +1,6 @@
 ---
 name: ultrawork
-description: 5단계 17스텝 Phase Gate 오케스트레이션 (= coordinate-pro)
+description: 5단계 17스텝 Phase Gate 오케스트레이션
 disable-model-invocation: true
 ---
 
@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 다음 파일을 순서대로 읽고 따르세요:
 
-1. `.agents/workflows/coordinate-pro.md` (정식 워크플로우 — 5 Phase, 17 Steps)
+1. `.agents/workflows/ultrawork.md` (정식 워크플로우 — 5 Phase, 17 Steps)
 2. `.agents/skills/orchestrator/SKILL.md` (오케스트레이터 설정)
 3. `.agents/skills/_shared/multi-review-protocol.md` (11 리뷰 스텝)
 4. `.agents/skills/_shared/skill-routing.md` (에이전트 라우팅)

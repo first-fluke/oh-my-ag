@@ -71,7 +71,7 @@ flowchart TD
         direction TB
         W0["/brainstorm"]
         W1["/coordinate"]
-        W1b["/coordinate-pro"]
+        W1b["/ultrawork"]
         W2["/orchestrate"]
         W3["/plan"]
         W4["/review"]
@@ -132,10 +132,16 @@ flowchart TD
 ### 前提条件
 
 - **AI IDE** (Antigravity, Claude Code, Codex, Gemini, etc.)
-- **Bun** (CLIとダッシュボード用)
-- **uv** (Serenaセットアップ用)
 
-### オプション1: 対話型CLI (推奨)
+### オプション1: ワンライン インストール（推奨）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.sh | bash
+```
+
+不足している依存関係（bun、uv）を自動的に検出してインストールし、対話型セットアップを起動します。
+
+### オプション2: 手動インストール
 
 ```bash
 # bunがない場合は先にインストール:
@@ -158,7 +164,7 @@ bunx oh-my-agent
 | 📱 Mobile | brainstorm, mobile, pm, qa, debug, commit |
 | 🚀 DevOps | brainstorm, tf-infra, dev-workflow, pm, qa, debug, commit |
 
-### オプション2: グローバルインストール (Orchestrator用)
+### オプション3: グローバルインストール (Orchestrator用)
 
 コアツールをグローバルに使用するか、SubAgent Orchestratorを実行するには:
 
@@ -175,7 +181,7 @@ bun install --global oh-my-agent
 | Codex | `bun install --global @openai/codex` | `codex auth` |
 | Qwen | `bun install --global @qwen-code/qwen` | `qwen auth` |
 
-### オプション3: 既存プロジェクトへの統合
+### オプション4: 既存プロジェクトへの統合
 
 **推奨方法 (CLI):**
 

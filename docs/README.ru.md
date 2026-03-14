@@ -71,7 +71,7 @@ flowchart TD
         direction TB
         W0["/brainstorm"]
         W1["/coordinate"]
-        W1b["/coordinate-pro"]
+        W1b["/ultrawork"]
         W2["/orchestrate"]
         W3["/plan"]
         W4["/review"]
@@ -132,10 +132,16 @@ flowchart TD
 ### Предварительные требования
 
 - **AI IDE** (Antigravity, Claude Code, Codex, Gemini, etc.)
-- **Bun** (для CLI и информационных панелей)
-- **uv** (для настройки Serena)
 
-### Вариант 1: Интерактивный CLI (Рекомендуется)
+### Вариант 1: Установка одной строкой (Рекомендуется)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.sh | bash
+```
+
+Автоматически определяет и устанавливает отсутствующие зависимости (bun, uv), затем запускает интерактивную настройку.
+
+### Вариант 2: Ручная установка
 
 ```bash
 # Установите bun, если у вас его нет:
@@ -158,7 +164,7 @@ bunx oh-my-agent
 | 📱 Mobile | brainstorm, mobile, pm, qa, debug, commit |
 | 🚀 DevOps | brainstorm, tf-infra, dev-workflow, pm, qa, debug, commit |
 
-### Вариант 2: Глобальная установка (Для оркестратора)
+### Вариант 3: Глобальная установка (Для оркестратора)
 
 Чтобы использовать основные инструменты глобально или запустить SubAgent Orchestrator:
 
@@ -175,7 +181,7 @@ bun install --global oh-my-agent
 | Codex | `bun install --global @openai/codex` | `codex auth` |
 | Qwen | `bun install --global @qwen-code/qwen` | `qwen auth` |
 
-### Вариант 3: Интеграция в существующий проект
+### Вариант 4: Интеграция в существующий проект
 
 **Рекомендуется (CLI):**
 

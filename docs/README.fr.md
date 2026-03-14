@@ -71,7 +71,7 @@ flowchart TD
         direction TB
         W0["/brainstorm"]
         W1["/coordinate"]
-        W1b["/coordinate-pro"]
+        W1b["/ultrawork"]
         W2["/orchestrate"]
         W3["/plan"]
         W4["/review"]
@@ -132,10 +132,16 @@ Une collection de **Compétences Agent** permettant le développement collaborat
 ### Prérequis
 
 - **AI IDE** (Antigravity, Claude Code, Codex, Gemini, etc.)
-- **Bun** (pour CLI et tableaux de bord)
-- **uv** (pour configuration Serena)
 
-### Option 1 : CLI interactive (Recommandé)
+### Option 1 : Installation en une ligne (Recommandé)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.sh | bash
+```
+
+Détecte et installe automatiquement les dépendances manquantes (bun, uv), puis lance la configuration interactive.
+
+### Option 2 : Installation manuelle
 
 ```bash
 # Installez bun si vous ne l'avez pas :
@@ -158,7 +164,7 @@ Sélectionnez votre type de projet et les compétences seront installées dans `
 | 📱 Mobile | brainstorm, mobile, pm, qa, debug, commit |
 | 🚀 DevOps | brainstorm, tf-infra, dev-workflow, pm, qa, debug, commit |
 
-### Option 2 : Installation globale (Pour Orchestrator)
+### Option 3 : Installation globale (Pour Orchestrator)
 
 Pour utiliser les outils principaux globalement ou exécuter le SubAgent Orchestrator :
 
@@ -175,7 +181,7 @@ Vous aurez également besoin d'au moins un outil CLI :
 | Codex | `bun install --global @openai/codex` | `codex auth` |
 | Qwen | `bun install --global @qwen-code/qwen` | `qwen auth` |
 
-### Option 3 : Intégrer dans un projet existant
+### Option 4 : Intégrer dans un projet existant
 
 **Recommandé (CLI) :**
 

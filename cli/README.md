@@ -27,7 +27,7 @@ flowchart TD
         direction TB
         W0["/brainstorm"]
         W1["/coordinate"]
-        W1b["/coordinate-pro"]
+        W1b["/ultrawork"]
         W2["/orchestrate"]
         W3["/plan"]
         W4["/review"]
@@ -165,20 +165,6 @@ You'll also need at least one CLI tool:
 | Claude | `curl -fsSL https://claude.ai/install.sh \| bash` | `claude auth` |
 | Codex | `bun install --global @openai/codex` | `codex auth` |
 | Qwen | `bun install --global @qwen-code/qwen` | `qwen auth` |
-
-### Option 3: Integrate into Existing Project
-
-**Recommended (CLI):**
-
-Run the following command in your project root to automatically install/update skills and workflows:
-
-```bash
-bunx oh-my-agent
-```
-
-> **Tip:** Run `bunx oh-my-agent doctor` after installation to verify everything is set up correctly (including global workflows).
-
-
 
 ### 2. Chat
 

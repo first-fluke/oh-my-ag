@@ -68,7 +68,7 @@ describe("skills.ts - Workflow and Config Installation", () => {
       const expectedFiles = [
         "brainstorm.md",
         "coordinate.md",
-        "coordinate-pro.md",
+        "ultrawork.md",
         "debug.md",
         "orchestrate.md",
         "plan.md",

@@ -1,6 +1,6 @@
 # PLAN Phase Protocol
 
-Execution guide for PLAN Phase (Steps 1-4) in coordinate-pro workflow.
+Execution guide for PLAN Phase (Steps 1-4) in ultrawork workflow.
 
 ---
 

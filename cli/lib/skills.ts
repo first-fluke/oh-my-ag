@@ -221,7 +221,7 @@ export async function installWorkflows(targetDir: string): Promise<void> {
   const files = [
     "brainstorm.md",
     "coordinate.md",
-    "coordinate-pro.md",
+    "ultrawork.md",
     "debug.md",
     "orchestrate.md",
     "plan.md",
@@ -355,7 +355,7 @@ export async function installGlobalWorkflows(): Promise<void> {
   const files = [
     "brainstorm.md",
     "coordinate.md",
-    "coordinate-pro.md",
+    "ultrawork.md",
     "debug.md",
     "orchestrate.md",
     "plan.md",

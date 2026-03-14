@@ -16,7 +16,7 @@
 |:------------|:-------------|:---------|
 | `/orchestrate` | `orchestrate.md` | 병렬 서브에이전트 + Review Loop |
 | `/coordinate` | `coordinate.md` | TaskCreate + Issue Remediation Loop |
-| `/ultrawork` | `coordinate-pro.md` | 5-Phase Gate Loop |
+| `/ultrawork` | `ultrawork.md` | 5-Phase Gate Loop |
 | `/plan` | `plan.md` | inline PM 분석 |
 | `/exec-plan` | `exec-plan.md` | inline 플랜 관리 |
 | `/brainstorm` | `brainstorm.md` | inline 디자인 탐색 |

@@ -1,6 +1,6 @@
 # VERIFY/SHIP Phase Protocol
 
-Execution guide for VERIFY Phase (Steps 6-8) and SHIP Phase (Steps 14-17) in coordinate-pro workflow.
+Execution guide for VERIFY Phase (Steps 6-8) and SHIP Phase (Steps 14-17) in ultrawork workflow.
 
 ---
 

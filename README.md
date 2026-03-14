@@ -27,7 +27,7 @@ flowchart TD
         direction TB
         W0["/brainstorm"]
         W1["/coordinate"]
-        W1b["/coordinate-pro"]
+        W1b["/ultrawork"]
         W2["/orchestrate"]
         W3["/plan"]
         W4["/review"]
@@ -95,7 +95,7 @@ Claude Code has first-class native integration beyond symlinks:
 - **`.claude/agents/`** — 7 subagent definitions spawned via Task tool (backend-impl, frontend-impl, mobile-impl, db-impl, qa-reviewer, debug-investigator, pm-planner)
 - **Native loop patterns** — Review Loop, Issue Remediation Loop, and Phase Gate Loop using synchronous Task tool results instead of CLI polling
 
-Domain skills (backend-agent, frontend-agent, etc.) remain as symlinks from `.agents/skills/`. Workflow skills are native SKILL.md files that reference the original `.agents/workflows/*.md` as the source of truth.
+Domain skills (backend-agent, frontend-agent, etc.) remain as symlinks from `.agents/skills/`. Workflow skills are native SKILL.md files that reference the corresponding `.agents/workflows/*.md` source of truth.
 
 ## The `.agents` Spec
 
@@ -134,10 +134,16 @@ A collection of **Agent Skills** enabling collaborative multi-agent development.
 ### Prerequisites
 
 - **AI IDE** (Antigravity, Claude Code, Codex, Gemini, etc.)
-- **Bun** (for CLI and dashboards)
-- **uv** (for Serena setup)
 
-### Option 1: Interactive CLI (Recommended)
+### Option 1: One-Line Install (Recommended)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.sh | bash
+```
+
+Automatically detects and installs missing dependencies (bun, uv), then launches the interactive setup.
+
+### Option 2: Manual Install
 
 ```bash
 # Install bun if you don't have it:
@@ -160,7 +166,7 @@ Select your project type and skills will be installed to `.agents/skills/`, with
 | 📱 Mobile | brainstorm, mobile, pm, qa, debug, commit |
 | 🚀 DevOps | brainstorm, tf-infra, dev-workflow, pm, qa, debug, commit |
 
-### Option 2: Global Installation (For Orchestrator)
+### Option 3: Global Installation (For Orchestrator)
 
 To use the core tools globally or run the SubAgent Orchestrator:
 
@@ -176,20 +182,6 @@ You'll also need at least one CLI tool:
 | Claude | `curl -fsSL https://claude.ai/install.sh \| bash` | `claude auth` |
 | Codex | `bun install --global @openai/codex` | `codex auth` |
 | Qwen | `bun install --global @qwen-code/qwen` | `qwen auth` |
-
-### Option 3: Integrate into Existing Project
-
-**Recommended (CLI):**
-
-Run the following command in your project root to automatically install/update skills and workflows:
-
-```bash
-bunx oh-my-agent
-```
-
-> **Tip:** Run `bunx oh-my-agent doctor` after installation to verify everything is set up correctly (including global workflows).
-
-
 
 ### 2. Chat
 
