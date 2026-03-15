@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.0](https://github.com/first-fluke/oh-my-agent/compare/cli-v2.8.1...cli-v2.9.0) (2026-03-15)
+
+
+### Features
+
+* **plugin:** add Claude Code plugin manifest and marketplace ([91d9c1b](https://github.com/first-fluke/oh-my-agent/commit/91d9c1ba0db9e9ad6af5f2651dcb8d36f227fb93))
+
 ## [2.8.1](https://github.com/first-fluke/oh-my-agent/compare/cli-v2.8.0...cli-v2.8.1) (2026-03-15)
 
 
