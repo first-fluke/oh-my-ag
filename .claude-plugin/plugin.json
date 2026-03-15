@@ -1,0 +1,24 @@
+{
+  "name": "oma",
+  "version": "2.7.0",
+  "description": "Portable multi-agent harness for .agents-based skills and workflows across Claude Code, Codex, Gemini, and more",
+  "author": {
+    "name": "First Fluke",
+    "email": "our.first.fluke@gmail.com",
+    "url": "https://github.com/first-fluke"
+  },
+  "homepage": "https://github.com/first-fluke/oh-my-agent",
+  "repository": "https://github.com/first-fluke/oh-my-agent",
+  "license": "MIT",
+  "keywords": [
+    "multi-agent",
+    "orchestrator",
+    "skills",
+    "workflows",
+    "claude-code",
+    "codex",
+    "gemini"
+  ],
+  "skills": "./.claude/skills/",
+  "agents": "./.claude/agents/"
+}

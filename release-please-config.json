@@ -28,6 +28,11 @@
           "type": "json",
           "path": ".agents/skills/_version.json",
           "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": ".claude-plugin/plugin.json",
+          "jsonpath": "$.version"
         }
       ]
     },

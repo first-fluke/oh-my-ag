@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "first-fluke/oh-my-agent",
+  "owner": {
+    "name": "First Fluke",
+    "url": "https://github.com/first-fluke"
+  },
+  "plugins": [
+    {
+      "name": "oh-my-agent",
+      "description": "Portable multi-agent harness for .agents-based skills and workflows",
+      "category": "productivity",
+      "tags": ["multi-agent", "orchestrator", "skills", "workflows"],
+      "source": "./"
+    }
+  ]
+}
