@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.7.0](https://github.com/first-fluke/oh-my-agent/compare/cli-v2.6.0...cli-v2.7.0) (2026-03-15)
+
+
+### Features
+
+* **cli:** install Claude Code native skills and agents on install/update ([2fd5627](https://github.com/first-fluke/oh-my-agent/commit/2fd562760e8a3a1ac8b1f1cb3b5f23a86193792e))
+
+
+### Refactoring
+
+* **claude-skills:** make all skills self-contained, remove Required Reading indirection ([ef3868d](https://github.com/first-fluke/oh-my-agent/commit/ef3868d85e529071ab221e8ea53df9791c8ee4c1))
+
 ## [2.6.0](https://github.com/first-fluke/oh-my-agent/compare/cli-v2.5.0...cli-v2.6.0) (2026-03-15)
 
 
