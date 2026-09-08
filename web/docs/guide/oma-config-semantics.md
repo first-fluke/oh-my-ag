@@ -5,18 +5,21 @@ description: Per-key precedence rules for oma-config.yaml when both project and 
 
 ## Overview
 
-`oma-config.yaml` can live in two locations:
+Configuration can live in project or global locations, and supports both CUE (primary schema-backed format) and YAML:
 
-- **Project**: `<cwd>/.agents/oma-config.yaml`
-- **Global**: `~/.agents/oma-config.yaml`
+- **Local project**: `<cwd>/.agents/oma-config.local.cue` or `.local.yaml` (highest precedence, gitignored)
+- **Shared project**: `<cwd>/.agents/oma-config.cue` (evaluated first) or `oma-config.yaml`
+- **Global**: `~/.agents/oma-config.cue` or `~/.agents/oma-config.yaml`
 
-When both files exist, the project file wins for every key. This is intentional: per-project customization is the more specific signal and should not be overridden by a user-wide default.
+When both project and global files exist, the project layer wins for every key. Within a layer, CUE is evaluated first and falls back to YAML if CUE evaluation fails or is absent.
 
 ## Precedence table
 
 | Key | Project wins? | Notes |
 |-----|:---:|-------|
 | `auto_update_cli` | Yes | Project value overrides global. Implemented in `resolveAutoUpdateCli` (`cli/commands/update/auto-update-config.ts`). |
+| `providers.code_intelligence` | Yes | Code intelligence provider: `serena` (default) or `gortex`. Replaces legacy Serena-only defaults. |
+| `providers.semantic_memory` | Yes | Semantic memory provider: `agentmemory`, `honcho`, or `none`. |
 | `serena.mode` | Yes | Serena MCP transport: `bridge` (shared per-project server) or `stdio` (one serena per session). |
 | `serena.auto_update` | Yes | Upgrade `serena-agent` during `oma update` (`uv tool upgrade serena-agent --prerelease=allow`). |
 | `telemetry` | Yes | Vendor telemetry opt-in (`true` / `false`). |

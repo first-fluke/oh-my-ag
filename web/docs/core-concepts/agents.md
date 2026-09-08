@@ -36,7 +36,7 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 | **Localization** | oma-translation | Context-aware translation preserving tone, register, and domain terms |
 | **Coordination** | oma-orchestration, oma-coordination | Automated and manual multi-agent orchestration |
 | **Git** | oma-scm | Conventional Commits generation, feature-based commit splitting |
-| **Search & Retrieval** | oma-search | Intent-based search router with trust scoring (Context7 docs, web, `gh`/`glab` code, Serena local) |
+| **Search & Retrieval** | oma-search | Intent-based search router with trust scoring (Context7 docs, web, `gh`/`glab` code, local code intelligence) |
 | **Retrospective** | oma-recap | Cross-tool conversation history analysis and themed work summaries |
 | **Document Processing** | oma-hwp, oma-pdf | HWP/HWPX/HWPML and PDF to Markdown conversion for LLM/RAG ingestion |
 | **Documentation** | oma-docs | Documentation drift detection (verify broken refs, propose sync patches for diff-affected docs) |
@@ -367,10 +367,10 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 - Search for similar patterns elsewhere
 - Document in `.agents/results/`
 
-**Serena MCP tools used:**
-- `find_symbol("functionName")`: locate the function
-- `find_referencing_symbols("Component")`: find all usages
-- `search_for_pattern("error pattern")`: find similar issues
+**Code intelligence tools used (Gortex or Serena):**
+- `find_symbol("functionName")` or Gortex symbol navigation: locate the function
+- `find_referencing_symbols("Component")` or Gortex impact analysis: find all usages
+- `search_for_pattern("error pattern")` or Gortex search: find similar issues
 
 **Resources:** `execution-protocol.md`, `common-patterns.md`, `debugging-checklist.md`, `bug-report-template.md`, `error-playbook.md`, `examples.md`.
 
@@ -473,11 +473,11 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 
 ### oma-search
 
-**Domain:** Intent-based search router with domain trust scoring. Routes queries to Context7 (docs), native web search, `gh`/`glab` (code), Serena (local).
+**Domain:** Intent-based search router with domain trust scoring. Routes queries to Context7 (docs), native web search, `gh`/`glab` (code), local code intelligence (Gortex or Serena).
 
 **When to use:** Finding official library/framework documentation, web research for tutorials/examples/comparisons/solutions, GitHub/GitLab code search for implementation patterns, any query where the search channel is unclear (auto-routing), other skills that need search infrastructure (shared invocation).
 
-**When NOT to use:** Local-only codebase exploration (use Serena MCP directly), Git history or blame analysis (use oma-scm), full architecture research (use oma-architecture, which may invoke this skill internally).
+**When NOT to use:** Local-only codebase exploration (use code intelligence MCP directly), Git history or blame analysis (use oma-scm), full architecture research (use oma-architecture, which may invoke this skill internally).
 
 **Core rules:**
 - Classify intent before searching; every query goes through IntentClassifier first
@@ -485,7 +485,7 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 - Trust score every result; all non-local results get domain trust labels from the registry
 - Flags override classifier: `--docs`, `--code`, `--web`, `--strict`, `--wide`, `--gitlab`
 - Fail forward: if the primary route fails, fall back gracefully (docs→web, web→`oma search fetch` strategies)
-- No additional MCP required: Context7 for docs, runtime-native for web, CLI for code, Serena for local
+- No additional MCP required: Context7 for docs, runtime-native for web, CLI for code, configured provider (Gortex or Serena) for local
 - Vendor-agnostic web search: use whatever the current runtime provides (WebSearch, Google, Bing)
 - Domain-level trust only; no sub-path or page-level scoring
 

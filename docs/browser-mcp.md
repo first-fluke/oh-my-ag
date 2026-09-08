@@ -49,7 +49,11 @@ All 14 installable OMA vendors have an explicit browser MCP adapter. Paths below
 | Hermes | User configuration only | `~/.hermes/config.yaml` | `mcp_servers`, YAML |
 | ZCode | `.zcode/config.json` | `~/.zcode/cli/config.json` | `mcp.servers`, JSON |
 
-Native environment overrides are respected: `CODEX_HOME`, `KIMI_CODE_HOME`, `PI_CODING_AGENT_DIR`, `HERMES_HOME`, and OpenCode's `XDG_CONFIG_HOME`. OpenCode updates existing project-root and `.opencode/` JSON/JSONC configurations so higher-priority files do not retain an obsolete OMA browser selection. JSONC and YAML comments and unrelated settings are preserved. Kiro browser entries previously written to `settings/cli.json` are removed from that incorrect location and reconciled into `settings/mcp.json`.
+Native environment overrides are respected: `CODEX_HOME`, `KIMI_CODE_HOME`, `PI_CODING_AGENT_DIR`, `HERMES_HOME`, and OpenCode's `XDG_CONFIG_HOME`. OpenCode updates existing project-root and `.opencode/` JSON/JSONC configurations so higher-priority files do not retain an obsolete OMA browser selection. JSONC and YAML comments and unrelated settings are preserved.
+
+<!-- oma-docs:ignore-start -->
+Kiro browser entries previously written to `settings/cli.json` are removed from that incorrect location and reconciled into `settings/mcp.json`.
+<!-- oma-docs:ignore-end -->
 
 Pi needs `pi-mcp-adapter`: OMA adds `npm:pi-mcp-adapter` to `.pi/settings.json` (or the global agent directory's `settings.json`). Pi automatically installs missing registered packages on startup after project trust. Existing pinned adapter packages and other packages are retained. Selecting no browsers removes the browser entries without uninstalling the adapter, which may serve other MCP servers.
 

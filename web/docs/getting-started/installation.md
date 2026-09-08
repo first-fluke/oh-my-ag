@@ -7,10 +7,10 @@ description: Complete installation guide for oh-my-agent, covering three install
 
 ## Prerequisites
 
-- **An AI-powered IDE or CLI**: at least one of Claude Code, Gemini CLI, Codex CLI, Qwen CLI, Antigravity CLI (`agy`), Antigravity IDE, Cursor, OpenCode, or Kimi Code CLI
+- **An AI-powered IDE or CLI**: at least one of Claude Code, Codex CLI, Qwen Code, Antigravity CLI (`agy`), Antigravity IDE, Cursor, OpenCode, Kimi Code CLI, Kiro, CommandCode, or pi
 - **bun**: JavaScript runtime and package manager (auto-installed by the install script if missing)
 - **uv**: Python package manager (auto-installed if missing)
-- **serena-agent**: Serena MCP binary, installed globally via `uv tool install -p 3.13 serena-agent@latest --prerelease=allow` (auto-installed by the install script if missing)
+- **Code intelligence provider**: Serena (default for fresh install scripts, installed via uv tool) or [Gortex](https://github.com/zzet/gortex) (installed via Homebrew/binary). OMA supports selectable code intelligence providers via `oma install --code-intelligence <serena|gortex>`.
 
 ---
 
@@ -28,11 +28,11 @@ irm https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.p
 
 Both bootstrap scripts behave the same way:
 1. Detects your platform (macOS, Linux, or Windows)
-2. Checks for bun, uv, and serena — installing them if missing
-3. Runs the interactive installer with preset selection
-4. Creates `.agents/` with your selected skills
-5. Sets up `.claude/` integration layer (hooks, symlinks, settings)
-6. Configures Serena MCP if detected
+2. Checks for bun and uv (and serena if chosen) — installing them if missing
+3. Runs the interactive installer with preset and provider selection
+4. Creates `.agents/` with your selected skills and configuration
+5. Sets up runtime integration layers (hooks, symlinks, settings for detected vendors)
+6. Configures code-intelligence and memory MCP servers
 
 Typical install time: under 60 seconds.
 
@@ -244,11 +244,14 @@ agents:
 |-------|------|----------|-------------|
 | `language` | string | Yes | Response language code. Supports en, ko, ja, zh, es, fr, de, pt, ru, nl, pl. |
 | `model_preset` | string | Yes | Active preset key. One of the built-in keys (`antigravity`, `claude`, `codex`, `qwen`, `cursor`, `mixed`) or a `custom_presets` key. See [Per-Agent Models](../guide/per-agent-models.md). |
+| `providers` | map | No | Capability providers: `code_intelligence` (`serena` or `gortex`), `docs` (`context7`), `web` (`native` or `brave`), `semantic_memory` (`agentmemory`, `honcho`, or `none`). See [Capability Providers](../../../docs/capability-providers.md). |
 | `date_format` | string | No | Timestamp format (`ISO`, `US`, `EU`). Default: `ISO`. |
 | `timezone` | string | No | Timezone identifier (e.g., `Asia/Seoul`). Default: `UTC`. |
 | `agents` | map | No | Partial per-agent overrides (object-only `AgentSpec`). Shallow-merged over preset defaults. |
 | `models` | map | No | User-defined model slugs, formerly in `models.yaml`. |
 | `custom_presets` | map | No | User-defined presets. Supports `extends:` for partial inheritance from a built-in preset. |
+
+> **Configuration format:** `.agents/oma-config.cue` is the primary schema-backed configuration format. If present, it takes precedence over `.agents/oma-config.yaml`.
 
 ### Vendor resolution
 
@@ -266,12 +269,12 @@ oma doctor
 
 This command checks:
 - All required CLI tools are installed and accessible
-- MCP server configuration is valid
+- MCP server configuration is valid (Serena, Gortex, Context7, DevTools)
 - Skill files exist with valid SKILL.md frontmatter
-- Symlinks in `.claude/skills/` point to valid targets
-- Hooks are properly configured in `.claude/settings.json`
-- Memory provider is reachable (Serena MCP)
-- `oma-config.yaml` is valid YAML with required fields
+- Symlinks and hook scripts point to valid targets
+- Hooks are properly configured in vendor settings files
+- Selected code-intelligence and memory providers are reachable
+- `oma-config.cue` / `oma-config.yaml` is valid with required fields
 
 If anything is wrong, `oma doctor` tells you exactly what to fix, with copy-paste commands.
 

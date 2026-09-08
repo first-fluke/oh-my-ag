@@ -8,21 +8,27 @@ The installer can then project compatibility to other tool-specific directories 
 
 | Tool / IDE | Project Skill Path | Status | Interop Mode | Notes |
 |------------|--------------------|--------|--------------|-------|
-| Antigravity | `.agents/skills/` | First-class | Native | Primary source-of-truth layout; reads `.agents/agents/` directly but no custom subagent spawning |
+| Antigravity | `.agents/skills/` | First-class | Native | Primary source-of-truth layout; reads `.agents/agents/` directly |
 | Claude Code | `.claude/skills/` + `.claude/agents/` | First-class | Native + Adapter | Domain skill symlinks + thin router workflow skills, subagents generated from `.agents/agents/`, and CLAUDE.md |
 | Codex CLI | `.codex/agents/` + `.agents/skills/` | First-class | Native + Adapter | Agent definitions generated as TOML from `.agents/agents/`; same-vendor tasks can dispatch natively |
-| Gemini CLI | `.gemini/agents/` + `.agents/skills/` | Deprecated (2026-06-18) | Native + Adapter | Google is migrating users to Antigravity CLI; existing integrations keep working but new projects should target the `antigravity` preset. See `cli/utils/gemini-deprecation.ts`. |
-| OpenCode | `.agents/skills/` | First-class | Native-compatible | Shares the same project-level source |
-| Amp | `.agents/skills/` | First-class | Native-compatible | Shares the same project-level source |
-| Cursor | `.cursor/skills/` + `.cursor/rules/*.mdc` | First-class | Native + Adapter | `oma install` / `oma link cursor` materializes skills, rules, MCP symlink, and AGENTS.md from `.agents/`; `cursor-agent` is dispatched natively via the `cursor` preset |
-| GitHub Copilot | `.github/skills/` | Supported | Optional symlink | Created when selected during install |
-| Grok Build | `.agents/skills/` (direct) + `.grok/hooks/` + `.grok/agents/` | Native + Hooks + Agents | Supported (hooks + agent variant) |
+| CommandCode | `.commandcode/hooks/` + `.mcp.json` | First-class | Native + Adapter | Shares `.mcp.json` with Claude; hook variants and agents generated from `.agents/` |
+| Cursor | `.cursor/skills/` + `.cursor/rules/*.mdc` + `.cursor/agents/` | First-class | Native + Adapter | `oma install` / `oma link cursor` materializes skills, rules, MCP symlink, and AGENTS.md from `.agents/`; `@agent-name` subagents |
+| Grok Build | `.agents/skills/` (direct) + `.grok/hooks/` + `.grok/agents/` | Native + Hooks + Agents | Supported | Hooks + agent variant |
+| Kimi Code CLI | `~/.kimi-code/` + `.kimi-code/mcp.json` | First-class | Native + Adapter | Reads `.agents/skills/` natively; hooks and agents generated via variant |
+| Kiro | `.kiro/settings/mcp.json` + `.kiro/agents/` + `.kiro/hooks/` | First-class | Native + Adapter | Project MCP config, hooks, and agent definitions |
+| OpenCode | `.agents/skills/` + plugin | First-class | In-process plugin | Pi-class plugin integration; loads hooks as extensions |
 | pi | `.agents/skills/` + `.pi/prompts/` + `.pi/extensions/oma/` | Supported | Native skills + Extension bridge | Pi loads OMA skills directly, workflow prompts via `.pi/prompts`, and keyword/test hooks through a TypeScript extension bridge. |
+| Qwen Code | `.qwen/settings.json` + `.qwen/hooks/` + `.qwen/agents/` | First-class | Native + Adapter | Project settings, hooks, and native agent definitions |
+| GitHub Copilot | `.github/skills/` + `.github/mcp.json` | Supported | Optional symlink + MCP | Created when selected during install; native project MCP in `.github/mcp.json` |
+| Hermes | User config `~/.hermes/config.yaml` | Supported | User-scoped MCP | User-level MCP configuration |
+| ZCode | `.zcode/commands/` + `.zcode/config.json` | Supported | Workflow slash-commands | Flat `.md` workspace slash-commands and MCP config |
+| Gemini CLI | `.gemini/agents/` + `.agents/skills/` | Deprecated (2026-06-18) | Native + Adapter | Migrating to Antigravity CLI; existing integrations keep working. See `cli/utils/gemini-deprecation.ts`. |
+| Amp | `.agents/skills/` | First-class | Native-compatible | Shares the same project-level source |
 
 ## Vendor Adaptation
 
 <!-- oma-docs:ignore-start -->
-> **slug-based dispatch.** Vendor selection is now driven by model slugs resolved against `CORE_REGISTRY` (12 verified slugs) plus user additions via `.agents/config/models.yaml`. Per-agent overrides and the active runtime profile live in `.agents/oma-config.yaml`. See [web/docs/guide/per-agent-models.md](../web/docs/guide/per-agent-models.md).
+> **slug-based dispatch.** Vendor selection is now driven by model slugs resolved against `CORE_REGISTRY` (12 verified slugs) plus user additions via `.agents/config/models.yaml`. Per-agent overrides and the active runtime profile live in `.agents/oma-config.cue` or `.agents/oma-config.yaml`. See [web/docs/guide/per-agent-models.md](../web/docs/guide/per-agent-models.md).
 <!-- oma-docs:ignore-end -->
 
 Abstract agent definitions in `.agents/agents/` are vendor-neutral (name, description, skills only). The CLI generates vendor-specific files:
@@ -31,9 +37,14 @@ Abstract agent definitions in `.agents/agents/` are vendor-neutral (name, descri
 |--------|---------------|--------|-------------------|
 | Claude Code | `.claude/agents/*.md` | Markdown with frontmatter | Task tool |
 | Codex CLI | `.codex/agents/*.toml` | TOML | Native |
+| CommandCode | `.commandcode/agents/*.md` | Markdown | Native / Task tool |
+| Cursor | `.cursor/agents/*.md` | Markdown | `@agent-name` native |
 | Gemini CLI | `.gemini/agents/*.md` | Markdown | Native |
-| Antigravity | (reads `.agents/agents/` directly) | YAML | Not supported (no custom subagents) |
+| Antigravity | (reads `.agents/agents/` directly) | YAML | Native / subagent API |
 | Grok Build | `.grok/agents/` (generated) + `.grok/hooks/` | Markdown + JSON | Supported via variant |
+| Kimi Code CLI | `~/.kimi-code/agents/` | Markdown | Native / variant |
+| Kiro | `.kiro/agents/` | Markdown | Native |
+| Qwen Code | `.qwen/agents/` | Markdown | `oma agent spawn --vendor qwen` |
 | pi | `.pi/prompts/*.md` + `.pi/extensions/oma/` | Prompt templates + TypeScript extension | External via `oma agent spawn --vendor pi` |
 
 ## What “First-class” Means
@@ -72,8 +83,8 @@ Instead:
 
 For each planned agent:
 
-1. Resolve the target vendor from `.agents/oma-config.yaml`
-2. If `target_vendor === current_runtime_vendor`, use the runtime's native agent file (`.claude/agents`, `.codex/agents`, `.gemini/agents`)
+1. Resolve the target vendor from `.agents/oma-config.cue` or `.agents/oma-config.yaml`
+2. If `target_vendor === current_runtime_vendor`, use the runtime's native agent file (`.claude/agents`, `.codex/agents`, `.cursor/agents`, etc.)
 3. Otherwise, fall back to `oma agent spawn`
 
 ## Related Docs

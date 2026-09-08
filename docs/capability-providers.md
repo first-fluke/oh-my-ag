@@ -196,8 +196,10 @@ Existing custom Gortex entries keep their chosen preset. An inherited
 `GORTEX_TOOLS` environment variable takes precedence over the CLI flag.
 
 Generated agent instructions route code-intelligence work to Gortex and override
-Serena-specific skill routing. The CLI hook dispatcher suppresses the Serena
-primer. OMA does not run `gortex install`, `gortex init`, or `gortex track`.
+Serena-specific skill routing. The `code-intelligence-primer` hook detects the active
+code-intelligence provider and injects Gortex primer guidance (`[OMA GORTEX PRIMER]`)
+into sessions, replacing the Serena primer. OMA does not run `gortex install`,
+`gortex init`, or `gortex track`.
 
 Previous native Serena/Gortex entries are saved in
 `.agents/state/provider-mcp.json`. Switching back to Serena restores these entries

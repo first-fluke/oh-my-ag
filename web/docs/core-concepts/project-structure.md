@@ -1,11 +1,11 @@
 ---
 title: Project Structure
-description: Exhaustive directory tree of an oh-my-agent installation with every file and directory explained, covering .agents/ (config, skills, workflows, agents, state, state/memories, results, mcp.json), .claude/ (settings, hooks, skills symlinks, agents), .serena/memories/, and the oh-my-agent source repo structure.
+description: Exhaustive directory tree of an oh-my-agent installation with every file and directory explained, covering .agents/ (config, skills, workflows, agents, state, state/memories, results, mcp.json), vendor integration layers (.claude/, .cursor/, .codex/, etc.), and the oh-my-agent source repo structure.
 ---
 
 # Project Structure
 
-After installing oh-my-agent, your project gains three directory trees: `.agents/` (the single source of truth, including the `.agents/state/memories/` coordination store), `.claude/` (IDE integration layer), and `.serena/` (Serena MCP onboarding memories, plus a legacy coordination fallback). This page documents every file and its purpose.
+After installing oh-my-agent, your project gains two core directory trees: `.agents/` (the single source of truth, including the `.agents/state/memories/` coordination store) and runtime integration layers (e.g. `.claude/`, `.cursor/`, `.codex/`). If Serena is chosen as the code-intelligence provider, an optional `.serena/` directory may also exist for Serena's onboarding memories. This page documents every file and its purpose.
 
 ---
 
@@ -14,7 +14,7 @@ After installing oh-my-agent, your project gains three directory trees: `.agents
 ```
 your-project/
 ├── .agents/                          ← Single Source of Truth (SSOT)
-│   ├── oma-config.yaml           ← Language, model_preset, agent overrides
+│   ├── oma-config.cue / .yaml    ← Language, model_preset, providers, agent overrides
 │   │
 │   ├── skills/
 │   │   ├── _shared/                  ← Resources used by ALL agents
@@ -266,10 +266,10 @@ your-project/
 │       ├── frontend-engineer.md
 │       └── ...
 │
-└── .serena/                           ← Serena MCP (onboarding memories + legacy fallback)
+└── .serena/                           ← Optional: Serena MCP (only created if Serena is used)
     └── memories/                       ← Serena's own onboarding knowledge (code_style.md,
-        │                                 project_purpose.md, ...); also the legacy
-        │                                 coordination fallback for pre-move projects
+        │                                 project_purpose.md, ...); legacy coordination
+        │                                 fallback for older projects
         └── ...
 ```
 
@@ -427,7 +427,7 @@ hooks/
 ├── skill-injector.ts      ← dead copy
 ├── state-boundary.ts      ← dead copy
 ├── test-filter.ts         ← dead copy
-├── serena-primer.ts       ← dead copy
+├── code-intelligence-primer.ts ← dead copy
 ├── triggers.json          ← dead copy (inlined into the oma binary)
 ├── types.ts, constants.ts, fs-utils.ts, hook-output.ts,
 │   agentmemory-client.ts, agy-input.ts,
@@ -535,7 +535,6 @@ oh-my-agent/
 ├── docs/                 ← Translated READMEs and specifications
 ├── .agents/              ← EDITABLE in source repo (this IS the source)
 ├── .claude/              ← IDE integration
-├── .serena/              ← Development runtime state
 ├── CLAUDE.md             ← Project instructions for Claude Code
 └── package.json          ← Root workspace config
 ```
