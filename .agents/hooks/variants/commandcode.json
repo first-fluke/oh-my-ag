@@ -8,7 +8,7 @@
   "events": {
     "SessionStart": [
       {
-        "hook": "serena-primer.ts",
+        "hook": "code-intelligence-primer.ts",
         "timeout": 3
       },
       {

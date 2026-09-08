@@ -31,11 +31,12 @@ vi.mock("node:fs", () => ({
   appendFileSync: vi.fn(),
 }));
 
-// Import all six handlers — each must export `run`.
-const [kd, si, sp, sb, tf, pm] = await Promise.all([
+// Import all handlers — each must export `run`.
+const [kd, si, sp, cip, sb, tf, pm] = await Promise.all([
   import("../../.agents/hooks/core/keyword-detector.ts"),
   import("../../.agents/hooks/core/skill-injector.ts"),
   import("../../.agents/hooks/core/serena-primer.ts"),
+  import("../../.agents/hooks/core/code-intelligence-primer.ts"),
   import("../../.agents/hooks/core/state-boundary.ts"),
   import("../../.agents/hooks/core/test-filter.ts"),
   import("../../.agents/hooks/core/persistent-mode.ts"),
@@ -45,6 +46,7 @@ const handlers = [
   { name: "keyword-detector", mod: kd },
   { name: "skill-injector", mod: si },
   { name: "serena-primer", mod: sp },
+  { name: "code-intelligence-primer", mod: cip },
   { name: "state-boundary", mod: sb },
   { name: "test-filter", mod: tf },
   { name: "persistent-mode", mod: pm },

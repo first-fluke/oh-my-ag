@@ -13,16 +13,13 @@
       "type": "http",
       "url": "https://mcp.context7.com/mcp"
     },
-    "serena": {
-      "command": "oma",
+    "gortex": {
+      "command": "gortex",
       "args": [
-        "bridge",
-        "--context",
-        "oma"
-      ],
-      "env": {
-        "SERENA_LOG_LEVEL": "info"
-      }
+        "mcp",
+        "--tools",
+        "compact"
+      ]
     }
   }
 }

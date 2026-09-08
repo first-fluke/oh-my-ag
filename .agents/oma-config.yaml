@@ -63,6 +63,10 @@ auto_update_cli: true
 #                     Remote Control becomes eligible).
 telemetry: false
 
+# Capability providers (docs, web, code_intelligence, semantic_memory)
+providers:
+  code_intelligence: gortex
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 2. Model selection
 # ─────────────────────────────────────────────────────────────────────────────

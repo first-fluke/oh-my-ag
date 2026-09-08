@@ -36,5 +36,8 @@ it.each(["serena", "gortex"])(
     expect(result.output.includes("[OMA SERENA PRIMER]")).toBe(
       provider === "serena",
     );
+    expect(result.output.includes("[OMA GORTEX PRIMER]")).toBe(
+      provider === "gortex",
+    );
   },
 );

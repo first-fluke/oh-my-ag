@@ -349,6 +349,11 @@ package config
 	auto_update_cli:   true
 	telemetry:         false
 
+	// ── Provider integrations ──
+	providers: {
+		code_intelligence: "gortex"
+	}
+
 	// ── 2. Model selection ──
 	// Follow the current vendor's agent/model settings; explicit agents overrides win.
 	model_preset: "auto"

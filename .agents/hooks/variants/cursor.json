@@ -21,7 +21,7 @@
         "timeout": 3
       },
       {
-        "hook": "serena-primer.ts",
+        "hook": "code-intelligence-primer.ts",
         "timeout": 3
       }
     ],
@@ -56,7 +56,7 @@
     ],
     "sessionStart": [
       {
-        "hook": "serena-primer.ts",
+        "hook": "code-intelligence-primer.ts",
         "timeout": 3
       },
       {

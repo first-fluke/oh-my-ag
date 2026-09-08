@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "gortex": {
+      "type": "local",
+      "command": "gortex",
+      "args": [
+        "mcp",
+        "--tools",
+        "compact"
+      ],
+      "tools": [
+        "*"
+      ]
+    }
+  }
+}

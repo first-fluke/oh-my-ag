@@ -1,6 +1,7 @@
 // Hook router + merge — design 019, Section 2.
 // This module owns routing (vendor × event → handler chain) and merge rules.
 
+import * as codeIntelligencePrimer from "../../../.agents/hooks/core/code-intelligence-primer.js";
 import { resolveGitRoot } from "../../../.agents/hooks/core/fs-utils.js";
 import {
   makeBlockOutput,
@@ -13,7 +14,6 @@ import * as keywordDetector from "../../../.agents/hooks/core/keyword-detector.j
 import * as persistentMode from "../../../.agents/hooks/core/persistent-mode.js";
 import * as refactorGuard from "../../../.agents/hooks/core/refactor-guard.js";
 import * as scmGuard from "../../../.agents/hooks/core/scm-guard.js";
-import * as serenaPrimer from "../../../.agents/hooks/core/serena-primer.js";
 import * as skillInjector from "../../../.agents/hooks/core/skill-injector.js";
 import * as stateBoundary from "../../../.agents/hooks/core/state-boundary.js";
 import * as testFilter from "../../../.agents/hooks/core/test-filter.js";
@@ -50,7 +50,6 @@ import qwenVariant from "../../../.agents/hooks/variants/qwen.json" with {
 };
 import { withSelectedHookMemory } from "../../state/hook-memory.js";
 import type { VendorType } from "../../types/vendors.js";
-import { loadProviders } from "../../utils/providers.js";
 import { nativeEventToKind, normalizeInput } from "./adapters.js";
 import type {
   HandlerCtx,
@@ -73,7 +72,8 @@ type RunFn = (
 const HANDLER_REGISTRY: Readonly<Record<string, RunFn>> = {
   "keyword-detector": keywordDetector.run,
   "skill-injector": skillInjector.run,
-  "serena-primer": serenaPrimer.run,
+  "code-intelligence-primer": codeIntelligencePrimer.run,
+  "serena-primer": codeIntelligencePrimer.run,
   "state-boundary": stateBoundary.run,
   "scm-guard": scmGuard.run,
   "refactor-guard": refactorGuard.run,
@@ -331,12 +331,7 @@ export async function runHookDispatch(req: HookRequest): Promise<HookResponse> {
   // runs), falling back to the wrapper's process cwd. State files resolve here.
   const projectRoot = resolveGitRoot(input.cwd || cwd);
 
-  const providers = loadProviders(projectRoot);
-  const chain = resolveChain(vendor, nativeEvent).filter(
-    (handler) =>
-      providers.code_intelligence !== "gortex" ||
-      handler.id !== "serena-primer",
-  );
+  const chain = resolveChain(vendor, nativeEvent);
   if (chain.length === 0) {
     return { output: "" };
   }

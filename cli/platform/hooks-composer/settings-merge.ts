@@ -16,6 +16,7 @@ import { safeWriteJson } from "../../utils/safe-write.js";
 const OMA_CORE_SCRIPT_NAMES = new Set([
   "keyword-detector",
   "skill-injector",
+  "code-intelligence-primer",
   "serena-primer",
   "state-boundary",
   "scm-guard",

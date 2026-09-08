@@ -19,7 +19,7 @@ Resolve each agent from `.agents/oma-config.cue` or `.agents/oma-config.yaml`, o
 
 ## Code Search
 
-Serena MCP is required for code search and discovery. Load deferred tools before use. Use native search/read only when Serena is unavailable or times out, or for plain non-code content.
+Gortex is the selected code-intelligence provider (experimental). Use its MCP tools for code search, navigation, impact, contracts and edits. This selection overrides Serena-specific routing in installed skills. Load deferred tools before use. Use native search/read when Gortex is unavailable or times out; do not silently enable Serena. Never run gortex install/init or track additional repositories automatically; repository tracking requires explicit user consent. Context7 remains the documentation provider. OMA workflow state and verification stay in .agents/state/.
 
 ## Workflows
 
