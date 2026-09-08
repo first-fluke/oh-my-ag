@@ -1,19 +1,19 @@
 ---
 title: oh-my-agent을 선택하는 이유
-description: 포화된 multi-agent CLI 시장에서 oh-my-agent의 포지셔닝. 비용 축이 구현에서 테스트·유지보수로 이동했고, oh-my-agent은 그 이동에 맞춰 quality gate, 독립 검증, multi-vendor dispatch, repo-native 커스터마이즈를 제공합니다.
+description: 포화된 multi-agent CLI 시장에서 oh-my-agent의 포지셔닝. 개발 비용의 중심이 구현에서 테스트·유지보수로 옮겨갔고, oh-my-agent은 그 변화에 맞춰 quality gate, 독립 검증, multi-vendor dispatch, repo-native 커스터마이즈를 제공합니다.
 ---
 
 # oh-my-agent을 선택하는 이유
 
-multi-agent CLI 카테고리는 이미 포화 상태입니다. 지난 분기에만 Metateam, OpenSwarm, DevSquad, Praktor, Salacia, Codelegate, agent-of-empires, TTal, Maggy 등 20개가 넘는 multi-agent orchestrator가 등장했습니다. 대부분은 같은 축, 곧 에이전트가 코드를 더 빠르게 쓰게 만드는 축을 최적화합니다.
+multi-agent CLI 카테고리는 이미 포화 상태입니다. 지난 분기에만 Metateam, OpenSwarm, DevSquad, Praktor, Salacia, Codelegate, agent-of-empires, TTal, Maggy 등 20개가 넘는 multi-agent orchestrator가 등장했습니다. 대부분은 오직 한 가지, 즉 에이전트가 코드를 더 빠르게 작성하도록 만드는 데만 집중합니다.
 
-oh-my-agent은 다른 축을 최적화합니다. 충분히 강한 모델 환경에서 SDLC의 분석·설계·구현 비용은 0에 수렴합니다. 비용은 이제 테스트와 유지보수 쪽에 쌓입니다. 첫 커밋 이후에도 시스템이 동작하고, 안전하며, 이해할 수 있는 상태를 유지하는 일입니다. oh-my-agent은 그 축을 중심으로 설계되었습니다.
+oh-my-agent은 전혀 다른 문제를 해결합니다. 충분히 강한 모델 환경에서 SDLC의 분석·설계·구현 비용은 0에 수렴합니다. 비용은 이제 테스트와 유지보수 쪽에 쌓입니다. 첫 커밋 이후에도 시스템이 동작하고, 안전하며, 이해할 수 있는 상태를 유지하는 일입니다. oh-my-agent은 바로 이 사후 검증과 유지보수를 중심으로 설계되었습니다.
 
 이 페이지는 그 포지셔닝을 구체화합니다. 이 관점을 처음 논의한 내용은 [issue #155](https://github.com/first-fluke/oh-my-agent/issues/155#issuecomment-4142133589)에 있습니다.
 
 ---
 
-## 비용 축이 이동했다
+## 비용의 중심이 바뀌었다
 
 충분히 강한 모델 하나가 몇 분 만에 작동하는 기능을 만들어내면, 병목은 더 이상 구현 처리량이 아닙니다. 병목은 다른 데 있습니다. 산출물이 주장한 대로 작동하는지 검증하고, iteration 사이에 조용히 생기는 regression을 잡고, 프롬프트와 로그에서 비밀키가 새지 않게 막고, 토큰 소비가 사고로 번지기 전에 드러내는 일입니다.
 

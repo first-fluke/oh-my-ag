@@ -1,11 +1,11 @@
 ---
 title: 벤치마크
-description: 동일한 프롬프트로 5개의 Claude Code harness가 같은 어린이용 3D 학습 플랫폼 MVP를 구축했습니다. oh-my-agent은 functional, spec, visual, engineering, efficiency 5개 축에서 80.6/100점으로 1위를 기록했습니다.
+description: 동일한 프롬프트로 5개의 Claude Code harness가 같은 어린이용 3D 학습 플랫폼 MVP를 구축했습니다. oh-my-agent은 functional, spec, visual, engineering, efficiency 5개 평가 영역에서 80.6/100점으로 1위를 기록했습니다.
 ---
 
 # 벤치마크
 
-5개의 Claude Code harness가 동일한 raw 프롬프트로 같은 어린이용 3D 창의 학습 플랫폼 MVP를 구축했습니다. **oh-my-agent은 80.6/100점으로 1위에 올랐습니다.** 평가 기준은 5축 rubric(functional, spec, visual, engineering, efficiency)입니다.
+5개의 Claude Code harness가 동일한 raw 프롬프트로 같은 어린이용 3D 창의 학습 플랫폼 MVP를 구축했습니다. **oh-my-agent은 80.6/100점으로 1위에 올랐습니다.** 평가 기준은 5가지 평가 항목(functional, spec, visual, engineering, efficiency)입니다.
 
 > 실행 조건: `claude-opus-4-6`, effort `max`, `--max-budget-usd 20`, `--no-session-persistence`, `--setting-sources project,local`. 사용자가 로그인한 `claude` CLI의 OAuth 사용(`ANTHROPIC_API_KEY` 미사용).
 
@@ -55,9 +55,9 @@ description: 동일한 프롬프트로 5개의 Claude Code harness가 같은 어
 
 ---
 
-## 각 축의 산정 방식
+## 평가 항목별 산정 방식
 
-| 축 | 가중치 | 핵심 시그널 | 도구 |
+| 평가 항목 | 가중치 | 핵심 시그널 | 도구 |
 |---|---|---|---|
 | **Functional** | 35 | build exit, dev-server 부팅 (HTTP 200 ≤45s), 5개 user-journey 체크, lint, ts-clean | `pm install/build/lint`, curl, chrome-devtools MCP, `tsc --noEmit` |
 | **Spec** | 15 | 13개 명시적 프롬프트 deliverable, real-API 보너스 | brace-balanced JSON 추출기를 사용하는 LLM judge |
@@ -73,7 +73,7 @@ Spec과 visual judge는 `judge-multi.sh`를 통해 harness당 3회 실행되며,
 
 1. **superpowers 프롬프트 오버라이드**: 비대화형 모드에서 harness가 동작하기 위해 필요한 조치였습니다(해당 harness의 `<HARD-GATE>` brainstorming 스킬이 단발성 실행을 차단합니다). 결과는 "게이트를 우회한 후 superpowers가 발휘할 수 있는 성능"을 반영하며, 순수한 동일 조건 비교는 아닙니다.
 2. **spec과 visual은 다중 judge 평균, journey는 단일 실행**: journey 평가는 라이브 dev server가 필요하므로 단일 실행을 유지합니다. journey 점수 차이가 약 2점 미만이면 노이즈로 보아야 합니다. 표본 크기는 harness당 빌드 1회입니다.
-3. **비용 정규화**: efficiency 축은 파일당 비용을 사용하며, 절대 비용(5개 harness에서 $1.28~$8.19 범위)은 점수에 반영되지 않습니다.
+3. **비용 정규화**: efficiency 항목은 파일당 비용을 사용하며, 절대 비용(5개 harness에서 $1.28~$8.19 범위)은 점수에 반영되지 않습니다.
 4. **oma의 `lint-clean` 감점은 의도된 결과**: oma는 ESLint 전용 규칙을 에이전트 스킬에 내장하는 대신, lint/typecheck 강제는 git hook(husky + lint-staged)과 CI에 위임하도록 의도적으로 설계되어 있습니다. 단발성 벤치마크에서는 이 부분이 `lint-clean`에서 -5점으로 감점되지만, 실제 워크플로우에서는 동일한 이슈가 pre-push 단계에서 차단되어 원격 저장소에 도달하지 않습니다.
 
 ---

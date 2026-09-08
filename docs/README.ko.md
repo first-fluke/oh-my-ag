@@ -262,7 +262,7 @@ agents:
 | **에이전트별 체크 배터리** | `oma verify <agent>`는 공통 코어(스코프 위반, charter alignment, 하드코딩 시크릿, TODO 스캔, declared outputs)에 유형별 체크(TypeScript strict, 테스트, raw SQL, Flutter analyze, 인라인 스타일)를 더해 실행합니다. | `oma verify <agent>` |
 | **스킬 eval 하네스** | `oma skill eval`은 스킬이 도움이 된다고 가정하는 대신, 홀드아웃 태스크에서 treatment와 baseline을 비교해 유용성 향상폭을 측정합니다. `oma skill optimize`는 측정된 향상폭을 높이는 수정만 남깁니다. | [skill-eval 가이드](../web/docs/guide/skill-eval.md) |
 
-예산도 같은 방식으로 강제됩니다. `session.quota_cap`은 토큰, spawn 횟수, 벤더별 지출에 상한을 걸고, 한 축이라도 넘어서면 오케스트레이터가 다음 spawn을 거부합니다. 실행 시간 예산이 바닥나면 Stop hook은 완료한 척하는 대신 부분 상태를 이벤트 로그에 남기고 정직하게 멈춥니다.
+예산도 같은 방식으로 강제됩니다. `session.quota_cap`은 토큰, spawn 횟수, 벤더별 지출에 상한을 걸고, 한도 중 하나라도 넘어서면 오케스트레이터가 다음 spawn을 거부합니다. 실행 시간 예산이 바닥나면 Stop hook은 완료한 척하는 대신 부분 상태를 이벤트 로그에 남기고 정직하게 멈춥니다.
 
 ### 제어 경계
 
