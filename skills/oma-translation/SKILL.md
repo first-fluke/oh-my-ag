@@ -143,6 +143,7 @@ Read the source text and identify:
   - **Interpret**: Discard source image entirely, express the intended meaning directly in natural target language
   - **Substitute**: Replace with a target-language idiom or image that conveys the same idea and emotional effect
   - **Retain**: Keep the original image if it works equally well in the target language
+  - **Mannered-prose constraint**: never introduce a new mannered metaphor absent from the source (shared rule `3a`). When a literal target phrase is available, use it. Never strip a source mannered metaphor by default — route it through Interpret/Substitute/Retain; fidelity to intentional source voice wins over plain style.
 - **Emotional connotations**: Words carrying subjective feeling beyond dictionary meaning (e.g., "alarming" = urgency, "haunting" = lingering unease); note the emotional effect to preserve in translation
 
 #### Stage 2: Extract Meaning
@@ -278,6 +279,7 @@ If any mechanical check fails, revise and re-run. Do not proceed to the rubric u
 **D. Figurative language handling:**
 14. Were all metaphors/idioms handled per the classify decision (interpret/substitute/retain)?
 15. Do figurative expressions read naturally in the target language, not as literal calques?
+16. No mannered prose introduced beyond the source (shared rule `3a`)? When a literal target phrase was available, was it used instead of a new metaphor?
 
 ### Translator's Notes Guidelines
 
@@ -502,6 +504,4 @@ rg "<source-key-or-term>" .
 - The target language profile is loaded, or its absence is acknowledged in the output notes.
 - Placeholder and structure constraints are identifiable.
 - Ambiguities are resolved or explicitly flagged.
-
-### Effects and side effects
 > **Note:** this file exceeded the Agent Skills spec's recommended 500-line body and was mechanically split by `oma emit`. The rest of the content continues in `references/overflow.md`.

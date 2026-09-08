@@ -49,6 +49,20 @@ source's actual tone. If the source is neutral, the translation is neutral.
 - Do not upgrade "good" to "excellent" during translation
 - Do not add marketing flair that was not there
 
+### 3a. Mannered Prose (Added Flourish)
+
+**Avoid introducing:** *a dial worth turning, earns its keep, does the heavy lifting, punches above its weight, unpack/peel back the layers, lean into* — any metaphor or flourish substituted where a direct statement was available.
+
+Mannered prose makes the reader work harder so the writer can perform, and it
+is imprecise because metaphors drag in connotations the writer did not choose
+and cannot control.
+
+Translation direction matters here — this rule constrains the output, not the source:
+
+- Do NOT introduce a mannered metaphor that was not in the source. When a literal target phrase is available, use it.
+- Do NOT strip a source mannered metaphor by default. Handle every source metaphor through the Stage 1 classify decision (Interpret / Substitute / Retain). A source `earns its keep` may Interpret to a plain target statement, or Retain/Substitute when the genre (literary, marketing, essay) requires the image to survive.
+- Fidelity wins over plain style: never flatten intentional source voice to satisfy this rule.
+
 ### 4. Vague Attribution
 
 **Avoid:** *Experts argue, Some critics argue, Industry reports suggest, Observers have cited*
@@ -372,6 +386,7 @@ replaces the other.
 - [ ] No AI vocabulary clustering (5+ flagged words in one paragraph)
 - [ ] No inflated significance added beyond the source
 - [ ] No promotional tone upgrade
+- [ ] No mannered prose introduced beyond the source; source metaphors handled per Interpret/Substitute/Retain
 - [ ] Consistent terminology, no synonym cycling
 - [ ] No source-language word order leaking through
 - [ ] No unnecessary bold or formatting artifacts

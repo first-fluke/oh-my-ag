@@ -247,6 +247,37 @@ Additionally, align with, crucial, delve, leverage, emphasize/emphasizing, endur
 
 - [ ] Zero chatbot artifacts in output
 
+## 11. Mannered Prose (Metaphor for Direct Statement)
+
+**Rule:** Say what you mean. When a literal phrase is available, use it.
+
+Mannered prose substitutes metaphor and flourish for direct statement. It exists
+to display the writer, not to convey the idea. It makes the reader work harder
+so the writer can perform, and it is imprecise because metaphors drag in
+connotations the writer did not choose and cannot control.
+
+### Pattern to Detect
+
+| Mannered | Literal |
+|----------|---------|
+| a dial worth turning | a parameter worth varying |
+| this point earns its keep | this point still matters |
+| does the heavy lifting | accounts for / explains |
+| punches above its weight | outperforms |
+| unpack / peel back the layers | analyze / examine |
+| lean into | emphasize / prefer |
+
+### Fix
+
+- If a literal equivalent exists → replace the metaphor with it.
+- If no literal equivalent exists → keep the metaphor only when it adds precision the literal cannot supply, and ensure its connotations are controlled.
+
+### Self-check
+
+- [ ] No metaphor survives where a literal phrase was available
+- [ ] No flourish performs the writer instead of conveying the idea
+- [ ] Remaining metaphors carry no uncontrolled connotations
+
 ## Final Verification
 
 Run all checks in sequence:
@@ -263,5 +294,6 @@ Run all checks in sequence:
 10. [ ] Zero chatbot artifacts
 11. [ ] Natural sentence flow: colons and em dashes not substituting for proper subordination/coordination
 12. [ ] Claim-evidence alignment: every major claim has cited support
+13. [ ] No mannered prose: literal statement preferred; no metaphor where a literal phrase was available
 
-**Result: PASS only if all 12 checks clear.**
+**Result: PASS only if all 13 checks clear.**

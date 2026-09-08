@@ -1,3 +1,4 @@
+### Effects and side effects
 - Produces translated text or translation review.
 - May modify locale/docs files only when requested.
 - Preserves source structure and placeholders.
@@ -23,6 +24,7 @@
 17. Never "humanize" by inventing personality. Do not add first person, jokes, opinions, examples, facts, citations, stronger emotion, or messiness unless the source or user explicitly calls for adaptation.
 18. When a voice sample is provided, match observable style traits only: rhythm, diction level, punctuation habits, transitions, and paragraph shape. Preserve source meaning and target-language naturalness above mimicry.
 19. Never translate into a language whose profile exists without reading it, and never substitute a different language's profile when none exists for the target. Fall back to the shared files and say so once in the output notes.
+20. Never introduce mannered prose absent from the source: do not substitute a metaphor or flourish where a direct target statement is available (shared rule `3a`; e.g., do not render `a parameter worth varying` as `a dial worth turning`). Never strip intentional source mannered prose by default — handle it via Interpret/Substitute/Retain; fidelity wins over plain style.
 
 ## References
 

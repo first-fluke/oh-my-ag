@@ -140,6 +140,7 @@ Read the source text and identify:
   - **Interpret**: Discard source image entirely, express the intended meaning directly in natural target language
   - **Substitute**: Replace with a target-language idiom or image that conveys the same idea and emotional effect
   - **Retain**: Keep the original image if it works equally well in the target language
+  - **Mannered-prose constraint**: never introduce a new mannered metaphor absent from the source (shared rule `3a`). When a literal target phrase is available, use it. Never strip a source mannered metaphor by default — route it through Interpret/Substitute/Retain; fidelity to intentional source voice wins over plain style.
 - **Emotional connotations**: Words carrying subjective feeling beyond dictionary meaning (e.g., "alarming" = urgency, "haunting" = lingering unease); note the emotional effect to preserve in translation
 
 #### Stage 2: Extract Meaning
@@ -275,6 +276,7 @@ If any mechanical check fails, revise and re-run. Do not proceed to the rubric u
 **D. Figurative language handling:**
 14. Were all metaphors/idioms handled per the classify decision (interpret/substitute/retain)?
 15. Do figurative expressions read naturally in the target language, not as literal calques?
+16. No mannered prose introduced beyond the source (shared rule `3a`)? When a literal target phrase was available, was it used instead of a new metaphor?
 
 ### Translator's Notes Guidelines
 
@@ -526,6 +528,7 @@ rg "<source-key-or-term>" .
 17. Never "humanize" by inventing personality. Do not add first person, jokes, opinions, examples, facts, citations, stronger emotion, or messiness unless the source or user explicitly calls for adaptation.
 18. When a voice sample is provided, match observable style traits only: rhythm, diction level, punctuation habits, transitions, and paragraph shape. Preserve source meaning and target-language naturalness above mimicry.
 19. Never translate into a language whose profile exists without reading it, and never substitute a different language's profile when none exists for the target. Fall back to the shared files and say so once in the output notes.
+20. Never introduce mannered prose absent from the source: do not substitute a metaphor or flourish where a direct target statement is available (shared rule `3a`; e.g., do not render `a parameter worth varying` as `a dial worth turning`). Never strip intentional source mannered prose by default — handle it via Interpret/Substitute/Retain; fidelity wins over plain style.
 
 ## References
 

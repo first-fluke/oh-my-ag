@@ -76,12 +76,13 @@ Produce, revise, and audit publication-grade academic English prose so that ever
 2. Quote the exact constraint text (word limits, structural requirements, mandatory sections, rubric rows) before applying any rule.
 3. If revising or reviewing, read the existing draft in full first; if drafting, confirm available source data and citations.
 4. Index `resources/` and pre-select the verb tier and sentence mix targets for the section.
+5. Apply the literal-first principle before any drafting: prefer direct statement over metaphor and flourish. When a literal phrase is available, use it.
 
 ### Scenes
 1. **PREPARE**: load rubric, existing draft, source data; record quoted constraints; pick sentence mix and 2–3 anchor verbs per paragraph.
 2. **ACQUIRE**: read `resources/sentence-structure-reference.md`, `academic-verb-tiers.md`, and `hedging-guide.md` only for the patterns relevant to the current section.
-3. **ACT**: write or revise prose with the four protocols enforced simultaneously: Sentence Structure (4 types, varied length, varied openers), Verb (no banned generic verbs as main verbs; prefer tier-1/2 academic verbs), Hedging (match strength to evidence), and Topic-Support-Conclude paragraphing.
-4. **VERIFY**: audit against `resources/anti-ai-checklist.md` (vocabulary clusters, structural patterns, sentence-level checks); apply reverse outlining and build the Claim-Evidence Map; weaken or remove unsupported claims.
+3. **ACT**: write or revise prose with the four protocols enforced simultaneously: Sentence Structure (4 types, varied length, varied openers), Verb (no banned generic verbs as main verbs; prefer tier-1/2 academic verbs), Hedging (match strength to evidence), Topic-Support-Conclude paragraphing, and Literal Statement (no mannered metaphor; say what you mean).
+4. **VERIFY**: audit against `resources/anti-ai-checklist.md` (vocabulary clusters, structural patterns, mannered prose §11, sentence-level checks); apply reverse outlining and build the Claim-Evidence Map; weaken or remove unsupported claims.
 5. **FINALIZE**: read-aloud test, cohesion check, specificity audit, word-count verification, paragraph-length variation, rhythm check; emit per the mode's output format.
 
 ### Transitions
@@ -139,7 +140,7 @@ Produce, revise, and audit publication-grade academic English prose so that ever
 1. **READ** rubric/draft and quote the exact literal constraint text; pin word limits, mandatory sections, and rubric rows.
 2. **PLAN** each paragraph as Topic-Support-Conclude; pre-select the sentence-type mix and 2–3 anchor verbs from `academic-verb-tiers.md`.
 3. **DRAFT** prose with Sentence Structure, Verb, Hedging, and Topic-Support-Conclude protocols enforced simultaneously.
-4. **AUDIT** the draft against `resources/anti-ai-checklist.md` (banned vocabulary clusters, banned structural patterns, sentence-level checks) and fix every flag.
+4. **AUDIT** the draft against `resources/anti-ai-checklist.md` (banned vocabulary clusters, banned structural patterns, mannered prose, sentence-level checks) and fix every flag.
 5. **REVERSE-OUTLINE** the section and build the Claim-Evidence Map; weaken or remove any unsupported claim.
 6. **POLISH** with read-aloud, cohesion, specificity, word-count, rhythm, and paragraph-length-variation checks; emit in the mode's output format.
 
@@ -172,6 +173,7 @@ Produce, revise, and audit publication-grade academic English prose so that ever
 8. Em dashes ≤ 1 per paragraph; semicolons ≤ 2 per 1000 words; sentence-case headers; no didactic disclaimers (`It is important to note`) or summary phrases (`In summary`, `Overall`).
 9. Every claim must map to evidence in the Claim-Evidence Map; weaken or remove unsupported claims rather than emit them.
 10. Read aloud before emit; if a sentence does not flow naturally, restructure it.
+11. Prefer literal statement over mannered prose. Mannered prose substitutes metaphor and flourish for direct statement (e.g., `a dial worth turning` for `a parameter worth varying`, `this point earns its keep` for `this point still matters`). It makes the reader work harder so the writer can perform, and it is imprecise because metaphors drag in uncontrolled connotations. When a literal phrase is available, use it.
 
 ## References
 - Anti-AI checklist: `resources/anti-ai-checklist.md`
