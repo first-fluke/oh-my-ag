@@ -1,5 +1,12 @@
 # Changelog
 
+## [14.7.2](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.1...cli-v14.7.2) (2026-09-08)
+
+
+### Documentation
+
+* **skills:** add literal-first mannered-prose rule to writing and translation ([e6bd29c](https://github.com/first-fluke/oh-my-agent/commit/e6bd29ce79119c6435b9f3315494fde5226fedf6))
+
 ## [14.7.1](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.0...cli-v14.7.1) (2026-09-08)
 
 
