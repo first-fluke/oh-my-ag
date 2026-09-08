@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.3.1](https://github.com/first-fluke/oh-my-agent/compare/web-v6.3.0...web-v6.3.1) (2026-09-08)
+
+
+### Documentation
+
+* **i18n:** refine awkward literal translation of axis and dimension in Korean docs ([a9e8156](https://github.com/first-fluke/oh-my-agent/commit/a9e8156e58e4f6e3fd173152608d923262c46153))
+* update code-intelligence providers, cue config, and vendor matrix ([3c18f72](https://github.com/first-fluke/oh-my-agent/commit/3c18f72eddef40a6f797e8240e52622dec48a092))
+
 ## [6.3.0](https://github.com/first-fluke/oh-my-agent/compare/web-v6.2.0...web-v6.3.0) (2026-09-08)
 
 
