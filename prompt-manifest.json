@@ -1,7 +1,7 @@
 {
   "name": "oh-my-agent",
   "version": "14.7.1",
-  "releaseDate": "2026-09-08T22:11:37.357Z",
+  "releaseDate": "2026-09-08T23:38:53.500Z",
   "repository": "https://github.com/first-fluke/oh-my-agent",
   "files": [
     {
@@ -576,8 +576,8 @@
     },
     {
       "path": ".agents/skills/oma-academic-writing/SKILL.md",
-      "sha256": "f763b39ac8b6b18d32f5fad66ffd06901e98d9c1de21cef4118b2c20d7851c48",
-      "size": 13667
+      "sha256": "9a2eae4647967820a832b881ce26b7bd9d6af44c9ea34a0e5488762f25089776",
+      "size": 14339
     },
     {
       "path": ".agents/skills/oma-academic-writing/resources/academic-verb-tiers.md",
@@ -586,8 +586,8 @@
     },
     {
       "path": ".agents/skills/oma-academic-writing/resources/anti-ai-checklist.md",
-      "sha256": "2325ea953c6bc241737743a6bb9ffd93ffa8c06ab443cdb9bee7c9d46b535d7e",
-      "size": 9422
+      "sha256": "fcf036aba5e7ce9ed6cc1a44e67b55bdc3fd2f5a5e64af5ad0f2c78f64c7bfe9",
+      "size": 10756
     },
     {
       "path": ".agents/skills/oma-academic-writing/resources/hedging-guide.md",
@@ -1866,13 +1866,13 @@
     },
     {
       "path": ".agents/skills/oma-translation/SKILL.md",
-      "sha256": "e6fb75cf9da7820a8d41be0ecfeb0e15c3b79d1c83e71560d6c42f66663a3dff",
-      "size": 34450
+      "sha256": "0a548c0e5f1cc29d1f88a56b62fa8f31d0206781d3e68250a5ffb48693a64925",
+      "size": 35309
     },
     {
       "path": ".agents/skills/oma-translation/resources/anti-ai-patterns.md",
-      "sha256": "4cb5d347457777c949d65c1ed430b02ee49e5a58d9cdd573a4295c5fa3198eee",
-      "size": 15620
+      "sha256": "d1995c8099b67df0134cdb8f707a13df3780614cf3e1075b72f5cc02c9bc4bac",
+      "size": 16807
     },
     {
       "path": ".agents/skills/oma-translation/resources/lang/_template.md",
