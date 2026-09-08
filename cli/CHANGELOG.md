@@ -1,5 +1,12 @@
 # Changelog
 
+## [14.7.0](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.6.0...cli-v14.7.0) (2026-09-08)
+
+
+### Features
+
+* **hooks:** generalize code intelligence primer and switch to gortex ([0a8695e](https://github.com/first-fluke/oh-my-agent/commit/0a8695e5897d7c06cbab1d307c741acff7de5b54))
+
 ## [14.6.0](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.5.0...cli-v14.6.0) (2026-09-08)
 
 
