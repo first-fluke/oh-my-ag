@@ -94,6 +94,8 @@ async function scheduleAdd(
     once?: boolean;
     maxAgeDays?: string;
     env?: string;
+    dryRun?: boolean;
+    acceptRounded?: boolean;
   },
 ): Promise<void> {
   // Mutual exclusivity: exactly one of --cron or --every is required
@@ -117,17 +119,42 @@ async function scheduleAdd(
   }
 
   let cronExpr: string;
+  let rounded: string | undefined;
   if (options.every !== undefined) {
     const parsed = parseIntervalToCron(options.every);
-    if (parsed.rounded) {
-      console.log(`Note: ${parsed.rounded}`);
-    }
     cronExpr = parsed.cron;
+    rounded = parsed.rounded;
   } else {
     // options.cron is defined here (narrowed above)
     cronExpr = options.cron as string;
     validateCronExpression(cronExpr);
   }
+
+  const maxAgeDays = options.maxAgeDays ? Number(options.maxAgeDays) : 0;
+  if (
+    options.maxAgeDays !== undefined &&
+    (!Number.isInteger(maxAgeDays) || maxAgeDays < 0)
+  ) {
+    throw new Error("--max-age-days must be a non-negative integer");
+  }
+
+  // Resolve before generating IDs, touching the OS scheduler, manifest, or a
+  // secret-bearing env file. A preview is intentionally side-effect free.
+  if (options.dryRun) {
+    console.log(`Preview: requested interval resolves to ${cronExpr}`);
+    if (rounded) console.log(`Note: ${rounded}`);
+    console.log(
+      "Preview only: no OS job, manifest entry, or env file was written.",
+    );
+    return;
+  }
+  if (rounded && !options.acceptRounded) {
+    console.log(`Note: ${rounded}`);
+    throw new Error(
+      "Interval was rounded. Review with --dry-run, then re-run with --accept-rounded to register it.",
+    );
+  }
+  if (rounded) console.log(`Note: ${rounded}`);
 
   const workspace = options.workspace
     ? path.resolve(options.workspace)
@@ -137,14 +164,6 @@ async function scheduleAdd(
   const id = generateJobId();
   const osJobLabel = `dev.oma.${id}`;
   const recurring = !options.once;
-  const maxAgeDays = options.maxAgeDays ? Number(options.maxAgeDays) : 0;
-
-  if (
-    options.maxAgeDays !== undefined &&
-    (!Number.isInteger(maxAgeDays) || maxAgeDays < 0)
-  ) {
-    throw new Error("--max-age-days must be a non-negative integer");
-  }
 
   const port = await selectAdapter();
 
@@ -421,6 +440,14 @@ export function registerSchedule(program: Command): void {
     .option(
       "--env <keys>",
       "Comma-separated env var NAMES to capture for the run (e.g. OPENAI_API_KEY,FOO)",
+    )
+    .option(
+      "--dry-run",
+      "Preview the resolved cron without creating an OS job, manifest entry, or env file",
+    )
+    .option(
+      "--accept-rounded",
+      "Register an interval rounded by --every after reviewing the preview",
     )
     .action(
       runAction(async (agentId, prompt, options) => {

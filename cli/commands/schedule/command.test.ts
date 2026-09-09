@@ -77,6 +77,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks();
   process.exitCode = 0;
+  delete process.env.SCHED_TEST_FOO;
 });
 
 describe("schedule:add", () => {
@@ -274,19 +275,56 @@ describe("schedule:add --every", () => {
     expect(manifestMock.addJob).not.toHaveBeenCalled();
   });
 
-  it("--every with a rounding case prints the rounding note", async () => {
+  it("refuses a rounded interval before registering jobs or capturing secrets", async () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    // 7m is not a clean divisor of 60 — will be rounded
-    await run("schedule:add", "a", "p", "--every", "7m");
-
-    // The rounding note should have been logged
-    const calls = logSpy.mock.calls.map((c) => String(c[0]));
-    const hasNote = calls.some(
-      (msg) => msg.startsWith("Note:") && msg.includes("7"),
+    process.env.SCHED_TEST_FOO = "secret";
+    await run(
+      "schedule:add",
+      "a",
+      "p",
+      "--every",
+      "7m",
+      "--env",
+      "SCHED_TEST_FOO",
     );
-    expect(hasNote).toBe(true);
-    // Job should still be registered with the rounded cron
-    expect(manifestMock.addJob).toHaveBeenCalledTimes(1);
+
+    const calls = logSpy.mock.calls.map((c) => String(c[0]));
+    expect(calls.some((msg) => msg.includes("Requested every 7m"))).toBe(true);
+    expect(process.exitCode).toBe(1);
+    expect(upsertSpy).not.toHaveBeenCalled();
+    expect(manifestMock.addJob).not.toHaveBeenCalled();
+    expect(fsMock.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it("previews a rounded interval without OS, manifest, or secret side effects", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    process.env.SCHED_TEST_FOO = "secret";
+    await run(
+      "schedule:add",
+      "a",
+      "p",
+      "--every",
+      "7m",
+      "--env",
+      "SCHED_TEST_FOO",
+      "--dry-run",
+    );
+
+    expect(process.exitCode).toBe(0);
+    expect(logSpy.mock.calls.map((c) => String(c[0])).join("\n")).toContain(
+      "Preview: requested interval resolves to */6 * * * *",
+    );
+    expect(upsertSpy).not.toHaveBeenCalled();
+    expect(manifestMock.addJob).not.toHaveBeenCalled();
+    expect(fsMock.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  it("registers a rounded interval only after explicit acceptance", async () => {
+    await run("schedule:add", "a", "p", "--every", "7m", "--accept-rounded");
+
+    expect(process.exitCode).toBe(0);
+    expect(upsertSpy).toHaveBeenCalledTimes(1);
+    expect(manifestMock.addJob.mock.calls[0]?.[0]?.cron).toBe("*/6 * * * *");
   });
 });
 

@@ -37,16 +37,17 @@ If the phrase is ambiguous (e.g. "twice a day", "weekdays at 9am"), ask the user
 
 ---
 
-## Step 3: Register the Job
+## Step 3: Preview and Register the Job
 
-Run the appropriate `oma schedule create` command:
+Resolve the schedule before any job, manifest entry, or captured env file is
+created. Run the appropriate preview command first:
 
 ```bash
 # Natural-language interval
-oma schedule create <agent-id> "<prompt>" --every "<phrase>" [--vendor <vendor>] [--workspace <path>] [--once]
+oma schedule create <agent-id> "<prompt>" --every "<phrase>" --dry-run [--vendor <vendor>] [--workspace <path>] [--once]
 
 # Explicit cron expression
-oma schedule create <agent-id> "<prompt>" --cron "<expr>" [--vendor <vendor>] [--workspace <path>] [--once]
+oma schedule create <agent-id> "<prompt>" --cron "<expr>" --dry-run [--vendor <vendor>] [--workspace <path>] [--once]
 ```
 
 Additional options when the user asks for them:
@@ -54,7 +55,14 @@ Additional options when the user asks for them:
 - `--expires-after <duration>` — auto-expire a recurring job after a duration such as 30d (`0` = indefinite)
 - `--env <keys>` — comma-separated env var **names** to capture for the run (e.g. `OPENAI_API_KEY,FOO`)
 
-If the interval was rounded (the CLI prints a "Note:" line), surface that note to the user and ask for confirmation before continuing.
+If the preview shows a rounding `Note:`, show the requested interval and resolved
+cron to the user. Do not register until they accept the resolved cron. Then run
+the same natural-language command with `--accept-rounded` and without
+`--dry-run`. The CLI refuses a rounded interval without that acceptance and
+does not touch the OS scheduler, manifest, or `--env` secrets.
+
+For an exact cron or interval, the preview requires no extra confirmation.
+Register it by re-running the same command without `--dry-run`.
 
 ---
 
