@@ -35,6 +35,7 @@ import {
   setNeedsReconcile,
   snapshotArtifacts,
 } from "../../platform/manifest.js";
+import { syncProviderMcp } from "../../platform/provider-mcp.js";
 import {
   createVendorSymlinks,
   createVendorWorkflowSymlinks,
@@ -167,10 +168,17 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
       );
     }
 
-    // Reconcile only for migrations that affect projected project files, or
-    // when a previous reconciliation was interrupted.
+    // Reconcile for projected-file migrations, interrupted runs, or provider
+    // selection drift that left vendor-native MCP configuration out of date.
+    const providerMcpNeedsReconcile =
+      syncProviderMcp(cwd, migrationVendors, {
+        global: mode === "global",
+        dryRun: true,
+      }).length > 0;
     const needsReconcile =
-      migrationStatus.requiresReconcile || getNeedsReconcile(cwd);
+      migrationStatus.requiresReconcile ||
+      getNeedsReconcile(cwd) ||
+      providerMcpNeedsReconcile;
 
     // Persist reconcile flag so a failed download doesn't lose the intent
     if (migrationStatus.requiresReconcile && !getNeedsReconcile(cwd)) {
@@ -482,7 +490,7 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
 
         spinner.stop(
           isReconcileOnly
-            ? pc.green("Reconciled after migrations!")
+            ? pc.green("Reconciled project configuration!")
             : `Updated to version ${pc.cyan(remoteManifest.version)}!`,
         );
 
@@ -507,7 +515,7 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
 
         ui.outro(
           isReconcileOnly
-            ? `Reconciled to version ${pc.cyan(remoteManifest.version)}`
+            ? `Reconciled project at version ${pc.cyan(remoteManifest.version)}`
             : `${remoteManifest.metadata?.totalFiles ?? 0} files updated successfully`,
         );
 

@@ -43,13 +43,14 @@ export async function checkCLI(
   name: string,
   command: string,
   installCmd: string,
+  versionArgs: readonly string[] = ["--version"],
 ): Promise<CLICheck> {
   return new Promise<CLICheck>((resolve) => {
     let stdout = "";
     let killGraceTimer: ReturnType<typeof setTimeout> | undefined;
     let settled = false;
 
-    const proc = spawn(command, ["--version"], {
+    const proc = spawn(command, [...versionArgs], {
       stdio: ["ignore", "pipe", "ignore"],
     });
 

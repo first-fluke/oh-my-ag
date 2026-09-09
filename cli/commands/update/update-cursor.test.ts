@@ -1,4 +1,10 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -343,6 +349,34 @@ describe("update cursor vendor adaptations", () => {
 
     expect(serenaState.ensureSerenaProject).not.toHaveBeenCalled();
     expect(serenaState.ensureOmaSerenaContexts).not.toHaveBeenCalled();
+  });
+
+  it("reconciles Gortex MCP drift when the installed version is current", async () => {
+    const projectDir = makeTempRoot("oma-update-gortex-drift-project-");
+    const repoDir = makeTempRoot("oma-update-gortex-drift-repo-");
+    extractedRepoDir = repoDir;
+    mockInstallRoot = projectDir;
+    writeRepoConfig(repoDir, ["codex"]);
+    createExistingVendorRoots(projectDir, ["codex"]);
+    providerState.loadProviders.mockReturnValue({
+      docs: "context7",
+      web: "native",
+      code_intelligence: "gortex",
+      semantic_memory: "agentmemory",
+    });
+    vi.mocked(manifest.getLocalVersion).mockResolvedValueOnce("9.9.9");
+
+    process.chdir(projectDir);
+    await update({ ci: true });
+
+    expect(manifest.saveLocalVersion).toHaveBeenCalledWith(
+      expect.stringContaining("oma-update-gortex-drift-project-"),
+      "9.9.9",
+      "project",
+    );
+    expect(
+      readFileSync(join(projectDir, ".codex", "config.toml"), "utf8"),
+    ).toContain("[mcp_servers.gortex]");
   });
 
   it("throttles Remotion refresh for projects with oma-video", async () => {

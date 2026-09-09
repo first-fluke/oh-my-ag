@@ -85,6 +85,7 @@ export async function collectProviderCheck(
           "gortex",
           "gortex",
           "Install Gortex separately; then explicitly track the intended repositories",
+          ["version"],
         )
       : undefined;
   if (binary && !binary.installed)
