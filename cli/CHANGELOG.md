@@ -1,5 +1,12 @@
 # Changelog
 
+## [14.7.8](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.7...cli-v14.7.8) (2026-09-09)
+
+
+### Bug Fixes
+
+* **mcp:** reconcile inherited servers during updates ([6d66b39](https://github.com/first-fluke/oh-my-agent/commit/6d66b391b38a85053be9ce7c52b0b28146362456))
+
 ## [14.7.7](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.6...cli-v14.7.7) (2026-09-09)
 
 
