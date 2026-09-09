@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.3.3](https://github.com/first-fluke/oh-my-agent/compare/web-v6.3.2...web-v6.3.3) (2026-09-09)
+
+
+### Bug Fixes
+
+* **agent:** update codex write-mode flag ([484e399](https://github.com/first-fluke/oh-my-agent/commit/484e3993f9c60ecfdc530155ef01579d487b8ed4))
+
 ## [6.3.2](https://github.com/first-fluke/oh-my-agent/compare/web-v6.3.1...web-v6.3.2) (2026-09-09)
 
 
