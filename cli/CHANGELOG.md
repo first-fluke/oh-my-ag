@@ -1,5 +1,12 @@
 # Changelog
 
+## [14.7.4](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.3...cli-v14.7.4) (2026-09-09)
+
+
+### Bug Fixes
+
+* **update:** prevent repeated stale updates ([e6a39a0](https://github.com/first-fluke/oh-my-agent/commit/e6a39a087ffc034971e26a0098c48fa7df1517a0))
+
 ## [14.7.3](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.2...cli-v14.7.3) (2026-09-09)
 
 
