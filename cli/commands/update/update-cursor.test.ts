@@ -9,6 +9,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const testHome = vi.hoisted(() => ({ root: "" }));
+vi.mock("node:os", async (original) => ({
+  ...(await original<typeof import("node:os")>()),
+  homedir: () => join(testHome.root, "test-home"),
+}));
+
 const remotionState = vi.hoisted(() => ({
   describeToolchain: vi.fn(() => ({ version: null as string | null })),
   ensureLatestToolchain: vi.fn(),
@@ -181,6 +187,7 @@ describe("update cursor vendor adaptations", () => {
   const originalCwd = process.cwd();
 
   beforeEach(() => {
+    testHome.root = makeTempRoot("oma-update-home-");
     cleanupMock = vi.fn();
     configuredVendorsForTest = [];
     vi.clearAllMocks();
@@ -377,6 +384,49 @@ describe("update cursor vendor adaptations", () => {
     expect(
       readFileSync(join(projectDir, ".codex", "config.toml"), "utf8"),
     ).toContain("[mcp_servers.gortex]");
+  });
+
+  it("reconciles browser drift in both scopes when the installed version is current", async () => {
+    const projectDir = makeTempRoot("oma-update-browser-drift-");
+    testHome.root = projectDir;
+    const repoDir = makeTempRoot("oma-update-browser-repo-");
+    extractedRepoDir = repoDir;
+    mockInstallRoot = projectDir;
+    writeRepoConfig(repoDir, ["cursor"]);
+    createExistingVendorRoots(projectDir, ["cursor"]);
+    mkdirSync(join(projectDir, ".agents"), { recursive: true });
+    writeFileSync(
+      join(projectDir, ".agents/oma-config.yaml"),
+      "mcp:\n  devtools_browsers: [aside]\n",
+    );
+    for (const [directory, browser] of [
+      [".cursor", "chrome"],
+      ["test-home/.cursor", "firefox"],
+    ] as const) {
+      mkdirSync(join(projectDir, directory), { recursive: true });
+      writeFileSync(
+        join(projectDir, directory, "mcp.json"),
+        JSON.stringify({
+          mcpServers: {
+            [`${browser}-devtools`]: { command: browser },
+            custom: { command: "keep" },
+          },
+        }),
+      );
+    }
+    vi.mocked(manifest.getLocalVersion).mockResolvedValueOnce("9.9.9");
+    process.chdir(projectDir);
+    await update({ ci: true });
+    const local = JSON.parse(
+      readFileSync(join(projectDir, ".cursor/mcp.json"), "utf8"),
+    ).mcpServers;
+    expect(local.aside).toBeDefined();
+    expect(local["chrome-devtools"]).toBeUndefined();
+    expect(
+      JSON.parse(
+        readFileSync(join(projectDir, "test-home/.cursor/mcp.json"), "utf8"),
+      ).mcpServers,
+    ).toEqual({ custom: { command: "keep" } });
   });
 
   it("throttles Remotion refresh for projects with oma-video", async () => {

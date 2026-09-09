@@ -6,8 +6,8 @@ import { resolveAsideCommand } from "./aside.js";
 import { browserMcpDocument } from "./browser-mcp-document.js";
 import {
   type BrowserMcpOptions,
-  browserMcpTargets,
   piAgentDir,
+  reconciliationMcpTargets,
 } from "./browser-mcp-targets.js";
 import {
   type DevToolsBrowser,
@@ -33,7 +33,7 @@ export function syncBrowserMcp(
   options: BrowserMcpOptions = {},
 ): string[] {
   const changes: { path: string; content: string }[] = [];
-  for (const target of browserMcpTargets(root, vendors, options)) {
+  for (const target of reconciliationMcpTargets(root, vendors, options)) {
     const doc = browserMcpDocument(target);
     const servers = doc.get(target.keys);
     if (servers !== undefined && !isRecord(servers)) {
@@ -47,6 +47,7 @@ export function syncBrowserMcp(
         doc.set(keys, undefined);
         continue;
       }
+      if (target.cleanupOnly) continue;
       const serverConfig =
         browser === "aside"
           ? { ...server.config, command: resolveAsideCommand() ?? "aside" }

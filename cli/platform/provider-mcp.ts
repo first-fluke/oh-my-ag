@@ -15,8 +15,8 @@ import { isRecord } from "../utils/type-guards.js";
 import { browserMcpDocument } from "../vendors/browser-mcp-document.js";
 import {
   type BrowserMcpOptions,
-  browserMcpTargets,
   piAgentDir,
+  reconciliationMcpTargets,
 } from "../vendors/browser-mcp-targets.js";
 import { serenaMcpEntry } from "../vendors/serena.js";
 
@@ -38,7 +38,7 @@ export function syncProviderMcp(
   if (!isRecord(state))
     throw new Error(`Invalid provider MCP state: ${statePath}`);
   const changes: { path: string; content: string }[] = [];
-  for (const target of browserMcpTargets(root, vendors, options)) {
+  for (const target of reconciliationMcpTargets(root, vendors, options)) {
     if (target.path === join(root, ".agents", "mcp.json") || target.removeOnly)
       continue;
     const saved = state[target.path];
@@ -49,6 +49,12 @@ export function syncProviderMcp(
     const serenaKey = [...target.keys, "serena"];
     const gortexKey = [...target.keys, "gortex"];
     if (selected === "gortex") {
+      if (
+        target.cleanupOnly &&
+        saved === undefined &&
+        doc.get(serenaKey) === undefined
+      )
+        continue;
       if (saved === undefined)
         state[target.path] = {
           serena: doc.get(serenaKey),
@@ -68,7 +74,7 @@ export function syncProviderMcp(
               ? { type: "stdio", ...server }
               : server;
       doc.set(serenaKey, undefined);
-      doc.set(gortexKey, doc.get(gortexKey) ?? entry);
+      if (!target.cleanupOnly) doc.set(gortexKey, doc.get(gortexKey) ?? entry);
     } else {
       const context =
         target.format === "toml" && target.path.includes(".codex")

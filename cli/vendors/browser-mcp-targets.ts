@@ -14,7 +14,29 @@ export type BrowserMcpTarget = {
   format: "json" | "jsonc" | "toml" | "yaml";
   entry?: "opencode" | "copilot" | "stdio";
   removeOnly?: boolean;
+  cleanupOnly?: boolean;
 };
+
+/** Project selections also remove conflicting servers inherited from existing user configs. */
+export function reconciliationMcpTargets(
+  root: string,
+  vendors: readonly string[],
+  options: BrowserMcpOptions,
+): BrowserMcpTarget[] {
+  const targets = browserMcpTargets(root, vendors, options);
+  if (options.global) return targets;
+  const paths = new Set(targets.map((target) => target.path));
+  for (const target of browserMcpTargets(root, vendors, {
+    ...options,
+    global: true,
+  })) {
+    if (!paths.has(target.path) && existsSync(target.path)) {
+      targets.push({ ...target, cleanupOnly: true });
+      paths.add(target.path);
+    }
+  }
+  return targets;
+}
 
 export function piAgentDir(home: string): string {
   return process.env.PI_CODING_AGENT_DIR?.trim() || join(home, ".pi", "agent");

@@ -44,6 +44,25 @@ afterEach(() => {
 });
 
 describe("native provider MCP projection", () => {
+  it("removes inherited Serena for project Gortex and restores its backup", () => {
+    const path = join(home, ".cursor/mcp.json");
+    const original = {
+      mcpServers: {
+        serena: { command: "custom-serena" },
+        other: { command: "keep" },
+      },
+    };
+    write(path, original);
+    select("gortex");
+    syncProviderMcp(root, ["cursor"], { home });
+    expect(JSON.parse(readFileSync(path, "utf8"))).toEqual({
+      mcpServers: { other: { command: "keep" } },
+    });
+    expect(syncProviderMcp(root, ["cursor"], { home })).toEqual([]);
+    select("serena");
+    syncProviderMcp(root, ["cursor"], { home });
+    expect(JSON.parse(readFileSync(path, "utf8"))).toEqual(original);
+  });
   const vendors = [
     "claude",
     "cursor",

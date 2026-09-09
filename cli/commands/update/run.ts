@@ -45,6 +45,7 @@ import {
 import { promptUninstallCompetitors } from "../../utils/competitors.js";
 import {
   isTelemetryEnabled,
+  loadDevToolsBrowsers,
   loadOmaConfig,
   loadSerenaConfig,
 } from "../../utils/config.js";
@@ -60,6 +61,7 @@ import {
   lockPath,
 } from "../../utils/install-lock.js";
 import { loadProviders } from "../../utils/providers.js";
+import { syncBrowserMcp } from "../../vendors/browser-mcp.js";
 import { link } from "../link/run.js";
 import { runMigrations, runMigrationsWithStatus } from "../migrations/index.js";
 import { resolveAutoUpdateCli } from "./auto-update-config.js";
@@ -175,10 +177,18 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
         global: mode === "global",
         dryRun: true,
       }).length > 0;
+    const browsers = loadDevToolsBrowsers(cwd);
+    const browserMcpNeedsReconcile =
+      browsers !== undefined &&
+      syncBrowserMcp(cwd, browsers, migrationVendors, {
+        global: mode === "global",
+        dryRun: true,
+      }).length > 0;
     const needsReconcile =
       migrationStatus.requiresReconcile ||
       getNeedsReconcile(cwd) ||
-      providerMcpNeedsReconcile;
+      providerMcpNeedsReconcile ||
+      browserMcpNeedsReconcile;
 
     // Persist reconcile flag so a failed download doesn't lose the intent
     if (migrationStatus.requiresReconcile && !getNeedsReconcile(cwd)) {

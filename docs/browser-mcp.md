@@ -13,6 +13,8 @@ mcp:
 
 An explicit `[]` means no browser MCP. Ordinary `oma update` and `oma link` reconcile the saved selection; an unset preference in an existing installation is left unchanged. Other MCP servers and settings are preserved. Deselected browser entries are removed from the targeted configurations.
 
+Project reconciliation also removes deselected browser entries from existing user configurations for the targeted vendors. For example, `[aside]` removes project Chrome DevTools and user Firefox DevTools entries. It does not install the selected browser into user configurations. An ordinary `oma update` repairs this drift even when the installed version is already current.
+
 Aside is registered as:
 
 ```json

@@ -12,6 +12,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { syncBrowserMcp } from "./browser-mcp.js";
 
 const aside = vi.hoisted(() => vi.fn(() => "aside"));
+vi.mock("node:os", async (original) => ({
+  ...(await original<typeof import("node:os")>()),
+  homedir: () => join(root, "home"),
+}));
 vi.mock("./aside.js", () => ({ resolveAsideCommand: aside }));
 
 let root: string;
@@ -37,6 +41,39 @@ function read(path: string): {
 }
 
 describe("browser MCP reconciliation", () => {
+  it("validates inherited configurations before writing either scope", () => {
+    const original = '{"mcpServers":{"chrome-devtools":{"command":"chrome"}}}';
+    write(".cursor/mcp.json", original);
+    write("home/.cursor/mcp.json", "{broken");
+    expect(() => syncBrowserMcp(root, ["aside"], ["cursor"])).toThrow();
+    expect(readFileSync(join(root, ".cursor/mcp.json"), "utf8")).toBe(original);
+  });
+  it("cleans inherited browsers without installing Aside globally", () => {
+    write(
+      "home/.cursor/mcp.json",
+      JSON.stringify({
+        mcpServers: {
+          "firefox-devtools": { command: "firefox" },
+          custom: { command: "keep" },
+        },
+      }),
+    );
+    write(
+      ".cursor/mcp.json",
+      JSON.stringify({
+        mcpServers: {
+          "chrome-devtools": { command: "chrome" },
+        },
+      }),
+    );
+    syncBrowserMcp(root, ["aside"], ["cursor"], { home: join(root, "home") });
+    expect(read("home/.cursor/mcp.json").mcpServers).toEqual({
+      custom: { command: "keep" },
+    });
+    expect(read(".cursor/mcp.json").mcpServers).toEqual({
+      aside: { type: "stdio", command: "aside", args: ["mcp"] },
+    });
+  });
   it("installs all three selections into JSON and TOML vendor configs", () => {
     const vendors = [
       "claude",

@@ -10,6 +10,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parse } from "smol-toml";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+
+vi.mock("node:os", async (original) => ({
+  ...(await original<typeof import("node:os")>()),
+  homedir: () => join(root, "test-home"),
+}));
+
 import { setInstallContext } from "../../platform/install-context.js";
 import { loadDevToolsBrowsers } from "../../utils/config.js";
 import { ensureAsideInstalled } from "../../vendors/aside.js";
