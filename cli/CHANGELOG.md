@@ -1,5 +1,12 @@
 # Changelog
 
+## [14.7.7](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.6...cli-v14.7.7) (2026-09-09)
+
+
+### Bug Fixes
+
+* **providers:** reconcile gortex MCP configuration ([8956ecd](https://github.com/first-fluke/oh-my-agent/commit/8956ecdadef7d471711e2521843ad21c830dddd9))
+
 ## [14.7.6](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.5...cli-v14.7.6) (2026-09-09)
 
 
