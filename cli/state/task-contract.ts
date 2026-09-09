@@ -92,9 +92,16 @@ export function loadTaskContract(
 ): TaskContract | null {
   const file = sessionPlanPath(root, sessionId);
   if (!existsSync(file)) return null;
+  let rawPlan: unknown;
+  try {
+    rawPlan = JSON.parse(readFileSync(file, "utf8"));
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid session plan JSON at ${file}: ${detail}`);
+  }
   const plan = z
     .object({ tasks: z.array(z.object({ id: text }).passthrough()) })
-    .parse(JSON.parse(readFileSync(file, "utf8")));
+    .parse(rawPlan);
   const ids = plan.tasks.map((task) => task.id);
   if (new Set(ids).size !== ids.length)
     throw new Error("Plan task IDs must be unique");

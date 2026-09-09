@@ -20,7 +20,7 @@ import {
   verifyAgentRun,
   verifyRequiredChecks,
 } from "./agent-results.js";
-import { TaskContractSchema } from "./task-contract.js";
+import { loadTaskContract, TaskContractSchema } from "./task-contract.js";
 
 describe("acceptance contracts", () => {
   let root: string;
@@ -110,6 +110,13 @@ describe("acceptance contracts", () => {
     if (!check) throw new Error("Missing fixture check");
     task.required_checks.push({ ...check, id: "duplicate" });
     expect(TaskContractSchema.safeParse(task).success).toBe(false);
+  });
+  it("identifies the invalid session plan file when JSON parsing fails", () => {
+    const file = join(root, ".agents/results/plan-s1.json");
+    writeFileSync(file, '{"tasks": []}}');
+    expect(() => loadTaskContract(root, "s1", "T1")).toThrow(
+      `Invalid session plan JSON at ${file}`,
+    );
   });
   it("rejects scoped inputs reached through a symlinked parent directory", () => {
     mkdirSync(join(root, "source"));
