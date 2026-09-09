@@ -1,6 +1,9 @@
 ---
 name: oma-dev-workflow
-description: Use when setting up or optimizing developer workflows in a monorepo, managing mise tasks, git hooks, CI/CD pipelines, database migrations, or release automation. Invoke for development environment setup, build automation, testing workflows, and release coordination.
+description: Use when setting up or optimizing developer workflows in a
+  monorepo, managing mise tasks, git hooks, CI/CD pipelines, database
+  migrations, or release automation. Invoke for development environment setup,
+  build automation, testing workflows, and release coordination.
 ---
 
 # Dev Workflow - Monorepo Task Automation Specialist
@@ -347,9 +350,6 @@ Follow the core workflow step by step:
 7. **Report Status** - Summarize success/failure with actionable next steps
 
 ### Execution Protocol (CLI Mode)
-
-Vendor-specific execution protocols are injected automatically by `oma agent spawn`.
-Source files live under `../_shared/runtime/execution-protocols/{vendor}.md`.
 
 ## References
 

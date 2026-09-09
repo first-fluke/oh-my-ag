@@ -21,6 +21,10 @@ The Ralph gate requires QA and REFINE task IDs in a nonempty plan, current succe
 
 Checks cover the Git working tree (HEAD, tracked contents/modes and nonignored untracked files). Generated `.agents/state`, `.agents/results`, and `.serena/memories`, and generated `.opencode/agents/oma-spawn-*.md` wrappers are excluded from the tree hash and artifacts are hashed separately. In an unversioned directory, all files except those generated directories, `.git`, and `node_modules` are covered. External services, ignored dependencies, and malicious receipt tampering require separate controls.
 
+## Coordination notes
+
+Use native file tools and `memoryConfig.basePath` (default `.agents/state/memories/`) at the project root for optional coordination notes. Read an assigned task board and report progress for long tasks. Use the unique progress/result names from [Memory Protocol](memory-protocol.md); keep the injected claim path unchanged. Human-facing deliverables may live in `.agents/results/`, but their presence alone does not prove completion. Include unresolved work in the claim even after failure.
+
 Read-only dispatch returns `OMA_RESULT_JSON: {claim}` as one final stdout line. The parent persists that inspection. A `verificationSkipped` inspection remains distinguishable from executable checks and does not pass Ralph.
 
 Repository checks: `cli/state/agent-results.test.ts`, `cli/state/artifact-verifier.test.ts`.

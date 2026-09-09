@@ -135,15 +135,11 @@ Then run the project's mobile verification commands, typically unit/widget tests
 16. React Native: server state goes through TanStack Query (the repository-layer cache) with explicit `staleTime`/`gcTime` — invalidate affected query keys on every mutation, persist the cache to MMKV for offline; screens consume query/mutation hooks, never call axios directly (see `variants/react-native/snippets.md`)
 
 ## References
-Follow `resources/execution-protocol.md` step by step.
-Before submitting, run `resources/checklist.md`.
-Vendor-specific execution protocols are injected automatically by `oma agent spawn`.
-Source files live under `../_shared/runtime/execution-protocols/{vendor}.md`.
-- Execution steps: `resources/execution-protocol.md`
+- Execution steps (follow for the selected task): `resources/execution-protocol.md`
 - Code snippets (Swift): `variants/swift-ios/snippets.md`
 - Code snippets (Flutter): `variants/flutter/snippets.md`
 - Code snippets (React Native): `variants/react-native/snippets.md`
-- Checklist: `resources/checklist.md`
+- Checklist (run before handoff): `resources/checklist.md`
 - Error recovery: `resources/error-playbook.md`
 - Tech stack index (all platforms): `resources/tech-stack.md`
 - Tech stack (Swift): `variants/swift-ios/tech-stack.md`

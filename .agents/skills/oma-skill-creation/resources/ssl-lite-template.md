@@ -1,12 +1,14 @@
 # SSL-lite Skill Template
 
-Use this template for OMA skills. Replace placeholders; do not keep placeholder text in the final skill.
+Keep the four top-level sections. Describe execution once in the canonical path. Add a
+subsection only when it contributes a distinct branch, contract, or constraint; do not copy
+the same steps into Entry, Scenes, Actions, and the canonical path.
 
 ````markdown
 ---
 name: oma-{skill-name}
 description: >
-  {One concise routing description. Include the task/domain and the phrases that should trigger this skill.}
+  {Concise task/domain description and routing triggers.}
 ---
 
 # {Skill Title}
@@ -14,32 +16,78 @@ description: >
 ## Scheduling
 
 ### Goal
-{What capability this skill adds and the outcome it should produce.}
+{Capability and intended outcome.}
 
 ### Intent signature
-- {Prompt pattern, domain term, or situation that should activate this skill}
-- {Another trigger}
+- {Concrete trigger; this section supports specialist routing.}
 
 ### When to use
-- {Positive use case}
-- {Positive use case}
+- {Positive use case.}
 
 ### When NOT to use
-- {Boundary case} -> use {other skill/tool}
-- {Boundary case} -> out of scope
+- {Boundary} -> {other skill or tool}.
 
 ### Expected inputs
-- `{input_name}`: {meaning}
-- `{input_name}`: {meaning}
+- `{input}`: {meaning and required constraints}.
 
 ### Expected outputs
+- {Result and evidence needed to establish completion}.
 
-Use freeform bullets when the skill has no machine-checkable artifacts:
+### Dependencies
+- {Required tools or resources; state when optional resources are loaded}.
 
-- {Primary output}
-- {Validation/reporting output}
+## Structural Flow
 
-Or declare a structured `outputs:` block when artifacts can be globbed. `oma verify` reads this block via `parseExpectedOutputs` and fails the closure check when any `required: true` artifact is missing after the agent reports completion.
+### Transitions
+- If {condition}, {branch or next action}.
+
+### Failure and recovery
+| Failure | Recovery |
+|---|---|
+| {Concrete failure mechanism} | {Executable remedy or accurate partial result} |
+
+### Exit
+- Success: {observable condition}.
+- Partial/failed: {unresolved work and evidence to retain}.
+
+## Logical Operations
+
+### Canonical workflow path
+1. {Resolve inputs and necessary preconditions}.
+2. {Perform the domain operation using concrete files, tools, or commands}.
+3. {Run the applicable validator and report the observed outcome}.
+
+### Resource scope and effects
+{Affected files/processes/services, writes, credentials, destructive actions, or cost.}
+
+### Guardrails
+- {Domain-specific harmful action to avoid}.
+- {Constraint not already covered by shared policy or the canonical path}.
+
+## References
+- {Purpose}: `resources/{file}.md` ({condition for loading it}).
+````
+
+## Optional detail
+
+- For command-heavy skills, rename the canonical heading to `### Canonical command path`
+  and include the exact commands there. Use exactly one canonical heading.
+- Add `Entry` or `Preconditions` only for conditions that do not fit the canonical path.
+- Add `Scenes` for a real state machine with named phases. The canonical path should then
+  dispatch those phases instead of repeating their steps.
+- Add an `Actions` table only when actor/tool bindings or evidence differ in ways a normal
+  procedure cannot express. SSL primitive labels alone do not justify a second procedure.
+- Add `Control-flow features`, `Tools and instruments`, or a scope table only when they add
+  information beyond Transitions, Dependencies, and Resource scope and effects.
+- Keep long examples, provider variants, and detailed checklists in resources. Do not make
+  every task load them. Parsed output examples and schemas are useful; decorative sample
+  reports are not required.
+
+## Machine-checkable outputs
+
+When artifacts can be globbed, replace the freeform Expected outputs bullets with an
+`outputs:` YAML block. `oma verify` checks required artifact presence via
+`parseExpectedOutputs`:
 
 ```yaml
 outputs:
@@ -47,135 +95,14 @@ outputs:
     description: PM task breakdown
     artifact: ".agents/results/plan-*.json"
     required: true
-  - name: tests
-    description: regression tests
-    artifact: "**/test_*.py"
-    required: false
 ```
 
-Field rules:
-- `name`: short identifier, lowercase
-- `description`: human-readable purpose
-- `artifact`: glob relative to workspace root (supports `**`)
-- `required`: defaults to `false`; only `true` blocks closure
+`artifact` is workspace-relative and supports `**`. `required` defaults to false. This is
+an artifact-presence contract, not proof of correctness. Keep the matching verification
+command or evidence requirement in the canonical path.
 
-### Dependencies
-- {Tools, files, standards, APIs, local resources}
+## Validation
 
-### Control-flow features
-- {Branching, loops, tool calls, user clarification points, write behavior}
-
-## Structural Flow
-
-### Entry
-1. {First thing the agent must establish}
-2. {Second thing}
-
-### Scenes
-1. **PREPARE**: {Setup, scope, assumptions}
-2. **ACQUIRE**: {Read files, fetch docs, inspect inputs}
-3. **REASON**: {Decide strategy}
-4. **ACT**: {Make changes, run commands, produce artifact}
-5. **VERIFY**: {Check result}
-6. **FINALIZE**: {Report outcome}
-
-### Transitions
-- If {condition}, {next action}.
-- If {condition}, {next action}.
-
-### Failure and recovery
-| Failure | Recovery |
-|---------|----------|
-| {Failure mode} | {Recovery action} |
-
-### Exit
-- Success: {observable success condition}
-- Partial success: {what must be reported}
-- Failure: {what must be reported}
-
-## Logical Operations
-
-### Actions
-| Action | SSL primitive | Evidence |
-|--------|---------------|----------|
-| {Action} | `{READ|SELECT|COMPARE|VALIDATE|INFER|WRITE|UPDATE_STATE|CALL_TOOL|REQUEST|TRANSFER|NOTIFY|TERMINATE}` | {Source/evidence} |
-
-### Tools and instruments
-- {Tool, API, script, local command, reference file}
-
-### Canonical command path
-```bash
-{primary command}
-{verification command}
-```
-
-Use `### Canonical workflow path` instead when the skill is decision-heavy rather than command-heavy:
-
-1. {Step}
-2. {Step}
-3. {Step}
-
-### Resource scope
-| Scope | Resource target |
-|-------|-----------------|
-| `CODEBASE` | {Files/modules/configs} |
-| `LOCAL_FS` | {Local input/output artifacts} |
-| `PROCESS` | {Commands or long-running processes} |
-
-### Preconditions
-- {Required condition before acting}
-
-### Effects and side effects
-- {Files written, commands run, network calls, credentials touched, state changed}
-
-### Guardrails
-1. {Safety or quality rule}
-2. {Safety or quality rule}
-
-## References
-- {Resource label}: `resources/{file}.md`
-- {Shared reference}: `../_shared/core/{file}.md`
-````
-
-## Mapping To SSL
-
-| SSL key family | SSL-lite location |
-|----------------|-------------------|
-| `skill_id`, `skill_name` | Frontmatter `name`, title |
-| `skill_goal` | `Scheduling / Goal` |
-| `intent_signature`, `tags`, `top_pattern` | Frontmatter `description`, `Scheduling / Intent signature`, `When to use` |
-| `expected_inputs`, `expected_outputs` | `Scheduling / Expected inputs`, `Expected outputs` |
-| `dependencies`, `control_flow_features` | `Scheduling / Dependencies`, `Control-flow features` |
-| `scene_*`, `entry_conditions`, `exit_conditions`, `next_scene_rules` | `Structural Flow` |
-| `logic_step_id`, `act_type`, `actor`, `object`, `instrument` | `Logical Operations / Actions`, `Tools and instruments` |
-| `input_args`, `output_binding`, `preconditions`, `effects` | `Expected inputs`, `Expected outputs`, `Preconditions`, `Effects and side effects` |
-| `resource_scope`, `resource_target` | `Logical Operations / Resource scope` |
-| Source-adjacent evidence | `References` |
-
-## Utility Content Rubric (SkillLens)
-
-Three content dimensions predict whether a skill measurably improves task outcomes
-(SkillLens, arXiv:2605.23899). Section structure and formatting alone do not — apply these
-while filling the template:
-
-| Dimension | Where in the template | What "good" looks like |
-|-----------|----------------------|------------------------|
-| Failure mechanism encoding | `Failure and recovery`, `Guardrails` | States *why* the agent fails in this domain with an executable remedy — not generic advice |
-| Actionable specificity | Canonical path, `Scenes` | Step-level procedure referencing concrete domain objects, tools, flags, and paths |
-| High-risk action blacklist | `Guardrails` | Explicitly forbids the domain's specific harmful action patterns, not only positive instructions |
-
-## Inline vs Resource Rule
-
-Keep inline:
-- Routing description and boundaries
-- Expected inputs and outputs
-- Structural flow and recovery
-- Logical actions, resource scope, preconditions, side effects, guardrails
-- One canonical command or workflow path
-
-Move to `resources/`:
-- Long examples
-- Provider-specific variants
-- Detailed protocols
-- Large checklists
-- Reference material the agent should load only when needed
+Use `validation-checklist.md` for structural, routing, reference, and utility checks. The
+skill must encode a concrete failure and remedy, executable domain steps, and relevant
+harmful-action limits. Section count and repeated terminology are not measures of quality.

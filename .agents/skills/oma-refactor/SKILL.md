@@ -166,7 +166,7 @@ Standalone runs write plan / before-after reports under `.agents/results/refacto
 8. All metrics are proxies (Goodhart): a 499-line mechanical split, assertion-free coverage, or pattern-count gains are failures, not wins.
 
 ## References
-Follow `../_shared/core/code-intelligence.md`: discover the configured provider’s available tools; use native search and scoped reads when unavailable. Do not install or track repositories automatically.
+- Local code tools: `../_shared/core/code-intelligence.md` (code search/navigation)
 
 - Invariant definition (5 properties, boundaries, destination, naming roles, contexts, D&C, inline evidence): `resources/definition.md`
 - Measurement: 4 layers + git forensics commands: `resources/measurement.md`

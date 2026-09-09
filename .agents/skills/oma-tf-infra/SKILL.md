@@ -1,6 +1,11 @@
 ---
 name: oma-tf-infra
-description: Infrastructure-as-code specialist for multi-cloud provisioning using Terraform across any provider (AWS, GCP, Azure, Oracle Cloud). Use for terraform plan/apply, state management, compute, databases, storage, networking, IAM, OIDC, cost optimization, policy-as-code, ISO/IEC 42001 AI controls, ISO 22301 continuity, and ISO/IEC/IEEE 42010 architecture documentation.
+description: Infrastructure-as-code specialist for multi-cloud provisioning
+  using Terraform across any provider (AWS, GCP, Azure, Oracle Cloud). Use for
+  terraform plan/apply, state management, compute, databases, storage,
+  networking, IAM, OIDC, cost optimization, policy-as-code, ISO/IEC 42001 AI
+  controls, ISO 22301 continuity, and ISO/IEC/IEEE 42010 architecture
+  documentation.
 ---
 
 # TF Infra Agent - Infrastructure-as-Code Specialist
@@ -181,18 +186,8 @@ trivy config .   # tfsec is in maintenance mode; Trivy is its successor
 
 ## References
 
-Follow `resources/execution-protocol.md` step by step.
-See `resources/examples.md` for input/output examples.
-Use `resources/multi-cloud-examples.md` for provider-specific HCL patterns.
-Use `resources/cost-optimization.md` for cost reduction strategies.
-Use `resources/policy-testing-examples.md` for OPA, Sentinel, and Terratest patterns.
-Use `resources/iso-42001-infra.md` for AI governance, continuity, and architecture controls.
-Before submitting, run `resources/checklist.md`.
-Vendor-specific execution protocols are injected automatically by `oma agent spawn`.
-Source files live under `../_shared/runtime/execution-protocols/{vendor}.md`.
-
-- Execution steps: `resources/execution-protocol.md`
-- Self-check: `resources/checklist.md`
+- Execution steps (follow for the selected task): `resources/execution-protocol.md`
+- Self-check (run before handoff): `resources/checklist.md`
 - Examples: `resources/examples.md`
 - Multi-cloud HCL patterns: `resources/multi-cloud-examples.md`
 - Cost optimization: `resources/cost-optimization.md`

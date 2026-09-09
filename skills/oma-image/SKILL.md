@@ -274,18 +274,13 @@ Filenames follow `<vendor>[-<model>]-<shortid>[-<n>].<ext>` — the model segmen
 
 ## References
 
-Follow `resources/execution-protocol.md` step by step.
-See `resources/vendor-matrix.md` for strategy precheck rules.
-Use `resources/prompt-tips.md` for writing effective prompts.
-Before submitting, run `resources/checklist.md`.
-
 ### Configuration
 
 Project-specific settings: the `image:` section of `.agents/oma-config.yaml`, which `oma update` preserves. Shipped defaults live in the CLI (`DEFAULTS` in `cli/commands/image/config.ts`) — write only the keys you change. The legacy `config/image-config.yaml` is no longer read by the CLI; migration 022 moves anything you had changed there into oma-config (and deletes the file when it was never edited).
 Env vars: `OMA_IMAGE_DEFAULT_VENDOR`, `OMA_IMAGE_DEFAULT_OUT`, `OMA_IMAGE_YES`, `POLLINATIONS_API_KEY`.
 
-- Execution steps: `resources/execution-protocol.md`
+- Execution steps (follow for the selected task): `resources/execution-protocol.md`
 - Vendor matrix: `resources/vendor-matrix.md`
 - Prompt tips: `resources/prompt-tips.md`
-- Checklist: `resources/checklist.md`
+- Checklist (run before handoff): `resources/checklist.md`
 - Context loading: `../_shared/core/context-loading.md`

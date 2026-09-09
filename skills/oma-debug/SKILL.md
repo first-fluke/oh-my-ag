@@ -132,13 +132,9 @@ Then run the smallest reproduction command first, add a regression test, and re-
 Use the configured provider to locate the failing function, find callers, and search similar error patterns. Native search and scoped reads are supported fallbacks; see the shared capability contract.
 
 ## References
-Follow `../_shared/core/code-intelligence.md`: discover the configured provider’s available tools; use native search and scoped reads when unavailable. Do not install or track repositories automatically.
+- Local code tools: `../_shared/core/code-intelligence.md` (code search/navigation)
 
-Follow `resources/execution-protocol.md` step by step.
-Before submitting, run `resources/checklist.md`.
-Vendor-specific execution protocols are injected automatically by `oma agent spawn`.
-Source files live under `../_shared/runtime/execution-protocols/{vendor}.md`.
-- Execution steps: `resources/execution-protocol.md`
+- Execution steps (follow for the selected task): `resources/execution-protocol.md`
 - Checklist (pre-submit self-verification): `resources/checklist.md`
 - Error recovery: `resources/error-playbook.md`
 - Bug report template: `resources/bug-report-template.md`

@@ -137,8 +137,6 @@ Current native executor paths:
 - Codex CLI: `codex exec "@agent ..."` using `.codex/agents/*.toml`
 - Gemini CLI: `gemini -p "@agent ..."` using `.gemini/agents/*.md`
 
-Vendor-specific execution protocols are injected automatically for fallback CLI runs.
-
 ### Configuration
 
 | Setting | Default | Description |
@@ -176,9 +174,6 @@ Memory provider and tool names are configurable via `.agents/mcp.json` (not the 
 **PHASE 4 - Monitor**: Poll every POLL_INTERVAL; handle completed/failed/crashed agents
 **PHASE 4.5 - Verify**: Run mechanical checks for every completed agent; run `oma verify {agent-type}` only for `backend`, `frontend`, `mobile`, `qa`, `debug`, and `pm`; then run QA cross-review for every completed implementation
 **PHASE 5 - Collect**: Read claims and run-scoped reports for plan tasks whose checks passed; compile summary without deleting evidence.
-
-See `resources/subagent-prompt-template.md` for prompt construction.
-See `resources/memory-schema.md` for memory file formats.
 
 ### Memory File Ownership
 
@@ -306,8 +301,6 @@ At session end, if CD >= 50:
 1. Include CD summary in final report
 2. Trigger QA agent RCA generation
 3. Write `lessons-{sessionId}.md` with prevention measures
-
-
 
 ## References
 - Prompt template: `resources/subagent-prompt-template.md`

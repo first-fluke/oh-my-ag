@@ -277,19 +277,13 @@ Env-var overrides: `OMA_CHROME_PATH` (Chrome binary for validate/export), `OMA_Y
 
 ## References
 
-Follow `resources/generation-protocol.md` phase by phase.
 Consult `resources/design-doctrine.md` for aesthetic guidelines before writing any slide HTML.
 Read `resources/fixed-stage.md` for stage rules, px-authoring conventions, and embed instructions.
-Use `resources/style-presets.md` (12 vendored) and `resources/selection-index.json` (34 bold templates) for style selection.
-Use `resources/animation-patterns.md` for effect-to-feeling pairing.
 Before delivery, run `resources/checklist.md`.
 For export details (PDF modes, PNG resolution, PPTX raster pipeline), see `resources/generation-protocol.md` §Phase 6 — Bundle and Export.
 For Canva export/import pipeline, see `resources/canva-integration.md`.
 For bbox visual editor usage, see `resources/generation-protocol.md` §Phase 5c — Visual Edit.
 For error recovery, see §Failure and recovery above.
-
-Vendor-specific execution protocols are injected automatically by `oma agent spawn`.
-Source files live under `../_shared/runtime/execution-protocols/{vendor}.md`.
 
 - Stage rules + embed instructions: `resources/fixed-stage.md`
 - Generation lifecycle (Phase 0–6): `resources/generation-protocol.md`

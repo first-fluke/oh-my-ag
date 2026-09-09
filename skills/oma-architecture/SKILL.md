@@ -173,15 +173,10 @@ Then choose Diagnostic, Recommendation, Design-Twice, ATAM-style, CBAM-style, or
 - **ADR Mode**: concise final decision record after analysis
 
 ## References
-Follow `../_shared/core/code-intelligence.md`: discover the configured provider’s available tools; use native search and scoped reads when unavailable. Do not install or track repositories automatically.
+- Local code tools: `../_shared/core/code-intelligence.md` (code search/navigation)
 
-Follow `resources/execution-protocol.md` step by step.
-Use `resources/methodology-selection.md` to select the right method.
-Use `resources/stakeholder-synthesis.md` when stakeholder consultation is needed.
-Use `resources/output-templates.md` to format the final artifact.
-Before submitting, run `resources/checklist.md`.
-- Execution steps: `resources/execution-protocol.md`
-- Checklist: `resources/checklist.md`
+- Execution steps (follow for the selected task): `resources/execution-protocol.md`
+- Checklist (run before handoff): `resources/checklist.md`
 - Method selection: `resources/methodology-selection.md`
 - Stakeholder protocol: `resources/stakeholder-synthesis.md`
 - Output templates: `resources/output-templates.md`

@@ -130,11 +130,7 @@ Run only the tools that match the detected stack and available target. Add proje
 7. When relevant, map findings to **ISO/IEC 25010** quality characteristics and propose **ISO/IEC 29119**-aligned test improvements
 
 ## References
-Follow `resources/execution-protocol.md` step by step.
-Use `resources/iso-quality.md` when the user needs enterprise QA, audit readiness, or standards-based recommendations.
-Vendor-specific execution protocols are injected automatically by `oma agent spawn`.
-Source files live under `../_shared/runtime/execution-protocols/{vendor}.md`.
-- Execution steps: `resources/execution-protocol.md`
+- Execution steps (follow for the selected task): `resources/execution-protocol.md`
 - ISO quality guide: `resources/iso-quality.md`
 - QA checklist: `resources/checklist.md`
 - Error recovery: `resources/error-playbook.md`

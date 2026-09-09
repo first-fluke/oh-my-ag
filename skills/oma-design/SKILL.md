@@ -212,7 +212,6 @@ bunx getdesign@latest list
 
 ### Workflow Summary
 7 phases: Setup → Extract → Enhance → Propose → Generate → Audit → Handoff.
-See `resources/execution-protocol.md` for full detail.
 
 ### Vendor Inspiration (getdesign)
 

@@ -140,15 +140,10 @@ outputs:
 - Deferred Quality: testing is part of every task, not a final phase
 
 ## References
-Follow `../_shared/core/code-intelligence.md`: discover the configured provider’s available tools; use native search and scoped reads when unavailable. Do not install or track repositories automatically.
+- Local code tools: `../_shared/core/code-intelligence.md` (code search/navigation)
 
-Follow `resources/execution-protocol.md` step by step.
-See `resources/examples.md` for input/output examples.
-Use `resources/iso-planning.md` when the user needs standards-based planning, risk framing, or governance-oriented recommendations.
 Save plan to `.agents/results/plan-{sessionId}.json` and `.agents/results/result-pm.md`.
-Vendor-specific execution protocols are injected automatically by `oma agent spawn`.
-Source files live under `../_shared/runtime/execution-protocols/{vendor}.md`.
-- Execution steps: `resources/execution-protocol.md`
+- Execution steps (follow for the selected task): `resources/execution-protocol.md`
 - Plan examples: `resources/examples.md`
 - ISO planning guide: `resources/iso-planning.md`
 - Error recovery: `resources/error-playbook.md`

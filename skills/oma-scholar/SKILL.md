@@ -184,10 +184,6 @@ oma scholar get "10.48550/arXiv.1706.03762"
 When OpenAlex returns the answer (knows.academy lacks the paper), use the
 returned abstract as input to **Mode 1 Generate** to produce a local sidecar.
 
-### How to Execute
-
-Follow `resources/execution-protocol.md` step by step for the selected mode.
-
 ### Quick Reference
 
 #### Search (knows + auto OpenAlex fallback)
@@ -271,7 +267,7 @@ Project-specific settings: `config/scholar-config.yaml`. One key is user-tunable
 
 ## References
 
-- Execution steps: `resources/execution-protocol.md`
+- Execution steps (follow for the selected task): `resources/execution-protocol.md`
 - Sidecar spec rules: `resources/sidecar-spec.md`
 - API endpoints: `resources/api-endpoints.md`
 - OpenAlex setup: `resources/setup-openalex.md`

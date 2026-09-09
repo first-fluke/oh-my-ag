@@ -160,8 +160,6 @@ Follow the brainstorm workflow step by step:
 - **Skipping blind review**: Saving a non-trivial design without the independent critique round, or letting the design's author-context leak into escalated reviewer prompts
 
 ## References
-Vendor-specific execution protocols are injected automatically by `oma agent spawn`.
-Source files live under `../_shared/runtime/execution-protocols/{vendor}.md`.
 - TRIZ-lite (optional Step 3 seeding): `resources/triz-lite.md`
 - Context loading: `../_shared/core/context-loading.md`
 - Clarification protocol: `../_shared/core/clarification-protocol.md`

@@ -1,10 +1,9 @@
 ---
 name: oma-design
-description: >
-  AI design specialist skill with DESIGN.md management, anti-pattern enforcement,
-  optional Stitch MCP integration, and component library guidance.
-  Covers typography, color systems, motion design (motion/react, GSAP, Three.js),
-  responsive-first layouts, and accessibility (WCAG 2.2).
+description: AI design specialist skill with DESIGN.md management, anti-pattern
+  enforcement, optional Stitch MCP integration, and component library guidance.
+  Covers typography, color systems, motion design (motion/react, GSAP,
+  Three.js), responsive-first layouts, and accessibility (WCAG 2.2).
 ---
 
 # oma-design
@@ -213,7 +212,6 @@ bunx getdesign@latest list
 
 ### Workflow Summary
 7 phases: Setup → Extract → Enhance → Propose → Generate → Audit → Handoff.
-See `resources/execution-protocol.md` for full detail.
 
 ### Vendor Inspiration (getdesign)
 

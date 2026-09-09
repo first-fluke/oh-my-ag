@@ -1,6 +1,13 @@
 ---
 name: oma-db
-description: Database specialist for SQL, NoSQL, and vector database modeling, schema design, normalization, indexing, transactions, integrity, concurrency control, backup, capacity planning, data standards, anti-pattern review, and compliance-aware database design. Use for database, schema, ERD, table design, document model, vector index design, RAG retrieval architecture, migration, query tuning, glossary, capacity estimation, backup strategy, database anti-pattern remediation work, and ISO 27001, ISO 27002, or ISO 22301-aware database recommendations.
+description: Database specialist for SQL, NoSQL, and vector database modeling,
+  schema design, normalization, indexing, transactions, integrity, concurrency
+  control, backup, capacity planning, data standards, anti-pattern review, and
+  compliance-aware database design. Use for database, schema, ERD, table design,
+  document model, vector index design, RAG retrieval architecture, migration,
+  query tuning, glossary, capacity estimation, backup strategy, database
+  anti-pattern remediation work, and ISO 27001, ISO 27002, or ISO 22301-aware
+  database recommendations.
 ---
 
 # DB Agent - Data Modeling & Database Architecture Specialist
@@ -171,19 +178,8 @@ Then run the project's migration, query-plan, or retrieval-quality commands only
 - For vector/RAG systems: embedding version policy, chunking policy, hybrid retrieval strategy, and re-index / re-embedding plan
 
 ## References
-Follow `resources/execution-protocol.md` step by step.
-See `resources/examples.md` for input/output examples.
-Use `resources/document-templates.md` when you need concrete deliverable structure.
-Use `resources/anti-patterns.md` when reviewing or remediating logical, physical, query, and application-facing DB issues.
-Use `resources/vector-db.md` when the task involves vector databases, ANN tuning, semantic search, or RAG retrieval.
-Use `resources/iso-controls.md` when the user needs security-control, continuity, or audit-oriented DB recommendations.
-Use `resources/migration-playbook.md` when a schema or data change targets live tables (expand-contract, lock-aware DDL, batched backfill, cutover).
-Use `resources/query-tuning.md` when the task involves slow queries, execution plans, or index design.
-Before submitting, run `resources/checklist.md`.
-Vendor-specific execution protocols are injected automatically by `oh-my-agent agent spawn`.
-Source files live under `../_shared/runtime/execution-protocols/{vendor}.md`.
-- Execution steps: `resources/execution-protocol.md`
-- Self-check: `resources/checklist.md`
+- Execution steps (follow for the selected task): `resources/execution-protocol.md`
+- Self-check (run before handoff): `resources/checklist.md`
 - Examples: `resources/examples.md`
 - Deliverable templates: `resources/document-templates.md`
 - Anti-pattern review guide: `resources/anti-patterns.md`

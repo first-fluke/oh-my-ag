@@ -24,7 +24,7 @@ Use this checklist after creating or updating a skill. `oma skill lint --skill {
 - `When NOT to use` names boundaries and cross-routes to adjacent skills.
 - `Expected inputs` and `Expected outputs` are explicit. If the skill produces machine-checkable artifacts, prefer the structured `outputs:` YAML block over freeform bullets so `oma verify` can run a closure check.
 - `Dependencies` names tools, files, standards, APIs, or resources.
-- `Control-flow features` describes branching, tool calls, writes, and clarification points.
+- Branching, tool calls, writes, and clarification points are represented where relevant; a separate `Control-flow features` section is optional.
 
 ## Cross-Skill Boundary Check
 
@@ -51,23 +51,22 @@ not — a well-written skill can still fail `oma skill eval`.
 - When in doubt, verify with `oma skill eval` fixtures instead of judging by prose quality —
   textual plausibility does not predict utility.
 
-## Structural Checks
+## Execution and Constraint Checks
 
-- `Entry` states what to verify before acting.
-- `Scenes` use SSL-style scene vocabulary where practical.
-- `Transitions` describe condition-to-action routing.
-- `Failure and recovery` covers common failures.
-- `Exit` defines success, partial success, and failure.
+- The canonical path is operational enough to follow without re-deriving commands or loading every resource.
+- Entry conditions, transitions, success/partial/failure outcomes, and side effects are clear. They do not require separate sections when already stated in the canonical path or recovery table.
+- `Scenes` is optional; include it only for distinct states/phases, not a second copy of the procedure.
+- `Actions` is optional; include a table only for meaningful actor/tool/evidence bindings, not to attach SSL labels to steps already described.
+- Dependencies and affected files/processes/services are identified. Add tool or scope tables only when they contribute missing detail.
+- Preconditions and harmful-action limits are concrete and domain-specific.
 
-## Logical Checks
+## Duplication Checks
 
-- `Actions` map operations to SSL primitives.
-- `Tools and instruments` names concrete tools, scripts, commands, APIs, or references.
-- The canonical path is executable or operational enough for an agent to follow without extra context.
-- `Resource scope` names affected resources such as `CODEBASE`, `LOCAL_FS`, `PROCESS`, `CREDENTIALS`, `NETWORK`, `USER_DATA`, or `MEMORY`.
-- `Preconditions` are clear.
-- `Effects and side effects` name writes, commands, network calls, generated artifacts, or state changes.
-- `Guardrails` protect against unsafe, broad, or low-quality execution.
+- One authoritative place owns each procedure, policy, and output contract.
+- Independently invoked skills/workflows keep a short pointer to shared requirements; injected context is not copied into every vendor protocol.
+- References list each resource once with a load condition. Do not repeat a prose reading list immediately above the same links.
+- Do not count source/generated distribution copies as removable prompt duplication.
+- When claiming savings, distinguish file size from assembled prompt size. A smaller repository does not prove lower context usage for each invocation.
 
 ## Reference Checks
 

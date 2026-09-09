@@ -1,11 +1,6 @@
 # Conventional Commits Guide
 
-## Overview
-
-Conventional Commits applies consistent rules to commit messages to enable:
-- Automated CHANGELOG generation
-- Semantic Versioning automation
-- Improved commit history readability across teams
+Git execution and staging rules live in the parent SKILL.md. Use this reference only for commit syntax and branch names. Repository configuration and hooks determine applicable length and release rules.
 
 ## Commit Message Structure
 
@@ -50,34 +45,12 @@ fix(api): handle null response
 refactor(ui): simplify button component
 ```
 
-### Common Scopes
-- `auth` - Authentication/authorization
-- `api` - API endpoints
-- `ui` - User interface
-- `db` - Database
-- `config` - Configuration
-- `deps` - Dependencies
-
 ## Description
 
 - **Imperative mood**: "add", "fix", "update" (NOT "added", "fixed", "updates")
 - **Lowercase first letter**
 - **No trailing period**
 - **72 characters or less**
-
-### Good Examples
-```
-feat(auth): add JWT token refresh mechanism
-fix(api): handle empty response from payment gateway
-refactor(ui): extract common button styles
-```
-
-### Bad Examples
-```
-feat(auth): Added JWT token refresh mechanism.  # past tense, period
-fix: fix bug  # insufficient description
-Update the authentication system to support OAuth2 tokens and refresh mechanism  # too long
-```
 
 ## Body
 
@@ -117,15 +90,7 @@ Refs #123, #789
 
 ### Co-Authors
 
-Include this trailer only when `scm.co_author.enabled` is true and its configured name and email
-are present. Otherwise omit the trailer. Copy the values from configuration; never reuse an
-example identity.
-
-```
-feat(ui): redesign dashboard
-
-Co-authored-by: <scm.co_author.name> <scm.co_author.email>
-```
+Include `Co-authored-by: <name> <email>` only when effective `scm.co_author.enabled` is true and both configured values are present. Copy them exactly from configuration; otherwise omit the trailer. GitHub credits the verified email owner, so never reuse an example identity. A co-author hook rejection must be corrected against the configured allowlist.
 
 ## Branch Naming Convention
 
@@ -136,35 +101,6 @@ Co-authored-by: <scm.co_author.name> <scm.co_author.email>
 | refactor | `refactor/` | `refactor/api-cleanup` |
 | docs | `docs/` | `docs/api-guide` |
 | hotfix | `hotfix/` | `hotfix/security-patch` |
-
-## Commit Workflow
-
-1. **Stage specific files** (NOT `git add .`):
-   ```bash
-   git add src/auth/login.ts
-   git add tests/auth/login.test.ts
-   ```
-
-2. **Write commit message**:
-   ```bash
-   git commit -m "$(cat <<'EOF'
-   feat(auth): add login rate limiting
-
-   - Limit failed attempts to 5 per minute
-   - Add exponential backoff for repeated failures
-   - Log suspicious activity
-
-   Closes #234
-
-   Co-authored-by: <scm.co_author.name> <scm.co_author.email>
-   EOF
-   )"
-   ```
-
-3. **Verify**:
-   ```bash
-   git log -1 --format=full
-   ```
 
 ## Resources
 

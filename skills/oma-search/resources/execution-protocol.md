@@ -1,19 +1,6 @@
-# Search Agent - Execution Protocol
+# Search Route Details
 
-## Step 0: Parse Query
-
-1. **Extract flags** from the query string:
-   - `--docs`, `--code`, `--web`: force specific route
-   - `--strict`: only verified+ sources (trust score >= 0.85)
-   - `--wide`: all sources with trust labels
-   - `--gitlab`: force `glab api` for code route
-2. **Classify intent** using `resources/intent-rules.md`:
-   - If flag is present: skip classification, use flag
-   - If no flag: apply keyword pattern matching
-   - If ambiguous: use `web` + `docs` parallel (default fallback)
-3. **Log** selected mode and route(s) for transparency
-
-## Step 1: Route Dispatch
+The parent SKILL.md owns classification and execution order. Load only the selected route below.
 
 ### docs route
 1. Call Context7 `resolve-library-id` with the library/framework name
@@ -59,7 +46,7 @@ Flags: `--only <list>`, `--skip <list>`, `--timeout <sec>`, `--locale <v>`,
 ### local route
 Follow `../../_shared/core/code-intelligence.md`. Discover configured tools for named symbols, patterns, and structure. If unavailable or timed out, use native search and scoped reads; record limitations. Do not install a provider, track a repository, or silently switch providers.
 
-## Step 2: Collect Results
+## Result normalization
 
 1. Gather results from all dispatched routes
 2. Normalize into uniform format:
@@ -68,42 +55,9 @@ Follow `../../_shared/core/code-intelligence.md`. Discover configured tools for 
    ```
 3. Deduplicate by URL
 
-## Step 3: Trust Scoring
+## Trust and result presentation
 
-1. For each result with a URL, extract the domain
-2. Resolve trust score (see `resources/trust-registry.md`):
-   a. Check the current session’s in-memory domain cache
-   b. If cache miss: run `oma search trust <domain>` (registry → heuristic → Tranco, handled inside the CLI)
-   c. Apply agent-level rules: Context7-resolved docs are `verified 0.95`; official-site upgrade is allowed (upgrade-only)
-3. Attach trust level, tags, and score:
-   - Resolved: use level and score
-   - Unresolved: label as `unknown` with score `—`
-4. Cache newly resolved scores for this session; no MCP memory dependency
-5. If `--strict` mode: filter out results below `verified` (< 0.85)
-   - If 0 results remain: suggest `--wide` rerun
-6. Sort by: relevance first, trust score as tiebreaker
-
-## Step 4: Present Results
-
-Format output as:
-```
-Query: "{query}"
-Mode: {mode} ({auto|flag})
-
-{ROUTE} #{n}  {title} — {source}     [{tags} {stars} {score}]
-```
-
-Example:
-```
-Query: "Next.js middleware authentication"
-Mode: docs + web (auto)
-
-DOCS #1  Next.js Middleware — next.js docs     [verified,lang-docs 0.95]
-DOCS #2  Authentication — next-auth.js docs    [verified,lib-docs 0.90]
-WEB  #3  Middleware Auth Guide — vercel.com     [verified,vendor 0.90]
-WEB  #4  Next.js Auth Tutorial — dev.to        [external,blog 0.35]
-CODE #5  middleware.ts — vercel/next.js         [github]
-```
+Use `trust-registry.md` for score resolution, exceptions, and caching. Return the query's selected sources with route, source reference, trust label/score, relevance, and material limitations. Adapt the presentation to the request; no fixed report layout is required.
 
 ## On Error
-See `resources/error-playbook.md` for recovery steps.
+See `error-playbook.md` for recovery steps.
