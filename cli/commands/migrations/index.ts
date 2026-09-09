@@ -18,11 +18,22 @@ export {
 export interface Migration {
   name: string;
   /**
+   * Whether actions from this migration require downloaded project assets to
+   * be copied and vendor links to be reconciled. State-only migrations should
+   * set this to false.
+   */
+  requiresReconcile?: boolean;
+  /**
    * `ctx` carries the vendor selection in force for this run. Any migration
    * that writes into a vendor-owned path must gate that write on
    * `allowsVendor(ctx, vendor)`. Omitting `ctx` means unrestricted.
    */
   up(cwd: string, ctx?: MigrationContext): string[];
+}
+
+export interface MigrationRunStatus {
+  actions: string[];
+  requiresReconcile: boolean;
 }
 
 import { migrateToAgents } from "./001-agents-dir.js";
@@ -88,9 +99,21 @@ export function runMigrations(
   cwd: string,
   ctx: MigrationContext = UNRESTRICTED_MIGRATION_CONTEXT,
 ): string[] {
+  return runMigrationsWithStatus(cwd, ctx).actions;
+}
+
+export function runMigrationsWithStatus(
+  cwd: string,
+  ctx: MigrationContext = UNRESTRICTED_MIGRATION_CONTEXT,
+): MigrationRunStatus {
   const actions: string[] = [];
+  let requiresReconcile = false;
   for (const migration of migrations) {
-    actions.push(...migration.up(cwd, ctx));
+    const migrationActions = migration.up(cwd, ctx);
+    actions.push(...migrationActions);
+    if (migrationActions.length > 0 && migration.requiresReconcile !== false) {
+      requiresReconcile = true;
+    }
   }
-  return actions;
+  return { actions, requiresReconcile };
 }

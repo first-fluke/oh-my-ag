@@ -59,7 +59,7 @@ import {
   lockPath,
 } from "../../utils/install-lock.js";
 import { link } from "../link/run.js";
-import { runMigrations } from "../migrations/index.js";
+import { runMigrations, runMigrationsWithStatus } from "../migrations/index.js";
 import { resolveAutoUpdateCli } from "./auto-update-config.js";
 import {
   captureBackendStackBeforeCopy,
@@ -155,7 +155,10 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
     const migrationVendors = resolveUpdateVendors(cwd, options);
 
     // Run all migrations (after confirming project is installed)
-    const migrationActions = runMigrations(cwd, { vendors: migrationVendors });
+    const migrationStatus = runMigrationsWithStatus(cwd, {
+      vendors: migrationVendors,
+    });
+    const migrationActions = migrationStatus.actions;
     if (migrationActions.length > 0) {
       ui.note(
         migrationActions.map((m) => `${pc.green("✓")} ${m}`).join("\n"),
@@ -163,12 +166,13 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
       );
     }
 
-    // Determine if reconcile is needed (migrations ran, or previous reconcile failed)
+    // Reconcile only for migrations that affect projected project files, or
+    // when a previous reconciliation was interrupted.
     const needsReconcile =
-      migrationActions.length > 0 || getNeedsReconcile(cwd);
+      migrationStatus.requiresReconcile || getNeedsReconcile(cwd);
 
     // Persist reconcile flag so a failed download doesn't lose the intent
-    if (migrationActions.length > 0 && !getNeedsReconcile(cwd)) {
+    if (migrationStatus.requiresReconcile && !getNeedsReconcile(cwd)) {
       setNeedsReconcile(cwd, true);
     }
 

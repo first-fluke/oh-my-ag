@@ -6,6 +6,7 @@ import { toPosixPath } from "../utils/fs-utils.js";
 import { http } from "./http.js";
 
 export const PACKAGE_NAME = "oh-my-agent";
+const VERSION_RE = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/;
 
 export type PackageManager =
   | "npm"
@@ -32,8 +33,13 @@ export interface InstallationInfo {
  */
 export function getInstallationInfo(
   argvPath = process.argv[1],
+  targetVersion = "latest",
 ): InstallationInfo {
   if (!argvPath) return { packageManager: "unknown", isGlobal: false };
+
+  const packageTarget = VERSION_RE.test(targetVersion)
+    ? `${PACKAGE_NAME}@${targetVersion}`
+    : `${PACKAGE_NAME}@latest`;
 
   if (process.env.IS_BINARY === "true") {
     return {
@@ -105,7 +111,7 @@ export function getInstallationInfo(
     return {
       packageManager: "pnpm",
       isGlobal: true,
-      updateCommand: `pnpm add -g ${PACKAGE_NAME}@latest`,
+      updateCommand: `pnpm add -g ${packageTarget}`,
       updateMessage: "Installed via pnpm. Updating in background...",
     };
   }
@@ -113,7 +119,7 @@ export function getInstallationInfo(
     return {
       packageManager: "yarn",
       isGlobal: true,
-      updateCommand: `yarn global add ${PACKAGE_NAME}@latest`,
+      updateCommand: `yarn global add ${packageTarget}`,
       updateMessage: "Installed via yarn. Updating in background...",
     };
   }
@@ -121,7 +127,7 @@ export function getInstallationInfo(
     return {
       packageManager: "bun",
       isGlobal: true,
-      updateCommand: `bun add -g ${PACKAGE_NAME}@latest`,
+      updateCommand: `bun add -g ${packageTarget}`,
       updateMessage: "Installed via bun. Updating in background...",
     };
   }
@@ -129,12 +135,10 @@ export function getInstallationInfo(
   return {
     packageManager: "npm",
     isGlobal: true,
-    updateCommand: `npm install -g ${PACKAGE_NAME}@latest`,
+    updateCommand: `npm install -g ${packageTarget}`,
     updateMessage: "Installed via npm. Updating in background...",
   };
 }
-
-const VERSION_RE = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/;
 
 /**
  * Compare two semver strings (X.Y.Z, ignoring prerelease/build metadata).
@@ -218,7 +222,10 @@ export async function maybeSelfUpdate(
     return { triggered: false, reason: "up-to-date", latest };
   }
 
-  const info = getInstallationInfo();
+  // Pin the version that passed the registry check. Resolving `@latest` again
+  // in the package manager can hit a stale dist-tag cache immediately after a
+  // release and silently reinstall the old version.
+  const info = getInstallationInfo(process.argv[1], latest);
   if (!info.updateCommand) {
     opts.onNotice?.(
       pc.yellow(

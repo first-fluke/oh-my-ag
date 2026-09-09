@@ -101,7 +101,11 @@ const geminiState = vi.hoisted(() => ({
 }));
 
 const migrationsState = vi.hoisted(() => ({
-  runMigrations: vi.fn(() => []),
+  runMigrations: vi.fn((): string[] => []),
+  runMigrationsWithStatus: vi.fn(() => ({
+    actions: [] as string[],
+    requiresReconcile: false,
+  })),
 }));
 
 const skillsState = vi.hoisted(() => ({
@@ -287,6 +291,10 @@ describe("update --global: _install.json lifecycle", () => {
 
     lockState.acquireLock.mockReturnValue({ ok: true, release: vi.fn() });
     migrationsState.runMigrations.mockReturnValue([]);
+    migrationsState.runMigrationsWithStatus.mockReturnValue({
+      actions: [],
+      requiresReconcile: false,
+    });
     selfUpdateState.maybeSelfUpdate.mockResolvedValue({
       triggered: false,
       reason: "disabled",
@@ -445,6 +453,24 @@ describe("update --global: _install.json lifecycle", () => {
 
   it("skips the download at the current version without an explicit skill request", async () => {
     manifestState.getLocalVersion.mockResolvedValue("8.1.0");
+
+    await update({ global: true, ci: true });
+
+    expect(tarballState.downloadAndExtract).not.toHaveBeenCalled();
+    expect(linkState.link).not.toHaveBeenCalled();
+  });
+
+  it("does not redownload for a state-only migration warning", async () => {
+    manifestState.getLocalVersion.mockResolvedValue("8.1.0");
+    migrationsState.runMigrations.mockReturnValue([
+      "session migration failed for oma-conflict: destination differs",
+    ]);
+    migrationsState.runMigrationsWithStatus.mockReturnValue({
+      actions: [
+        "session migration failed for oma-conflict: destination differs",
+      ],
+      requiresReconcile: false,
+    });
 
     await update({ global: true, ci: true });
 

@@ -15,7 +15,7 @@ import {
   setNeedsReconcile,
 } from "../../platform/manifest.js";
 import * as skills from "../../platform/skills-installer.js";
-import { runMigrations } from "../migrations/index.js";
+import { runMigrations, runMigrationsWithStatus } from "../migrations/index.js";
 import {
   classifyUpdateTarget,
   collectAgentRequiredSkills,
@@ -641,12 +641,12 @@ describe("persisted needsReconcile flag", () => {
       "utf-8",
     );
 
-    const migrationActions = runMigrations(root);
-    expect(migrationActions).toHaveLength(0);
+    const migrationStatus = runMigrationsWithStatus(root);
+    expect(migrationStatus.actions).toHaveLength(0);
 
     // Even though migrations are no-op, persisted flag forces reconcile
     const needsReconcile =
-      migrationActions.length > 0 || getNeedsReconcile(root);
+      migrationStatus.requiresReconcile || getNeedsReconcile(root);
     expect(needsReconcile).toBe(true);
 
     const localVersion = "4.26.1";
@@ -676,9 +676,9 @@ describe("persisted needsReconcile flag", () => {
       "utf-8",
     );
 
-    const migrationActions = runMigrations(root);
+    const migrationStatus = runMigrationsWithStatus(root);
     const needsReconcile =
-      migrationActions.length > 0 || getNeedsReconcile(root);
+      migrationStatus.requiresReconcile || getNeedsReconcile(root);
 
     expect(needsReconcile).toBe(false);
 

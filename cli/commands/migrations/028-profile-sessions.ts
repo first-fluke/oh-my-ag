@@ -7,6 +7,7 @@ import type { Migration } from "./index.js";
 
 export const migrateProfileSessions: Migration = {
   name: "028-profile-sessions",
+  requiresReconcile: false,
   up(projectDir) {
     // Legacy project state belongs to the default local profile only.
     if (profileSlot() !== "0") return [];

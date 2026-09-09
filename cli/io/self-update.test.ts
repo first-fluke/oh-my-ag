@@ -1,5 +1,12 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import { isOutdated, maybeSelfUpdate } from "./self-update.js";
+import {
+  getInstallationInfo,
+  isOutdated,
+  maybeSelfUpdate,
+} from "./self-update.js";
 
 describe("isOutdated", () => {
   it("returns true when latest patch is newer", () => {
@@ -64,5 +71,31 @@ describe("maybeSelfUpdate guards", () => {
         onSpawnStart: spawned,
       }),
     ).resolves.toMatchObject({ triggered: expect.any(Boolean) });
+  });
+});
+
+describe("getInstallationInfo", () => {
+  it("pins Bun self-updates to the version returned by the registry", () => {
+    const root = mkdtempSync(join(tmpdir(), "oma-self-update-"));
+    const cli = join(
+      root,
+      ".bun",
+      "install",
+      "global",
+      "node_modules",
+      "oh-my-agent",
+      "bin",
+      "cli.js",
+    );
+    mkdirSync(dirname(cli), { recursive: true });
+    writeFileSync(cli, "#!/usr/bin/env node\n");
+
+    try {
+      expect(getInstallationInfo(cli, "14.8.0").updateCommand).toBe(
+        "bun add -g oh-my-agent@14.8.0",
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
