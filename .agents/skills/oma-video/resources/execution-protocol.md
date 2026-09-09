@@ -76,8 +76,8 @@ State plainly to the user: **"Demo capture is performed by a human."** Then:
 ## Step 5: Compositor Render
 
 - **Remotion (default, live)**: `oma video generate` stops after `render-spec.json` with `composition pending` and a scaffolded `<runDir>/remotion/` (latest Remotion toolchain, remotion-dev/skills at HEAD). Read `<runDir>/remotion/AUTHORING.md` + the listed skills + `resources/remotion-authoring/<mode>.md`, author `src/Root.tsx`, then `oma video render <runDir> --output json` — it typechecks, spawns `npx remotion render src/index.ts <CompId> <mode>-<slug>.mp4 --props=render-spec.json --public-dir=<runDir>`, and ffprobes the output. Non-zero exit = fix the composition and re-render.
-- **Fallback**: only when the toolchain is missing or the render fails, write a deterministic placeholder mp4 derived from the render-spec so the run dir + manifest are still well-formed with zero toolchain.
-- **MPT (`--compositor mpt`)**: inject the agent-written script (custom-script mode); keys env-only + log masking.
+- **Failure**: a missing toolchain, render failure, missing video stream, or non-positive duration is a failure with diagnostics. Keep the run directory and recovery artifacts; do not write a placeholder MP4. `OMA_VIDEO_MOCK=1` permits deterministic placeholders for tests only.
+- **MPT (`--compositor mpt`)**: inject the agent-written script (custom-script mode); keys env-only + log masking. It requires the installed checkout, venv, and ffmpeg; setup or render failures fail with diagnostics.
 
 ## Step 6: Write Artifacts
 
@@ -91,12 +91,12 @@ State plainly to the user: **"Demo capture is performed by a human."** Then:
 1. Print a one-line status per capability to stderr:
    - `[oma video] <capability> <provider> ok (Xs)`
    - `[oma video] <capability> <provider> fallback -> <fallback>`
-2. Print the run-dir path + the mp4 path.
+2. Print the run-dir path and, only on success, the validated mp4 path.
 3. For `--format json`: write `{exitCode, runDir, manifestPath, scriptPath, renderSpecPath, warnings, error}` to stdout as one JSON object (no `outputs` key — read output/asset paths from the manifest at `manifestPath`).
 
 ## Step 8: Exit Code Aggregation (aligned with `oma search fetch`)
 
-- Success (mp4 + valid manifest) -> exit 0 (fallbacks recorded in `warnings`).
+- Success (playable mp4 with a video stream and positive duration + valid manifest) -> exit 0. Asset-provider fallbacks are recorded in `warnings`.
 - Otherwise pick the most specific code:
   - `safety-refused` -> 2
   - `not-found` (profile/asset) -> 3
@@ -110,7 +110,7 @@ State plainly to the user: **"Demo capture is performed by a human."** Then:
 | Situation | Action |
 |-----------|--------|
 | No provider for a required capability | Exit 5, print `Run: oma video doctor` |
-| Remotion toolchain not bootstrapped | Exit 1 (CompositorBootstrapError) + doctor remediation; MPT fallback where applicable |
+| Remotion or MPT toolchain not bootstrapped | Exit 1 + `oma video doctor` remediation; retain render-spec and authored composition for recovery |
 | Voicebox MCP down | Fall back to estimated timing; still emit captions (whisper.cpp hop deferred: `TODO(oma-deferred): whisper-cpp`) |
 | Pexels / Pixelle key absent | Skip provider; fall through to oma-image stills; annotate coverage in `warnings` |
 | `demo` with no capture + no Cap | Guided protocol (Step 4b); stop without rendering |

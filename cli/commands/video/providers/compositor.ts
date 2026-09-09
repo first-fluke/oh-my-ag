@@ -15,7 +15,7 @@
 // assets are). The placeholder stays a pure function of the spec so it is
 // reproducible from the same render-spec.
 import { existsSync } from "node:fs";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { binaryAvailable, runCapture } from "../internal/exec.js";
 import { isMockMode } from "../internal/mock.js";
@@ -40,6 +40,52 @@ import {
 // 5400 frames. 10 min covers the slowest machines without hanging a run.
 const RENDER_TIMEOUT_MS = 600_000;
 
+/** Require a video stream and positive encoded duration, never a text stub. */
+export async function requirePlayableVideoDuration(
+  absPath: string,
+): Promise<number> {
+  if (!existsSync(absPath)) {
+    throw new Error(`render did not produce an output file: ${absPath}`);
+  }
+  const res = await runCapture(
+    "ffprobe",
+    [
+      "-v",
+      "error",
+      "-select_streams",
+      "v:0",
+      "-show_entries",
+      "stream=codec_type:format=duration",
+      "-of",
+      "json",
+      absPath,
+    ],
+    { timeoutMs: 15_000 },
+  );
+  if (res.code !== 0) {
+    const detail = (res.stderr || res.stdout).trim().split("\n").at(-1);
+    throw new Error(
+      `render output is not a playable video (ffprobe failed${detail ? `: ${detail}` : ""})`,
+    );
+  }
+  try {
+    const parsed = JSON.parse(res.stdout) as {
+      format?: { duration?: string };
+      streams?: Array<{ codec_type?: string }>;
+    };
+    const seconds = Number.parseFloat(parsed.format?.duration ?? "");
+    const hasVideo = parsed.streams?.some(
+      (stream) => stream.codec_type === "video",
+    );
+    if (hasVideo && Number.isFinite(seconds) && seconds > 0) return seconds;
+  } catch {
+    // Fall through to the actionable validation error.
+  }
+  throw new Error(
+    "render output is not a playable video with a positive duration",
+  );
+}
+
 export class RemotionLikeCompositor implements Compositor {
   constructor(public readonly id: "remotion" | "mpt" = "remotion") {}
 
@@ -60,7 +106,8 @@ export class RemotionLikeCompositor implements Compositor {
 
     // MoneyPrinterTurbo compositor: a separate real branch driven via the MPT
     // venv python + the in-repo driver (design 013 §5). Gated on the key-
-    // optional rule; degrades to the deterministic placeholder otherwise.
+    // optional rule. Outside mock mode, unavailable or failed MPT renders
+    // report diagnostics rather than writing text with an .mp4 suffix.
     if (this.id === "mpt") {
       return this.renderMptOrPlaceholder({ spec, file, runDir, durationSec });
     }
@@ -75,7 +122,6 @@ export class RemotionLikeCompositor implements Compositor {
       runDir,
       projectDir: gate.projectDir,
       chromeOverride: gate.chromeOverride,
-      fallbackDurationSec: durationSec,
     });
   }
 
@@ -84,7 +130,8 @@ export class RemotionLikeCompositor implements Compositor {
    * only when NOT mock mode AND ffmpeg present AND the MPT checkout is installed
    * (clone + venv) AND a key-free material source is available (local materials
    * always are, so this is satisfied without any key; PEXELS_API_KEY enables the
-   * pexels source). On ANY failure -> deterministic placeholder + warning.
+   * pexels source). The deterministic placeholder is reserved for the
+   * OMA_VIDEO_MOCK=1 harness; real-path failures must remain failures.
    */
   private async renderMptOrPlaceholder(args: {
     spec: RenderSpec;
@@ -93,13 +140,19 @@ export class RemotionLikeCompositor implements Compositor {
     durationSec: number;
   }): Promise<VideoArtifact> {
     const { spec, file, runDir, durationSec } = args;
+    if (isMockMode()) return this.placeholder(file, spec, durationSec);
     const gate = this.mptBranchGateSync();
     if (!gate.ok) {
-      // Toolchain/checkout absent or mock mode — deterministic placeholder.
-      return this.placeholder(file, spec, durationSec);
+      throw new Error(
+        `mpt compositor unavailable: ${gate.reason}. Run \`oma video doctor --install-mpt\` before rendering.`,
+      );
     }
     const ffmpeg = await binaryAvailable("ffmpeg", ["-version"]);
-    if (!ffmpeg.ok) return this.placeholder(file, spec, durationSec);
+    if (!ffmpeg.ok) {
+      throw new Error(
+        `mpt compositor requires ffmpeg: ${ffmpeg.detail || "not found"}`,
+      );
+    }
 
     try {
       return await this.renderWithMpt({
@@ -109,16 +162,11 @@ export class RemotionLikeCompositor implements Compositor {
         venvPython: gate.venvPython,
         projectDir: gate.projectDir,
         driverPath: gate.driverPath,
-        fallbackDurationSec: durationSec,
       });
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
-      const artifact = await this.placeholder(file, spec, durationSec);
-      artifact.warnings = [
-        ...(artifact.warnings ?? []),
-        `mpt render failed, used placeholder: ${reason}`,
-      ];
-      return artifact;
+      await rm(path.join(runDir, file), { force: true });
+      throw new Error(`mpt render failed: ${reason}`);
     }
   }
 
@@ -163,17 +211,8 @@ export class RemotionLikeCompositor implements Compositor {
     venvPython: string;
     projectDir: string;
     driverPath: string;
-    fallbackDurationSec: number;
   }): Promise<VideoArtifact> {
-    const {
-      spec,
-      file,
-      runDir,
-      venvPython,
-      projectDir,
-      driverPath,
-      fallbackDurationSec,
-    } = args;
+    const { spec, file, runDir, venvPython, projectDir, driverPath } = args;
     const outPath = path.join(runDir, file);
     const narration = await this.readNarration(runDir, spec);
     const aspect = this.aspectForDimensions(spec.dimensions);
@@ -214,10 +253,10 @@ export class RemotionLikeCompositor implements Compositor {
         `exit ${res.code}`;
       throw new Error(`driver: ${reason}`);
     }
-    const probed = await this.probeDurationSec(outPath);
+    const durationSec = await requirePlayableVideoDuration(outPath);
     return {
       path: file,
-      durationSec: probed ?? parsed.duration ?? fallbackDurationSec,
+      durationSec,
       pathTaken: "real",
     };
   }
@@ -354,7 +393,7 @@ export class RemotionLikeCompositor implements Compositor {
    * asset paths (`visuals/...`, `captions.srt`) resolve via `staticFile()`; the
    * Remotion `src/` never sees an absolute path. On success we probe the real
    * duration from the produced mp4 (the render-spec duration is the planned
-   * length; ffprobe reports what was actually encoded).
+   * length; ffprobe verifies a video stream and its encoded duration).
    */
   private async renderWithRemotion(args: {
     spec: RenderSpec;
@@ -362,16 +401,8 @@ export class RemotionLikeCompositor implements Compositor {
     runDir: string;
     projectDir: string;
     chromeOverride?: string;
-    fallbackDurationSec: number;
   }): Promise<VideoArtifact> {
-    const {
-      spec,
-      file,
-      runDir,
-      projectDir,
-      chromeOverride,
-      fallbackDurationSec,
-    } = args;
+    const { spec, file, runDir, projectDir, chromeOverride } = args;
     const outPath = path.join(runDir, file);
     const specPath = path.join(runDir, "render-spec.json");
 
@@ -392,11 +423,10 @@ export class RemotionLikeCompositor implements Compositor {
         throw new Error(`render timed out after ${RENDER_TIMEOUT_MS}ms`);
       }
       if (res.code === 0) {
-        const probed = await this.probeDurationSec(outPath);
         return {
           // Orchestrator joins this against the run dir, so return run-relative.
           path: file,
-          durationSec: probed ?? fallbackDurationSec,
+          durationSec: await requirePlayableVideoDuration(outPath),
           pathTaken: "real",
         };
       }
@@ -455,26 +485,6 @@ export class RemotionLikeCompositor implements Compositor {
       // toolchain cache (`oma video compose` / `oma video doctor --install`).
       env: { ...process.env, REMOTION_SKIP_BROWSER_DOWNLOAD: "1" },
     });
-  }
-
-  /** Read the real container duration via ffprobe; null when unavailable. */
-  private async probeDurationSec(absPath: string): Promise<number | null> {
-    const res = await runCapture(
-      "ffprobe",
-      [
-        "-v",
-        "error",
-        "-show_entries",
-        "format=duration",
-        "-of",
-        "default=noprint_wrappers=1:nokey=1",
-        absPath,
-      ],
-      { timeoutMs: 15_000 },
-    );
-    if (res.code !== 0) return null;
-    const seconds = Number.parseFloat(res.stdout.trim());
-    return Number.isFinite(seconds) && seconds > 0 ? seconds : null;
   }
 
   private async placeholder(

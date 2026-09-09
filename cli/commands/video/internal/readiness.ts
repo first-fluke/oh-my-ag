@@ -220,7 +220,7 @@ export function checkPretendardFont(): ReadinessCheck {
 /**
  * Cloned MoneyPrinterTurbo (MPT) checkout — the alternative shorts compositor
  * (`--compositor mpt`). The MPT real branch only fires when the clone + its venv
- * are present; otherwise the deterministic placeholder is used. The checkout
+ * are present; otherwise a real MPT render fails with setup diagnostics. The checkout
  * lives in a cache dir OUTSIDE the repo (never vendored into git);
  * `oma video doctor --install-mpt` clones + installs it.
  */

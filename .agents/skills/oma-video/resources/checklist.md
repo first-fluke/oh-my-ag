@@ -18,7 +18,7 @@
 - [ ] `manifest.json` records each provider, asset `sha256` hashes, cost breakdown, and the exit code.
 - [ ] `warnings[]` annotates any fallback taken (e.g. Pexels key absent -> oma-image stills, translator absent -> source locale).
 - [ ] External assets were copied into the run dir and hashed (no URL refs).
-- [ ] The mp4 plays (or, on the toolchain-free path, the deterministic placeholder is present and reproducible).
+- [ ] The mp4 has a video stream and positive duration (the CLI ffprobe check passed). A deterministic placeholder is valid only under `OMA_VIDEO_MOCK=1` tests and is never a deliverable.
 - [ ] Re-rendering with `oma video render <runDir>` reproduces the same output from `render-spec.json`.
 - [ ] If results are consumed downstream, the consumer parses the `--format json` stdout envelope `{exitCode, runDir, manifestPath, scriptPath, renderSpecPath, warnings, error}` (there is no `outputs` key) and reads output/asset paths from the manifest at `manifestPath`.
 - [ ] Old run directories under `.agents/results/videos/` are pruned **manually** when no longer needed — every run adds a new dir and the CLI never auto-deletes them.

@@ -15,7 +15,7 @@ otherwise the chain falls through to a key-free default.
 | visual | `[oma-image, pexels, pixelle]` | Pexels stock · Pixelle AIGC | oma-image stills + Ken Burns | `TODO(oma-deferred): pexels` / `pixelle` |
 | caption | `[oma-captions]` | oma-translation for non-source locale | source-locale text from timing | `TODO(oma-deferred): oma-translation` |
 | capture | Cap / guided capture | Human-recorded video ingestion | guided protocol + `--capture <path>` | `TODO(oma-deferred): cap` |
-| compositor | `[remotion, mpt]` | Remotion live render (wired, default) · MPT custom-script | deterministic placeholder mp4 (toolchain missing / render failed) | — |
+| compositor | `[remotion, mpt]` | Remotion live render (wired, default) · MPT custom-script | none: missing toolchain, failed render, or invalid output fails with diagnostics | — |
 
 ## Tier model
 
@@ -89,7 +89,7 @@ otherwise the chain falls through to a key-free default.
 |-------|-------|
 | Real | **wired (default)** — agent-authored `<runDir>/remotion/` (scaffolded by `oma video compose` on the latest Remotion + remotion-dev/skills); `oma video render` typechecks and spawns `npx remotion render src/index.ts <CompId> out.mp4 --props=render-spec.json --public-dir=<runDir>` |
 | Requires | Node + Chrome Headless Shell + FFmpeg (bootstrapped once via `oma video doctor --install`) |
-| Fallback | deterministic placeholder mp4 derived from the render-spec, used only when the toolchain is missing or the render fails (well-formed run dir + manifest, zero toolchain) |
+| Failure | Missing toolchain, render error, missing video stream, or non-positive duration fails with diagnostics. `OMA_VIDEO_MOCK=1` may write a deterministic placeholder only for tests. |
 | Determinism | render-spec + assets + seed + embedded Pretendard (fetched once by `oma video doctor --install`; system-font fallback when absent); re-render is byte-stable |
 | MPT alt | inject the agent-written script (custom-script mode); keys env-only + log masking; `--compositor mpt` |
 
@@ -99,7 +99,7 @@ otherwise the chain falls through to a key-free default.
 |------------|-------------|---------------------|
 | `provider-unavailable` | try next provider in `order`; chain-exhaustion fails | 5 |
 | `auth-required` | fail; hint tells the user how to authenticate | 5 |
-| `compositor-bootstrap` | fail; point to `oma video doctor` (+ MPT fallback) | 1 |
+| `compositor-bootstrap` | fail; point to `oma video doctor` or `oma video doctor --install-mpt` | 1 |
 | `cost-guardrail` | confirm; decline -> stop | 1 |
 | `capture-required` | guided protocol; not a hard error | (guided) |
 | `schema-validation` | fail; identify the offending field | 4 |

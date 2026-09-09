@@ -1,4 +1,5 @@
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -13,7 +14,10 @@ import { binaryAvailable } from "../internal/exec.js";
 import { getMptProjectStatus } from "../internal/mpt-project.js";
 import { runProjectDir, STUB_MARKER } from "../internal/remotion-workspace.js";
 import type { RenderSpec } from "../types.js";
-import { RemotionLikeCompositor } from "./compositor.js";
+import {
+  RemotionLikeCompositor,
+  requirePlayableVideoDuration,
+} from "./compositor.js";
 
 const SPEC: RenderSpec = {
   schemaVersion: "1.0",
@@ -99,11 +103,15 @@ describe("RemotionLikeCompositor", () => {
     expect(body).toContain("oma-video placeholder render");
   });
 
-  // Branch-selection coverage for MPT (deterministic, no real render): point the
-  // MPT checkout resolver at a non-existent dir so the real branch gate fails
-  // even with mock mode OFF. Proves `--compositor mpt` is gated on checkout
-  // availability and falls back cleanly. Runs everywhere (CI included).
-  it("falls back to the placeholder when the mpt checkout is absent (real branch gated)", async () => {
+  it("rejects a text placeholder during real video validation", async () => {
+    const placeholder = path.join(tmp, "not-a-video.mp4");
+    writeFileSync(placeholder, "oma-video placeholder render\n", "utf8");
+    await expect(requirePlayableVideoDuration(placeholder)).rejects.toThrow(
+      /not a playable video/,
+    );
+  });
+
+  it("fails without creating a placeholder when the mpt checkout is absent", async () => {
     delete process.env.OMA_VIDEO_MOCK;
     const original = process.env.OMA_VIDEO_MPT_DIR;
     process.env.OMA_VIDEO_MPT_DIR = "/nonexistent/mpt/checkout";
@@ -113,13 +121,13 @@ describe("RemotionLikeCompositor", () => {
         JSON.stringify({ ...SPEC, compositor: "mpt" }),
         "utf8",
       );
-      const artifact = await new RemotionLikeCompositor("mpt").render({
-        ...SPEC,
-        compositor: "mpt",
-      });
-      expect(artifact.pathTaken).toBe("fallback");
-      const body = readFileSync(path.join(tmp, artifact.path), "utf8");
-      expect(body).toContain("oma-video placeholder render");
+      await expect(
+        new RemotionLikeCompositor("mpt").render({
+          ...SPEC,
+          compositor: "mpt",
+        }),
+      ).rejects.toThrow(/mpt checkout/);
+      expect(existsSync(path.join(tmp, "shorts.mp4"))).toBe(false);
     } finally {
       if (original === undefined) delete process.env.OMA_VIDEO_MPT_DIR;
       else process.env.OMA_VIDEO_MPT_DIR = original;
@@ -157,11 +165,8 @@ describe("RemotionLikeCompositor", () => {
   // pipeline downloads/synthesizes materials and runs moviepy/ffmpeg. The live
   // render is verified out-of-band by `oma video generate --compositor mpt`.
   //
-  // When the toolchain or installed checkout is missing, the run MUST fall back.
-  // When everything is present, the real branch is exercised: on success we
-  // verify a genuine ISO-Media mp4; on a failure the documented graceful
-  // fallback (placeholder + warning) is the correct result. Either way the real
-  // branch was selected — never a silent no-op.
+  // This is opt-in because it needs a cloned, installed MPT checkout. A failed
+  // setup/render is an error with diagnostics; placeholders are mock-only.
   const mptE2e = process.env.OMA_VIDEO_MPT_E2E === "1" ? it : it.skip;
   mptE2e(
     "exercises the real mpt branch end-to-end when toolchain + checkout are present",
@@ -189,21 +194,14 @@ describe("RemotionLikeCompositor", () => {
       );
       const artifact = await new RemotionLikeCompositor("mpt").render(mptSpec);
 
-      if (!(ffmpeg && project.installed)) {
-        expect(artifact.pathTaken).toBe("fallback");
-        return;
-      }
+      if (!(ffmpeg && project.installed)) return;
 
-      if (artifact.pathTaken === "real") {
-        const outPath = path.join(tmp, artifact.path);
-        expect(statSync(outPath).size).toBeGreaterThan(1000);
-        const head = readFileSync(outPath).subarray(4, 8).toString("ascii");
-        expect(head).toBe("ftyp"); // ISO Media / MP4 box signature
-        expect(artifact.durationSec).toBeGreaterThan(0);
-      } else {
-        expect(artifact.pathTaken).toBe("fallback");
-        expect(artifact.warnings?.join(" ")).toContain("mpt render failed");
-      }
+      const outPath = path.join(tmp, artifact.path);
+      expect(artifact.pathTaken).toBe("real");
+      expect(statSync(outPath).size).toBeGreaterThan(1000);
+      const head = readFileSync(outPath).subarray(4, 8).toString("ascii");
+      expect(head).toBe("ftyp"); // ISO Media / MP4 box signature
+      expect(artifact.durationSec).toBeGreaterThan(0);
     },
     600_000,
   );
