@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.3.2](https://github.com/first-fluke/oh-my-agent/compare/web-v6.3.1...web-v6.3.2) (2026-09-09)
+
+
+### Documentation
+
+* **web:** fix capability providers link ([855a578](https://github.com/first-fluke/oh-my-agent/commit/855a57836907bc90efc9e181e894a4109d527c7e))
+
 ## [6.3.1](https://github.com/first-fluke/oh-my-agent/compare/web-v6.3.0...web-v6.3.1) (2026-09-08)
 
 
