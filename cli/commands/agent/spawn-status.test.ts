@@ -812,7 +812,7 @@ describe("agent/spawn-status.ts", () => {
         "--json",
         "-m",
         "gpt-5.5",
-        "--full-auto",
+        "--dangerously-bypass-approvals-and-sandbox",
         "@backend-engineer\n\nimplement auth",
       ]),
       expect.objectContaining({

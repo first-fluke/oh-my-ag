@@ -188,7 +188,7 @@ oma agent spawn <agent-id> <prompt> <session-id> [-m <vendor>] [-w <workspace>]
 | antigravity | `agy` | `--dangerously-skip-permissions` | `-p` |
 | gemini | `gemini` | `--approval-mode=yolo` | `-p` |
 | claude | `claude` | (nenhuma) | `-p` |
-| codex | `codex` | `--full-auto` | (nenhuma — prompt é posicional) |
+| codex | `codex` | `--dangerously-bypass-approvals-and-sandbox` | (nenhuma — prompt é posicional) |
 | qwen | `qwen` | `--yolo` | `-p` |
 
 Estes padrões podem ser sobrescritos em `.agents/skills/oma-orchestration/config/cli-config.yaml`.

@@ -188,7 +188,7 @@ oma agent spawn <agent-id> <prompt> <session-id> [-m <vendor>] [-w <workspace>]
 | antigravity | `agy` | `--dangerously-skip-permissions` | `-p` |
 | gemini | `gemini` | `--approval-mode=yolo` | `-p` |
 | claude | `claude` | (không) | `-p` |
-| codex | `codex` | `--full-auto` | (không — prompt là positional) |
+| codex | `codex` | `--dangerously-bypass-approvals-and-sandbox` | (không — prompt là positional) |
 | qwen | `qwen` | `--yolo` | `-p` |
 
 Các mặc định này có thể ghi đè trong `.agents/skills/oma-orchestration/config/cli-config.yaml`.

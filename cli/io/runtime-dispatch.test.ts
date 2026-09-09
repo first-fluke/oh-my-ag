@@ -594,14 +594,15 @@ describe("buildExternalInvocation — vendor branches", () => {
     expect(inv.args).toContain("--trust");
   });
 
-  it("codex: missing auto_approve_flag → falls back to --full-auto", () => {
+  it("codex: missing auto_approve_flag → uses the current bypass flag", () => {
     const inv = buildExternalInvocation(
       "codex",
       { command: "codex" },
       null,
       "hi",
     );
-    expect(inv.args).toContain("--full-auto");
+    expect(inv.args).toContain("--dangerously-bypass-approvals-and-sandbox");
+    expect(inv.args).not.toContain("--full-auto");
   });
 
   it("qwen: missing auto_approve_flag → falls back to --yolo", () => {

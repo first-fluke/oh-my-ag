@@ -3,6 +3,7 @@ import {
   type VendorConfig,
 } from "../../../platform/agent-config.js";
 import { agyPrintTimeoutArgs, detectAgyCaps } from "../agy-caps.js";
+import { resolveCodexAutoApproveFlag } from "../codex-flags.js";
 import type { Invocation } from "../types.js";
 
 export interface NativeInvocationOptions {
@@ -79,8 +80,8 @@ export function buildCodexNativeInvocation(
   if (readOnly) {
     const readOnlyFlag = vendorConfig.read_only_flag ?? "--sandbox read-only";
     args.push(...splitArgs(readOnlyFlag));
-  } else if (vendorConfig.auto_approve_flag) {
-    args.push(vendorConfig.auto_approve_flag);
+  } else {
+    args.push(resolveCodexAutoApproveFlag(vendorConfig.auto_approve_flag));
   }
 
   // Codex gates every non-managed command hook behind a per-invocation trust

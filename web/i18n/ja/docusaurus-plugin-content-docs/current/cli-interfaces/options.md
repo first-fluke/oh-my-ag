@@ -138,7 +138,7 @@ oma update [-f | --force] [--ci]
 | antigravity | `agy` | `--dangerously-skip-permissions` | `-p` |
 | gemini | `gemini` | `--approval-mode=yolo` | `-p` |
 | claude | `claude` | （なし） | `-p` |
-| codex | `codex` | `--full-auto` | （位置引数） |
+| codex | `codex` | `--dangerously-bypass-approvals-and-sandbox` | （位置引数） |
 | qwen | `qwen` | `--yolo` | `-p` |
 
 ### agent status

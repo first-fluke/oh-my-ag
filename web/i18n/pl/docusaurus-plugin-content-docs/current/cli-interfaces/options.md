@@ -100,7 +100,7 @@ Format argumentu window: `7d` (7 dni), `2w` (2 tygodnie), `1m` (1 miesiąc).
 | antigravity | `agy` | `--dangerously-skip-permissions` | `-p` |
 | gemini | `gemini` | `--approval-mode=yolo` | `-p` |
 | claude | `claude` | (brak) | `-p` |
-| codex | `codex` | `--full-auto` | (brak — prompt pozycyjny) |
+| codex | `codex` | `--dangerously-bypass-approvals-and-sandbox` | (brak — prompt pozycyjny) |
 | qwen | `qwen` | `--yolo` | `-p` |
 
 ### agent status

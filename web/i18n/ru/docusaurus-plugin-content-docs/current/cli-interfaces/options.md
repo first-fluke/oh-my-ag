@@ -132,7 +132,7 @@ oma agent spawn <agent-id> <prompt> <session-id> [-m <vendor>] [-w <workspace>]
 | antigravity | `agy` | `--dangerously-skip-permissions` | `-p` |
 | gemini | `gemini` | `--approval-mode=yolo` | `-p` |
 | claude | `claude` | (нет) | `-p` |
-| codex | `codex` | `--full-auto` | позиционный |
+| codex | `codex` | `--dangerously-bypass-approvals-and-sandbox` | позиционный |
 | qwen | `qwen` | `--yolo` | `-p` |
 
 ### agent status

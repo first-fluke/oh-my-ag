@@ -197,7 +197,7 @@ oma agent spawn <agent-id> <prompt> <session-id> [-m <vendor>] [-w <workspace>]
 | antigravity | `agy` | `--dangerously-skip-permissions` | `-p` |
 | gemini | `gemini` | `--approval-mode=yolo` | `-p` |
 | claude | `claude` | (없음) | `-p` |
-| codex | `codex` | `--full-auto` | (없음, 프롬프트는 위치 인자) |
+| codex | `codex` | `--dangerously-bypass-approvals-and-sandbox` | (없음, 프롬프트는 위치 인자) |
 | qwen | `qwen` | `--yolo` | `-p` |
 
 이 기본값은 `.agents/skills/oma-orchestration/config/cli-config.yaml`에서 오버라이드할 수 있습니다.

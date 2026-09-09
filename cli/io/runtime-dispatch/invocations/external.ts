@@ -3,6 +3,7 @@ import {
   type VendorConfig,
 } from "../../../platform/agent-config.js";
 import { agyPrintTimeoutArgs, detectAgyCaps } from "../agy-caps.js";
+import { resolveCodexAutoApproveFlag } from "../codex-flags.js";
 import type { Invocation } from "../types.js";
 
 export interface ExternalInvocationOptions {
@@ -371,11 +372,14 @@ const buildGenericExternalInvocation: ExternalInvocationBuilder = ({
       }
     }
   } else {
-    if (vendorConfig.auto_approve_flag) {
+    if (vendor === "codex") {
+      optionArgs.push(
+        resolveCodexAutoApproveFlag(vendorConfig.auto_approve_flag),
+      );
+    } else if (vendorConfig.auto_approve_flag) {
       optionArgs.push(vendorConfig.auto_approve_flag);
     } else {
       const defaultAutoApprove: Record<string, string> = {
-        codex: "--full-auto",
         qwen: "--yolo",
         antigravity: "--dangerously-skip-permissions",
         grok: "--yolo",

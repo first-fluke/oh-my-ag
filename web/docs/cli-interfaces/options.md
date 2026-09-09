@@ -199,7 +199,7 @@ oma agent spawn <agent-id> <prompt> <session-id> [-m <vendor>] [-w <workspace>]
 | antigravity | `agy` | `--dangerously-skip-permissions` | `-p` |
 | gemini | `gemini` | `--approval-mode=yolo` | `-p` |
 | claude | `claude` | (none) | `-p` |
-| codex | `codex` | `--full-auto` | (none; prompt is positional) |
+| codex | `codex` | `--dangerously-bypass-approvals-and-sandbox` | (none; prompt is positional) |
 | qwen | `qwen` | `--yolo` | `-p` |
 
 These defaults can be overridden in `.agents/skills/oma-orchestration/config/cli-config.yaml`.

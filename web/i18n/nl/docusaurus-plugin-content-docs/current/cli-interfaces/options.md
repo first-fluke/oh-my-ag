@@ -146,7 +146,7 @@ oma update [-f | --force] [--ci]
 | antigravity | `agy` | `--dangerously-skip-permissions` | `-p` |
 | gemini | `gemini` | `--approval-mode=yolo` | `-p` |
 | claude | `claude` | (geen) | `-p` |
-| codex | `codex` | `--full-auto` | (positioneel) |
+| codex | `codex` | `--dangerously-bypass-approvals-and-sandbox` | (positioneel) |
 | qwen | `qwen` | `--yolo` | `-p` |
 
 ### agent status
