@@ -244,7 +244,7 @@ agents:
 |-------|------|----------|-------------|
 | `language` | string | Yes | Response language code. Supports en, ko, ja, zh, es, fr, de, pt, ru, nl, pl. |
 | `model_preset` | string | Yes | Active preset key. One of the built-in keys (`antigravity`, `claude`, `codex`, `qwen`, `cursor`, `mixed`) or a `custom_presets` key. See [Per-Agent Models](../guide/per-agent-models.md). |
-| `providers` | map | No | Capability providers: `code_intelligence` (`serena` or `gortex`), `docs` (`context7`), `web` (`native` or `brave`), `semantic_memory` (`agentmemory`, `honcho`, or `none`). See [Capability Providers](../../../docs/capability-providers.md). |
+| `providers` | map | No | Capability providers: `code_intelligence` (`serena` or `gortex`), `docs` (`context7`), `web` (`native` or `brave`), `semantic_memory` (`agentmemory`, `honcho`, or `none`). See [Capability Providers](https://github.com/first-fluke/oh-my-agent/blob/main/docs/capability-providers.md). |
 | `date_format` | string | No | Timestamp format (`ISO`, `US`, `EU`). Default: `ISO`. |
 | `timezone` | string | No | Timezone identifier (e.g., `Asia/Seoul`). Default: `UTC`. |
 | `agents` | map | No | Partial per-agent overrides (object-only `AgentSpec`). Shallow-merged over preset defaults. |
