@@ -1,7 +1,7 @@
 {
   "name": "oh-my-agent",
   "version": "14.7.7",
-  "releaseDate": "2026-09-09T07:25:38.257Z",
+  "releaseDate": "2026-09-09T08:17:38.088Z",
   "repository": "https://github.com/first-fluke/oh-my-agent",
   "files": [
     {
@@ -316,13 +316,13 @@
     },
     {
       "path": ".agents/mcp.json",
-      "sha256": "37a0938c10ec0e87210adcca45307716bb5e868c401c80796f45adb3c0f3549d",
-      "size": 2277
+      "sha256": "46e9671c2f1c2e6cd7ed17a650900ad572eb65e1cc733e55ff41b6c75512d990",
+      "size": 2177
     },
     {
       "path": ".agents/mcp_config.json",
-      "sha256": "f4dfeb75e9dbb6e4c391ce93ecfe8ec8947e3b282b38a3011acb8a79cfabd27f",
-      "size": 412
+      "sha256": "06b6a40250f5b23eb2ba151f22603e114db26ba20202067266137589514f9454",
+      "size": 312
     },
     {
       "path": ".agents/oma-config.cue",
@@ -331,8 +331,8 @@
     },
     {
       "path": ".agents/oma-config.yaml",
-      "sha256": "45f15a5cc9f0d4241a30cfc27c789a4b984dda397a3573a9ee91331d7ede1070",
-      "size": 30420
+      "sha256": "5349532b1947a547899bfccbe76cdbcbb2a76573e51b2cee5efa47816ec22f60",
+      "size": 30458
     },
     {
       "path": ".agents/rules/backend.md",
