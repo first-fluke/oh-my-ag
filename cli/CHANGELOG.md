@@ -1,5 +1,12 @@
 # Changelog
 
+## [14.7.6](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.5...cli-v14.7.6) (2026-09-09)
+
+
+### Bug Fixes
+
+* **update:** respect provider and home boundaries ([f49de5d](https://github.com/first-fluke/oh-my-agent/commit/f49de5dbd352e3aa5a9c90729b7a911a553e7bbc))
+
 ## [14.7.5](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.4...cli-v14.7.5) (2026-09-09)
 
 
