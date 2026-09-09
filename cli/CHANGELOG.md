@@ -1,5 +1,12 @@
 # Changelog
 
+## [14.7.5](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.4...cli-v14.7.5) (2026-09-09)
+
+
+### Bug Fixes
+
+* **agent:** update codex write-mode flag ([484e399](https://github.com/first-fluke/oh-my-agent/commit/484e3993f9c60ecfdc530155ef01579d487b8ed4))
+
 ## [14.7.4](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.3...cli-v14.7.4) (2026-09-09)
 
 
