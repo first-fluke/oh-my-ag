@@ -1,5 +1,19 @@
 # Changelog
 
+## [14.7.9](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.8...cli-v14.7.9) (2026-09-09)
+
+
+### Bug Fixes
+
+* **schedule:** preview rounded intervals before registration ([684ff92](https://github.com/first-fluke/oh-my-agent/commit/684ff921752c025126020441f000529ea7ceb2a5))
+* **skills:** align workflow policies and specialist guidance ([0c00b0b](https://github.com/first-fluke/oh-my-agent/commit/0c00b0b2f7e52a19db177ce543250eefbb61321e))
+* **video:** reject placeholder output outside mock mode ([e50712e](https://github.com/first-fluke/oh-my-agent/commit/e50712ebe137c6f90202ca7930601b3473937f95))
+
+
+### Refactoring
+
+* **skills:** deduplicate shared workflow guidance ([093aa3d](https://github.com/first-fluke/oh-my-agent/commit/093aa3dcdceb6c6b1e040578dc97516a45a44ef6))
+
 ## [14.7.8](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.7...cli-v14.7.8) (2026-09-09)
 
 
