@@ -48,10 +48,15 @@ Model status and audio retrieval are REST-only at the Voicebox app, not exposed 
 On the first call in this session:
 
 1. Invoke MCP `tools/list` on the `voicebox` server.
-2. Confirm all four tool names above are present.
-3. If a required tool is missing, exit with code 4 and surface the gap. Voicebox may have renamed a tool in a newer release.
+2. Confirm the tool required by the selected mode: `voicebox_transcribe` for `transcribe`, or
+   `voicebox_speak` and `voicebox_list_profiles` for `notify` and `asset`. `captures` is optional.
+3. If a required tool is missing, exit with code 4 and surface the gap. A missing profile tool
+   must not block transcription. Voicebox may have renamed a tool in a newer release.
 
-## Step 3: Profile resolution
+## Step 3: TTS profile resolution
+
+Run this step only for `notify` and `asset` modes. `transcribe` has no profile
+parameter: skip directly to its audio checks and then `voicebox_transcribe`.
 
 1. Call the cached `profiles` tool.
 2. If the list is empty, surface this hint and exit with code 3:
@@ -79,7 +84,7 @@ Run the checklist from `SKILL.md > Clarification protocol`. Notification mode sk
 
 ## Step 6: Model availability (optional)
 
-For `asset` and `notify` modes:
+For `asset` and `notify` modes only:
 
 1. Probe `GET http://127.0.0.1:17493/models/status` over loopback REST (model status is not exposed as an MCP tool — see Step 2).
 2. If the selected engine reports `loaded: false`, ask the user before triggering a download. Voicebox owns the download flow; this skill only relays the prompt.

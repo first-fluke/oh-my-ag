@@ -1,6 +1,10 @@
 ---
 name: oma-architecture
-description: Architecture specialist for software/system design, module and service boundaries, tradeoff analysis, and stakeholder synthesis. Uses context-aware methods such as diagnostic routing, design-twice comparison, ATAM-style risk analysis, CBAM-style prioritization, and ADR-style decision records.
+description: Architecture specialist for software/system design, module and
+  service boundaries, tradeoff analysis, and stakeholder synthesis. Uses
+  context-aware methods such as diagnostic routing, design-twice comparison,
+  ATAM-style risk analysis, CBAM-style prioritization, and ADR-style decision
+  records.
 ---
 
 # Architecture Agent - Software Architecture Specialist
@@ -121,7 +125,7 @@ outputs:
 - Optional stakeholder-agent consultation only when cross-cutting enough to justify cost
 
 ### Canonical workflow path
-Prefer symbol-aware tools (serena MCP) when available: `get_symbols_overview` for structure, `find_symbol` / `find_referencing_symbols` for ownership and coupling, `search_for_pattern` for integration points. Fall back to plain search only when serena is unavailable:
+Use the configured code-intelligence provider for structure, symbols, references, and integration points. If unavailable, use native search and scoped reads:
 
 ```bash
 ls .agents/results/architecture/   # prior decisions — read before deciding
@@ -169,6 +173,8 @@ Then choose Diagnostic, Recommendation, Design-Twice, ATAM-style, CBAM-style, or
 - **ADR Mode**: concise final decision record after analysis
 
 ## References
+Follow `../_shared/core/code-intelligence.md`: discover the configured provider’s available tools; use native search and scoped reads when unavailable. Do not install or track repositories automatically.
+
 Follow `resources/execution-protocol.md` step by step.
 Use `resources/methodology-selection.md` to select the right method.
 Use `resources/stakeholder-synthesis.md` when stakeholder consultation is needed.

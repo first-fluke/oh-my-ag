@@ -1,6 +1,9 @@
 ---
 name: oma-pm
-description: Product manager that decomposes requirements into actionable tasks with priorities and dependencies. Use for planning, requirements, specification, scope, prioritization, task breakdown, and ISO 21500, ISO 31000, or ISO 38500-aligned planning recommendations.
+description: Product manager that decomposes requirements into actionable tasks
+  with priorities and dependencies. Use for planning, requirements,
+  specification, scope, prioritization, task breakdown, and ISO 21500, ISO
+  31000, or ISO 38500-aligned planning recommendations.
 ---
 
 # PM Agent - Product Manager
@@ -137,6 +140,8 @@ outputs:
 - Deferred Quality: testing is part of every task, not a final phase
 
 ## References
+Follow `../_shared/core/code-intelligence.md`: discover the configured provider’s available tools; use native search and scoped reads when unavailable. Do not install or track repositories automatically.
+
 Follow `resources/execution-protocol.md` step by step.
 See `resources/examples.md` for input/output examples.
 Use `resources/iso-planning.md` when the user needs standards-based planning, risk framing, or governance-oriented recommendations.

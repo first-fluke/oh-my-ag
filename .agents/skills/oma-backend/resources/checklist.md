@@ -30,7 +30,7 @@ Run through every item before submitting your work.
 - [ ] Unit tests for service layer logic
 - [ ] Integration tests for all endpoints (happy + error paths)
 - [ ] Auth scenarios tested (missing token, expired, wrong role)
-- [ ] Test coverage > 80%
+- [ ] Project coverage target met; if no target exists, document changed behavior coverage and any justified exclusions
 
 ## Code Quality
 - [ ] Clean architecture layers: router -> service -> repository

@@ -188,6 +188,8 @@ Router (HTTP) → Service (Business Logic) → Repository (Data Access) → Mode
 <!-- oma-docs:ignore-end -->
 
 ## References
+Follow `../_shared/core/code-intelligence.md`: discover the configured provider’s available tools; use native search and scoped reads when unavailable. Do not install or track repositories automatically.
+
 
 Follow `resources/execution-protocol.md` step by step.
 Use `resources/orm-reference.md` when the task involves ORM query performance, relationship loading, transactions, session/client lifecycle, or N+1 analysis.

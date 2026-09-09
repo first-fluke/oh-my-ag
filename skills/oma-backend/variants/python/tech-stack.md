@@ -37,7 +37,9 @@ backend/
 - Cross-ORM operational rules and official vendor references: `resources/orm-reference.md`
 - Primary references covered there: Prisma, SQLAlchemy, TypeORM, Sequelize, Hibernate
 
-## Serena MCP Shortcuts
+## Optional Serena examples
+
+These examples apply only when Serena is the configured provider and its tools are available. Otherwise use the project-selected provider or native search under the shared code-intelligence contract.
 - `find_symbol("create_todo")`: Locate existing function
 - `get_symbols_overview("app/api")`: List all endpoints
 - `find_referencing_symbols("User")`: Find all usages of a model

@@ -1,6 +1,8 @@
 ---
 name: oma-scm
-description: "SCM (software configuration management) and Git: branching, merges, conflicts, worktrees, baselines, audit readiness, plus Conventional Commits and safe staging."
+description: "SCM (software configuration management) and Git: branching,
+  merges, conflicts, worktrees, baselines, audit readiness, plus Conventional
+  Commits and safe staging."
 ---
 
 # Software configuration management: SCM (`oma-scm`)
@@ -112,13 +114,14 @@ git commit -m "$(cat <<'EOF'
 
 [optional body]
 
-Co-Authored-By: First Fluke <our.first.fluke@gmail.com>
+Co-authored-by: <scm.co_author.name> <scm.co_author.email>
 EOF
 )"
 ```
 
-> **Copy the co-author address, never recall it.** Read it from
-> `scm.co_author` in `.agents/oma-config.yaml` rather than from memory.
+> **Add the co-author footer only when `scm.co_author.enabled` is true and both
+> configured fields are present.** Copy the name and address from
+> `scm.co_author` in `.agents/oma-config.yaml`; otherwise omit the footer.
 > GitHub matches a `Co-authored-by:` address against verified account emails
 > and credits whoever owns it as a contributor, so a one-character slip
 > attributes the work to a real, unrelated person — and `refs/pull/*` keeps
@@ -273,7 +276,7 @@ Read thresholds from `commit-config.yaml` `onboarding_metrics` when present and 
 
 [optional body]
 
-Co-Authored-By: First Fluke <our.first.fluke@gmail.com>
+Co-authored-by: <scm.co_author.name> <scm.co_author.email>
 ```
 
 ### Commit workflow
@@ -313,7 +316,8 @@ Use module/component: `feat(auth):`, `fix(api):`, or omit: `chore: update depend
 
 #### Step 5: Execute commit
 
-Show the message, then commit with explicit paths:
+Show the message, then commit with explicit paths. Include the co-author trailer only when
+`scm.co_author.enabled` is true and both configured values are present.
 
 ```bash
 git add <specific-files>
@@ -322,7 +326,7 @@ git commit -m "$(cat <<'EOF'
 
 [optional body]
 
-Co-Authored-By: First Fluke <our.first.fluke@gmail.com>
+Co-authored-by: <scm.co_author.name> <scm.co_author.email>
 EOF
 )"
 ```
@@ -337,7 +341,7 @@ cat > "$msgfile" <<'EOF'
 
 [optional body]
 
-Co-Authored-By: First Fluke <our.first.fluke@gmail.com>
+Co-authored-by: <scm.co_author.name> <scm.co_author.email>
 EOF
 git commit -F "$msgfile"
 rm -f "$msgfile"

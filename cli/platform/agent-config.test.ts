@@ -277,7 +277,9 @@ describe("loadExecutionProtocol — execution-protocol parity", () => {
     (vendor) => {
       const protocol = loadExecutionProtocol(vendor, repoRoot);
       expect(protocol.length).toBeGreaterThan(0);
-      expect(protocol).toContain("result-{agent-id}");
+      expect(protocol).toContain(
+        "result-{agentId}-{taskId}-{runId}-{sessionId}.md",
+      );
     },
   );
 

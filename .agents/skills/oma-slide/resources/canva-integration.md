@@ -110,8 +110,10 @@ Include in the Phase 6c delivery summary:
 
 > [!IMPORTANT]
 > Canva export via this pipeline produces **raster-backed slides** (PNG images per page).
-> Text is NOT editable in Canva. For editable Canva presentations, export PPTX first
-> (`oma slide export pptx`) and use Canva's native PPTX import UI manually.
+> Text is not editable in Canva. `oma slide export pptx` is also raster-backed,
+> with one full-slide PNG per PowerPoint slide, so importing it does not restore
+> editable text. Editable Canva text requires a separate text-element creation
+> path or an OOXML text-shape exporter; neither is provided by this skill.
 
 ---
 
@@ -252,8 +254,8 @@ After writing config files:
    If it fails (expected on first run before OAuth), notify:
    > "Canva MCP config added. You'll need to authenticate with Canva on first use.
    >  The OAuth flow will be triggered automatically by your MCP client."
-3. **Record the setup** in a serena memory (`canva-mcp-provisioned`) so future sessions
-   know the config has been written and don't re-prompt.
+3. **Record the setup** through the configured session-memory capability when available. If it is
+   unavailable, rely on the existing config file after checking it before any future prompt.
 
 ### Config File Safety
 

@@ -57,12 +57,7 @@ Flags: `--only <list>`, `--skip <list>`, `--timeout <sec>`, `--locale <v>`,
 3. Include repo name, file path, and match context
 
 ### local route
-Delegate entirely to Serena MCP:
-- `find_symbol` for named code entities
-- `search_for_pattern` for arbitrary text patterns
-- `get_symbols_overview` for structural exploration
-
-Do NOT duplicate Serena's functionality. Simply pass through.
+Follow `../../_shared/core/code-intelligence.md`. Discover configured tools for named symbols, patterns, and structure. If unavailable or timed out, use native search and scoped reads; record limitations. Do not install a provider, track a repository, or silently switch providers.
 
 ## Step 2: Collect Results
 
@@ -77,13 +72,13 @@ Do NOT duplicate Serena's functionality. Simply pass through.
 
 1. For each result with a URL, extract the domain
 2. Resolve trust score (see `resources/trust-registry.md`):
-   a. Check Serena memory cache (`trust-registry-cache`)
+   a. Check the current session’s in-memory domain cache
    b. If cache miss: run `oma search trust <domain>` (registry → heuristic → Tranco, handled inside the CLI)
    c. Apply agent-level rules: Context7-resolved docs are `verified 0.95`; official-site upgrade is allowed (upgrade-only)
 3. Attach trust level, tags, and score:
    - Resolved: use level and score
    - Unresolved: label as `unknown` with score `—`
-4. Write newly resolved scores to Serena memory cache
+4. Cache newly resolved scores for this session; no MCP memory dependency
 5. If `--strict` mode: filter out results below `verified` (< 0.85)
    - If 0 results remain: suggest `--wide` rerun
 6. Sort by: relevance first, trust score as tiebreaker

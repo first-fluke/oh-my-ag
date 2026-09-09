@@ -111,7 +111,7 @@ outputs:
 - `oma market detect-trap <topic>` (preflight gate)
 - `oma market resolve [--refresh|--offline] [--json]` (engine + Python resolution; managed latest)
 - `oma market update` (force-refresh the managed engine)
-- `oma market run <engine args…>` (passthrough to `scripts/last30days.py`)
+- `oma market run <engine args…>` (passthrough to the resolved upstream engine’s Python entry point)
 
 ### Canonical command path
 ```bash
@@ -127,7 +127,7 @@ oma market run "$TOPIC" --plan "$QUERY_PLAN_FILE" --subreddits=vscode --emit=com
 |-------|-----------------|
 | `NETWORK` | Inside the engine only (its per-source fetchers); GitHub for the managed engine refresh |
 | `LOCAL_FS` | `~/.cache/oma-market/last30days/<tag>/` (engine), `~/.config/last30days/` (engine config, keys), `.agents/results/market/` (brief + raw) |
-| `PROCESS` | `oma market` subcommands → `python3 scripts/last30days.py` |
+| `PROCESS` | `oma market` subcommands → the resolved upstream Python entry point |
 
 ### Preconditions
 - Topic passes detect-trap.
@@ -136,3 +136,12 @@ oma market run "$TOPIC" --plan "$QUERY_PLAN_FILE" --subreddits=vscode --emit=com
 ### Effects and side effects
 - Writes the brief to `.agents/results/market/{topic-slug}-{YYYYMMDD}.md` and raw engine files to `market.save_dir`.
 - First run: the upstream setup wizard may write `~/.config/last30days/.env` (with user consent) and, when Python 3.12 is absent but `uv` exists, may install a managed CPython 3.12 (~28 MB) after telling the user.
+
+## References
+- Execution protocol: `resources/execution-protocol.md`
+- Intent routing: `resources/intent-rules.md`
+- Output contract: `resources/output-laws.md`
+- Applicable framework: `resources/frameworks/swot.md`, `resources/frameworks/porters-5f.md`, or `resources/frameworks/pestel.md` (load only the selected framework)
+- Validation: `resources/checklist.md`
+- Recovery: `resources/error-playbook.md`
+- Upstream engine instructions: read the resolved `engine.skillMd` path from `oma market resolve --json`; upstream scripts are managed engine files, not bundled skill resources.

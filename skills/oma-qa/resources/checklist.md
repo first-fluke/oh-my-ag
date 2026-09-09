@@ -127,7 +127,7 @@
 ## Testing Checklist
 
 ### Unit Tests
-- [ ] Test coverage >= 80% (never waived by any task's `test_approach`; `not_applicable` code counts toward the aggregate unless declaratively excluded in coverage config with justification)
+- [ ] Coverage meets the project's declared baseline or changed-code target when coverage is applicable; otherwise record risk-focused tests or alternative verification and its limits
 - [ ] Tasks marked `test_approach: tdd` have a `TDD_EVIDENCE` block in the implementation result (focused test command, RED failure, GREEN pass) — see `../../_shared/core/test-approach.md`; do not require this evidence for `test_after` / `not_applicable` tasks
 - [ ] All business logic functions tested
 - [ ] Edge cases covered
@@ -271,7 +271,7 @@
 - [ ] No data loss scenarios
 
 ### Important (Should Pass)
-- [ ] Test coverage >= 80%
+- [ ] Applicable coverage target or documented alternative verification met
 - [ ] Accessibility WCAG 2.2 AA
 - [ ] Code quality metrics met
 - [ ] Documentation complete
@@ -314,7 +314,7 @@
 ## Notes
 
 - Run automated tools FIRST: `npm audit`, `bandit`, `lighthouse`
-- Use Serena MCP for code analysis patterns
+- Use configured code intelligence or the documented native fallback for code analysis patterns
 - Browser verification follows `mcp.devtools_browsers`: Aside (`aside`, default), Chrome DevTools MCP (`chrome`), and Firefox DevTools MCP (`firefox`). Multiple selections are supported; change them with `oma update mcp`. Discover the selected server’s tools before use. Chrome-specific calls below are examples only; use supported equivalents for Aside and Firefox. An empty selection disables browser MCP verification; report unverified UI checks.
 - Document all findings with file:line references
 - Provide remediation code examples

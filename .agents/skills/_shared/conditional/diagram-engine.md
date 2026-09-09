@@ -70,7 +70,7 @@ authority on schema, invariants, and repair rules. The oma-specific rules are:
 
 Spec path: sibling of the Markdown artifact, `<artifact-stem>.archify.json`.
 
-## Step 3 — Validate → repair → deliver (no iteration cap)
+## Step 3 — Validate → repair → deliver (bounded)
 
 ```bash
 oma diagram archify validate <type> <stem>.archify.json --quality <quality> --json
@@ -81,13 +81,13 @@ oma diagram archify deliver  <type> <stem>.archify.json <stem>.archify.html --qu
 `ARCHIFY_UPDATE_CHECK_DISABLED=1` and propagates the exit code — a non-zero
 exit is never success.
 
-Repair loop rules (this project imposes **no fixed iteration budget**):
+Repair loop rules:
 
 1. Change only the diagnosed `subject`; verify `evidence`; pick from
    `supportedFixes`; re-validate.
 2. Keep iterating while the objective error count reaches a new minimum.
-3. Stop only when archify's own convergence rule fires — two consecutive
-   rounds with no improvement on the best count — or the spec passes.
+3. Stop when the spec passes, archify's convergence rule fires, after 3 repair
+   attempts, after 10 minutes total, or when the same diagnostic repeats.
 4. Never delete a semantic relationship label merely to pass; never fake a pass
    with `overflow: hidden`, clipped content, or shrunken typography.
 5. A passing final `validate` freezes the spec; `deliver` is then the single

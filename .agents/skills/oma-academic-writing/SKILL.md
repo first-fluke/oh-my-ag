@@ -1,13 +1,13 @@
 ---
 name: oma-academic-writing
-description: >
-  Academic writing capability for publication-grade English prose. Drafts, revises, and
-  audits essays, reports, analysis sections, executive summaries, conclusions, and
-  literature reviews while enforcing sentence-structure variation, high-frequency
-  academic verbs, calibrated hedging, and anti-AI stylistic compliance. USE for
-  academic writing, essay polish, paragraph rewrite, prose revision against any
-  rubric tier (HD/D/C, A/B/C, top-band/mid-band, etc.), anti-AI audit, reverse
-  outlining, claim-evidence mapping, and rubric enforcement on assignments.
+description: Academic writing capability for publication-grade English prose.
+  Drafts, revises, and audits essays, reports, analysis sections, executive
+  summaries, conclusions, and literature reviews while enforcing
+  sentence-structure variation, precise verb choice, calibrated hedging, and
+  anti-AI stylistic compliance. USE for academic writing, essay polish,
+  paragraph rewrite, prose revision against any rubric tier (HD/D/C, A/B/C,
+  top-band/mid-band, etc.), anti-AI audit, reverse outlining, claim-evidence
+  mapping, and rubric enforcement on assignments.
 ---
 
 # Academic Writing: Publication-Grade English Prose
@@ -57,7 +57,7 @@ Produce, revise, and audit publication-grade academic English prose so that ever
 ### Dependencies
 - `resources/anti-ai-checklist.md`: banned vocabulary, banned structural patterns, sentence-level checks
 - `resources/sentence-structure-reference.md`: four sentence types, length targets, common errors
-- `resources/academic-verb-tiers.md`: banned generic verbs and tiered academic-corpus replacements
+- `resources/academic-verb-tiers.md`: meaning- and evidence-based verb guidance
 - `resources/hedging-guide.md`: calibrated certainty expressions matched to evidence strength
 - `../_shared/core/context-loading.md`: task-relevant resource loading
 - `../_shared/core/quality-principles.md`: shared quality bar
@@ -75,13 +75,13 @@ Produce, revise, and audit publication-grade academic English prose so that ever
 1. Identify the mode (`draft`, `revise`, `review`) and the rubric source.
 2. Quote the exact constraint text (word limits, structural requirements, mandatory sections, rubric rows) before applying any rule.
 3. If revising or reviewing, read the existing draft in full first; if drafting, confirm available source data and citations.
-4. Index `resources/` and pre-select the verb tier and sentence mix targets for the section.
+4. Index `resources/` and identify any claims that need a more precise verb or hedge.
 5. Apply the literal-first principle before any drafting: prefer direct statement over metaphor and flourish. When a literal phrase is available, use it.
 
 ### Scenes
-1. **PREPARE**: load rubric, existing draft, source data; record quoted constraints; pick sentence mix and 2–3 anchor verbs per paragraph.
+1. **PREPARE**: load rubric, existing draft, source data; record quoted constraints and note claims whose verbs or hedges need attention.
 2. **ACQUIRE**: read `resources/sentence-structure-reference.md`, `academic-verb-tiers.md`, and `hedging-guide.md` only for the patterns relevant to the current section.
-3. **ACT**: write or revise prose with the four protocols enforced simultaneously: Sentence Structure (4 types, varied length, varied openers), Verb (no banned generic verbs as main verbs; prefer tier-1/2 academic verbs), Hedging (match strength to evidence), Topic-Support-Conclude paragraphing, and Literal Statement (no mannered metaphor; say what you mean).
+3. **ACT**: write or revise prose with sentence variety, accurate verb choice, evidence-matched hedging, clear paragraphing, and direct statements. Keep a common verb when it is the clearest accurate choice.
 4. **VERIFY**: audit against `resources/anti-ai-checklist.md` (vocabulary clusters, structural patterns, mannered prose §11, sentence-level checks); apply reverse outlining and build the Claim-Evidence Map; weaken or remove unsupported claims.
 5. **FINALIZE**: read-aloud test, cohesion check, specificity audit, word-count verification, paragraph-length variation, rhythm check; emit per the mode's output format.
 
@@ -100,7 +100,7 @@ Produce, revise, and audit publication-grade academic English prose so that ever
 | Rubric requirement unclear | Quote exact rubric text and ask user; do not combine rules |
 | Claim lacks evidence | Add citation, hedge to match weaker evidence, or remove the claim entirely |
 | Hedging miscalibrated | Replace double hedges; align hedge strength with `resources/hedging-guide.md` evidence-level table |
-| Banned generic verb resists replacement | Restructure the sentence so the banned verb is not the main verb |
+| Verb is vague | Name the action, method, result, or evidence only if that makes the claim clearer |
 | Paragraph blocks are uniform 4–5 sentences | Insert a 2-sentence emphasis paragraph; re-run rhythm check |
 
 ### Exit
@@ -116,7 +116,7 @@ Produce, revise, and audit publication-grade academic English prose so that ever
 | Read rubric / constraint and quote literal text | `READ` | Rubric file or assignment brief |
 | Read existing draft (revise/review modes) | `READ` | Draft file or inline text |
 | Index resources for the current section | `READ` | `resources/{anti-ai-checklist,sentence-structure-reference,academic-verb-tiers,hedging-guide}.md` |
-| Select sentence mix and 2–3 anchor verbs per paragraph | `SELECT` | Sentence-structure & verb-tier tables |
+| Select sentence mix and evidence-appropriate wording | `SELECT` | Sentence-structure and verb guidance |
 | Plan paragraph as Topic-Support-Conclude | `INFER` | Outline notes |
 | Draft / revise prose under all four protocols | `WRITE` | Generated prose |
 | Audit prose against anti-AI checklist | `VALIDATE` | `resources/anti-ai-checklist.md` |
@@ -138,8 +138,8 @@ Produce, revise, and audit publication-grade academic English prose so that ever
 
 ### Canonical workflow path
 1. **READ** rubric/draft and quote the exact literal constraint text; pin word limits, mandatory sections, and rubric rows.
-2. **PLAN** each paragraph as Topic-Support-Conclude; pre-select the sentence-type mix and 2–3 anchor verbs from `academic-verb-tiers.md`.
-3. **DRAFT** prose with Sentence Structure, Verb, Hedging, and Topic-Support-Conclude protocols enforced simultaneously.
+2. **PLAN** each paragraph as Topic-Support-Conclude; identify where evidence strength or a vague claim calls for a more precise verb.
+3. **DRAFT** prose with sentence variety, clear verb choice, hedging, and Topic-Support-Conclude structure.
 4. **AUDIT** the draft against `resources/anti-ai-checklist.md` (banned vocabulary clusters, banned structural patterns, mannered prose, sentence-level checks) and fix every flag.
 5. **REVERSE-OUTLINE** the section and build the Claim-Evidence Map; weaken or remove any unsupported claim.
 6. **POLISH** with read-aloud, cohesion, specificity, word-count, rhythm, and paragraph-length-variation checks; emit in the mode's output format.
@@ -149,7 +149,7 @@ Produce, revise, and audit publication-grade academic English prose so that ever
 |-------|-----------------|
 | `LOCAL_FS` | Rubric, existing draft, generated prose output |
 | `CODEBASE` | `resources/` 4 reference files, `_shared/core/{context-loading,quality-principles}.md` |
-| `MEMORY` | Mode, quoted constraints, anchor verbs per paragraph, anti-AI flags resolved, Claim-Evidence Map |
+| `MEMORY` | Mode, quoted constraints, wording decisions, anti-AI flags resolved, Claim-Evidence Map |
 
 ### Preconditions
 - A rubric / constraint or an existing draft (or both) is provided.
@@ -166,7 +166,7 @@ Produce, revise, and audit publication-grade academic English prose so that ever
 1. Every sentence must be verifiable; never fabricate data, statistics, or citations.
 2. Quote-before-judgment: cite the literal constraint or rubric text before applying any rule.
 3. Never combine distinct rules to invent a new constraint; apply rules exactly as written.
-4. Banned generic verbs (`show`, `have`, `make`, `do`, `get`, `use`, `give`, `say`, `put`, `see`, `come`, `go`, `take`, `find`, `know`, `think`, `want`, `try`, `need`, `seem`, `become`, `keep`, `help`, `start`, `turn`, `bring`, `run`, `hold`, `set`) must not appear as main verbs; replace per `academic-verb-tiers.md`. Exception: natural copular/possessive `is`/`are`/`has` are allowed and preferred over inflated substitutes (anti-AI checklist §4).
+4. Choose verbs for their exact meaning and support. Keep common verbs when they are accurate and natural; replace a vague verb only when the new wording states a relevant distinction without inflating the claim.
 5. Never place 3+ sentences of the same structural type consecutively; vary length (short 8–15, medium 16–25, long 26–40 words) and openers.
 6. Match hedge strength to evidence strength per `hedging-guide.md`; never use absolute claim words (`definitely`, `clearly`, `obviously`) outside mathematical facts; never first-person `I think` / `I believe`.
 7. Never cluster 3+ flagged AI-vocabulary items in a single paragraph; never insert promotional or inflated language; never append superficial `-ing` clauses for analysis.

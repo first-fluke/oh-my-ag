@@ -21,7 +21,7 @@ Follow these steps in order (adjust depth by difficulty).
 <!-- oma-docs:ignore-end -->
 - **If Flutter**: identify screens, widgets, and Riverpod/Bloc providers
 - **If React Native**: identify screens, query/mutation hooks (`src/features/*/queries.ts`), Zustand stores, and navigation types
-- Check existing code with Serena: `get_symbols_overview("Sources/Features")` (Swift), `get_symbols_overview("lib/features")` (Flutter), or `get_symbols_overview("src/features")` (React Native)
+- Explore existing code through the configured `code_intelligence` capability. If it is unavailable or times out, use native search/read for the relevant feature roots (`Sources/Features`, `lib/features`, or `src/features`) and record the limit.
 - Determine platform-specific requirements (iOS HIG vs Material Design 3)
 - List assumptions; ask if unclear
 

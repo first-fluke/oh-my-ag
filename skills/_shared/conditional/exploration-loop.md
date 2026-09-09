@@ -7,7 +7,9 @@ Inspired by autoresearch's continuous hypothesis → experiment → evaluate →
 
 ## When to Activate
 
-The Exploration Loop activates **only** when reactive fixing has failed:
+The Exploration Loop activates only when reactive fixing has failed and shared
+recovery budget remains. A hypothesis run consumes the same attempt and cost
+budget as an ordinary retry; it never extends a task indefinitely.
 
 | Condition | Example |
 |-----------|---------|
@@ -41,7 +43,9 @@ Execute each hypothesis **in isolation**.
   ```
 - Agents use existing IDs; no new agent definitions needed
 - Each agent works in a separate workspace (`-w ./hyp-a`, `-w ./hyp-b`)
-- Result files differentiated by workspace, not agent ID
+- Every spawn carries the plan task ID and receives a unique run ID. Store its
+  report as `result-{agentId}-{taskId}-{runId}-{sessionId}.md`; workspace names
+  are not artifact identity.
 
 **In single-agent mode** (`/ultrawork` inline):
 - Execute sequentially: try A → measure → stash/revert → try B → measure → stash/revert
@@ -75,7 +79,7 @@ IF best.score > current_score:
 ELSE:
     KEEP current approach (exploration found no improvement)
     Record as "exploration inconclusive"
-    ESCALATE to user for guidance
+    preserve the partial result and stop this recovery path
 ```
 
 ### Step 5: Record
@@ -100,6 +104,12 @@ Log all experiments in the Experiment Ledger (see `experiment-ledger.md`), inclu
 | Max turns per hypothesis experiment | 10 | Scoped to focused changes |
 | Min score gap to justify exploration | 5 points | Don't explore if current is close to threshold |
 
+Before spawning, reserve each hypothesis from the task's remaining aggregate
+attempt and cost budget. Do not start a partial round: if fewer than two
+attempts remain, preserve the unresolved evidence and report `partial` or
+`failed`. A session-wide cap may stop all remaining recovery. Record the
+budget before and after each attempt in the task state.
+
 ---
 
 ## Integration with Workflows
@@ -122,9 +132,10 @@ VERIFY_GATE fails (2nd time, same issue)
 Triggered when agent verification fails after max retries:
 
 ```
-Agent FAIL after 2 retries
+Agent fails after repeated attempts while aggregate budget remains
   → Load exploration-loop.md
-  → Spawn same agent type with different hypothesis prompts (parallel, separate workspaces)
+  → Reserve 2–3 attempts, then spawn the same agent type with different
+    hypothesis prompts, plan `--task-id`, and separate workspaces
   → Collect results, score each
   → Keep winner workspace, discard others
 ```

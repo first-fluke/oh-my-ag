@@ -63,7 +63,7 @@ Trigger when either `diagram.explain_sidecar: true` in `.agents/oma-config.yaml`
 
 1. Read `.agents/skills/_shared/conditional/diagram-engine.md`. If `engine` is `mermaid`, say the sidecar was skipped and why (one line); if `ok: false`, point to `oma diagram update`.
 2. Pick the one System/Data-Flow diagram from the explainer's Intuition section that best captures the change (architecture, sequence, or dataflow type) and author `.agents/results/explain/{YYYY-MM-DD}-{slug}.archify.json` from it.
-3. `oma diagram archify validate` → repair (no iteration cap; stop only on archify's convergence rule) → `oma diagram archify deliver … {YYYY-MM-DD}-{slug}.archify.html`.
+3. `oma diagram archify validate` → repair for at most 3 attempts or 10 minutes total, stopping earlier on a repeated diagnostic → `oma diagram archify deliver … {YYYY-MM-DD}-{slug}.archify.html`.
 4. Add a plain anchor inside the explainer (`<a href="./{YYYY-MM-DD}-{slug}.archify.html">Interactive diagram</a>`) — never iframe/embed it — then re-run Step 5's checklist once on the edited explainer.
 5. Report both paths. The explainer stays complete and valid without the sidecar; a sidecar failure never blocks delivery.
 

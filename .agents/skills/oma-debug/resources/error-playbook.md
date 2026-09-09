@@ -83,7 +83,7 @@ Do NOT stop or ask for help until you have exhausted the playbook.
 
 ## Rate Limit / Quota / Memory Fallback
 
-Same as the backend playbook: see `../../oma-backend/resources/error-playbook.md` §"Rate Limit / Quota Error (LLM runtime)" and §"Serena Memory Unavailable".
+Same as the backend playbook: see `../../oma-backend/resources/error-playbook.md` §"Rate Limit / Quota Error (LLM runtime)" and §"Workflow State Unavailable".
 
 ---
 

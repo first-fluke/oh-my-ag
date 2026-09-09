@@ -17,9 +17,12 @@ Run the **Clarification Protocol** in `SKILL.md` before shelling out.
    - `reference` (if any): each path exists, is a regular file ≤ 5MB, magic-byte-matches PNG/JPEG/GIF/WebP, ≤ 10 total, and duplicate paths are rejected with exit 4.
 4. If invalid: exit code 4 and a message identifying the offending field.
 
-## Step 0.5: Reference Image Handling
+## Step 0.5: Reference-guided regeneration
 
-When `--reference <path...>` is supplied:
+When `--reference <path...>` is supplied, the operation is reference-guided regeneration: it may
+follow subject, style, lighting, or composition, but it cannot promise a pixel-preserving edit.
+Before continuing, reject pixel/mask operations (inpainting, object removal, selective replacement,
+crop, resize, or conversion) and route them to an editor or deterministic image processor.
 
 1. Validate every path via `reference-guard.ts`. On failure → exit 4.
 2. Vendor support check (only `codex` and `antigravity` support references):
@@ -32,7 +35,7 @@ When `--reference <path...>` is supplied:
 
 ### Auto-forward attached images (MANDATORY)
 
-If the user asks to generate/edit an image AND a host-attached image is visible to the agent (e.g. `[Image: source: <path>]` in a Claude Code system message, Antigravity workspace upload, or explicit user-provided path), the agent MUST pass it via `--reference <path>`. Do not fall back to describing the image in prose. Do not ask the user to re-type the path. If `oma image generate --help` shows no `--reference` flag, instruct the user to run `oma update` and retry; do not silently degrade.
+If the user asks for a reference-guided regeneration and a host-attached image is visible to the agent (e.g. `[Image: source: <path>]` in a Claude Code system message, Antigravity workspace upload, or explicit user-provided path), the agent MUST pass it via `--reference <path>`. Do not fall back to describing the image in prose. Do not ask the user to re-type the path. If `oma image generate --help` shows no `--reference` flag, instruct the user to run `oma update` and retry; do not silently degrade.
 
 ### Host-Specific Reference Paths
 

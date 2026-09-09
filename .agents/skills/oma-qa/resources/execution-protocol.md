@@ -3,12 +3,16 @@
 ## Step 0: Prepare
 1. **Assess difficulty**: see `../../_shared/core/difficulty-guide.md`
    - **Simple**: Quick security + quality check | **Medium**: Full 4 steps | **Complex**: Full + prioritized scope
-2. **Check lessons**: read QA section in `../../_shared/core/lessons-learned.md`
+2. **Check prior runtime lessons**: read the relevant session-scoped
+   `.agents/state/memories/lessons-{sessionId}.md` when supplied;
+   canonical skills are not run-time memory.
 3. **Clarify requirements**: follow `../../_shared/core/clarification-protocol.md`
    - Check **Uncertainty Triggers**: security/auth concerns, existing code conflict potential?
    - Determine level: LOW → proceed | MEDIUM → present options | HIGH → ask immediately
 4. **Budget context**: follow `../../_shared/core/context-budget.md` (prioritize high-risk files)
-5. **After review**: add recurring issues to `../../_shared/core/lessons-learned.md`
+5. **After review**: write recurring issues to
+   `.agents/state/memories/lessons-{sessionId}.md`. Promote a
+   reusable rule only through a separately reviewed source change.
 6. **If standards matter**: read `resources/iso-quality.md`
 
 **Intelligent Escalation**: When uncertain, escalate early. Don't blindly proceed.
@@ -19,18 +23,16 @@ Follow these steps in order (adjust depth by difficulty).
 - Identify what to review: new feature, full audit, or specific concern
 - List all files/modules to inspect
 - Determine review depth: quick check vs. comprehensive audit
-- Use Serena to map the codebase:
-  - `get_symbols_overview("src/")`: Understand structure
-  - `search_for_pattern("password.*=.*[\"']")`: Find hardcoded secrets
-  - `search_for_pattern("execute.*\\$\\{")`: Find SQL injection
-  - `search_for_pattern("innerHTML")`: Find XSS vulnerabilities
+- Follow `../../_shared/core/code-intelligence.md` to discover configured code
+  navigation/search tools. If unavailable or timed out, use native scoped
+  search and reads, record that fallback, and continue the review.
 
 ## Step 2: Audit
 Review in this priority order:
 1. **Security** (CRITICAL): OWASP Top 10, auth, injection, data protection
 2. **Performance**: API latency, N+1 queries, bundle size, Core Web Vitals
 3. **Accessibility**: WCAG 2.2 AA, keyboard nav, screen reader, contrast
-4. **Code Quality**: test coverage, complexity, architecture adherence
+4. **Code Quality**: task-defined coverage expectations, complexity, architecture adherence
 
 When applicable, map findings and gaps to:
 - **ISO/IEC 25010** quality characteristics

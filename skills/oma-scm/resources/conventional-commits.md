@@ -116,11 +116,15 @@ Refs #123, #789
 ```
 
 ### Co-Authors
+
+Include this trailer only when `scm.co_author.enabled` is true and its configured name and email
+are present. Otherwise omit the trailer. Copy the values from configuration; never reuse an
+example identity.
+
 ```
 feat(ui): redesign dashboard
 
-Co-Authored-By: Jane Doe <jane@example.com>
-Co-Authored-By: First Fluke <our.first.fluke@gmail.com>
+Co-authored-by: <scm.co_author.name> <scm.co_author.email>
 ```
 
 ## Branch Naming Convention
@@ -152,7 +156,7 @@ Co-Authored-By: First Fluke <our.first.fluke@gmail.com>
 
    Closes #234
 
-   Co-Authored-By: First Fluke <our.first.fluke@gmail.com>
+   Co-authored-by: <scm.co_author.name> <scm.co_author.email>
    EOF
    )"
    ```

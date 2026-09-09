@@ -350,8 +350,9 @@ If the user requests Canva export ("export to Canva", "캔바로 내보내기", 
 5. **Report**: Include the Canva design URL in the delivery summary (6c).
 
 > **Note**: Canva export produces a raster-backed presentation (images per slide).
-> Text is NOT editable in Canva. For editable text, export PPTX first
-> and use Canva's native PPTX import instead.
+> Text is not editable in Canva. The current PPTX exporter is also raster-backed,
+> so importing its output cannot provide editable text. An OOXML text-shape
+> exporter or Canva text-element creation path is required for that outcome.
 
 See `resources/canva-integration.md` for detailed step-by-step pipeline,
 error handling, and security considerations.

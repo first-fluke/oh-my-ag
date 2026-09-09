@@ -15,7 +15,7 @@ Example claim:
 {"status":"completed","changedFiles":["src/parser.ts"],"unresolved":[],"artifacts":[".agents/results/result-qa-s1.md",".agents/results/plan-s1.json",".agents/state/memories/session-ultrawork.md"]}
 ```
 
-Receipts live in `.agents/state/agent-runs/`. They contain session/task/run IDs, vendor, workspace, timestamps, actual command argv and exit codes, working tree hashes, artifact hashes, unresolved work, and final status. These records prevent accidental reuse of stale evidence; they are local files, not a security boundary against an agent that intentionally edits receipts.
+Receipts live in `.agents/state/agent-runs/`. They contain session/task/run IDs, vendor, workspace, timestamps, actual command argv and exit codes, working tree hashes, artifact hashes, unresolved work, and final status. These records prevent accidental reuse of stale evidence; they are local files, not a security boundary against an agent that intentionally edits receipts. Human-readable workflow reports are supplemental, flat compatibility files named `result-{agentId}-{taskId}-{runId}-{sessionId}.md`; the injected claim path and receipt schema remain unchanged.
 
 The Ralph gate requires QA and REFINE task IDs in a nonempty plan, current successful executable checks, and report/plan/phase artifacts bound to those runs. A waiver alone does not pass this gate. Record a justified REFINE exception as `REFINE skipped: <specific reason>` before QA finalizes its evidence. Old Markdown-only reports remain readable but must be reverified to pass the gate.
 

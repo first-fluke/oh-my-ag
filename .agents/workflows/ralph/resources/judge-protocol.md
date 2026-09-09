@@ -52,7 +52,7 @@ For each criterion requiring execution under Verification Execution Order, execu
 | C3        | BLOCKED   | Failed 3x: same import resolution error                          |
 | C4        | REGRESSED | previously PASS at iter 1 — `curl :3000/health` now timeouts; docker-compose.yml modified in iter 2 |
 
-verdict: PASS | FAIL
+verdict: COMPLETED | PARTIAL | FAIL
 ```
 
 ### Criterion State Transitions
@@ -74,12 +74,18 @@ Return each criterion's updated `status`, `previous_status`, `fail_count`, and `
 
 ### Verdict Rules
 
-- `PASS`: ALL criteria are PASS or BLOCKED (no FAIL or REGRESSED remaining)
-- `FAIL`: ANY criterion has status FAIL or REGRESSED
+- `COMPLETED`: every criterion is PASS.
+- `PARTIAL`: no criterion remains FAIL, REGRESSED, or PENDING, and at least one
+  criterion is BLOCKED. The loop stopped with unresolved work; this is not a
+  completed outcome.
+- `FAIL`: any criterion has status FAIL or REGRESSED.
 
 A missing criterion or a remaining PENDING status makes the JUDGE result incomplete; correct it before applying a verdict.
 
-A `PASS` verdict ends the loop; it represents full completion only when every criterion is PASS. Report partial completion whenever any criterion remains BLOCKED.
+A `COMPLETED` verdict ends the loop with full completion. A `PARTIAL` verdict
+ends it with blocked criteria and their evidence preserved. Consumers must use
+the verdict and criterion states separately; loop termination alone never
+means completed.
 
 ---
 

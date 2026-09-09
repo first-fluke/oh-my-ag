@@ -6,11 +6,8 @@ disable-model-invocation: true
 
 - **Response language follows `language` setting in `.agents/oma-config.yaml` if configured.**
 - Follow `.agents/skills/_shared/core/execution-policy.md` for authorization, clarification, verification, and completion. Execute required steps on the selected path in dependency order; apply documented branch and skip conditions.
-- **You MUST use MCP tools throughout the entire workflow.** This is NOT optional.
-  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for code exploration. Do NOT use raw grep as a substitute.
-  - Use file tools (`Read`/`Write`/`Edit`) to persist coordination artifacts directly to `{memoryConfig.basePath}/` (default: `.agents/state/memories/`). Do NOT use Serena's `write_memory` for workflow session state, as verification gates require durable files on disk.
-  - Memory path: configurable via `memoryConfig.basePath` (default: `.agents/state/memories`)
-  - Tool names: configurable via `memoryConfig.tools` in `.agents/mcp.json`
+- Follow `.agents/skills/_shared/core/code-intelligence.md`: discover configured tools and use native scoped search if the provider is unavailable or times out. Do not install or track repositories automatically.
+- Persist coordination artifacts through the file-memory contract in `.agents/skills/_shared/runtime/memory-protocol.md`; it is independent of code-intelligence MCP tools.
 - **Read the oma-coordination skill BEFORE starting.** Read `.agents/skills/oma-coordination/SKILL.md` and follow its Core Rules.
 - **Follow the context-loading guide.** Read `.agents/skills/_shared/core/context-loading.md` and load only task-relevant resources.
 
@@ -38,7 +35,7 @@ Every review step in this workflow (the 12 reviews in `multi-review-protocol.md`
 2. **Build the reviewer prompt from the isolation contract only** (`multi-review-protocol.md` → CCR Mandate): the durable artifacts under review *referenced by path* (git diff, changed files, `.agents/results/plan-{sessionId}.json`, prior `result-*.md`, test/lint output) plus that single review's guide section. Do **NOT** paste this session's conversation history, the implementation agent's reasoning, or any prior review's verdict into the prompt.
 3. **Dispatch one reviewer per review.**
    - Claude-native: `Agent(subagent_type="qa-reviewer", prompt="CCR <review name> ONLY. Inputs (read fresh, assume no prior context): <artifact paths>. Guide: <that review's section>. Write a structured verdict to memory.", run_in_background=true)` — multiple such calls in one message run in parallel, each in its own isolated context.
-   - CLI fallback: `oma agent spawn qa-agent "CCR <review name> ONLY. Inputs (read fresh, assume no prior context): <artifact paths>. Guide: <that review's section>. Write a structured verdict to memory." session-id`
+   - CLI fallback: `oma agent spawn qa-agent <review-prompt-file> {sessionId} --task-id {review_task.id} -w {workspace}`
 4. **Collect** each reviewer's structured verdict from memory and fold it into the phase's `result-*.md` and `session-ultrawork.md`.
 
 Reviewers are read-only evaluators. Implementation and refactor **actions** (Phase 2 IMPL, and the structural refactor steps in Phase 4) remain with their action agents and are dispatched as before — only the review passes are isolated.
@@ -56,7 +53,7 @@ Reviewers are read-only evaluators. Implementation and refactor **actions** (Pha
 7. Read `.agents/skills/_shared/core/quality-principles.md` (4 principles)
 8. Read `.agents/workflows/ultrawork/resources/phase-gates.md` (gate definitions)
 9. Resolve the session ID:
-   - If a caller workflow (e.g. `/ralph`) delegated to ultrawork with an existing `sessionId`, **reuse it verbatim** — all `plan-{sessionId}.json` / `result-*-{sessionId}.md` artifacts must carry the caller's id so artifact verification (`oma ralph verify --session-id`) matches.
+   - If a caller workflow (e.g. `/ralph`) delegated to ultrawork with an existing `sessionId`, **reuse it verbatim** — plan tasks, claims, and receipts must carry that session/task/run identity so artifact verification matches.
    - Otherwise generate one now (format: `YYYYMMDD-HHmmss`).
 10. Record session start using memory write tool:
    - Create `session-ultrawork.md` in the memory base path
@@ -76,7 +73,7 @@ Activate PM Agent to author the plan only (reviews are dispatched separately in 
 2. Define API contracts.
 3. Create a prioritized task breakdown.
 4. Save plan to `.agents/results/plan-{sessionId}.json`.
-5. Create `task-board.md` in memory path for dashboard compatibility.
+5. Create `task-board-{sessionId}.md` in the memory path for dashboard compatibility.
 6. Use memory write tool to record plan completion.
 
 The PM Agent MUST NOT review its own plan inline — that is a same-context self-review, exactly the anchoring/sycophancy failure the CCR Mandate forbids. Steps 2-4 run in fresh isolated reviewers.
@@ -143,8 +140,8 @@ Use native Gemini subagents when available, otherwise fall back to `oma agent sp
 
 #### If target vendor differs from current runtime, or native dispatch is unavailable
 ```bash
-oma agent spawn backend "Implement backend tasks per plan. IMPORTANT: Follow .agents/skills/_shared/core/context-loading.md rules." session-id -w ./backend &
-oma agent spawn frontend "Implement frontend tasks per plan. IMPORTANT: Follow .agents/skills/_shared/core/context-loading.md rules." session-id -w ./frontend &
+oma agent spawn backend backend-prompt.md {sessionId} --task-id {backend_task.id} -w ./backend &
+oma agent spawn frontend frontend-prompt.md {sessionId} --task-id {frontend_task.id} -w ./frontend &
 wait
 ```
 
@@ -154,9 +151,9 @@ wait
 
 **Wait for all implementation agents to complete before proceeding.**
 
-1. Use memory read tool to poll `progress-{agent}[-{sessionId}].md` files
-2. Use MCP code analysis tools to verify implementation alignment
-3. Check for `result-{agent}[-{sessionId}].md` files to confirm completion
+1. Poll `progress-{agentId}-{taskId}-{runId}-{sessionId}.md` files
+2. Use configured code intelligence or its native fallback to verify implementation alignment
+3. Check the injected claim and `result-{agentId}-{taskId}-{runId}-{sessionId}.md` to confirm completion
 4. Use memory edit tool to record monitoring results in `session-ultrawork.md`
 
 **Continue polling until all agents report completion or failure.**
@@ -167,7 +164,7 @@ If automated measurement is available (tests, lint exist):
 
 1. Load `quality-score.md` (conditional, per `context-loading.md`)
 2. Run tests, lint, type-check via Bash to measure baseline
-3. Create Experiment Ledger via memory tools: `[WRITE]("experiment-ledger.md", initial ledger with baseline row)`
+3. Create Experiment Ledger via file memory: `[WRITE]("experiment-ledger-{sessionId}.md", initial ledger with baseline row)`
 4. Record composite score as the IMPL baseline
 
 If no measurement tools: skip; gates fall back to binary checklist.
@@ -199,9 +196,9 @@ If native dispatch is not verified in the current runtime, fall back to `oma age
 
 #### If Gemini CLI or Antigravity or CLI Fallback
 ```bash
-oma agent spawn qa-agent "CCR Step 6 Alignment Review ONLY. Inputs (read fresh): <diff + plan-{sessionId}.json>. Guide: Alignment Review section. Write a structured verdict to memory." session-id
-oma agent spawn qa-agent "CCR Step 7 Security/Bug Review ONLY (npm audit, OWASP). Inputs (read fresh): <diff + audit output>. Guide: Safety Review section. Write a structured verdict to memory." session-id
-oma agent spawn qa-agent "CCR Step 8 Regression Review ONLY. Inputs (read fresh): <diff + test output>. Guide: Regression Review section. Write a structured verdict to memory." session-id
+oma agent spawn qa-agent step-6-prompt.md {sessionId} --task-id {qa_alignment_task.id} -w {workspace}
+oma agent spawn qa-agent step-7-prompt.md {sessionId} --task-id {qa_safety_task.id} -w {workspace}
+oma agent spawn qa-agent step-8-prompt.md {sessionId} --task-id {qa_regression_task.id} -w {workspace}
 ```
 
 ---
@@ -283,9 +280,9 @@ If native dispatch is not verified in the current runtime, fall back to `oma age
 
 #### If Gemini CLI or Antigravity or CLI Fallback
 ```bash
-oma agent spawn qa-agent "CCR Step 10 Reusability Review ONLY. Inputs (read fresh): <diff>. Guide: Reusability Review section. Write a structured verdict to memory." session-id
-oma agent spawn qa-agent "CCR Step 12 Consistency Review ONLY. Inputs (read fresh): <diff>. Guide: Consistency Review section. Write a structured verdict to memory." session-id
-oma agent spawn refactor-engineer "Execute Phase 4 refactor actions. Step 9: Split large files. Step 11: Side Effect analysis. Step 13: Cleanup dead code. Apply the collected Reusability/Consistency verdicts. Write result-refactor-{sessionId}.md. IMPORTANT: Follow .agents/skills/_shared/core/context-loading.md rules." session-id
+oma agent spawn qa-agent step-10-prompt.md {sessionId} --task-id {qa_reuse_task.id} -w {workspace}
+oma agent spawn qa-agent step-12-prompt.md {sessionId} --task-id {qa_consistency_task.id} -w {workspace}
+oma agent spawn refactor-engineer refine-prompt.md {sessionId} --task-id {refine_task.id} -w {workspace}
 ```
 
 ---
@@ -296,8 +293,9 @@ oma agent spawn refactor-engineer "Execute Phase 4 refactor actions. Step 9: Spl
 
 1. Confirm both isolated reviewers wrote their structured verdicts to memory.
 2. Use memory read tool to poll `progress-refactor*[-{sessionId}].md`
-3. Check for `result-refactor-{sessionId}.md` (the filename instructed in the dispatch prompt) to confirm completion. Accept `result-refactor-engineer-{sessionId}.md` as an equivalent — the CLI-fallback default naming (`result-{agent-id}-{sessionId}.md` per memory-protocol) produces it when the agent ignores the prompt-specified name.
-   - **Claude-native path**: the Agent tool returns synchronously and the `refactor-engineer` subagent writes `result-refactor-{sessionId}.md` under `.agents/results/` — check that file instead of polling.
+3. Check the `refine_task` claim and its run-scoped result report. The injected
+   claim path, not an agent-derived filename, is the completion identity.
+   - **Claude-native path**: use the native result and persist it against the same plan task ID/run ID.
 4. Use memory edit tool to record refinement results (reviews + actions) in `session-ultrawork.md`
 
 **Continue polling until the reviewers and Refactor Agent report completion.**
@@ -367,10 +365,10 @@ If native dispatch is not verified in the current runtime, fall back to `oma age
 
 #### If Gemini CLI or Antigravity or CLI Fallback
 ```bash
-oma agent spawn qa-agent "CCR Step 14 Code Quality Review ONLY (lint/coverage). Inputs (read fresh): <diff + lint output>. Guide: Quality Review section. Write a structured verdict to memory." session-id
-oma agent spawn qa-agent "CCR Step 15 UX Flow Verification ONLY. Inputs (read fresh): <diff + routes>. Guide: UX Flow Review section. Write a structured verdict to memory." session-id
-oma agent spawn qa-agent "CCR Step 16 Cascade Impact Review ONLY. Inputs (read fresh): <diff + impact>. Guide: Cascade Impact Review section. Write a structured verdict to memory." session-id
-oma agent spawn qa-agent "CCR Step 17 Deployment Readiness Review ONLY. Inputs (read fresh): <diff + checklist>. Guide: Final Review section. Write a structured verdict to memory." session-id
+oma agent spawn qa-agent step-14-prompt.md {sessionId} --task-id {qa_quality_task.id} -w {workspace}
+oma agent spawn qa-agent step-15-prompt.md {sessionId} --task-id {qa_ux_task.id} -w {workspace}
+oma agent spawn qa-agent step-16-prompt.md {sessionId} --task-id {qa_cascade_task.id} -w {workspace}
+oma agent spawn qa-agent step-17-prompt.md {sessionId} --task-id {qa_ship_task.id} -w {workspace}
 ```
 
 ---
@@ -402,7 +400,7 @@ oma agent spawn qa-agent "CCR Step 17 Deployment Readiness Review ONLY. Inputs (
 If Quality Score was measured during this session:
 1. Measure final Quality Score
 2. Generate Experiment Ledger summary (total experiments, keep rate, net delta)
-3. Auto-generate lessons from discarded experiments (delta <= -5) into `lessons-learned.md`
+3. Write lessons from discarded experiments to `lessons-{sessionId}.md`
 4. Append Quality Score Progression and Experiment Summary to session metrics
 
 **Always** (regardless of Quality Score availability):
@@ -410,7 +408,7 @@ If Quality Score was measured during this session:
    - Review all QA findings: any disputed by impl agents? → `false_positive`
    - Review runtime verification results: any stubs caught that static review missed? → `missed_stub`
    - Review impl agent self-check results: any bugs caught by QA that self-check missed? → `good_catch`
-6. Append EA events to `session-metrics.md`
+6. Append EA events to `session-metrics-{sessionId}.md`
 7. If rolling 3-session EA >= 30: Flag in final report
    → "QA tuning suggested. Run `oma retro` to review."
 
@@ -464,6 +462,6 @@ This workflow conditionally incorporates patterns from autoresearch:
 | **Keep/Discard** | When quality score is measured | `quality-score.md` delta rules |
 | **Experiment logging** | When baseline is established | `experiment-ledger.md` (via memory protocol) |
 | **Hypothesis exploration** | On repeated gate failures | `exploration-loop.md` (loaded on trigger) |
-| **Auto-learning** | At session end, if experiments exist | `lessons-learned.md` auto-generation |
+| **Runtime learning** | At session end, if experiments exist | `{sessionId}/lessons-{sessionId}.md` |
 
 All protocols are loaded **conditionally** per `context-loading.md`, not at Phase 0.

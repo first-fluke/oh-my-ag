@@ -17,8 +17,8 @@ Follow these steps in order (adjust depth by difficulty).
 - Read the task requirements carefully
 - Read `DESIGN.md` if present at the project root; treat Section 9 (Agent Prompt Guide) as authoritative component spec
 - Identify which components, pages, and hooks are needed
-- Check existing code with Serena: `get_symbols_overview("src/components")`, `find_symbol("ComponentName")`
-- Review existing patterns: `find_referencing_symbols("Button")` to understand usage conventions
+- Inspect existing structure and relevant symbols via `../../_shared/core/code-intelligence.md`; use native search and scoped reads when the configured provider is unavailable
+- Review existing patterns: reference search for `Button` through the configured provider or native search to understand usage conventions
 - List assumptions; ask if unclear
 
 ## Step 2: Plan

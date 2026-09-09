@@ -23,7 +23,11 @@ Follow this guide to use context efficiently.
 
 ## File Reading Strategy
 
-### When Using Serena MCP (Recommended)
+### When Using Configured Code Intelligence
+
+Follow `code-intelligence.md`: discover the configured provider's available
+tools first, never install or track a repository automatically, and use native
+search plus scoped reads when it is unavailable or times out.
 
 ```
 Bad: read_file("app/api/todos.py")          ← entire file 500 lines
@@ -32,7 +36,7 @@ Good: get_symbols_overview("app/api")        ← function list only
 Good: find_referencing_symbols("TodoService") ← usage only
 ```
 
-### When Reading Files Without Serena
+### Native fallback
 
 ```
 Bad: Read entire file at once
@@ -136,9 +140,13 @@ This approach:
 
 ### Test Files
 
-1. Read only after implementation is complete (unnecessary before)
-2. Check only existing test patterns (first 1-2 test functions)
-3. Write remaining tests following the pattern
+1. For bug fixes, TDD, and refactors, read and run the relevant tests before
+   changing code. Use their behavior as the regression or characterization
+   baseline.
+2. For other implementation, read test patterns early when they determine the
+   interface or verification approach; otherwise read them before adding tests.
+3. Select test files and examples by task behavior and impact, not a fixed
+   number of functions.
 
 ---
 
@@ -168,7 +176,7 @@ The Orchestrator monitors agent progress files and triggers reset when needed.
 
 | Condition | Detection Method | Action |
 |-----------|-----------------|--------|
-| Turn budget exhaustion | Agent consumed >= 80% of `expected_turns` AND acceptance criteria < 50% complete | **Context Reset** |
+| Turn budget exhaustion | Agent consumed >= 80% of `expected_turns` AND acceptance criteria < 50% complete | **Checkpoint and continue or resume with fresh context** |
 | Progress stall | No progress file update for 3+ consecutive monitoring cycles | **Context Reset** |
 | Shallow output | Result file contains stub markers or TODO placeholders | **Re-spawn with explicit instruction** |
 
@@ -187,13 +195,13 @@ When a trigger fires, the Orchestrator executes:
    - Remaining items with acceptance criteria
    - Key decisions made so far
 
-2. **Terminate**: Stop the current agent run
-
-3. **Re-spawn**: Start a fresh agent with the checkpoint as context
+2. **Continue or re-spawn**: Continue when context remains useful. Otherwise
+   start a fresh agent with the checkpoint as context; a turn budget alone is
+   never a completion or user-approval boundary.
    - **Claude Code**: New Agent tool call with checkpoint in prompt
    - **CLI agents**: write the checkpoint to a file and pass that file through the required prompt operand: `oma agent spawn {agent-id} {checkpoint-file} {session-id} -w {workspace}`
 
-4. **Resume**: New agent reads checkpoint, continues from remaining items only
+3. **Resume**: The active or new agent continues from remaining items only.
 
 ### Standalone Agent Mode (no Orchestrator)
 
@@ -202,5 +210,6 @@ the Sprint Gate in `difficulty-guide.md` serves as the safety net.
 At each Sprint Gate, the agent checks:
 - [ ] Current sprint deliverable complete
 - [ ] lint/test pass
-- If sprint took 2x expected turns → write checkpoint and inform user:
-  "Sprint exceeded turn budget. Checkpoint saved. Re-invoke to continue."
+- If sprint took 2x expected turns → write a checkpoint, record the limit, and
+  continue remaining authorized work. Ask only if a material decision or new
+  authorization is actually needed.

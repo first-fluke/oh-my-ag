@@ -7,12 +7,8 @@ disable-model-invocation: true
 - **Response language follows `language` setting in `.agents/oma-config.yaml` if configured.**
 - Follow `.agents/skills/_shared/core/execution-policy.md` for authorization, clarification, verification, and completion. Execute required steps on the selected path in dependency order; apply documented branch and skip conditions.
 - **Do NOT write implementation code or task plans in this workflow.** Hand off to `/plan` after the architecture decision is made.
-- **You MUST use MCP tools throughout the workflow.**
-  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) to inspect the current architecture.
-  - Use memory tools (write/edit) to record architecture outputs.
-  - Memory path: configurable via `memoryConfig.basePath` (default: `.agents/state/memories`)
-  - Tool names: configurable via `memoryConfig.tools` in `.agents/mcp.json`
-  - Do NOT use raw file reads or grep as substitutes when MCP tools are available.
+- Follow `.agents/skills/_shared/core/code-intelligence.md`: discover the configured provider’s tools; use native search and scoped reads when unavailable or timed out. Do not install a provider or track a repository automatically.
+- Use native file tools and `.agents/skills/_shared/runtime/memory-protocol.md` for durable coordination state; code-intelligence memory tools are not required.
 
 ---
 
@@ -50,9 +46,9 @@ If the problem is vague, start in Diagnostic Mode.
 Read prior decisions in `.agents/results/architecture/` first — new decisions supersede old ones explicitly (update the old ADR's `Status`), never contradict them silently.
 
 Use MCP code analysis tools to understand the current architecture:
-- `get_symbols_overview` for project structure and boundaries
-- `find_symbol` and `find_referencing_symbols` for ownership and coupling
-- `search_for_pattern` for integration points, layering, and recurring pain points
+- Configured structure tools or scoped directory/file inspection for project structure and boundaries
+- Configured symbol/reference search or native impact inspection for ownership and coupling
+- Configured pattern search or native search for integration points, layering, and recurring pain points
 
 Summarize:
 - key modules/services
@@ -144,7 +140,7 @@ Only when the decision changes structure (boundaries, dependencies, data flow) a
 
 1. Run `oma diagram resolve --json` and read `.agents/skills/_shared/conditional/diagram-engine.md`.
 2. `engine: mermaid` → the Mermaid block in the Markdown artifact is the delivered diagram; done.
-3. `engine: archify` → author `<artifact-stem>.archify.json` from the Mermaid topology, then `oma diagram archify validate …` / `oma diagram archify deliver … <artifact-stem>.archify.html` per the protocol. There is **no iteration cap**: keep repairing while the error count improves; stop only on archify's own convergence rule. On success, link the HTML under the artifact's Diagram section; on convergence failure, keep the Mermaid block and report the last diagnostics.
+3. `engine: archify` → author `<artifact-stem>.archify.json` from the Mermaid topology, then `oma diagram archify validate …` / `oma diagram archify deliver … <artifact-stem>.archify.html` per the protocol. Allow at most 3 repair attempts or 10 minutes total, and stop earlier when the same diagnostic repeats. On success, link the HTML under the artifact's Diagram section; on a bound or convergence failure, keep the Mermaid block, preserve the JSON, and report the last diagnostics.
 4. `ok: false` (archify pinned but unresolvable — e.g. first run offline) → stop and tell the user to run `oma diagram update` once online; do not deliver a Mermaid-only artifact silently.
 
 Emit and verify the required ADR/architecture completion decision:

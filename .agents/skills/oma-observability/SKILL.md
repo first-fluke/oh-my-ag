@@ -1,6 +1,10 @@
 ---
 name: oma-observability
-description: Intent-based observability + traceability router across layers, boundaries, and signals. Routes to vendor-specific skills via category taxonomy; owns transport tuning, meta-observability, incident forensics. Use for observability, traceability, telemetry, APM, RUM, metrics, logs, traces, profiles, SLO, incident forensics, tracing architecture work.
+description: Intent-based observability + traceability router across layers,
+  boundaries, and signals. Routes to vendor-specific skills via category
+  taxonomy; owns transport tuning, meta-observability, incident forensics. Use
+  for observability, traceability, telemetry, APM, RUM, metrics, logs, traces,
+  profiles, SLO, incident forensics, tracing architecture work.
 ---
 
 # Observability Agent - Intent-based Router
@@ -23,7 +27,7 @@ Route, design, tune, and review observability work across MELT+P signals, layers
 - Implementing observability-as-code (Grafana Jsonnet dashboards, PrometheusRule CRD, OpenSLO YAML, SLO burn-rate alerts)
 - Meta-observability (pipeline self-health, clock skew detection, cardinality guardrails, retention matrix)
 - Covering the MELT+P signal set: metrics, logs, traces, profiles (OTEP 0239), cost (OpenCost), audit (SOC2/ISO), privacy (GDPR/PIPA)
-- Migrating off deprecated tools (Fluentd → Fluent Bit or OTel Collector, per CNCF 2025-10 guide)
+- Evaluating log-pipeline migrations against current upstream support and project requirements
 
 ### When NOT to use
 - LLM ops (prompt versioning, evals, gen_ai span deep dive); use Langfuse, Arize Phoenix, LangSmith, or Braintrust directly
@@ -33,6 +37,7 @@ Route, design, tune, and review observability work across MELT+P signals, layers
 - GPU / TPU infrastructure observability: use NVIDIA DCGM Exporter + Prometheus
 - Software supply chain (SBOM, attestation): use sigstore (cosign / rekor), in-toto framework, SLSA level attestations
 - Incident response workflow (on-call rotation, paging, escalation); use PagerDuty, OpsGenie, or Grafana OnCall
+- Full TLS packet inspection: use packet-analysis or vendor TLS inspection tooling
 - Single-vendor setup already fully covered by that vendor's own published skill; invoke the vendor skill directly
 
 ### Expected inputs
@@ -45,6 +50,8 @@ Route, design, tune, and review observability work across MELT+P signals, layers
 - Vendor delegation target when appropriate
 
 ### Dependencies
+Load resources conditionally: start with the execution protocol and one intent guide. Read only relevant matrix rows, then add a boundary, signal, or transport section when evidence requires it. The reference list is an index, not a preload list.
+
 - OTel/W3C/CNCF references and resources under `resources/`
 - Vendor categories, matrix, standards, incident forensics, meta-observability, transport, layers, boundaries, and signal guides
 
@@ -70,7 +77,7 @@ Route, design, tune, and review observability work across MELT+P signals, layers
 
 ### Transitions
 - If a vendor-owned skill fully covers setup, delegate instead of duplicating docs.
-- If Fluentd appears, recommend Fluent Bit or OTel Collector migration.
+- If migration is requested, verify upstream support and compatibility before choosing a replacement.
 - If incident investigation is requested, use 6-dimensional localization.
 - If transport tuning appears, load transport-specific resources.
 
@@ -127,146 +134,46 @@ When CNCF/vendor status is load-bearing, verify live state at `https://landscape
 - May route to vendor-owned skills or external tools.
 
 ### Guardrails
-1. **Classify intent before routing**: every query goes through intent classification; setup | migrate | investigate | alert | trace | tune | route
-2. **Category-first, not vendor-registry**: delegate to vendor-owned skills via `resources/vendor-categories.md`; do not duplicate their documentation
-3. **Transport tuning is the moat**: UDP/MTU thresholds, OTLP protocol selection, Collector topology, and sampling recipes are in-skill depth that other skills do not cover
-4. **Meta-observability is non-negotiable**: always validate pipeline self-health, clock sync (< 100 ms drift), cardinality, and retention before declaring setup complete
-5. **CNCF-first preference**: Prometheus, Jaeger, Thanos, Fluent Bit, OpenFeature (Graduated 2024-11), Flagger, Falco (Graduated); OpenTelemetry, Cortex, OpenCost (Incubating)
-6. **Fluentd is deprecated**: per CNCF 2025-10 migration guide, recommend Fluent Bit or OTel Collector for all new and migration work
-7. **W3C Trace Context as default propagator**: translate per cloud (AWS X-Ray `X-Amzn-Trace-Id`, GCP Cloud Trace, Datadog, Cloudflare, Linkerd) via `boundaries/cross-application.md`
-8. **Privacy before features**: PII redaction, sampling-aware baggage rules, and compliance (SOC2/ISO immutable audit + GDPR/PIPA erasure) are applied at collection, not only at storage
-9. **Domain-level trust**: all vendor and tool references are timestamped `as of 2026-Q2`; verify live status at https://landscape.cncf.io
-10. **No stub in final deliverable**: scaffolds are editing anchors only during build phase; remove before output
+1. Classify intent and use `resources/vendor-categories.md` only when category selection or vendor delegation is needed.
+2. Load the transport guide matching the observed problem: UDP/MTU, OTLP protocol, Collector topology, or sampling.
+3. Before declaring a setup complete, verify pipeline health, clock synchronization, cardinality limits, and retention against the project's requirements. Record checks that could not run.
+4. Verify current upstream support, attribute stability, and migration guidance when they affect the recommendation. Use official project documentation and CNCF status; stored versions are assumptions, not proof of current status.
+5. Use W3C Trace Context by default, with cloud translations from `resources/boundaries/cross-application.md` where required.
+6. Apply PII redaction and sampling-aware baggage controls at collection. Check retention, erasure, and audit requirements for the target system.
+7. Deliver working configuration or explicitly labeled proposals. Scaffolds and unverified checks cannot count as completed setup.
 
-### Out of Scope (use external tools)
-
-The combinations below are outside this skill's boundary. The external tools listed are authoritative for each domain.
-
-| Domain | External tools |
-|--------|---------------|
-| LLM ops / gen_ai observability | Langfuse, Arize Phoenix, LangSmith, Braintrust |
-| Data pipeline lineage | OpenLineage + Marquez, dbt test, Apache Airflow lineage |
-| L1/L2 physical / datacenter hardware | Nlyte, Sunbird, Device42; SNMP exporters where Prometheus bridge is needed |
-| L5 Session / L6 Presentation full TLS inspection | Wireshark (packet-level), Cloudflare Radar (TLS ecosystem data), vendor TLS inspection tooling |
-| Chaos engineering orchestration | Chaos Mesh, Litmus, Gremlin, ChaosToolkit |
-| GPU / AI infra (DCGM, NVIDIA) | NVIDIA DCGM Exporter + Prometheus; OTel GPU semconv (Development, not production-ready) |
-| Software supply chain (SBOM, attestation) | sigstore (cosign / rekor), in-toto framework, SLSA level attestations |
-| Incident response workflow (paging, rotation) | PagerDuty, OpsGenie, Grafana OnCall |
-| Fluentd (primary tool) | Deprecated CNCF 2025-10; use Fluent Bit or OTel Collector |
-
-### Architecture (4 x 4 x 7 matrix)
-
-```
-                  User / Other Skill Query
-                            |
-                            v
-              +-----------------------------+
-              |      Intent Classifier      |
-              |  setup | migrate | investigate
-              |  alert | trace | tune | route|
-              +-----------------------------+
-                            |
-                            v
-              +-----------------------------+
-              |      Vendor Router          |
-              |  category-first delegation  |
-              +-----------------------------+
-                            |
-                            v
-              +-----------------------------+
-              |   vendor-categories.md      |
-              |   (a) OSS Full-Stack        |
-              |   (b) Commercial SaaS APM   |
-              |   (c) High-Cardinality      |
-              |   (d) Profiling Specialist  |
-              |   (e) SIEM / Enterprise Logs|
-              |   (f) FinOps / Cost         |
-              |   (g) Feature Flags/Rollout |
-              |   (h) Log Pipeline          |
-              |   (i) Time Series Storage   |
-              |   (j) Crash Analytics       |
-              +-----------------------------+
-                            |
-                            v
-              +-----------------------------+
-              |  Matrix Coverage Selector   |
-              |  4 Layers x 4 Boundaries    |
-              |  x 7 Signals = 112 cells    |
-              +-----------------------------+
-                            |
-                            v
-              +-----------------------------+
-              |  Transport Depth /          |
-              |  Meta-observability         |
-              |  UDP, OTLP, Collector,      |
-              |  cardinality, clock skew    |
-              +-----------------------------+
-                            |
-                            v
-              +-----------------------------+
-              |  Incident Forensics         |
-              |  6-dim localization:        |
-              |  code/service/layer/host/   |
-              |  region/infra               |
-              +-----------------------------+
-```
-
-**Layers (4):** L3-network, L4-transport, mesh, L7-application
-**Boundaries (4):** multi-tenant, cross-application, slo, release
-**Signals (7):** metrics, logs, traces, profiles, cost, audit, privacy
-
-See `resources/matrix.md` for the full 112-cell coverage map with N/A markers for invalid combinations.
+The coverage matrix has four layers (L3, L4, mesh, L7), four boundaries (multi-tenant, cross-application, SLO, release), and seven signals (metrics, logs, traces, profiles, cost, audit, privacy). Read matching rows in `resources/matrix.md`; N/A cells do not require implementation.
 
 ### Routes (Intent)
 
 | Intent | Primary target | Fallback |
 |--------|---------------|----------|
 | `setup` | `resources/vendor-categories.md` → vendor-owned skill | Generic OTel semconv in `resources/standards.md` |
-| `migrate` | CNCF 2025-10 guide + `resources/vendor-categories.md §(h)` | OTel Collector bridge config |
-| `investigate` | `resources/incident-forensics.md` (MRA + 6-dim localization) | `signals/traces.md` + `signals/logs.md` |
-| `alert` | `boundaries/slo.md` (burn-rate alert rules) | `resources/observability-as-code.md` |
-| `trace` | `boundaries/cross-application.md` (propagator matrix) | `layers/mesh.md` (zero-code auto-instrumentation) |
-| `tune` | `transport/` (4 files: UDP/MTU, OTLP, topology, sampling) | `resources/meta-observability.md` (cardinality guardrails) |
-| `route` | `boundaries/multi-tenant.md` + `transport/collector-topology.md` | `boundaries/cross-application.md` (data residency) |
+| `migrate` | Current upstream migration docs + `resources/vendor-categories.md` log-pipeline section | OTel Collector bridge config |
+| `investigate` | `resources/incident-forensics.md` (MRA + 6-dim localization) | `resources/signals/traces.md` + `resources/signals/logs.md` |
+| `alert` | `resources/boundaries/slo.md` (burn-rate alert rules) | `resources/observability-as-code.md` |
+| `trace` | `resources/boundaries/cross-application.md` (propagator matrix) | `resources/layers/mesh.md` (zero-code auto-instrumentation) |
+| `tune` | `resources/transport/` (4 files: UDP/MTU, OTLP, topology, sampling) | `resources/meta-observability.md` (cardinality guardrails) |
+| `route` | `resources/boundaries/multi-tenant.md` + `resources/transport/collector-topology.md` | `resources/boundaries/cross-application.md` (data residency) |
 
-### Invocation
+### Invocation and loading
+For example: `/oma-observability --investigate "5xx spike in checkout"`.
+Other skills pass the intent, system boundary, and evidence; the result returns guidance, checks, and any vendor handoff.
 
-Standalone:
-```
-/oma-observability "set up OTel stack on Kubernetes"
-/oma-observability --migrate "move from Fluentd to Fluent Bit"
-/oma-observability --investigate "5xx spike in ap-northeast-2"
-/oma-observability --alert "configure SLO burn-rate alert for checkout API"
-/oma-observability --trace "W3C propagator across AWS + GCP boundary"
-/oma-observability --tune "UDP statsd MTU throughput limit"
-/oma-observability --route "multi-tenant log isolation with data residency"
-```
-
-Shared invocation (from other skills):
-1. State intent: `setup` | `migrate` | `investigate` | `alert` | `trace` | `tune` | `route`
-2. Pass the user query string
-3. Receive routed guidance or a vendor-skill delegation target
-
-### How to Execute
-Follow `resources/execution-protocol.md` step by step.
-See `resources/examples.md` for end-to-end walkthroughs.
-Use `resources/intent-rules.md` for intent classification reference.
-Use `resources/matrix.md` for coverage navigation across layers, boundaries, and signals.
-Use `resources/vendor-categories.md` for vendor delegation and category selection.
-Before submitting, run `resources/checklist.md`.
+Read `resources/execution-protocol.md` first. Use the selected route above, then only relevant checklist sections before delivery. Load `resources/examples.md` for an unfamiliar output shape and `resources/anti-patterns.md` only for the affected category. Do not load all transport, layer, boundary, and signal guides together.
 
 ### Integrations with OMA Ecosystem
 
 | Skill | Integration point |
 |-------|------------------|
 | `oma-debug` | On failure: pull traces + logs by `request_id` → trigger `resources/incident-forensics.md` 6-dim localization playbook |
-| `oma-qa` | Canary post-deploy loop via chrome-devtools MCP: console errors + Core Web Vitals trend; INP/LCP/CLS from `layers/L7-application/web-rum.md` |
+| `oma-qa` | Canary post-deploy loop via chrome-devtools MCP: console errors + Core Web Vitals trend; INP/LCP/CLS from `resources/layers/L7-application/web-rum.md` |
 | `oma-tf-infra` | Terraform modules for OTel Collector, Grafana, and Loki stack provisioning |
-| `oma-scm` | Deployment SHA → `service.version` OTel attribute + release marker events; see `boundaries/release.md` |
-| `oma-backend` | Propagator and baggage rules; DB N+1 + Kafka patterns in `signals/traces.md`. Back-reference: `oma-backend/SKILL.md` §References "Observability handoff" |
-| `oma-frontend` | `layers/L7-application/web-rum.md` INP/LCP/CLS checklist. Back-reference: `oma-frontend/SKILL.md` §References "Observability handoff" |
-| `oma-mobile` | `layers/L7-application/mobile-rum.md` offline-queuing pattern. Back-reference: `oma-mobile/SKILL.md` §References "Observability handoff" |
-| `oma-db` | `signals/traces.md` DB patterns (N+1, connection pool). Back-reference: `oma-db/SKILL.md` §References "Observability handoff" |
+| `oma-scm` | Deployment SHA → `service.version` OTel attribute + release marker events; see `resources/boundaries/release.md` |
+| `oma-backend` | Propagator and baggage rules; DB N+1 + Kafka patterns in `resources/signals/traces.md`. Back-reference: `oma-backend/SKILL.md` §References "Observability handoff" |
+| `oma-frontend` | `resources/layers/L7-application/web-rum.md` INP/LCP/CLS checklist. Back-reference: `oma-frontend/SKILL.md` §References "Observability handoff" |
+| `oma-mobile` | `resources/layers/L7-application/mobile-rum.md` offline-queuing pattern. Back-reference: `oma-mobile/SKILL.md` §References "Observability handoff" |
+| `oma-db` | `resources/signals/traces.md` DB patterns (N+1, connection pool). Back-reference: `oma-db/SKILL.md` §References "Observability handoff" |
 
 ### Versioning & Deprecation
 

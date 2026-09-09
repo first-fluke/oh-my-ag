@@ -18,7 +18,7 @@ Follow these steps in order (adjust depth by difficulty).
 - Identify explicit and implicit features
 - List edge cases and assumptions
 - Ask clarifying questions if ambiguous
-- Use Serena (if existing codebase): `get_symbols_overview` to understand current architecture
+- Inspect existing structure and relevant symbols via `../../_shared/core/code-intelligence.md`; use native search and scoped reads when the configured provider is unavailable
 - If risk or governance matters, identify:
   - stakeholders
   - constraints
@@ -50,7 +50,7 @@ Follow these steps in order (adjust depth by difficulty).
   - `not_applicable`: automated tests inappropriate — **must** fill `test_approach_rationale` and `alternative_verification` (documented manual/alternative check)
   - Do **not** mark `tdd` for: documentation, pure styling, generated code, IaC plans, behavior-preserving refactors (refactor tasks keep their characterization-test safety net), or inherently nondeterministic integrations
   - `test_scope`: which layers the tests cover (e.g., `["unit", "integration"]`)
-  - No `test_approach` value ever waives the global unit-test coverage gate (>= 80%); `not_applicable` code still counts toward the aggregate unless declaratively excluded in coverage config with justification
+  - No `test_approach` value waives a project-defined coverage requirement. Where no target exists, plan evidence for changed behavior and justify exclusions; do not invent a universal percentage
 - Minimize dependencies for maximum parallel execution
 - Priority tiers: 1 = independent (run first), 2 = depends on tier 1, etc.
   - The numeric tier is the **canonical** `priority` value in plan JSON (what the orchestrator fans out on).

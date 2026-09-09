@@ -8,7 +8,7 @@
 3. **Clarify requirements**: follow `../../_shared/core/clarification-protocol.md`
    - Check **Uncertainty Triggers**: security/auth related bugs, existing code conflict potential?
    - Determine level: LOW → proceed | MEDIUM → present options | HIGH → ask immediately
-4. **Budget context**: follow `../../_shared/core/context-budget.md` (use find_symbol, not read_file)
+4. **Budget context**: follow `../../_shared/core/context-budget.md` (prefer relevant symbols or scoped file reads)
 
 **Intelligent Escalation**: When uncertain, escalate early. Don't blindly proceed.
 
@@ -16,10 +16,7 @@ Follow these steps in order (adjust depth by difficulty).
 
 ## Step 1: Understand
 - Gather: What happened? What was expected? Error messages? Steps to reproduce?
-- Read relevant code using Serena:
-  - `find_symbol("functionName")`: Locate the failing function
-  - `find_referencing_symbols("Component")`: Find all callers
-  - `search_for_pattern("error pattern")`: Find similar issues
+- Read relevant code following `../../_shared/core/code-intelligence.md`: locate the failing function, find callers, and search similar issues with configured tools or native fallback
 - Classify: logic bug, runtime error, performance issue, security flaw, or integration failure
 
 ## Step 2: Reproduce & Diagnose

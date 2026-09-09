@@ -88,7 +88,7 @@ Rename discipline:
 - Generic names (`data`, `result`, `temp`, `value`) outside the temporary role fail the role check; lying names (name promises X, body does Y) outrank them as targets.
 - One variable, one role: a variable that switches roles mid-scope is a **Split Variable** trigger, not a rename target.
 - Functions are named for intent (what), not mechanism (how); command = verb, query = noun/predicate.
-- Renames are engine-executed (LSP/IDE rename; in agent context, Serena `rename_symbol`), never find-replace; tests re-run regardless.
+- Renames are engine-executed (LSP/IDE rename or a configured provider’s semantic rename tool), never find-replace; tests re-run regardless.
 - Goodhart applies here too: role vocabulary diagnoses; the terminal check is still "does the next reader understand this cheaper".
 
 ## Execution contexts

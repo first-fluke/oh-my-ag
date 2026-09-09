@@ -1,9 +1,8 @@
 ---
 name: oma-translation
-description: Context-aware translation that preserves tone, style, and natural
-  word order. Use when translating UI strings, documentation, marketing copy, or
-  any multilingual content. Infers register, domain, and style from the source
-  text and surrounding codebase context.
+description: Context-aware translation and localization for UI strings,
+  documentation, marketing copy, and prose. Preserves meaning, register,
+  terminology, placeholders, structure, and natural target-language phrasing.
 ---
 
 # Translation - Context-Aware Localization
@@ -11,497 +10,203 @@ description: Context-aware translation that preserves tone, style, and natural
 ## Scheduling
 
 ### Goal
-Translate, review, or adapt multilingual content while preserving meaning, register, placeholders, structure, domain terminology, and natural target-language word order.
+Translate, review, or adapt multilingual content faithfully and naturally while preserving the
+parts that must remain exact: placeholders, code, links, formatting, terminology, and file
+structure.
 
 ### Intent signature
-- User asks to translate, localize, review translation quality, create a glossary, or adapt UI/docs/marketing copy.
-- User needs context-aware translation rather than mechanical word substitution.
+- Translate, localize, review a translation, adapt copy, or create a glossary/style guide.
+- Update target-language files after the source changed.
 
 ### When to use
-
-- Translating UI strings, error messages, or microcopy
-- Translating documentation, README, or guides
-- Translating marketing copy or landing pages
-- Reviewing existing translations for naturalness
-- Creating glossaries or translation style guides
-- Any task involving multilingual content
+- UI strings, error messages, locale files, documentation, reports, marketing copy, and prose.
+- Review of existing translations for accuracy, register, terminology, or naturalness.
 
 ### When NOT to use
-
-- i18n infrastructure setup (key extraction, routing, build) -> use dev-workflow
-- Adding new locale to framework config -> use dev-workflow
-- Code-level l10n patterns (date formatting, pluralization API) -> use relevant agent
+- i18n infrastructure, locale registration, or key extraction -> use the relevant development skill.
+- Date/pluralization APIs or other code-level localization -> use the owning code-domain skill.
 
 ### Expected inputs
-- Source text, target language, and optional locale or audience
-- Existing locale files, glossary, code context, or style constraints
-- Optional user/author writing sample for voice matching in prose, marketing, dialogue, or adaptation tasks
-- Placeholder syntax, formatting constraints, and output mode
+- Source text, target language or locale, content type, and requested output mode.
+- Existing locale files, glossary, surrounding context, and optional author sample.
+- Placeholder and formatting constraints when the source is structured.
 
 ### Expected outputs
-- Natural target-language translation or review findings
-- Preserved placeholders, code spans, links, headings, lists, and file structure
-- Translator notes when source concepts need explanation
-- Batch-safe output for i18n files when requested
+- Natural target-language text or evidence-backed review findings.
+- Exact preservation of placeholders, code spans, links, headings, list structure, and locale keys.
+- Translator notes only for meaningful ambiguity or necessary cultural explanation.
 
 ### Dependencies
-- Existing translations and surrounding code for register and terminology
-- `resources/translation-rubric.md` and `resources/anti-ai-patterns.md` (language-neutral)
-- `resources/lang/{code}.md` for the target language (required when a profile exists)
-- Project locale files when translating UI strings
-- User-provided voice samples when the task asks to preserve or match a specific author's style
+- Target profile: `resources/lang/{code}.md`, if one exists.
+- `resources/translation-rubric.md` for substantive content or review.
+- `resources/anti-ai-patterns.md` when prose needs style review.
+- Existing siblings and glossary when translating into a project.
 
 ### Control-flow features
-- Branches by content type, target language, batch size, register uncertainty, and placeholder/structure requirements
-- Branches by whether a language profile exists for the target, and by locale variant when the profile declares variants
-- Branches by whether style-sample calibration is available and appropriate for the content type
-- Reads locale files and source context; may write translated content only when explicitly editing files
-- Blocks output until mechanical verification passes
+- Branches by UI batch versus prose, profile availability, locale variant, ambiguity, and review mode.
+- Loads only the target profile and references required for the content type.
+- Edits files only when the user asked for file changes.
 
 ## Structural Flow
 
 ### Entry
-1. Confirm source text, target language, content type, and output mode.
-2. Load `resources/lang/{code}.md` for the target language (see "Language Profile Loading").
-3. Load existing translations, glossary, file context, or code context when available.
-4. Identify placeholders, formatting constraints, and ambiguity.
+1. Identify source, target locale, content type, and whether this is translate, review, or diff-sync.
+2. Preserve exact tokens first: placeholders, code, URLs, keys, and structural markers.
+3. Load the target profile if available; read sibling translations when the target is in a project.
 
 ### Scenes
-1. **PREPARE**: Load the target language profile, then determine register, domain, and structure constraints.
-2. **ACQUIRE**: Read existing translations and surrounding context.
-3. **REASON**: Analyze source meaning, connotations, figurative language, and terminology.
-4. **ACT**: Reconstruct natural target-language output.
-5. **VERIFY**: Run mechanical checks and translation rubric.
-6. **FINALIZE**: Emit translation, review notes, or file changes.
+1. **PREPARE**: Resolve locale, output mode, target audience, and protected syntax.
+2. **ACQUIRE**: Read the target profile, relevant siblings, glossary, and source context. For prose or review, load the rubric; load anti-AI patterns only when style review is needed.
+3. **REASON**: Determine meaning, register, terminology, cultural references, and any ambiguity. Decide whether an idiom should be interpreted, substituted, or retained.
+4. **ACT**: Write natural target-language text. Match established project patterns without adding meaning, opinion, or personality.
+5. **VERIFY**: Check protected syntax and structure. For substantive text, check meaning, terminology, register, and target-language naturalness against the rubric.
+6. **FINALIZE**: Return the requested text, patch, or review with only supported findings.
 
 ### Transitions
-- If context is insufficient, ask one targeted question.
-- If the target language has a profile and it was not loaded, stop and load it before drafting.
-- If the profile declares locale variants and none was resolved, resolve the variant before translating any string.
-- If batch size is greater than 10 strings, verification is mandatory before output.
-- If the output violates a typography or sentence-completion rule in the profile, rewrite before final output.
-- If placeholders or structure do not match, revise and rerun verification.
+- A profile exists -> load it; its target-language rules take precedence over shared guidance.
+- A locale variant is required -> resolve it before drafting.
+- No profile exists -> use shared guidance and note that limit once; do not borrow another language's rules.
+- A short independent UI string with established siblings -> use protected-syntax and sibling checks; the full prose review is optional.
+- Long prose, documentation, marketing copy, mixed tables/code, or review mode -> use the rubric.
+- Ambiguous meaning that changes the result -> ask one targeted question or flag the choice.
+- Diff-sync -> modify only source-touched equivalents, located by headings and surrounding context, not line number.
 
 ### Failure and recovery
-- If source meaning is ambiguous, flag ambiguity rather than guessing.
-- If project conventions conflict with literal translation, follow project conventions and explain if needed.
-- If file structure is risky to modify, preserve structure and limit edits to values.
+| Failure | Recovery |
+|---|---|
+| Missing target context | Use the source register and state the assumption, unless the ambiguity changes meaning |
+| Conflicting literal wording and project convention | Follow the established target convention and explain a material difference |
+| Placeholder or structure mismatch | Revise before emitting or applying a patch |
+| Missing profile | Use shared guidance and identify the coverage limit once |
+| Unclear cultural reference | Add a concise note only when the target audience needs it |
 
 ### Exit
-- Success: target text is natural, faithful, structurally equivalent, and verified.
-- Partial success: ambiguous source text or missing context is explicit.
+- Success: the text is faithful, natural, structurally safe, and checked in proportion to content risk.
+- Partial: unresolved ambiguity or missing context is stated without inventing an answer.
 
-### Context Inference
+### Language profile loading
 
-No config file required. Instead, infer translation context from:
+Resolve the BCP 47 primary subtag and load one matching profile when present:
 
-1. **Existing translations in the project**: scan sibling locale files to match register, terminology, and style already in use
-2. **File location**: `messages/`, `locales/`, `.arb` files reveal the framework and format
-3. **Surrounding code**: component names, comments, and variable names hint at domain and audience
-4. **Source text itself**: register, formality, sentence structure reveal intent
-
-If context is insufficient to make a confident decision, ask the user. Prefer one targeted question over a batch of questions.
-
-### Language Profile Loading
-
-Translation quality rules split into two layers. Load both; neither is sufficient alone.
-
-| Layer | File | Holds |
-|---|---|---|
-| Shared | `resources/anti-ai-patterns.md` | AI writing pattern taxonomy, rules `1`–`25`, source-side examples |
-| Shared | `resources/translation-rubric.md` | 5-criterion scoring |
-| Per-language | `resources/lang/{code}.md` | Register system, language-only rules, localizations of shared rules, typography, self-check |
-
-**Routing**: resolve the target to a BCP 47 primary subtag and read `resources/lang/{code}.md`.
-
-| Target | Profile | Notes |
-|---|---|---|
-| Korean | `lang/ko.md` | rules `KO-1`–`KO-12` |
-| Japanese | `lang/ja.md` | rules `JA-1`–`JA-9` |
-| Chinese | `lang/zh.md` | rules `ZH-1`–`ZH-9`; **variant resolution is mandatory** before translating |
-| English | `lang/en.md` | rules `EN-1`–`EN-8`; written for CJK → EN direction |
-| Anything else | none yet | fall back to shared files only |
-
-**Fallback rule**: when no profile exists for the target, use the shared files, apply shared rules `19`–`24` by reasoning from the target's actual grammar, and state once in the output notes that no profile was available. Do not silently borrow another language's profile: `ko.md` rules are wrong for German, and applying them produces confident errors.
-
-**Adding a profile**: copy `resources/lang/_template.md` to `resources/lang/{code}.md` and add the row to the routing table above. An empty profile beats an invented one.
-
-**Precedence**: the profile wins over the shared file when they appear to conflict, because the shared file describes the pattern and the profile describes the target. A profile may declare that a shared rule does not apply to its language (`en.md` does this for the em-dash restructuring requirement, which exists only for CJK targets).
-
-### Translation Method
-
-#### Stage 1: Analyze Source
-
-Read the source text and identify:
-- **Register**: Formal, casual, conversational, technical, literary
-- **Intent**: Inform, persuade, instruct, entertain
-- **Domain terms**: Words that need consistent translation (check existing translations first)
-- **Cultural references**: Idioms, metaphors, humor that won't transfer directly
-- **Sentence rhythm**: Short/punchy vs. long/flowing; note parallel structures, intentional repetition, and emphasis patterns
-- **Comprehension challenges**: Terms or references target readers may struggle with, such as domain jargon lacking standard translations, cultural references (pop culture, history, social norms), implicit knowledge the author assumes, wordplay or puns, named concepts (e.g., "Dunning-Kruger effect"). For each, note: the original term, why it may confuse, and a concise plain-language explanation for a potential translator's note
-- **Figurative language mapping**: For each metaphor, simile, idiom, or figurative expression, classify the handling approach:
-  - **Interpret**: Discard source image entirely, express the intended meaning directly in natural target language
-  - **Substitute**: Replace with a target-language idiom or image that conveys the same idea and emotional effect
-  - **Retain**: Keep the original image if it works equally well in the target language
-  - **Mannered-prose constraint**: never introduce a new mannered metaphor absent from the source (shared rule `3a`). When a literal target phrase is available, use it. Never strip a source mannered metaphor by default — route it through Interpret/Substitute/Retain; fidelity to intentional source voice wins over plain style.
-- **Emotional connotations**: Words carrying subjective feeling beyond dictionary meaning (e.g., "alarming" = urgency, "haunting" = lingering unease); note the emotional effect to preserve in translation
-
-#### Stage 2: Extract Meaning
-
-Strip away source language structure. Ask yourself:
-- What is the author actually trying to say?
-- What emotion or tone should the reader feel?
-- What action should the reader take?
-
-Do NOT start forming target sentences yet.
-
-#### Stage 2.5: Persona Assignment
-
-Persona resolution has two layers: **content-type** (what kind of text) and **voice** (how punchy or formal the rhythm). Both are needed.
-
-##### Layer 1: Read `translation_voice` from `.agents/oma-config.yaml`
-
-The `translation_voice` field controls global rhythm/formality. Three values:
-
-| Voice | Style override applied on top of content-type |
+| Target | Profile |
 |---|---|
-| `formal` | complete sentences only, no fragments, strict 합니다체/です・ます, no padding cuts |
-| `balanced` (default) | content-type defaults; fragments allowed only in label/cell positions |
-| `interpreter` | interpreter mindset across all content types: punchy, audience-first, spoken cadence, fragments allowed when natural in target, drops formal padding ("을 받았습니다" → "받음" / "을 모두" → drop) |
+| Korean | `resources/lang/ko.md` |
+| Japanese | `resources/lang/ja.md` |
+| Chinese | `resources/lang/zh.md`; resolve the declared variant |
+| English | `resources/lang/en.md` |
+| Other | no profile; use shared guidance |
 
-If the field is missing, default to `balanced`. If `oma-config.yaml` is unreadable, also `balanced`.
+Profiles define typography, register, and target-language checks. Shared guidance explains common
+risks. A profile wins if they conflict. Add a new profile from `resources/lang/_template.md` only
+when the task is to extend this skill.
 
-##### Layer 2: Content-type persona table
+### Translation method
 
-| Content type | Persona | Base style markers |
-|---|---|---|
-| UI strings / microcopy | UX copywriter | concise, imperative, user-friendly |
-| Docs / README / API reference | technical writer | data + commentary, expanded explanations |
-| Benchmark / report / changelog | technical reporter | data + commentary, objective tone |
-| Marketing / landing / hero copy | brand copywriter | concise impact, audience-first, aggressive transcreation |
-| Blog post / essay | essayist | preserve cadence and rhythm, retain author voice |
-| Literary / prose | literary translator | preserve imagery, style consistency, narrative voice |
-| Dialogue / subtitle / interview | interpreter | immediacy, audience-first, spoken register, cultural context inline |
-
-Classification heuristics:
-- File location `messages/`, `locales/`, `*.arb` → UX copywriter
-- Filename `README*`, `docs/*`, or `.md` with frequent code blocks → technical writer
-- Score tables, benchmark stats, changelog rows → technical reporter
-- Page/section hero copy → brand copywriter
-- Quote marks, em-dashes, speaker labels in source → interpreter
+1. Read for meaning, intended effect, domain terms, and protected syntax. Identify figurative
+   wording as **interpret**, **substitute**, or **retain**. Do not add a new metaphor or remove an
+   intentional one without a reason.
+2. Choose register from the source, target audience, and sibling translations. Apply
+   `translation_voice` from `.agents/oma-config.yaml` only as a rhythm/formality preference:
+   `formal`, `balanced` (default), or `interpreter`. It never overrides meaning or target norms.
+3. Reconstruct in the target language. Change word order, split or merge sentences, and omit
+   implied subjects only when the target language calls for it.
+4. Preserve author style only where it belongs: prose, dialogue, adaptation, or explicitly
+   user-authored documentation. Match observable rhythm and diction, never add facts, stance,
+   jokes, first person, or stronger emotion.
 
-When unclear, default to **technical writer** for code-adjacent content and **essayist** for prose. Never use a generic "translator" persona.
+### Verification
 
-##### Combining layers
+Always check:
 
-Voice is applied **on top** of the content-type persona. Examples:
+- Every placeholder, code span, identifier, URL, and locale key is unchanged.
+- Headings, links, table rows, list nesting, and code blocks retain their structure.
+- The target follows its profile's typography and register rules.
+- Existing siblings are matched when they establish terminology or UI style.
 
-- Content-type = `technical reporter` + voice = `formal` → fully expanded sentences, no fragments anywhere, strict 합니다체.
-- Content-type = `technical reporter` + voice = `balanced` → complete sentences in body, fragments allowed in table cells (current default).
-- Content-type = `technical reporter` + voice = `interpreter` → punchier rhythm, list-item fragments allowed (e.g., "39턴 / 8m 13s / $1.28 (파일당 $0.14)" instead of "39턴, 8m 13s, 총 $1.28을 썼습니다(파일당 약 $0.14)"), drops "을 모두 받았습니다" padding.
+For substantive content and review mode, also check the rubric: meaning, naturalness,
+terminology, register, cultural fit, and emotional force. Use anti-AI patterns as a diagnostic,
+not a demand to make prose decorative or to remove intentional source style.
 
-The persona is then **localized to the target language** at execution time. Translating into Korean as a "technical reporter" with `interpreter` voice means thinking as a Korean technical reporter who values rhythm and audience scan-speed over formal completeness.
+### Review mode
 
-##### Optional Layer 3: Voice sample calibration
+Review from evidence, not from an expectation that every draft is machine-translated. Record zero
+findings when no material defect is confirmed. Separate:
 
-If the user provides an author/user writing sample, analyze it before drafting. Use it as a style constraint, not as permission to alter meaning.
+- **Accuracy or safety defects**: changed meaning, broken placeholder, incorrect term, or wrong register.
+- **Supported style findings**: a concrete target-language issue with a reason and proposed fix.
+- **Preferences**: optional alternatives that do not make the existing translation wrong.
 
-Extract:
-- Sentence length pattern: short/punchy, long/flowing, or mixed
-- Paragraph entry habit: immediate claim, context first, anecdote, question, or contrast
-- Word choice level: casual, technical, academic, literary, blunt, or polished
-- Punctuation habits: parentheses, colons, commas, semicolons, dashes, sparse punctuation
-- Transition style: explicit connectors, abrupt turns, numbered logic, or minimal signposting
-- Recurring phrases or verbal tics that are appropriate to preserve
-
-Apply only where style matters:
-- ON: blog posts, essays, speeches, interviews, marketing copy, narrative prose, adaptation requests, and user-authored documentation where preserving author voice is requested
-- LIMITED: technical documentation and reports; match rhythm and terminology, but do not add personal stance
-- OFF: UI strings, locale key batches, legal/official text, exact policy text, or any text where structure and fidelity outrank authorial style
-
-Guardrail: Voice matching may adjust rhythm, diction, and sentence shape. It must not add new opinions, first-person perspective, humor, facts, examples, or emotional color that is absent from the source.
-
-#### Stage 3: Reconstruct in Target Language
-
-Rebuild from meaning **as the assigned persona**, following target language norms:
-
-**Word order**: Follow the target language's natural structure. Quick orientation; the profile is authoritative.
-- EN → KO: SVO → SOV, move verb to end, particles replace prepositions
-- EN → JA: Similar SOV restructuring, honorific system alignment
-- EN → ZH: Maintain SVO but restructure modifiers (pre-nominal in ZH)
-- CJK → EN: topic-comment → subject-predicate, supply articles and number marking
+Do not rewrite a sound translation merely to produce findings.
 
-**Register matching**:
-- Infer from existing translations in the project, or from source text tone
-- Adjust formality markers (honorifics, sentence endings, vocabulary level)
+### Batch and diff-sync work
 
-**Sentence splitting/merging**:
-- English compound sentences often split into shorter Korean/Japanese sentences
-- English bullet points may merge into flowing paragraphs in some languages
+For batches, read the complete set first, translate values only, and maintain one terminology and
+register decision. Verify placeholders and key structure across the set.
 
-**Omission of the obvious**:
-- Many languages (Korean, Japanese, Chinese, etc.) allow subject or pronoun omission when contextually clear
-- Don't force subjects or pronouns that feel unnatural in the target language
+For diff-sync, map each source hunk by heading and surrounding context. Touch only the affected
+target section; leave unrelated text byte-identical. State updated sections, skipped cosmetic
+hunks, and material terminology decisions.
 
-#### Stage 4: Verification Gate (blocking; do not emit output until every item is confirmed)
+### Output formats
 
-Run the mechanical checks first, then the rubric.
-
-**A. Mechanical checks (run before rubric, must all pass):**
-
-- **Profile self-check**: Run the self-check list at the end of `resources/lang/{code}.md` in full. Every unchecked item blocks output. This is the first check, not the last, because it is the one that catches target-language failures the shared list cannot see.
-- **Em dash scan**: Search the draft output for `—`. Handling is profile-defined. For targets whose profile forbids it (Korean, Japanese, Chinese), every occurrence must be **structurally restructured**, never simply substituted with `:` / `(` / `,`; zero em dashes AND zero mechanical-substitution survivors in the emitted output. For targets that permit it (English), enforce the shared ceiling of one per paragraph. (See anti-AI rules `14` and `14a`.)
-- **Quote-mark scan**: Search for `“`, `”`, `‘`, `’`. Replace with straight quotes (`"`, `'`) **unless** the profile's typography section requires otherwise (`zh-CN` uses `“”`; Japanese uses 「」/『』; French uses «»), the source explicitly uses curly quotes, or the file format mandates them. Check the profile before stripping anything.
-- **Placeholder integrity**: Every `{name}`, `{{count}}`, `%s`, `<tag>`, and `` `code` `` from the source appears unchanged in the target.
-- **Structure parity**: Headings, list bullets, table rows, code blocks, and links match the source count and nesting.
-- **Register consistency**: One sentence-ending style throughout (don't mix `-ㅂ니다` with `-다`, formal with casual).
-- **Sibling-pattern match (when applicable)**: If the target lives in a context that already contains target-language siblings (markdown table rows, locale file with sibling values, glossary entries, list items in a doc), read at least 3 siblings and identify (a) separator style: comma vs `및`/`와`/`과` vs em dash vs colon vs newline, (b) action-verb form: noun-phrase fragments vs full verb phrases vs imperative, (c) loanword density, (d) register and sentence-ending style. Your draft MUST match the dominant pattern. If the draft uses a separator/verb form/register absent from siblings, BLOCK and revise. Example failure: siblings use comma-separated noun phrases without colons; your draft uses `X: Y and Z` colon syntax. → revise to comma form.
-
-If any mechanical check fails, revise and re-run. Do not proceed to the rubric until all pass.
-
-**B. Translation rubric (see `resources/translation-rubric.md`):**
-1. Does it read like it was originally written in the target language?
-2. Are domain terms consistent with existing translations in the project?
-3. Is the register consistent throughout?
-4. Is the meaning preserved (not just words)?
-5. Are cultural references adapted appropriately?
-6. Are emotional connotations preserved (not flattened into neutral descriptions)?
-
-**C. Anti-AI patterns (see `resources/anti-ai-patterns.md` for the shared taxonomy and `resources/lang/{code}.md` for how each item manifests in the target):**
-7. No AI vocabulary clustering or inflated significance
-8. No promotional tone upgrade beyond the source
-9. No synonym cycling; use consistent terminology
-10. No source-language word order leaking through
-11. No unnecessary bold or formatting artifacts (em dashes already covered in mechanical check A)
-12. No Europeanized patterns (unnecessary connectives, passive voice, noun pile-up, over-nominalization, forced pronouns, cleft calques)
-13. No humanizer-pattern leftovers: generic positive conclusions, "let's dive in" signposting, persuasive-authority tropes, formulaic "challenges/future prospects" sections, title-restating warmups, emoji decoration, or vague media/notability padding
-
-**D. Figurative language handling:**
-14. Were all metaphors/idioms handled per the classify decision (interpret/substitute/retain)?
-15. Do figurative expressions read naturally in the target language, not as literal calques?
-16. No mannered prose introduced beyond the source (shared rule `3a`)? When a literal target phrase was available, was it used instead of a new metaphor?
-
-### Translator's Notes Guidelines
-
-When adding explanatory notes for terms, cultural references, or concepts that target readers may struggle with:
-
-**Format**: `translated term (original term, plain-language gloss)`, or `translated term (original term)` for well-known terms that only need the original. Bracket style follows the target's typography section in `resources/lang/{code}.md`: halfwidth `()` for Korean and English, fullwidth `（）` for Japanese and Chinese around non-ASCII content
-
-**Calibration by audience**:
-- **Technical readers**: Skip annotation on common tech terms (API, deploy, refactor). Only annotate domain-specific or coined terms
-- **General readers**: More generous annotation. Explain jargon, cultural references, and domain concepts in plain language
-- **Short texts** (< 5 sentences): Minimize annotations; only annotate terms the target audience is unlikely to know
-
-**Rules**:
-- Annotate on first occurrence only; don't repeat the note
-- Keep notes concise (aim for under 10 words)
-- Explain *what it means*, not just provide the English original
-- Don't annotate self-explanatory terms or widely recognized loanwords
-- If a comprehension challenge was identified in Stage 1, use the pre-planned explanation
-
-### When to run Stage 5–7
-
-Default ON for:
-- Documentation (README, guides, API reference)
-- Reports, benchmarks, changelogs, blog posts
-- Marketing copy and landing pages
-- Any prose longer than ~3 sentences
-- Anything containing tables, bullet lists, or code blocks mixed with prose
-- Translation review mode
-
-Default OFF (Stage 4 verification only) for:
-- Single short UI string (< 10 words) **in a UI locale file** (i18n keys, `.arb`, `.json`, `messages/`) with established glossary
-- Batch UI key translations where each value is independent and < 1 sentence
-- User explicitly requests "fast translation", "skip reflection", or "직역"
-
-**Tie-breaker rule**: When a target qualifies for BOTH ON and OFF categories, default ON wins. Common conflict cases:
-
-| Situation | Why both | Resolution |
-|---|---|---|
-| README table cell (short AND documentation) | <10 words but lives in `README*.md` | ON: README is documentation |
-| CHANGELOG line entry | <10 words but lives in changelog | ON: changelog is documentation |
-| Skill description in registry | short noun phrase but commits to git-tracked source | ON: registry descriptions are documentation, not UI locale values |
-| Tooltip in i18n file | <10 words AND in `messages/` | OFF: UI string in locale file |
-
-When in doubt, run reflection: roughly 1.5–2× tokens, against a post-merge revision that costs more. Skipping it on non-trivial content is the most common source of translationese complaints.
-
-### Extended workflow
-
-After completing Stage 1–4, continue with:
-
-**Stage 5: Critical Review**
-
-Re-read the translation against the source with fresh eyes. Produce a diagnostic review (no rewriting yet).
-
-Start the review by explicitly answering this question first: **"What makes the draft below still feel obviously machine-translated or AI-generated?"** Write 3–7 short bullets naming the remaining tells (e.g., "register suddenly shifts to formal in the final paragraph", "the same connective construction repeats three times", "noun-ending fragments survive in body text outside label/cell positions", "a metaphor was kept literal where the target language would interpret it"). Then continue with the structured checklist:
-
-- **Accuracy**: Compare paragraph by paragraph. Any facts, numbers, or qualifiers altered?
-- **Europeanized language**: Scan for unnecessary connectives, passive voice, noun pile-up, over-nominalization, forced pronouns (shared rules `19`–`24`), using the worked examples in `resources/lang/{code}.md`
-- **Figurative language fidelity**: Cross-check metaphor mapping from Stage 1. Were all handled per the classify decision? Any literal calques that sound unnatural?
-- **Emotional fidelity**: Were subjective/emotional word choices flattened into neutral descriptions?
-- **Tone drift**: Does the register stay consistent from start to finish, or does it shift mid-document (e.g., formal intro drifting into casual explanation)?
-- **Expression & flow**: Flag sentences that still read like "translation-ese" (stiff phrasing, unnatural word order, awkward transitions)
-- **Humanization patterns**: For prose, marketing, blog, report, and adaptation tasks, scan for sterile rhythm, evenly shaped paragraphs, signposting, generic conclusions, persuasive-authority tropes, formulaic challenge/future sections, emoji decoration, title-restating warmups, and filler phrases
-- **Voice sample fit**: If a sample was provided, check whether sentence rhythm, paragraph openings, diction, punctuation, and transition style match the sample without adding unsupported meaning
-- **Translator's notes quality**: Too many? Too few? Accurate and concise?
-
-**Stage 6: Revision**
-
-Apply all findings from Stage 5 to produce a revised translation:
-- Fix accuracy issues
-- Rewrite Europeanized expressions into native patterns
-- Re-interpret literally translated metaphors per the mapping
-- Restore flattened emotional connotations
-- Restructure stiff sentences for fluency
-- Adjust translator's notes per review recommendations
-
-**Stage 7: Polish**
-
-Final pass for publication quality:
-- Read as a standalone piece: does it flow as native content?
-- Smooth remaining rough transitions between paragraphs
-- Ensure narrative voice is consistent throughout
-- Final scan for surviving literal metaphors or translation-ese
-- Verify formatting preservation (headings, bold, links, code blocks)
-
-### Batch Translation Rules
-
-When translating multiple strings (e.g., UI keys):
-
-1. **Read all strings first** before translating any; context matters
-2. **Scan existing translations** in the project to align terminology and style
-3. **Maintain terminology consistency** across the batch
-4. **Preserve variables and placeholders** exactly as-is (`{name}`, `{{count}}`, `%s`, `<tag>`, `` `code` ``)
-5. **Keep key structure**: only translate values, never keys
-6. **Match length roughly** for UI strings (avoid 3x longer translations that break layout)
-
-### Diff-Sync Mode (patch existing translation against source diff)
-
-Use when the English source has changed and one or more existing target-language translations need to be brought back in sync. Triggered by `oma-docs` v2 multilingual sync, manual i18n catch-up after a docs PR, or any "the source moved, the translation didn't" scenario.
-
-**Inputs**:
-- A unified diff of the English source (`/tmp/oma-en-diff.patch` or git diff snippet)
-- One or more target-language file paths (existing translations of the same source)
-- Optional: per-locale glossary or terminology hints
-
-**Stages override**:
-1. **PREPARE**: Read the diff. Identify added, modified, removed sections.
-2. **ACQUIRE**: Read each target file. Map source positions to target positions by **heading anchors and surrounding context**, not by line number (line numbers will not match across translations).
-3. **REASON**: For each diff hunk, decide:
-   - *Added section*: translate fresh, splice in at the equivalent position
-   - *Modified text*: localize the modification, replace target equivalent
-   - *Removed text*: delete the target equivalent
-   - *Touched-but-cosmetic* (whitespace, formatting): skip; don't churn translation
-4. **ACT**: Apply patches via Edit tool. Match the existing translation's register, terminology, and voice (re-read at least 3 sibling sections in the target file before writing).
-5. **VERIFY**: Run Stage 4 mechanical checks (profile self-check, em-dash, placeholder integrity, structure parity) AND ensure no untouched sections were modified. Scope the profile self-check to the patched sections only, so pre-existing drift elsewhere is flagged rather than silently rewritten.
-
-**Hard rules for diff-sync**:
-- **Touch only what the diff touched.** Other sections of the target file must remain byte-identical. If you find drift outside the diff, flag it but do NOT auto-fix in the same patch.
-- **Preserve structural fidelity.** The target file's heading hierarchy, table count, list structure must match the post-patch source.
-- **No line-number assumptions.** Always navigate by heading text and anchor, never by absolute line.
-- **Code/regex/identifiers in English.** Per i18n-guide rules, code blocks, JSON keys, file paths, regex patterns, workflow names, and system markers like `[OMA WORKFLOW: ...]` stay verbatim.
-
-**Output format (per target file)**:
-```
-Target: <path>
-Sections updated: <list of heading paths>
-Sections skipped: <list with reason, e.g. "no semantic change">
-Ambiguities resolved: <terminology decisions made>
-```
-
-**Parallelization**: When multiple target locales need the same source diff, dispatch one agent per locale in parallel. Each agent gets the same diff but different target-file path. No coordination needed since target files are disjoint.
-
-### Output Format
-
-#### Single text
-```
-Source (EN):
-> original text
-
-Translation (KO):
-> translated text
-
-Notes:
-- [any decisions made about ambiguous terms or cultural adaptation]
-```
-
-#### Batch (i18n files)
-Output in the same format as input (JSON, ARB, YAML, etc.) with only values translated.
-
-#### Review mode
-```
-Original translation:
-> existing translation
-
-Suggested revision:
-> improved translation
-
-Why:
-- [specific issues: unnatural word order, wrong register, inconsistent term, etc.]
-```
-
-### Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| Ambiguous source meaning | Flag and ask for context before translating |
-| No precedent for a term | Propose a translation, confirm with user before applying |
-| Register conflict in source | Follow project's existing register, note the inconsistency |
-| Placeholder in middle of sentence | Restructure around it; never break placeholder syntax |
-| Translation too long for UI | Provide a shorter alternative with note |
-| Multiple valid translations for a term | Pick the one most consistent with project's existing translations; note alternatives |
-| Target language requires gendered forms | Follow source text intent; prefer gender-neutral forms when available in target language |
-| Tone shifts across a long document | Re-read end-to-end after translating; normalize register to the dominant tone |
-
-### Execution Protocol (CLI Mode)
-
-Vendor-specific execution protocols are injected automatically by `oma agent spawn`.
-Source files live under `../_shared/runtime/execution-protocols/{vendor}.md`.
+For a single text, present the translation and brief notes for ambiguities or adaptations. For
+files, preserve the input format and modify only requested values. For review, show the original,
+the suggested revision only when warranted, and the evidence for each finding.
 
 ## Logical Operations
 
 ### Actions
 | Action | SSL primitive | Evidence |
-|--------|---------------|----------|
-| Load target language profile | `READ` | `resources/lang/{code}.md` |
-| Read source and context | `READ` | Text, locale files, code context |
-| Select register and terminology | `SELECT` | Existing translations and domain terms |
-| Infer intended meaning | `INFER` | Meaning extraction stage |
-| Write translation | `WRITE` | Target-language reconstruction |
-| Validate placeholders/structure | `VALIDATE` | Verification gate |
-| Compare against rubric | `COMPARE` | Translation rubric |
-| Report translation or notes | `NOTIFY` | Final output |
+|---|---|---|
+| Resolve locale and mode | `SELECT` | User request and file context |
+| Read profile and siblings conditionally | `READ` | Target profile, glossary, nearby translations |
+| Protect syntax and structure | `VALIDATE` | Source tokens and structural markers |
+| Infer meaning and register | `INFER` | Source, audience, project convention |
+| Translate or revise | `WRITE` | Target text or requested file patch |
+| Review substantive content | `VALIDATE` | Rubric and concrete findings |
+| Report result and limits | `NOTIFY` | Translation, patch, or review |
 
 ### Tools and instruments
-- Existing locale files and surrounding code
-- Translation rubric, anti-AI-pattern rules, glossary/style references
-- File editing tools only when the user requests file changes
+- Native search/read for local source and sibling translations.
+- Configured `code_intelligence` capability when available for code-context navigation; native
+  search/read when it is unavailable or times out.
+- Target profile, rubric, anti-AI patterns, and language-template resources as selected above.
 
 ### Canonical workflow path
-```text
-1. Load `resources/lang/{code}.md` for the target language; resolve the locale variant if the profile declares any.
-2. Analyze source register, intent, domain terms, placeholders, and structure.
-3. Reconstruct meaning in the target language, not word-for-word.
-4. Run mechanical checks, the profile self-check, and `resources/translation-rubric.md` before emitting output.
-5. For non-trivial prose, run Stage 5 humanization review before final polish; apply voice-sample calibration only when provided and appropriate.
-```
-
-For UI files, scan sibling locale files first:
-```bash
-rg "<source-key-or-term>" .
-```
+1. Resolve target locale and protect exact syntax.
+2. Load the one applicable language profile and relevant siblings; load rubric/style resources only
+   for substantive content or review.
+3. Infer meaning, register, terminology, and figurative-language handling.
+4. Draft in natural target order and project style.
+5. Verify exact syntax and structure, then review substantive content against the rubric.
+6. Emit the requested translation, patch, or evidence-backed review. State a missing-profile or
+   context limitation when material.
 
 ### Resource scope
 | Scope | Resource target |
-|-------|-----------------|
-| `LOCAL_FS` | Locale files, docs, README, source text files |
-| `CODEBASE` | Components and code context around UI strings |
-| `MEMORY` | Register, glossary, ambiguity, verification notes |
-| `USER_DATA` | User-provided text and target-language requirements |
+|---|---|
+| `LOCAL_FS` | Source/target files, glossaries, language profiles |
+| `CODEBASE` | Sibling translations and code context |
+| `PROCESS` | Native search and syntax checks |
+| `MEMORY` | Locale, terminology, register, protected syntax, unresolved ambiguity |
 
-### Preconditions
-- Source text and target language are known.
-- The target language profile is loaded, or its absence is acknowledged in the output notes.
-- Placeholder and structure constraints are identifiable.
-- Ambiguities are resolved or explicitly flagged.
-> **Note:** this file exceeded the Agent Skills spec's recommended 500-line body and was mechanically split by `oma emit`. The rest of the content continues in `references/overflow.md`.
+### Effects and side effects
+- Produces translated text or review findings.
+- Changes locale/docs files only when explicitly requested.
+- Retains source structure, identifiers, and placeholders.
+
+### Guardrails
+1. Preserve meaning, protected syntax, and file structure before stylistic preference.
+2. Do not invent facts, opinions, emotional emphasis, examples, citations, or personality.
+3. Do not use a different language's profile as a substitute.
+4. Do not change untouched sections during diff-sync.
+5. Do not claim completion of a check that the available source cannot support.
+
+## References
+
+- Translation rubric: `resources/translation-rubric.md` (load for substantive content or review)
+- Style diagnostics: `resources/anti-ai-patterns.md` (load when prose style needs review)
+- Target profiles: `resources/lang/{ko,ja,zh,en}.md` (load one matching profile)
+- Profile template: `resources/lang/_template.md` (only when adding a profile)
+- Shared context loading: `../_shared/core/context-loading.md`
+- Shared quality principles: `../_shared/core/quality-principles.md`

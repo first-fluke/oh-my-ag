@@ -152,7 +152,7 @@ export function checkCharterPreflight(
  * `test_approach` is optional; when present it must be a known value,
  * `not_applicable` must carry a rationale plus an alternative verification
  * method, and refactor tasks keep their characterization-test model instead
- * of TDD. Approach selection never waives the global >= 80% coverage gate.
+ * of TDD. Approach selection never waives project-defined coverage requirements.
  */
 export function validateTestApproach(tasks: PlanTask[]): string[] {
   const errors: string[] = [];

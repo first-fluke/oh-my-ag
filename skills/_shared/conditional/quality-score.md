@@ -9,11 +9,11 @@ Inspired by autoresearch's val_bpb metric: objective, comparable, and trackable 
 
 | Dimension | Weight | Measurement Method | Measurer |
 |-----------|--------|--------------------|----------|
-| **Correctness** | 0.30 | Test pass rate (passed / total) | Agent runs `test` via Bash |
+| **Correctness** | 0.30 | Structured test result pass rate | Agent runs the project test command |
 | **Security** | 0.25 | OWASP checklist completion rate | QA Agent review |
 | **Performance** | 0.15 | No regression vs baseline (estimate) | Agent or QA estimate |
-| **Coverage** | 0.15 | Test coverage % from tool output | Agent runs coverage via Bash |
-| **Consistency** | 0.15 | Lint + type errors (100 - error_count, min 0) | Agent runs lint/type-check via Bash |
+| **Coverage** | 0.15 | Structured coverage result when configured | Agent runs configured coverage command |
+| **Consistency** | 0.15 | Structured lint/type diagnostics when available | Agent runs configured checks |
 
 ### Composite Score Formula
 
@@ -28,27 +28,30 @@ composite = (correctness * 0.30) + (security * 0.25) + (performance * 0.15)
 
 ### How to Measure (Practical)
 
-Agents with **Bash** tool can measure directly:
+Use a project-provided JSON, JUnit, SARIF, or LCOV output when available. Keep
+the original command's exit status and capture the result artifact before
+summarizing it. Do not infer an error count from a truncated console line.
 
 ```bash
-# Correctness: parse test output
-npm test 2>&1 | tail -5          # or: uv run pytest -q
-# → extract passed/failed counts → score = (passed / total) * 100
+test_command --reporter=json > test-results.json
+test_status=$?
+# Read totals from test-results.json; retain test_status as the check result.
 
-# Coverage: parse coverage output
-npm run coverage 2>&1 | grep "All files"   # or: uv run pytest --cov
-# → extract % → score = coverage_percent
+coverage_command --json > coverage.json
+coverage_status=$?
+# Read coverage.json or lcov.info; retain coverage_status.
 
-# Consistency: count lint + type errors
-npm run lint 2>&1 | grep -c "error"        # or: uv run ruff check
-npm run type-check 2>&1 | grep -c "error"
-# → score = max(0, 100 - error_count)
+lint_command --format json > lint.json
+lint_status=$?
+# Count structured diagnostics; retain lint_status.
 ```
 
-**When automated tools are unavailable** (no test suite, no lint config):
-- Agent estimates the dimension based on code review (0-100)
-- Must note `(estimated)` next to the score
-- Estimated scores carry lower weight in delta decisions (see below)
+When a structured measurement cannot be produced, mark the dimension
+`missing`, state why, and use the applicable binary check or manual evidence.
+An estimate may be shown as commentary but is excluded from the composite and
+from score comparisons. Publish a composite only when every configured,
+applicable dimension is measured. Otherwise set `Composite: unavailable` and
+compare only dimensions measured with the same method at both checkpoints.
 
 ### When to Measure
 
@@ -100,12 +103,13 @@ Record via memory protocol: `[EDIT]("experiment-ledger.md", append row)`.
 ### Quality Score @ {PHASE}_{checkpoint}
 | Dimension | Score | Detail |
 |-----------|-------|--------|
-| Correctness | 85 | 17/20 tests pass |
+| Correctness | 100 | `test-results.json`, 20/20; command exit 0 |
 | Security | 90 | No CRITICAL/HIGH, 1 MEDIUM |
-| Performance | 75 | (estimated) no regression observed |
-| Coverage | 70 | 70% line coverage |
-| Consistency | 95 | 0 lint errors, 1 type warning |
-| **Composite** | **83.5** | Grade: B |
+| Performance | missing | no target or measurement available |
+| Coverage | 70 | `coverage.json`, 70% line coverage; command exit 0 |
+| Consistency | 95 | `lint.json`, 0 errors, 1 warning; command exit 0 |
+| **Composite** | **unavailable** | performance is missing; no partial-weight normalization |
+| **Comparability** | **comparable dimensions only** | method and scope recorded |
 ```
 
 ---

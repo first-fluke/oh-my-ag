@@ -24,7 +24,7 @@ otel_semconv: "1.43.0 (2026-07)"
 
 1. If a flag is present → use that intent directly; skip keyword matching
 2. If no flag → apply keyword pattern matching from `resources/intent-rules.md`
-3. If ambiguous or no match → default to `investigate + tune` in parallel
+3. If ambiguous, choose the route best supported by the request; inspect available context before asking for missing information. Do not preload two playbooks by default.
 4. **Sparse-context gate**: even when an intent is matched (score ≥ 1), before proceeding to Step 2 check that ambient context is sufficient for the chosen intent. Minimum required context per intent:
    - `investigate`: service name OR symptom category (error code, metric name) OR time window
    - `setup` / `migrate`: target platform (k8s/serverless/VM) OR language/framework
@@ -33,7 +33,7 @@ otel_semconv: "1.43.0 (2026-07)"
    - `tune`: signal type (metrics/logs/traces) OR problem (cost/cardinality/MTU)
    - `route`: tenant OR region OR cloud axis
 
-   If the minimum is not present, request clarification from the user before consuming reference material. A 1-2 keyword query that hits one intent keyword but carries no context (e.g., "metrics broken", "tracing broken") should prompt for service/symptom/scope rather than executing a playbook that cannot succeed.
+   If the minimum is not present, inspect available project context first. Ask only for information that affects the next decision and cannot be recovered locally; continue independent inspection while waiting, following the shared execution policy.
 5. Log selected intent and whether selection was `flag` or `auto`, plus any clarification requested
 
 Intent vocabulary:
@@ -51,7 +51,7 @@ Intent vocabulary:
 ## Step 2: Matrix Navigation
 
 1. Based on (intent × layer × boundary × signal), identify relevant cells in `resources/matrix.md`
-2. Collect file references for each cell marked `PASS` (covered) or `PARTIAL` (conditional)
+2. Select one primary intent guide and only the relevant rows or sections for matching `PASS` or `PARTIAL` cells. These describe documentation coverage, not successful verification of the target system.
 3. Flag any N/A cells the user is asking about; redirect to an alternative dimension rather than producing a stub answer
 4. Record the active (layer, boundary, signal) triple for use in Step 6 output header
 
@@ -62,7 +62,7 @@ Dispatch based on intent. Use the table below as the primary routing map, then a
 | Intent | Primary resource | Fallback |
 |--------|-----------------|---------|
 | `setup` | `resources/vendor-categories.md` → vendor-owned skill | `resources/standards.md` (OTel semconv) |
-| `migrate` | CNCF 2025-10 guide + `resources/vendor-categories.md §(h) Log Pipeline` | OTel Collector bridge config |
+| `migrate` | Current upstream migration docs + `resources/vendor-categories.md` log-pipeline section | OTel Collector bridge config |
 | `investigate` | `resources/incident-forensics.md` (MRA + 6-dim localization) | `resources/signals/traces.md` + `resources/signals/logs.md` |
 | `alert` | `resources/boundaries/slo.md` (burn-rate rules) | `resources/observability-as-code.md` |
 | `trace` | `resources/boundaries/cross-application.md` (propagator matrix) | `resources/layers/mesh.md` (zero-code auto-instr) |
@@ -75,7 +75,7 @@ Dispatch based on intent. Use the table below as the primary routing map, then a
 - If no matching vendor skill is installed → guide user to `/oma-search --docs` for vendor documentation
 
 ### migrate intent
-- Fluentd as source → apply CNCF 2025-10 deprecation guide; recommend Fluent Bit or OTel Collector
+- Fluentd as source → verify current upstream support and plugin compatibility; compare Fluent Bit and OTel Collector only against the requested migration requirements
 - Legacy APM as source → provide OTel bridge config patterns; reference `resources/vendor-categories.md §(h)`
 
 ### investigate intent
@@ -102,15 +102,15 @@ Dispatch based on intent. Use the table below as the primary routing map, then a
 
 ## Step 4: Collect Reference Material
 
-1. Pull referenced file sections into working context based on Step 3 routing results
-2. Check `resources/vendor-categories.md` timestamp: if older than one quarter, advise the user to verify against the CNCF landscape at https://landscape.cncf.io
+1. Load the primary guide selected in Step 3. Add a transport, boundary, or signal section only when a concrete question requires it; do not read all 33 reference documents
+2. Verify current official project documentation and CNCF status yourself when support or maturity affects the decision. Do not treat an old timestamp or version pin as proof of current status
 3. For commercial vendor references, check whether a vendor-owned skill is installed locally before suggesting manual setup
 
 ## Step 5: Validate Against Constraints
 
-1. Consult `resources/anti-patterns.md`: does the proposed approach violate any catalogued anti-pattern?
-2. Consult `resources/checklist.md`: will this pass Pre-prod and Prod gates?
-3. Run `resources/meta-observability.md` cardinality guardrail preview: flag any label dimension that risks unbounded growth
+1. Consult the relevant category in `resources/anti-patterns.md` when validating the proposed design; do not preload the full catalog
+2. Consult only the applicable sections of `resources/checklist.md`; report executed checks separately from proposed checks
+3. For setup, configuration changes, or label/cardinality design, use the relevant preview in `resources/meta-observability.md` and flag unbounded dimensions. For investigation or routing, load it only when pipeline health or cardinality is implicated
 4. If `--strict` flag is set → reject any semconv attribute in Development or Experimental stability tier; cite stable alternative
 5. If PII is involved → apply `resources/signals/privacy.md` redaction and sampling-aware baggage rules at collection, not only at storage
 6. If `--multi-tenant` or `--multi-cloud` → apply `resources/boundaries/multi-tenant.md` isolation rules; verify data residency is explicit
@@ -158,7 +158,7 @@ Checklist items to verify:
   - [ ] memory_limiter processor placed before batch processor in pipeline
   - [ ] NTP synced on all nodes (< 100 ms drift)
   - [ ] cardinality budget set per service before enabling high-cardinality labels
-  - [ ] Fluentd replaced or bridged — CNCF 2025-10 deprecation in effect
+  - [ ] Source support and plugin compatibility checked before selecting a migration path
 ```
 
 ## On Error

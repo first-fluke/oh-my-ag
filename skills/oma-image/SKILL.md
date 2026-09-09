@@ -13,12 +13,12 @@ description: Multi-vendor AI image generation with authentication-aware parallel
 ## Scheduling
 
 ### Goal
-Generate images and visual assets through authenticated multi-vendor routing while preserving prompt clarity, reference-image handling, cost controls, and reproducible output manifests.
+Generate images and visual assets through authenticated multi-vendor routing while preserving prompt clarity, reference-guided regeneration, cost controls, and reproducible output manifests.
 
 ### Intent signature
 - User asks to generate images, visual assets, illustrations, product photos, concept art, mockups, or AI art.
 - Another skill needs shared image-generation infrastructure.
-- User provides reference images or asks for vendor comparison.
+- User provides reference images for a new generated variation or asks for vendor comparison.
 
 ### When to use
 
@@ -26,10 +26,11 @@ Generate images and visual assets through authenticated multi-vendor routing whi
 - Comparing output between multiple image models for the same prompt
 - Producing images from prompts within editor workflows (Claude Code, Codex, Gemini CLI)
 - Other skills needing image generation infrastructure (shared invocation)
+- Regenerating a new image that follows a supplied reference's subject, style, lighting, or composition
 
 ### When NOT to use
 
-- Editing an existing image or photo manipulation -> out of scope
+- Pixel-level editing, masking, inpainting, object removal, compositing, cropping, resizing, or format conversion -> out of scope; use an image editor or a tool that explicitly supports that operation.
 - Generating videos or audio -> out of scope
 - Inline vector art / SVG composition from structured data -> use a templating skill
 - Simple asset resizing or format conversion -> use a dedicated image library
@@ -50,7 +51,7 @@ Generate images and visual assets through authenticated multi-vendor routing whi
 - `resources/vendor-matrix.md`, `resources/prompt-tips.md`, and the `image:` section of `.agents/oma-config.yaml`
 
 ### Control-flow features
-- Branches by prompt ambiguity, vendor auth, cost threshold, reference-image support, path safety, and safety/timeout exit codes
+- Branches by prompt ambiguity, vendor auth, cost threshold, reference-guided regeneration support, path safety, and safety/timeout exit codes
 - Calls external vendor APIs/CLIs
 - Reads reference images and writes generated images plus manifests
 
@@ -58,7 +59,7 @@ Generate images and visual assets through authenticated multi-vendor routing whi
 
 ### Entry
 1. Validate that the request contains enough subject, setting, style, usage, and aspect-ratio signal.
-2. Detect attached/reference images and vendor support.
+2. Classify a supplied image as a reference for a newly generated variation, or as a request for unsupported pixel/mask editing.
 3. Check authentication, cost guardrails, output path, and count limits.
 
 ### Scenes
@@ -71,7 +72,8 @@ Generate images and visual assets through authenticated multi-vendor routing whi
 ### Transitions
 - If prompt lacks required signal, clarify or show amplified prompt before generation.
 - If `--vendor all` is requested, require every requested vendor to be available.
-- If reference path is supported by selected vendor, pass it automatically.
+- If the request is reference-guided regeneration and the selected vendor supports references, pass it automatically.
+- If the request requires pixel, mask, crop, resize, or format editing, stop before generation and name the unsupported operation and an appropriate editor route.
 - If estimated cost exceeds guardrail, require confirmation unless bypassed.
 
 ### Failure and recovery
@@ -207,9 +209,9 @@ oma image vendor list
 
 `--model <name>` overrides the vendor's default model for this run — e.g. `--vendor pollinations --model zimage`, or a credit-gated Pollinations model like `gpt-image-2`. It applies to every vendor in the run set, so combine it with an explicit `--vendor`; `antigravity` ignores it (agy picks its model internally).
 
-#### Reference Images (`-r`, `--reference`)
+#### Reference-guided regeneration (`-r`, `--reference`)
 
-Attach up to 10 reference images (PNG/JPEG/GIF/WebP, ≤ 5MB each) to guide style, subject identity, or composition. Repeatable or comma-separated.
+Attach up to 10 reference images (PNG/JPEG/GIF/WebP, ≤ 5MB each) to guide a **newly generated** image's style, subject identity, lighting, or composition. Repeatable or comma-separated. The output is a new generation, not a pixel-preserving edit of the input.
 
 ```
 oma image generate -r ~/Downloads/otter.jpeg "same otter in dramatic lighting"
@@ -233,7 +235,7 @@ Supported vendors:
 
 When ALL of the following are true, the calling agent MUST pass the attached image via `--reference <path>` automatically. Never describe the image in prose as a workaround.
 
-1. The user asks to generate or edit an image (referencing the attached one by phrases like "이거", "this image", "same style as this", "이 수달", etc.).
+1. The user asks for a new generated variation (for example, "same subject in dramatic lighting", "make a new illustration in this style", or "regenerate this at a different angle").
 2. A host-surfaced attached image is visible to the agent (e.g. a Claude Code system message with `[Image: source: <path>]`, or an Antigravity workspace upload path, or an explicit filesystem path in the user's message).
 3. The selected vendor supports references (`codex` or `antigravity`).
 
@@ -246,6 +248,8 @@ When ALL of the following are true, the calling agent MUST pass the attached ima
 **If the local CLI is outdated** (`--reference` is missing from `--help`): tell the user to run `oma update` once, then retry. Do not silently degrade to prose.
 
 **If the reference path is from Claude Code's `image-cache`**: note to the user that the path is session-scoped and suggest copying the file to a durable location if they want to reuse it later. Still proceed with the generation.
+
+**Unsupported edit requests**: Do not route requests such as "remove this object", "change only the background", "paint inside this mask", "keep every pixel except", "crop", "resize", or "convert this file" through `--reference`. They need pixel/mask editing or deterministic image processing, neither of which this CLI provides. Say whether the request can instead be phrased as a reference-guided regeneration; otherwise route to an appropriate image editor or processing tool.
 
 #### Shared Infrastructure (from other skills)
 

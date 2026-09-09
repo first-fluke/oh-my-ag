@@ -6,12 +6,10 @@ disable-model-invocation: true
 
 - **Response language follows `language` setting in `.agents/oma-config.yaml` if configured.**
 - Follow `.agents/skills/_shared/core/execution-policy.md` for authorization, clarification, verification, and completion. Execute required steps on the selected path in dependency order; apply documented branch and skip conditions.
-- **You MUST use MCP tools throughout the workflow.**
-  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for code analysis and review.
-  - Use memory write tool to record review results.
-  - Memory path: configurable via `memoryConfig.basePath` (default: `.agents/state/memories`)
-  - Tool names: configurable via `memoryConfig.tools` in `.agents/mcp.json`
-  - Do NOT use raw file reads or grep as substitutes.
+- Follow `.agents/skills/_shared/core/code-intelligence.md`: discover configured
+  tools and use native scoped search if unavailable or timed out. Do not install
+  or track repositories automatically.
+- Persist review state through `.agents/skills/_shared/runtime/memory-protocol.md`.
 
 ---
 
@@ -42,7 +40,7 @@ Check for known vulnerabilities in dependencies. Flag any CRITICAL or HIGH findi
 
 ## Step 3: Manual Security Review (OWASP Top 10)
 
-Use MCP code analysis tools (`search_for_pattern` and `find_symbol`) to review code for:
+Use configured code intelligence or the documented native fallback to review code for:
 - Injection (SQL, XSS, command)
 - Broken auth, sensitive data exposure
 - Broken access control, security misconfig
@@ -54,7 +52,7 @@ Use MCP code analysis tools (`search_for_pattern` and `find_symbol`) to review c
 
 ## Step 4: Performance Analysis
 
-Use MCP tools to check for:
+Use configured code intelligence or the documented native fallback to check for:
 - N+1 queries, missing indexes
 - Unbounded pagination, memory leaks
 - Unnecessary re-renders (React)
@@ -75,7 +73,7 @@ Check for:
 
 ## Step 6: Code Quality Review
 
-Use MCP code analysis tools (`get_symbols_overview` and `find_referencing_symbols`) to check for:
+Use configured code intelligence or the documented native fallback to check for:
 - Consistent naming, proper error handling
 - Test coverage, TypeScript strict mode compliance
 - Unused imports/variables
@@ -117,10 +115,10 @@ Request parallel subagent execution with the review scope and standards.
 
 ### If Gemini CLI or Antigravity or CLI Fallback
 ```bash
-oma agent spawn qa-agent "Review files for security, performance, accessibility, and code quality. Follow .agents/skills/oma-qa/SKILL.md standards. Report as CRITICAL/HIGH/MEDIUM/LOW with file:line and remediation." session-id -w {workspace}
+oma agent spawn qa-agent review-prompt.md {sessionId} --task-id {qa_review_task.id} -w {workspace}
 ```
 
-**Wait for the QA agent to complete and collect its findings before compiling the Step 7 report.** On the Claude-native path the background agent notifies on completion (or spawn synchronously); on the CLI path poll `result-qa*[-{sessionId}].md` in the memory base path.
+**Wait for the QA agent to complete and collect its findings before compiling the Step 7 report.** On the CLI path, read the injected claim and run-scoped result report.
 
 ---
 
@@ -141,8 +139,8 @@ When user wants fixes too, execute review then fix then re-review loop:
 
 ### If Gemini CLI or Antigravity or CLI Fallback
      ```bash
-     oma agent spawn backend "Fix issues: [issues]" session-id -w ./backend &
-     oma agent spawn frontend "Fix issues: [issues]" session-id -w ./frontend &
+     oma agent spawn backend backend-fix-prompt.md {sessionId} --task-id {backend_fix_task.id} -w ./backend &
+     oma agent spawn frontend frontend-fix-prompt.md {sessionId} --task-id {frontend_fix_task.id} -w ./frontend &
      wait
      ```
 

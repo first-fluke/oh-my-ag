@@ -20,10 +20,10 @@ When you encounter a failure during planning, follow these recovery steps.
 
 **Symptoms**: Planning for an existing project but don't know the architecture
 
-1. Use Serena: `get_symbols_overview("src/")` or `get_symbols_overview("app/")`
+1. Use the configured provider to inspect source structure, following `../../_shared/core/code-intelligence.md`
 2. Look for framework indicators: `package.json`, `pyproject.toml`, `pubspec.yaml`
-3. Check for existing patterns: `search_for_pattern("@app.get|@app.post")` (FastAPI)
-4. If Serena unavailable: note in plan "architecture assumptions: verify before execution"
+3. Check for existing patterns: search for `@app.get|@app.post` (FastAPI) with the configured provider or native tools
+4. If unavailable, inspect via native search and scoped reads; record any remaining architecture assumptions in the plan
 
 ---
 
@@ -62,9 +62,9 @@ When you encounter a failure during planning, follow these recovery steps.
 
 ---
 
-## Serena Memory / Quota Issues
+## Workflow State / Quota Issues
 
-Same as backend-agent playbook: see the "Rate Limit / Quota Error (LLM runtime)" and "Serena Memory Unavailable" sections in `../../oma-backend/resources/error-playbook.md`.
+Same as backend-agent playbook: see the "Rate Limit / Quota Error (LLM runtime)" and "Workflow State Unavailable" sections in `../../oma-backend/resources/error-playbook.md`.
 
 ---
 

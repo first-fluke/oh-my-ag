@@ -37,16 +37,16 @@ Agents that frequently require re-direction consume more tokens and user time th
 
 | Threshold | Scope | Action |
 |-----------|-------|--------|
-| CD >= 50 | Single session | **MANDATORY**: Add RCA to `lessons-learned.md` |
+| CD >= 50 | Single session | Write an RCA to the session-scoped lessons artifact |
 | CD >= 30 | Same agent, 3 consecutive sessions | **REVIEW**: Examine agent prompt template |
-| CD >= 80 | Single session | **ESCALATE**: Halt session, request user re-specification |
-| `redo` count >= 2 | Single session | **PAUSE**: Orchestrator requests explicit scope confirmation |
+| CD >= 80 | Single session | Record the uncertainty and continue independent work; ask only for a material missing decision |
+| `redo` count >= 2 | Single session | Narrow work to the confirmed scope and request direction only for the disputed dependent work |
 
 ---
 
 ## Session Log Format
 
-Orchestrator maintains this log in `.agents/state/memories/session-metrics.md` during execution.
+Orchestrator maintains this log in `.agents/state/memories/session-metrics-{sessionId}.md` during execution.
 
 ```markdown
 ## Session: {SESSION_ID}
@@ -83,12 +83,12 @@ When user sends a correction/clarification during session:
 
 2. **Record** via MCP memory:
    ```
-   [EDIT]("session-metrics.md", append event row)
+   [EDIT]("session-metrics-{sessionId}.md", append event row)
    ```
 
 3. **Check threshold** after each event:
-   - If CD >= 80: Pause and request re-specification
-   - If `redo` >= 2: Request explicit scope confirmation
+   - If CD >= 80: Record an RCA candidate and continue independent work
+   - If `redo` >= 2: Pause only the disputed dependent work
 
 ### For QA Agent (Post-Session)
 
@@ -103,7 +103,9 @@ At session end, if total CD >= 50:
    - **Prevention**: {prompt/process change to prevent recurrence}
    ```
 
-2. **Append** to `lessons-learned.md` in the relevant domain section
+2. **Write** to `.agents/state/memories/lessons-{sessionId}.md`.
+   Promote a durable rule to a canonical skill only through a separate reviewed
+   source change; never edit installed definitions during a run.
 
 ---
 
@@ -172,8 +174,8 @@ This data is sourced from the Experiment Ledger at session end (see `experiment-
 
 ## Metrics Retention
 
-- **Active session**: `.agents/state/memories/session-metrics.md`
-- **Completed sessions**: Archived to `.agents/state/memories/archive/metrics-{date}.md`
+- **Active session**: `.agents/state/memories/session-metrics-{sessionId}.md`
+- **Completed sessions**: `.agents/state/memories/session-metrics-{sessionId}.md`
 - **Retention**: 30 days (configurable)
 - **Aggregation**: `oma stats get` command summarizes trends
 

@@ -6,12 +6,8 @@ disable-model-invocation: true
 
 - **Response language follows `language` setting in `.agents/oma-config.yaml` if configured.**
 - Follow `.agents/skills/_shared/core/execution-policy.md` for authorization, clarification, verification, and completion. Execute required steps on the selected path in dependency order; apply documented branch and skip conditions.
-- **You MUST use MCP tools throughout the workflow.**
-  - Use code analysis tools (`find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for bug investigation, NOT raw file reads or grep.
-  - Use memory write tool to record debugging results.
-  - Memory path: configurable via `memoryConfig.basePath` (default: `.agents/state/memories`)
-  - Tool names: configurable via `memoryConfig.tools` in `.agents/mcp.json`
-  - MCP tools are the primary interface for all code exploration.
+- Follow `.agents/skills/_shared/core/code-intelligence.md`: discover the configured provider’s tools; use native search and scoped reads when unavailable or timed out. Do not install a provider or track a repository automatically.
+- Use native file tools and `.agents/skills/_shared/runtime/memory-protocol.md` for durable coordination state; code-intelligence memory tools are not required.
 
 ---
 
@@ -75,14 +71,14 @@ If an error message is provided, proceed immediately.
 
 Run the smallest available failing test, runtime command, or log query that exercises the reported behavior and capture the observed failure signal. If the environment cannot reproduce it, follow `.agents/skills/oma-debug/resources/error-playbook.md` § "Cannot Reproduce the Bug" and record that limitation before continuing.
 
-Use MCP `search_for_pattern` with the error message or stack trace to locate the error in the codebase.
-Use `find_symbol` to identify the exact function and file. Do NOT grep or read files manually.
+Use configured pattern search or native search with the error message or stack trace to locate the error in the codebase.
+Locate the exact function and file with configured symbol tools or native search and scoped reads.
 
 ---
 
 ## Step 3: Diagnose Root Cause
 
-Use MCP `find_referencing_symbols` to trace the execution path backward from the error point.
+Use configured reference tools or native caller inspection to trace the execution path backward from the error point.
 Identify the root cause, not just the symptom. Check:
 - null/undefined access
 - Race conditions
@@ -118,7 +114,7 @@ Present the root cause and proposed fix to the user.
 
 ## Step 6: Scan for Similar Patterns
 
-Use MCP `search_for_pattern` to search the codebase for the same pattern that caused the bug.
+Use configured pattern tools or native search to search the codebase for the same pattern that caused the bug.
 Report any other locations that may have the same vulnerability. Fix them if confirmed.
 
 ---

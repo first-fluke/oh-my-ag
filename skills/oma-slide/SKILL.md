@@ -28,7 +28,7 @@ exportable to PDF, PNG, and PPTX.
 - Creating a new presentation from a topic or outline
 - Enhancing or reformatting an existing deck
 - Generating per-slide HTML with animations and design-doctrine aesthetics
-- Exporting a deck to PDF, PNG, or PPTX after generation
+- Exporting a deck to PDF, PNG, or image-backed PPTX after generation
 - Applying a named style preset or bold template to a deck
 - Exporting a generated deck to Canva as a presentation
 - Importing a Canva design as input for enhancement
@@ -47,6 +47,7 @@ exportable to PDF, PNG, and PPTX.
 - Optional: slide count, density preference (sparse/balanced/dense), target audience
 - Optional: named style preset or `oma slide style get <slug>` reference
 - Optional: Canva design ID or URL for import
+- Optional: acknowledgement that exported PPTX and Canva uploads are raster-backed when editable text is not required
 
 ### Expected outputs
 - Per-slide `slide-NN.html` fragments under `.agents/results/slides/<session-id>/`
@@ -57,6 +58,7 @@ exportable to PDF, PNG, and PPTX.
 - Optional: `viewer.html`, `out/deck.html` bundle, exports
 <!-- oma-docs:ignore-end -->
 - Optional: Canva design URL (when Canva export is requested)
+- PPTX export contains one raster image per slide; it has no editable text or shape layers.
 
 ```yaml
 outputs:
@@ -118,7 +120,7 @@ outputs:
    for bbox visual edits. Optional aesthetic review using chrome-devtools MCP screenshots (judgment,
    not the pass/fail gate).
 7. **DELIVER** (Phase 6): Run `oma slide bundle --workspace "$DECK_DIR"` (`--workspace` is required; the default output is `$DECK_DIR/out/deck.html`). Optionally export
-   PDF / PNG / PPTX on user request. Warn if deck contains video (bundle is not fully self-contained).
+   PDF / PNG / PPTX on user request. PPTX is image-backed and has no editable text or shape layers. Warn if deck contains video (bundle is not fully self-contained).
 
 ### Transitions
 - If `import-pptx` or `import-canva` is requested, skip Phase 1 (Discovery), run Phase 2 (Style), then proceed from Phase 3 with extracted fragments.

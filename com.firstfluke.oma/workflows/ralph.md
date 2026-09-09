@@ -6,11 +6,8 @@ disable-model-invocation: true
 
 - **Response language follows `language` setting in `.agents/oma-config.yaml` if configured.**
 - Follow `.agents/skills/_shared/core/execution-policy.md` for authorization, clarification, verification, and completion. Execute required steps on the selected path in dependency order; apply documented branch and skip conditions.
-- **You MUST use MCP tools throughout the entire workflow.** This is NOT optional.
-  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for code exploration. Do NOT use raw grep as a substitute.
-  - Use file tools (`Read`/`Write`/`Edit`) to persist coordination artifacts directly to `{memoryConfig.basePath}/` (default: `.agents/state/memories/`). Do NOT use Serena's `write_memory` for workflow session state, as verification gates require durable files on disk.
-  - Memory path: configurable via `memoryConfig.basePath` (default: `.agents/state/memories`)
-  - Tool names: configurable via `memoryConfig.tools` in `.agents/mcp.json`
+- Follow `.agents/skills/_shared/core/code-intelligence.md`: discover configured tools and use native scoped search if unavailable or timed out. Do not install or track repositories automatically.
+- Persist coordination artifacts through `.agents/skills/_shared/runtime/memory-protocol.md`; file state is independent of code-intelligence MCP tools.
 - **This workflow does NOT stop until all completion criteria pass or safeguards trigger.**
 - **Follow the context-loading guide.** Read `.agents/skills/_shared/core/context-loading.md` and load only task-relevant resources.
 
@@ -60,7 +57,7 @@ criteria:
 3. Set `current_iteration: 0`
 4. **Load prior-session context** (cross-session memory):
    1. Use the memory list tool to find previous `session-ralph-*.md` files. If any exist, read the most recent one and extract: final criteria statuses, BLOCKED items with their failure evidences, and any safeguard trigger.
-   2. If `lessons-learned.md` exists in the memory base path, read it.
+   2. If `lessons-{sessionId}.md` exists in the memory base path, read it.
    3. If any current criterion overlaps a previously BLOCKED item, carry the prior failure evidence as context for EXEC and retry unless explicitly excluded by the user request.
 5. Record session start using memory write tool:
    - Create `session-ralph-{sessionId}.md` in the memory base path
@@ -92,7 +89,7 @@ oma state verify --workflow ralph --checkpoint exec-delegated
 Delegate to the ultrawork workflow:
 
 1. Read and follow `.agents/workflows/ultrawork.md` step by step.
-2. Pass the prepared input as the task description, **and pass this ralph run's `sessionId` as ultrawork's session id**. Ultrawork must save `plan-{sessionId}.json` and all `result-*-{sessionId}.md` artifacts under ralph's id — otherwise the Step 1.3 verifier (`oma ralph verify --session-id {sessionId}`) cannot match them.
+2. Pass the prepared input as the task description, **and pass this ralph run's `sessionId` as ultrawork's session id**. Ultrawork must keep plan task IDs, claims, receipts, and run-scoped reports under that identity so Step 1.3 can match the evidence.
 3. Ultrawork handles all vendor-specific agent spawning internally.
 4. Wait for ultrawork to complete all 5 phases (PLAN, IMPL, VERIFY, REFINE, SHIP).
 5. **Do NOT abridge ultrawork.** If you believe the environment (subagent instability, cost, time) warrants reducing fan-out or collapsing phases, STOP and ask the user first. Single-judgment substitution of ultrawork's structure is forbidden — see the Anti-Circumvention gate in Step 1.3.
@@ -153,9 +150,9 @@ oma ralph verify --json --session-id {sessionId} --newer-than {iteration_start_i
    - Do NOT include EXEC narration, implementation summaries, or any claim about what was fixed. The judge verifies what IS, not what was intended.
 2. **Spawn the judge via Per-Agent Dispatch** (see Vendor Detection):
    - **If Claude Code and target vendor is Claude**: `Agent(subagent_type="qa-reviewer", prompt="<judge brief>. Follow .agents/workflows/ralph/resources/judge-protocol.md. Follow the protocol's verification and cache rules and write the JUDGE result to memory as result-judge-{sessionId}-iter{N}.md.")`
-   - **Otherwise, or when native dispatch is unavailable**: `oma agent spawn qa-agent "<judge brief>" {sessionId}`
+   - **Otherwise, or when native dispatch is unavailable**: `oma agent spawn qa-agent judge-prompt.md {sessionId} --task-id {judge_task.id} -w {workspace}`
    - Verification is mechanical (run command, check exit code/output) — a lower-cost model tier is acceptable where the runtime supports per-agent model selection.
-3. **Wait for `result-judge-{sessionId}-iter{N}.md`**, then read it as the JUDGE result.
+3. **Wait for the judge claim and `result-qa-{judge_task.id}-{runId}-{sessionId}.md`**, then read it as the JUDGE result.
 4. **Inline fallback (exception)**: only if subagent spawning is unavailable in the current runtime, perform the verification inline. Record `judge-inline-fallback at iteration {N}` in `session-ralph-{sessionId}.md` and emit:
    ```bash
    oma state emit "decision.made" '{"subject":"ralph.judge-inline-fallback","decision":"Run JUDGE inline in the orchestrator context.","rationale":"Subagent spawning unavailable in this runtime; judge independence is downgraded for this iteration."}'
@@ -177,12 +174,12 @@ Validate the returned evidence and state against [Criterion State Transitions](r
 
 Evaluate the JUDGE result:
 
-### → DONE (All criteria PASS or BLOCKED)
+### → Terminal verdict (COMPLETED or PARTIAL)
 
-If all criteria are either PASS or BLOCKED:
+If the judge returns `COMPLETED` or `PARTIAL`:
 
-1. **If any BLOCKED exists**: Report partial completion with BLOCKED items listed
-2. **If all PASS**: Report full completion
+1. **PARTIAL**: report blocked items and their evidence as unresolved
+2. **COMPLETED**: report full completion
 3. Use memory edit tool to record final results in `session-ralph-{sessionId}.md`
 4. Output completion summary:
    ```
@@ -276,7 +273,7 @@ Phase 1: EXEC → Run ultrawork (full or narrowed scope)
     ↓
 Phase 2: JUDGE → Spawned fresh-context judge verifies each criterion
     ↓
-Decision: DONE? → End
+Decision: COMPLETED? → End
           SAFEGUARD? → Force end
           FAIL? → Phase 3
     ↓

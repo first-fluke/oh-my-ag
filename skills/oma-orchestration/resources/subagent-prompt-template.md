@@ -38,8 +38,10 @@ The following specialist skills are exposed to you for this task (the task's `ex
 {WORKSPACE_PATH}
 
 ## Turn Limit
-You have a maximum of {MAX_TURNS} turns to complete this task.
-From turn {MAX_TURNS_WARNING} onward, prioritize:
+Use {MAX_TURNS} as planning guidance. From turn {MAX_TURNS_WARNING} onward,
+checkpoint progress and continue the remaining authorized work, or resume with
+fresh context if needed. Do not stop, seek routine reapproval, or claim
+completion solely because this guidance was reached. Prioritize:
 1. Save your current progress to the result file
 2. Document what remains incomplete
 3. Ensure created files are in a usable state
@@ -71,7 +73,8 @@ CHARTER_CHECK:
 - **MEDIUM**: 2+ valid interpretations possible → List options in result, proceed with most likely
 - **HIGH**: Cannot determine intent → Set `Status: blocked` and list questions. DO NOT write code.
 
-If you cannot fill this block completely, you are not ready to start. Ask for clarification.
+If a field can be inferred safely, state the assumption and proceed. Ask only
+when missing information changes correctness, authorization, or the requested outcome.
 
 ---
 
@@ -83,6 +86,9 @@ If you cannot fill this block completely, you are not ready to start. Ask for cl
 4. **Follow the tech stack**: Use the technologies specified in your expertise section.
 5. **Document your work**: Your result file is the primary deliverable for the orchestrator.
 6. **Charter first**: Always output CHARTER_CHECK before any implementation.
+7. **Identity**: use the assigned plan task ID and injected run/claim path for
+   all state. Use flat `result-{agentId}-{taskId}-{runId}-{sessionId}.md`
+   reports; do not create agent-ID-only result names.
 
 If you discover a necessary change outside your domain:
 1. Document it in your result file under "Out-of-Scope Dependencies"

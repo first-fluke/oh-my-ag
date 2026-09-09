@@ -108,11 +108,14 @@ Do NOT stop or ask for help until you have exhausted the playbook.
 
 ---
 
-## Serena Memory Unavailable
+## Workflow State Unavailable
 
-1. Retry once
-2. If 2 consecutive failures: use local file `/tmp/progress-{agent-id}[-{sessionId}].md`
-3. Add `memory_fallback: true` flag to result
+Follow `../../_shared/runtime/memory-protocol.md`; state storage is independent of the code-intelligence provider.
+
+1. Use the injected progress/result paths and session/task identity.
+2. If a file operation fails, retry once when the failure may be transient.
+3. Preserve work and report the failed path and error to the coordinator. Do not silently redirect artifacts to `/tmp` or mark a missing result as completed.
+4. For read-only tasks, return the result through the runtime's response channel as required by the dispatch contract.
 
 ---
 

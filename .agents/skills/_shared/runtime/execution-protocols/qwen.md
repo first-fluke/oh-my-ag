@@ -14,12 +14,10 @@ Memory base path is configurable via `memoryConfig.basePath` (default: `.agents/
 
 ### Path Resolution (CRITICAL)
 
-All result, progress, and state files MUST be written to the **project root** memory path, never to a subdirectory's memory path.
-
-- **Session-scoped naming**: when running under an orchestration session, append session ID as suffix:
-  - `result-{agent-id}-{sessionId}.md` (e.g., `result-frontend-session-20260405-100835.md`)
-  - `progress-{agent-id}-{sessionId}.md`
-- **Manual (non-orchestrated) runs**: no suffix, `result-{agent-id}.md`
+Use flat `progress-{agentId}-{taskId}-{runId}-{sessionId}.md` and
+`result-{agentId}-{taskId}-{runId}-{sessionId}.md` reports per
+`memory-protocol.md`. Use the injected claim path unchanged for the structured
+result. The project-root memory base remains the only base.
 
 ## Lifecycle and results
 

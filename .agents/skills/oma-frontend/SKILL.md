@@ -1,6 +1,8 @@
 ---
 name: oma-frontend
-description: Frontend specialist for React, Next.js, Angular, TypeScript with FSD-lite architecture, shadcn/ui, and design system alignment. Use for UI, component, page, layout, CSS, Tailwind, shadcn, Angular, and RxJS work.
+description: Frontend specialist for React, Next.js, Angular, TypeScript with
+  FSD-lite architecture, shadcn/ui, and design system alignment. Use for UI,
+  component, page, layout, CSS, Tailwind, shadcn, Angular, and RxJS work.
 ---
 
 # Frontend Agent - UI/UX Specialist
@@ -193,7 +195,7 @@ Project stack conventions live in dedicated files. **Read these before coding**;
 
 | File | Owns |
 |---|---|
-| `resources/tech-stack.md` | Framework versions, Next.js 16 `proxy.ts` + React Compiler conventions, Server Actions vs TanStack Query mutation policy, Serena shortcuts |
+| `resources/tech-stack.md` | Framework versions, Next.js 16 `proxy.ts` + React Compiler conventions, Server Actions vs TanStack Query mutation policy, optional provider examples |
 | `resources/tailwind-rules.md` | Design tokens, focus states, Tailwind v4 `@theme` syntax |
 | `resources/snippets.md` | React 19 hook patterns, TanStack Query/Form, a11y card |
 | `resources/angular-rules.md` | Angular standalone/OnPush/signals conventions, RxJS marble-test policy (MANDATORY for streams) |
@@ -201,6 +203,8 @@ Project stack conventions live in dedicated files. **Read these before coding**;
 To extend: add `resources/<name>.md` and append a row above.
 
 ## References
+Follow `../_shared/core/code-intelligence.md`: discover the configured provider’s available tools; use native search and scoped reads when unavailable. Do not install or track repositories automatically.
+
 
 1. Follow `resources/execution-protocol.md` step by step.
 2. Before submitting, run `resources/checklist.md`.

@@ -7,12 +7,8 @@ disable-model-invocation: true
 - **Response language follows `language` setting in `.agents/oma-config.yaml` if configured.**
 - Follow `.agents/skills/_shared/core/execution-policy.md` for authorization, clarification, verification, and completion. Execute required steps on the selected path in dependency order; apply documented branch and skip conditions.
 - **Do NOT write any code.** This workflow produces a design document, not implementation.
-- **You MUST use MCP tools throughout the workflow.**
-  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `search_for_pattern`) to analyze the existing codebase.
-  - Use memory tools (write/edit) to record design results.
-  - Memory path: configurable via `memoryConfig.basePath` (default: `.agents/state/memories`)
-  - Tool names: configurable via `memoryConfig.tools` in `.agents/mcp.json`
-  - Do NOT use raw file reads or grep as substitutes.
+- Follow `.agents/skills/_shared/core/code-intelligence.md`: discover the configured provider’s tools; use native search and scoped reads when unavailable or timed out. Do not install a provider or track a repository automatically.
+- Use native file tools and `.agents/skills/_shared/runtime/memory-protocol.md` for durable coordination state; code-intelligence memory tools are not required.
 
 ---
 
@@ -29,8 +25,8 @@ Emit required L1 decisions by calling `oma state emit` directly, as documented i
 ## Step 1: Explore Project Context
 
 Use MCP code analysis tools to understand the current codebase:
-- `get_symbols_overview` for project structure and existing architecture.
-- `find_symbol` and `search_for_pattern` to identify relevant modules, patterns, and conventions.
+- Configured structure tools or scoped directory/file inspection for project structure and existing architecture.
+- Configured symbol/pattern search or native search to identify relevant modules, patterns, and conventions.
 - Summarize what exists and what the user's idea would affect.
 
 ---
@@ -168,7 +164,7 @@ The default inline lenses run in *this* session, so the model that authored the 
 
 **Escalation (high-stakes designs only):** when the design is architecturally significant, hard to reverse, or security-/compliance-sensitive, delegate the critique to **fresh-context reviewer subagents** instead of inline lenses, so each reviewer sees only the design artifact — not the conversation history, rationale, or approval flow that carries the author's bias.
 
-- Resolve `target_vendor_for_agent` per agent, then dispatch each reviewer lens using the standard per-agent path: native subagent when `target_vendor_for_agent === current_runtime_vendor`, otherwise `oma agent spawn {agent_id} {prompt_file} {session_id} -w {workspace}`.
+- Resolve `target_vendor_for_agent` per agent, then dispatch each reviewer lens using the standard per-agent path: native subagent when `target_vendor_for_agent === current_runtime_vendor`, otherwise `oma agent spawn {agent_id} {prompt_file} {session_id} --task-id {task.id} -w {workspace}`.
 - Pass **only the Step 4 design document** (and minimal domain constraints) in the prompt file. Do **not** include the clarification Q&A, prior reservations or accepted compromises, or user approvals — that context is exactly what a blind reviewer must not see.
 - Suggested reviewer agents: `qa-reviewer`, `architecture-reviewer`, plus domain lenses from the stakeholder map in point 1.
 - Consolidate their findings back through points 3-6 above.

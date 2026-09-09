@@ -1,16 +1,13 @@
 ---
 name: orchestrate
-description: Automated parallel agent execution that spawns CLI subagents via native dispatch or `oma agent spawn`, coordinates through MCP Memory, monitors progress, and runs verification
+description: Automated parallel agent execution that spawns CLI subagents via native dispatch or `oma agent spawn`, coordinates through durable file state, monitors progress, and runs verification
 disable-model-invocation: true
 ---
 
 - **Response language follows `language` setting in `.agents/oma-config.yaml` if configured.**
 - Follow `.agents/skills/_shared/core/execution-policy.md` for authorization, clarification, verification, and completion. Execute required steps on the selected path in dependency order; apply documented branch and skip conditions.
-- **You MUST use MCP tools throughout the entire workflow.** This is NOT optional.
-  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for code exploration. Do NOT use raw grep as a substitute.
-  - Use file tools (`Read`/`Write`/`Edit`) to persist coordination artifacts directly to `{memoryConfig.basePath}/` (default: `.agents/state/memories/`). Do NOT use Serena's `write_memory` for workflow session state, as verification gates require durable files on disk.
-  - Memory path: configurable via `memoryConfig.basePath` (default: `.agents/state/memories`)
-  - Tool names: configurable via `memoryConfig.tools` in `.agents/mcp.json`
+- Follow `.agents/skills/_shared/core/code-intelligence.md`: discover the configured provider's tools; do not install or track a repository; use native scoped search if unavailable or timed out, and record that limit.
+- Persist coordination artifacts through the file-memory contract in `.agents/skills/_shared/runtime/memory-protocol.md`. That path is independent of code-intelligence MCP tools.
 - **Read required documents BEFORE starting.**
 
 ---
@@ -82,7 +79,7 @@ Stop and report only when the plan cannot be produced: the user declines to plan
 
 3. Session ID: reuse the id generated in Step 1b when the plan was created in this run; otherwise generate one now (format: `session-YYYYMMDD-HHMMSS`).
 4. **Domain gate**: for each planned task, classify it into `domain_tags` by matching against the `Intent signature` block of each installed `.agents/skills/oma-*/SKILL.md`, and derive `exposed_skill_set` (skills whose name is in `domain_tags`). If fewer than 2 skills match confidently, fall back to the full installed set and mark `exposure_fallback: true`. See `.agents/skills/oma-orchestration/SKILL.md` (PHASE 1.5) for the full rules.
-5. Use memory write tool to create `orchestrator-session.md` and `task-board.md` in the memory base path. Record `Exposed Skills` and `Exposure Fallback` per task in `task-board.md`.
+5. Create `orchestrator-session-{sessionId}.md` and `task-board-{sessionId}.md` in the memory base. Record `Exposed Skills` and `Exposure Fallback` per task.
 6. Set session status to RUNNING.
 
 ---
@@ -99,7 +96,7 @@ oma state verify --workflow orchestrate --checkpoint fanout-strategy
 For each priority tier (lowest first: tier 1, then tier 2, etc.):
 
 - Each agent gets: task description, API contracts, relevant context from `_shared/core/context-loading.md`, and only its task's `exposed_skill_set` as the available specialist list (see `.agents/skills/oma-orchestration/resources/subagent-prompt-template.md` `{EXPOSED_SKILL_SET}`).
-- Use memory edit tool to update `task-board.md` with agent status.
+- Update `task-board-{sessionId}.md` with agent status.
 - If a failed task's review history indicates a specialist outside its `exposed_skill_set` was needed, re-classify the task and re-dispatch with the expanded set instead of retrying against the original narrow set.
 
 ### Per-Agent Dispatch
@@ -141,25 +138,25 @@ Spawn same-session subagents with the native `task` tool and `subagent_type: {ag
 
 Spawn native Codex custom agents using `.codex/agents/{agent}.toml` when available.
 Pass each agent its task description, API contracts, and relevant context.
-If native dispatch is not verified in the current runtime, fall back to `oma agent spawn {agent_id} {prompt_file} {session_id} -w {workspace}`.
+If native dispatch is not verified in the current runtime, fall back to `oma agent spawn {agent_id} {prompt_file} {session_id} --task-id {task.id} -w {workspace}`.
 
 ### If Gemini CLI and target vendor is Gemini
 
 Spawn native Gemini subagents using `.gemini/agents/{agent}.md` when available.
-If native dispatch is not verified in the current runtime, fall back to `oma agent spawn {agent_id} {prompt_file} {session_id} -w {workspace}`.
+If native dispatch is not verified in the current runtime, fall back to `oma agent spawn {agent_id} {prompt_file} {session_id} --task-id {task.id} -w {workspace}`.
 
 ### If target vendor differs from current runtime, or native dispatch is unavailable
 
-Spawn agents using `oma agent spawn {agent_id} {prompt_file} {session_id} -w {workspace}` only (custom subagents not available).
+Spawn agents using `oma agent spawn {agent_id} {prompt_file} {session_id} --task-id {task.id} -w {workspace}` only (custom subagents not available).
 
 ---
 
 ## Step 4: Monitor Progress
 
 Use `oma agent status {session_id} {agent_id}` to check process health.
-Also use memory read tool to poll `progress-{agent}[-{sessionId}].md` for logic updates.
+Also poll `progress-{agentId}-{taskId}-{runId}-{sessionId}.md` for logic updates.
 
-- Use memory edit tool to update `task-board.md` with turn counts and status changes.
+- Update `task-board-{sessionId}.md` with turn counts and status changes.
 - Watch for: completion, failures, crashes.
 - A `no-artifact` status (or `oma agent spawn` exit code 3) means the vendor exited 0 but wrote no result artifact under the workspace — a silent misdirected write. Treat it as a failed spawn: do NOT collect it as completed; re-dispatch (natively if the external vendor is unreliable) and check the session trail for the `blocker.raised` event.
 
@@ -175,9 +172,9 @@ At each poll, evaluate for every in-progress agent:
 | < 80% | any | Continue monitoring |
 | >= 80% | >= 50% | Continue (agent is on track to finish) |
 | >= 80% | < 50% | **Context Reset**: Checkpoint + re-spawn (see `_shared/core/context-budget.md`) |
-| 100% (max turns) | < 100% | **Context Reset**: Force checkpoint + re-spawn with remaining items |
+| 100% (guidance) | < 100% | **Context Reset**: checkpoint and continue or re-spawn with remaining items |
 
-Record reset events in `task-board.md`:
+Record reset events in `task-board-{sessionId}.md`:
 ```
 | Agent | Status | Note |
 | backend | reset-1 | Turn budget 80%, progress 40%, checkpoint saved |
@@ -199,29 +196,21 @@ bash .agents/skills/oma-orchestration/scripts/verify.sh {agent-type} {workspace}
 ```
 
 - PASS (exit 0) or documented unsupported-type SKIP: continue to cross-review.
-- FAIL (exit 1): Before re-spawning, apply the Review Loop termination check:
+- FAIL (exit 1): use the shared aggregate recovery budget. The original attempt,
+  each retry, and each exploration hypothesis consume one attempt. Respect the
+  configured cost cap and reserve a complete 2–3 attempt round before
+  exploration. When a bound is reached, preserve partial evidence and stop
+  recovery; do not report the task as completed.
 
-  > **Review Loop termination conditions** (OR, whichever fires first wins):
-  > 1. Retry count for this agent has reached the configured maximum (default: 2 retries). Do not start another retry cycle.
-  > 2. Session cost cap exceeded: if `loadQuotaCap()` from `cli/io/session-cost.ts` returns non-null, call `checkCap(sessionId, cap)` (no cap configured → skip this condition). If `exceeded === true`, print `formatPromptMessage(result)` to the user and stop the loop immediately. Save the current agent's partial results before stopping, then report early termination due to quota. Do not spawn the next retry or any remaining agents in the tier.
-  >
-  > If neither condition is met, re-spawn the agent with error context and increment the retry counter.
-
-- FAIL (after 2 retries, and cost cap not yet exceeded): Activate **Exploration Loop** (load `exploration-loop.md` per `context-loading.md`):
-  1. Generate 2-3 alternative hypotheses for the failing task
-  2. Spawn the **same agent type** with different hypothesis prompts (parallel, separate workspaces)
-  3. Score each result with Quality Score (if available)
-  4. Keep the highest-scoring approach, discard others
-  5. Record all experiments in Experiment Ledger
-
-3. **QA cross-review**: spawn a QA agent with the completed agent's diff, acceptance criteria, mechanical-check evidence, and automated-verify result/SKIP reason. The QA agent returns PASS or FAIL with file-and-line findings. On FAIL, send the findings back to the implementation agent and restart at mechanical self-check. Allow at most 2 QA rejections and 5 total review-loop iterations; after either limit, report the review history and force-complete only with an explicit quality warning.
+3. **QA cross-review**: spawn a QA agent with the completed agent's diff, acceptance criteria, mechanical-check evidence, and automated-verify result/SKIP reason. The QA agent returns PASS or FAIL with file-and-line findings. On FAIL, send the findings back to the implementation agent and restart at mechanical self-check. After the documented review limit, preserve failed checks and unresolved work, then report `partial` or `failed`; never force-complete.
 
 ---
 
 ## Step 6: Collect Results
 
-After all agents complete, use memory read tool to read all `result-{agent}-{sessionId}.md` files.
-Compile summary: completed tasks, failed tasks, files changed, remaining issues.
+After all agents finish, read their claims and run-scoped reports. Collect as
+`completed` only plan tasks with successful required checks; summarize partial,
+blocked, and failed tasks with their remaining issues.
 
 Emit and verify the required QA verdict decision before the final report:
 
@@ -241,5 +230,5 @@ Present session summary to the user.
 - Use memory write tool to record final results.
 - If Quality Score was measured during this session:
   - Generate Experiment Ledger summary (total experiments, keep rate, net delta)
-  - Auto-generate lessons from discarded experiments (delta <= -5) into `lessons-learned.md`
+  - Write lessons from discarded experiments to `lessons-{sessionId}.md`
   - Include agent effectiveness ranking in the report

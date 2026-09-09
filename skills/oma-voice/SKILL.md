@@ -47,8 +47,8 @@ Drive the Voicebox local app through its MCP server so any MCP-aware agent can s
 ### Dependencies
 - Voicebox desktop app installed and running locally.
 - Voicebox MCP registered (`claude mcp add --transport http voicebox http://127.0.0.1:17493/mcp`).
-- At least one voice profile created in the Voicebox app UI.
-- Optionally pre-downloaded engine models for the selected profile.
+- TTS only: at least one voice profile created in the Voicebox app UI.
+- TTS only: optionally pre-downloaded engine models for the selected profile.
 
 ### Control-flow features
 - Branches by mode (notify, asset, transcribe), language, and profile availability.
@@ -62,7 +62,8 @@ Drive the Voicebox local app through its MCP server so any MCP-aware agent can s
 1. Detect the requested mode: notification, asset TTS, or transcription.
 2. Verify Voicebox is reachable via MCP handshake or `GET /health`.
 3. On the first run only, call MCP `tools/list` and cache the resolved tool names.
-4. Resolve the target voice profile id (notification, asset, or explicit user choice).
+4. For notification or asset TTS, resolve the target voice profile id. For transcription,
+   validate the audio input and continue without a profile.
 
 ### Scenes
 1. **PREPARE**: Validate text length, audio duration, language, output path, and profile id.
@@ -73,7 +74,7 @@ Drive the Voicebox local app through its MCP server so any MCP-aware agent can s
 
 ### Transitions
 - If voicebox is unreachable, surface the install or launch hint and exit. Do not attempt auto-relaunch.
-- If `voicebox_list_profiles` is empty, point the user at the Voicebox app UI to create a profile, then exit.
+- If a TTS request has no usable profile, point the user at the Voicebox app UI to create a profile, then exit. A transcription request never needs a profile.
 - If a TTS request exceeds 5000 chars, ask whether to truncate or split. Do not auto-chunk in v1.
 - If an STT input exceeds 30 minutes, ask whether to proceed. Do not auto-split.
 - If the selected engine model is not loaded, ask the user before triggering a download.
@@ -82,7 +83,7 @@ Drive the Voicebox local app through its MCP server so any MCP-aware agent can s
 | Failure | Recovery |
 |---------|----------|
 | Voicebox app not running | Print install/launch hint, exit code 5 |
-| No voice profile | Print "create a profile in Voicebox" hint, exit code 3 |
+| No voice profile for TTS | Print "create a profile in Voicebox" hint, exit code 3 |
 | Engine model missing | Ask before triggering download |
 | Output path outside `$PWD` | Warn the user, require explicit confirmation |
 | TTS over 5000 chars | Ask the user to split or truncate |
@@ -101,7 +102,7 @@ Drive the Voicebox local app through its MCP server so any MCP-aware agent can s
 | Action | SSL primitive | Evidence |
 |--------|---------------|----------|
 | Validate mode and inputs | `VALIDATE` | Clarification protocol in execution-protocol.md |
-| Resolve voice profile | `SELECT` | `voicebox_list_profiles` + config defaults |
+| Resolve TTS voice profile | `SELECT` | `voicebox_list_profiles` + config defaults |
 | Health check | `READ` | MCP handshake or `GET /health` |
 | Generate speech | `CALL_TOOL` | MCP `voicebox_speak` |
 | Transcribe audio | `CALL_TOOL` | MCP `voicebox_transcribe` |
@@ -122,10 +123,10 @@ GET http://127.0.0.1:17493/health  ->  200 OK
 # 2. Discover tool names on first run
 MCP tools/list                      ->  cache real names
 
-# 3. Resolve profile
+# 3. TTS only: resolve profile
 MCP voicebox_list_profiles          ->  pick profile by name or config default
 
-# 4. Generate or transcribe
+# 4. Generate or transcribe (STT skips profile lookup and model-status check)
 MCP voicebox_speak     { text, profile, language?, engine?, personality? }
 MCP voicebox_transcribe { audio_path | audio_base64, language?, model? }
 
@@ -167,8 +168,8 @@ Tools not exposed via MCP (REST only): model status (`GET /models/status`), audi
 
 ### Preconditions
 - Voicebox app is running and the MCP handshake succeeds.
-- At least one voice profile exists.
-- The selected engine model is loaded or the user approves a download.
+- TTS only: at least one voice profile exists.
+- TTS only: the selected engine model is loaded or the user approves a download.
 - Output directory is inside `$PWD` unless explicitly allowed.
 
 ### Effects and side effects
@@ -180,7 +181,7 @@ Tools not exposed via MCP (REST only): model status (`GET /models/status`), audi
 ### Guardrails
 
 1. **Voicebox required**: if the MCP handshake or `GET /health` fails, exit with a one-shot install or launch hint. Do not retry, do not auto-relaunch.
-2. **Profile required**: if `voicebox_list_profiles` returns empty, instruct the user to create a profile in the Voicebox app (Profiles tab → + New Profile → pick Kokoro preset for the fastest path), then exit.
+2. **Profile required for TTS only**: resolve a profile and check the TTS engine only for notification or asset mode. Transcription proceeds with a valid audio input and optional STT model even when no profile exists.
 3. **Tool-name discovery**: on first invocation, call MCP `tools/list` and cache the resolved names. Reuse the cache for subsequent calls in the same session.
 4. **Length limits**: TTS calls cap at 5000 chars per call; warn at 2000. STT inputs cap at 30 minutes. v1 does not auto-chunk or auto-split.
 5. **Auto-invocation transparency**: notifications fire automatically only when the active task exceeds `auto_notify_after_sec` (default 60s). This threshold is agent-enforced guidance — no hook measures task duration — so apply it by judgment when a long task completes or blocks. Always announce intent in one short line before generating audio.

@@ -55,7 +55,7 @@ and is not something to create on the fly; skip it and move on.
 | Authentication implementation | stack/snippets.md (JWT, password) + stack/tech-stack.md |
 | DB migration                  | stack/snippets.md (migration)                     |
 | Performance optimization      | resources/orm-reference.md (N+1, eager loading)   |
-| Existing code modification    | Serena MCP (`find_symbol`, `find_referencing_symbols`) |
+| Existing code modification    | Configured code intelligence; native scoped-search fallback per `code-intelligence.md` |
 
 ### Frontend Agent
 
@@ -129,8 +129,8 @@ and is not something to create on the fly; skip it and move on.
 | Task Type                 | Required Resources                                           |
 | ------------------------- | ------------------------------------------------------------ |
 | New project planning      | examples.md + task-template.json + api-contracts/template.md |
-| Feature addition planning | examples.md + Serena MCP (understand existing structure)     |
-| Refactoring planning      | Serena MCP only                                              |
+| Feature addition planning | examples.md + configured code intelligence or native fallback |
+| Refactoring planning      | configured code intelligence or native fallback               |
 
 ### Design Agent
 

@@ -16,7 +16,7 @@ Follow these steps in order (adjust depth by difficulty).
 ## Step 1: Analyze
 - Read the task requirements carefully
 - Identify which endpoints, models, and services are needed
-- Check existing code with Serena: `get_symbols_overview("app/api")`, `find_symbol("existing_function")`
+- Inspect existing structure and relevant symbols via `../../_shared/core/code-intelligence.md`; use native search and scoped reads when the configured provider is unavailable
 - If the task is ORM-heavy, load `resources/orm-reference.md` before deciding on loading strategy, transaction scope, or client/session lifecycle
 - List assumptions; ask if unclear
 

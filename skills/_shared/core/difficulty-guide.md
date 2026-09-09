@@ -44,18 +44,18 @@ All agents assess task difficulty at the start and apply the appropriate protoco
 
 ### Complex → Extended Protocol (Sprint-Based)
 
-1. Step 1 (Analyze): Full + explore existing code with Serena
+1. Step 1 (Analyze): Full + explore existing code through configured code intelligence or the native fallback
 2. Step 2 (Plan): Full + **decompose into 2-4 feature-focused sprints**
    - Each sprint = independently testable deliverable
    - Target: 5-8 turns per sprint
-   - Record sprint plan in `progress-{agent-id}.md`
+   - Record sprint plan in the task/run-scoped progress artifact
 3. **Sprint Loop** (repeat per sprint):
    - Step 3 (Implement): Current sprint's features only
    - Step 3.5 (Sprint Gate):
      - [ ] Sprint deliverable complete
      - [ ] lint/test pass
-     - If sprint took 2x expected turns → write checkpoint and inform user
-       (see `context-budget.md` Standalone Agent Mode)
+     - If sprint took 2x expected turns → write a checkpoint and continue or
+       resume with fresh context (see `context-budget.md` Standalone Agent Mode)
    - On gate pass → next sprint
 4. Step 4 (Verify): Full + `common-checklist.md`
 

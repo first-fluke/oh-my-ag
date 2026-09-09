@@ -99,21 +99,13 @@ Two cases the CLI cannot decide are handled by the agent:
 
 ## Caching
 
-Cache resolved scores in Serena memory to avoid repeated CLI calls within a
-project:
-
-```
-write_memory("trust-registry-cache", resolved_scores)
-read_memory("trust-registry-cache")
-```
-
-Cache is project-scoped and survives skill updates.
+Cache resolved scores in memory for the current session to avoid repeated CLI calls. No code-intelligence memory provider is required. If persistence is needed, use a generated path under `.agents/state/`, record the resolution time and source, and refresh it before relying on it in a later session.
 
 ## Lookup Algorithm
 
 ```
 1. Extract domain from result URL (strip protocol, path, query)
-2. Check Serena memory cache (trust-registry-cache)
+2. Check the current session’s in-memory domain cache
 3. If cache miss → run `oma search trust <domain>`
 4. Apply agent-level rules (Context7 docs label, official-site upgrade)
 5. Attach [level, tags, score] to result; unknown → label `—`, keep result

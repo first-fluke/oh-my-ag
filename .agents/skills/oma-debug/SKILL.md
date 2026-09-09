@@ -1,6 +1,8 @@
 ---
 name: oma-debug
-description: Bug diagnosis and fixing specialist - analyzes errors, identifies root causes, provides fixes, and writes regression tests. Use for bug, debug, error, crash, traceback, exception, and regression work.
+description: Bug diagnosis and fixing specialist - analyzes errors, identifies
+  root causes, provides fixes, and writes regression tests. Use for bug, debug,
+  error, crash, traceback, exception, and regression work.
 ---
 
 # Debug Agent - Bug Fixing Specialist
@@ -91,7 +93,7 @@ Reproduce, diagnose, minimally fix, and regression-test bugs while preserving sc
 
 ### Tools and instruments
 - Project test, lint, typecheck, runtime, and logging commands
-- Serena MCP symbol/reference/pattern search when available
+- Configured code-intelligence symbol/reference/pattern search with native fallback
 - Debugging checklist and bug report template
 
 ### Canonical workflow path
@@ -126,12 +128,12 @@ Then run the smallest reproduction command first, add a regression test, and re-
 5. Search for similar patterns elsewhere after fixing
 6. Document in `.agents/results/bugs/`
 
-### Serena MCP
-- `find_symbol("functionName")`: Locate the function
-- `find_referencing_symbols("Component")`: Find all usages
-- `search_for_pattern("error pattern")`: Find similar issues
+### Code intelligence
+Use the configured provider to locate the failing function, find callers, and search similar error patterns. Native search and scoped reads are supported fallbacks; see the shared capability contract.
 
 ## References
+Follow `../_shared/core/code-intelligence.md`: discover the configured provider’s available tools; use native search and scoped reads when unavailable. Do not install or track repositories automatically.
+
 Follow `resources/execution-protocol.md` step by step.
 Before submitting, run `resources/checklist.md`.
 Vendor-specific execution protocols are injected automatically by `oma agent spawn`.

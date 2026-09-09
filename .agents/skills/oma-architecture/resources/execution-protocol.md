@@ -26,7 +26,7 @@
   - note decisions that constrain this one
   - if this decision replaces one, plan to mark the old ADR superseded — never silently contradict it
 - Analyze only the code and docs relevant to the decision
-  - prefer symbol-aware tools (serena MCP: `get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) when available
+  - follow `../../_shared/core/code-intelligence.md` for configured symbol, reference, and pattern tools or native fallback
 - Map existing architecture:
   - key modules or services
   - ownership boundaries

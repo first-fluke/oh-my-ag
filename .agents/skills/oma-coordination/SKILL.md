@@ -1,6 +1,8 @@
 ---
 name: oma-coordination
-description: Guide for coordinating PM, Frontend, Backend, Mobile, and QA agents on complex projects via CLI. Use for manual step-by-step coordination and workflow guidance.
+description: Guide for coordinating PM, Frontend, Backend, Mobile, and QA agents
+  on complex projects via CLI. Use for manual step-by-step coordination and
+  workflow guidance.
 ---
 
 # Multi-Agent Workflow Guide
@@ -87,13 +89,13 @@ Guide manual multi-agent coordination for complex work that spans PM, frontend, 
 ### Tools and instruments
 - `oma agent spawn`, PM/frontend/backend/mobile/QA agents
 - Memory/progress/result files
-- Serena MCP for exploration and modification when used by specialists
+- Configured code intelligence, with native fallback per `../_shared/core/code-intelligence.md`
 
 ### Canonical command path
 ```bash
-oma agent spawn pm "<planning task>" <session-id> -w ./pm
-oma agent spawn backend "<backend task>" <session-id> -w ./backend &
-oma agent spawn frontend "<frontend task>" <session-id> -w ./frontend &
+oma agent spawn pm <pm-prompt-file> <session-id> --task-id <plan.pm_task.id> -w ./pm
+oma agent spawn backend <backend-prompt-file> <session-id> --task-id <plan.backend_task.id> -w ./backend &
+oma agent spawn frontend <frontend-prompt-file> <session-id> --task-id <plan.frontend_task.id> -w ./frontend &
 wait
 ```
 
@@ -124,7 +126,7 @@ Useful `agent spawn` options: `-m/--model <vendor>` (CLI vendor override), `--is
 3. Define API contracts before frontend/mobile tasks
 4. QA review is always the final step
 5. Assign separate workspaces to avoid file conflicts (or use `--isolation worktree` for a git worktree per spawn)
-6. Always use Serena MCP tools as the primary method for code exploration and modification
+6. Follow `../_shared/core/code-intelligence.md`: discover configured tools, do not auto-install or track, and use native scoped search when unavailable or timed out
 7. Never skip steps in the workflow; follow each step sequentially without omission
 
 ### Workflow
@@ -144,8 +146,8 @@ Resolve the dispatch path per agent, then spawn:
 
 ```bash
 # Example: spawn backend and frontend in parallel
-oma agent spawn backend "task description" session-id -w ./backend &
-oma agent spawn frontend "task description" session-id -w ./frontend &
+oma agent spawn backend backend-prompt.md session-id --task-id plan.backend_task.id -w ./backend &
+oma agent spawn frontend frontend-prompt.md session-id --task-id plan.frontend_task.id -w ./frontend &
 wait
 ```
 
@@ -164,4 +166,3 @@ Spawn QA Agent last to review all deliverables. Address CRITICAL issues by re-sp
 For fully automated execution without manual spawning, use the **orchestrator** skill instead.
 
 ## References
-

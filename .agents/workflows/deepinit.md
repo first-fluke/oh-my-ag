@@ -6,9 +6,8 @@ disable-model-invocation: true
 
 - **Response language follows `language` setting in `.agents/oma-config.yaml` if configured.**
 - Follow `.agents/skills/_shared/core/execution-policy.md` for authorization, clarification, verification, and completion. Execute required steps on the selected path in dependency order; apply documented branch and skip conditions.
-- **You MUST use MCP tools throughout the entire workflow.** This is NOT optional.
-  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `search_for_pattern`, `list_dir`) for code exploration.
-  - Use file writing tools to generate all output files.
+- Follow `.agents/skills/_shared/core/code-intelligence.md`: discover the configured provider’s tools; use native search and scoped reads when unavailable or timed out. Do not install a provider or track a repository automatically.
+- Use native file tools and `.agents/skills/_shared/runtime/memory-protocol.md` for durable coordination state; code-intelligence memory tools are not required.
 - **Exclude directories:**
   - Respect the project's `.gitignore` as the source of truth for excluding directories.
   - Automatically skip framework-generated cross-platform build/project directories (e.g., Flutter/React Native's `android`, `ios`, `macos`, `linux`, `windows`, `web` folders).
@@ -95,7 +94,7 @@ Not all files are required. Generate only what is **discoverable and relevant** 
    - What packages/apps/services exist?
    - What tech stacks are used?
 
-2. **Discover architectural patterns** using `get_symbols_overview` and `search_for_pattern`:
+2. **Discover architectural patterns** using configured structure/pattern tools or native search and scoped reads:
    - Layer structure (e.g., controllers → services → repositories)
    - Module boundaries and dependency direction
    - Naming conventions in use

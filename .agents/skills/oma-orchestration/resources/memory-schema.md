@@ -26,13 +26,16 @@ Default base path: `.agents/state/memories`
 
 ```
 {memoryConfig.basePath}/
-  orchestrator-session.md              # Session metadata (orchestrator only)
-  task-board.md                        # Master task list (orchestrator writes, agents read)
-  progress-{agent-id}-{sessionId}.md  # Per-agent progress log (owning agent only)
-  result-{agent-id}-{sessionId}.md    # Per-agent final result (owning agent only)
+  orchestrator-session-{sessionId}.md                 # Session metadata
+  task-board-{sessionId}.md                            # Master task list
+  progress-{agentId}-{taskId}-{runId}-{sessionId}.md   # Per-run progress log
+  result-{agentId}-{taskId}-{runId}-{sessionId}.md     # Per-run final report
 ```
 
-> **Path rule**: All files MUST be at the project root memory path. In monorepos, never write to a subdirectory's memory path. The session ID suffix prevents conflicts between concurrent sessions.
+> **Path rule**: Resolve paths from the project-root memory base, then isolate
+> every artifact by session, task, and run. In monorepos, never choose a
+> subproject memory root. The injected claim path and agent-run receipt keep
+> their structured contract and are not replaced by this report layout.
 
 ## orchestrator-session.md
 
@@ -122,7 +125,7 @@ Master task list created by the orchestrator. Subagents read this to understand 
   - No critical or high severity issues
 ```
 
-## progress-{agent-id}-{sessionId}.md
+## progress-{agentId}-{taskId}-{runId}-{sessionId}.md
 
 Each agent creates this file at start and appends entries every 3-5 turns. Only the owning agent writes to this file.
 
@@ -154,7 +157,7 @@ Each agent creates this file at start and appends entries every 3-5 turns. Only 
 - **Summary**: JWT auth API fully implemented with tests
 ```
 
-## result-{agent-id}-{sessionId}.md
+## result-{agentId}-{taskId}-{runId}-{sessionId}.md
 
 Each agent creates this file upon completion (success or failure). Only the owning agent writes to this file.
 

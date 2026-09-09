@@ -152,7 +152,9 @@ Guidance:
 3. **Default-free does not mean optional analysis**: if neither atomic nor single-store clearly
    fits, the state probably belongs in TanStack Query (server) or nuqs (URL), not here.
 
-## Serena MCP Shortcuts
+## Optional Serena examples
+
+These examples apply only when Serena is the configured provider and its tools are available. Otherwise use the project-selected provider or native search under the shared code-intelligence contract.
 - `find_symbol("ComponentName")`: locate existing component
 - `get_symbols_overview("src/components")`: list all components
 - `find_referencing_symbols("Button")`: find usages before changes

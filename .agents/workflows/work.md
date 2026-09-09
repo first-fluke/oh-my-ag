@@ -6,11 +6,8 @@ disable-model-invocation: true
 
 - **Response language follows `language` setting in `.agents/oma-config.yaml` if configured.**
 - Follow `.agents/skills/_shared/core/execution-policy.md` for authorization, clarification, verification, and completion. Execute required steps on the selected path in dependency order; apply documented branch and skip conditions.
-- **You MUST use MCP tools throughout the entire workflow.** This is NOT optional.
-  - Use code analysis tools (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`, `search_for_pattern`) for code exploration. Do NOT use raw grep as a substitute.
-  - Use file tools (`Read`/`Write`/`Edit`) to persist coordination artifacts directly to `{memoryConfig.basePath}/` (default: `.agents/state/memories/`). Do NOT use Serena's `write_memory` for workflow session state, as verification gates require durable files on disk.
-  - Memory path: configurable via `memoryConfig.basePath` (default: `.agents/state/memories`)
-  - Tool names: configurable via `memoryConfig.tools` in `.agents/mcp.json`
+- Follow `.agents/skills/_shared/core/code-intelligence.md`: discover the configured provider’s tools; use native search and scoped reads when unavailable or timed out. Do not install a provider or track a repository automatically.
+- Use native file tools and `.agents/skills/_shared/runtime/memory-protocol.md` for durable coordination state; code-intelligence memory tools are not required.
 - **Read the oma-coordination skill BEFORE starting.** Read `.agents/skills/oma-coordination/SKILL.md` and follow its Core Rules.
 - **Follow the context-loading guide.** Read `.agents/skills/_shared/core/context-loading.md` and load only task-relevant resources.
 
@@ -48,7 +45,7 @@ Analyze the user's request and identify involved domains (frontend, backend, mob
 
 - Single domain: suggest using the specific agent directly.
 - Multiple domains: proceed to Step 2.
-- Use MCP code analysis tools (`get_symbols_overview` or `search_for_pattern`) to understand the existing codebase structure relevant to the request.
+- Use configured code-intelligence tools or native search and scoped reads to understand the existing codebase structure relevant to the request.
 - Report analysis results to the user.
 
 ---
@@ -105,8 +102,8 @@ Native CLI executor path: `gemini -p "@{agent} ..."` using `.gemini/agents/{agen
 
 ### If target vendor differs from current runtime, or native dispatch is unavailable
 ```bash
-oma agent spawn backend "task description" session-id -w ./backend &
-oma agent spawn frontend "task description" session-id -w ./frontend &
+oma agent spawn backend "task description" session-id --task-id {backend_task.id} -w ./backend &
+oma agent spawn frontend "task description" session-id --task-id {frontend_task.id} -w ./frontend &
 wait
 ```
 
@@ -115,7 +112,7 @@ wait
 ## Step 5: Monitor Agent Progress
 
 - Use memory read tool to poll `progress-{agent}[-{sessionId}].md` files
-- Use MCP code analysis tools (`find_symbol` and `search_for_pattern`) to verify API contract alignment between agents
+- Use configured symbol/pattern tools or native search to verify API contract alignment between agents
 - Use memory edit tool to record monitoring results
 
 > **Claude Code note**: the Agent tool returns results synchronously (or notifies on background completion), so no file polling is needed. Check status, files changed, and issues directly in each agent's return value.
@@ -146,6 +143,8 @@ If automated measurement is available:
 
 If QA finds CRITICAL or HIGH issues:
 
+Apply the shared per-task attempt and cost budget in `.agents/skills/oma-orchestration/SKILL.md`. Count the original attempt, each retry, and every exploration hypothesis; the workflow cycle limit never grants additional attempts.
+
 1. Re-spawn the responsible agent with QA findings. **The fix prompt MUST instruct root-cause remediation, not symptom suppression.** Forbid tactical patches (try/catch swallowing, validation bypass, hardcoded values, feature flags hiding the bug, silencing the failing test) unless the agent can explicitly justify why a structural fix is out of scope for this iteration (e.g., upstream library bug, deprecated path, hotfix window). Bias toward the orthodox engineering fix even when it costs more lines or touches more files.
 2. Emit and verify the remediation decision before accepting any fix/ignore choice:
    ```bash
@@ -161,15 +160,15 @@ If QA finds CRITICAL or HIGH issues:
    >
    > If neither condition is met, repeat Steps 5-7.
 
-5. **If same issue persists after 2 fix attempts**: Activate **Exploration Loop** (load `exploration-loop.md` per `context-loading.md`):
-   - Generate 2-3 alternative approaches via Exploration Decision template
-   - Re-spawn the same agent type with different hypothesis prompts (separate workspaces)
+5. **If reactive recovery has failed and budget remains**: choose an exploration round using `exploration-loop.md`; reserve all 2–3 hypothesis attempts before dispatch. If there is insufficient budget, preserve the remaining issues and report `partial` or `failed`.
+   - Generate the reserved alternative approaches via Exploration Decision template
+   - Re-spawn the same agent type with different hypothesis prompts, the same plan task ID, unique run IDs, and separate workspaces
    - QA scores each result
    - Best result adopted, others discarded
    - All experiments recorded in Experiment Ledger
 6. Continue until all critical issues are resolved or a termination condition fires.
 7. Use memory write tool to record final results.
-8. If Quality Score was measured: generate Experiment Ledger summary and auto-generate lessons from discarded experiments.
+8. If Quality Score was measured: generate Experiment Ledger summary and write lessons from discarded experiments to the session state under the memory protocol; do not edit managed skill definitions.
 
 ---
 

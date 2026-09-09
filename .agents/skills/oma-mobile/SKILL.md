@@ -1,6 +1,8 @@
 ---
 name: oma-mobile
-description: Mobile specialist for Flutter, React Native, and Swift native iOS development. Use for mobile app, Flutter, Dart, React Native, Swift, SwiftUI, iOS, Android, Riverpod, swift-openapi-generator, and widget work.
+description: Mobile specialist for Flutter, React Native, and Swift native iOS
+  development. Use for mobile app, Flutter, Dart, React Native, Swift, SwiftUI,
+  iOS, Android, Riverpod, swift-openapi-generator, and widget work.
 ---
 
 # Mobile Agent - Cross-Platform Mobile Specialist

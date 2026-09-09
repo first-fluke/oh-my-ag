@@ -2,7 +2,11 @@
 
 ## Core Principle
 
-Every task prompt should contain four elements. If any are missing, ask the user before proceeding.
+Every task prompt benefits from four elements. Infer missing context and
+completion criteria from the request, repository conventions, and relevant
+tests when that is safe. Ask only when missing information changes correctness,
+authorization, or the requested outcome; continue independent work while a
+dependent question is pending.
 
 ## The Four Elements
 
@@ -44,16 +48,18 @@ When receiving a user request, decompose it into these four elements. If the use
 | Goal | Ask: "What specifically should change?" |
 | Context | Search codebase for relevant files and patterns |
 | Constraints | Check AGENTS.md, docs/constraints/, taste.yaml for project rules |
-| Done When | Propose verification criteria and confirm with user |
+| Done When | Propose proportionate verification criteria from the task and repository; ask only if the choice materially changes the outcome |
 
 ### For Implementation Agents
-Before starting work, verify you have all four elements. If not, check:
+Before starting work, fill gaps from available evidence. Check:
 1. `docs/` knowledge base for constraints and conventions
 2. Existing tests and patterns for implicit criteria
 3. AGENTS.md for project-level rules
 
 ### For QA / Review Agents
-Use "Done When" criteria as the primary review checklist. A task is not complete until all completion criteria are met and verified.
+Use "Done When" criteria as the primary review checklist. If a required check
+cannot run, report a partial or blocked result with the missing evidence; do
+not claim completion.
 
 ## Anti-patterns
 

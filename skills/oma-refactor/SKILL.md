@@ -60,7 +60,7 @@ Standalone runs write plan / before-after reports under `.agents/results/refacto
 - `resources/definition.md` (invariant definition: 5 properties, boundaries, destination principle, naming roles, inline evidence)
 - `resources/measurement.md` (4-layer measurement + git forensics commands)
 - `resources/governance.md` (org parameters: budget floor, 500-line gate, tool registry)
-- Serena MCP symbol/reference tools; project test runners per registry (vitest / pytest / flutter_test)
+- Configured code-intelligence symbol/reference tools or native inspection; project test runners per registry (vitest / pytest / flutter_test)
 - Git history for churn/ownership/hotspot analysis
 
 ### Control-flow features
@@ -122,7 +122,7 @@ Standalone runs write plan / before-after reports under `.agents/results/refacto
 | Report delta | `NOTIFY` | Metric + readability before/after |
 
 ### Tools and instruments
-- Serena MCP: `find_symbol`, `find_referencing_symbols`, `search_for_pattern` for impact analysis; `rename_symbol` for engine-executed renames
+- Configured code intelligence for symbol/reference/pattern impact analysis; an available semantic rename engine for renames. Native inspection remains valid, but do not replace a semantic rename with blind text replacement
 - Deterministic transformers: IDE refactoring actions, codemods (jscodeshift / OpenRewrite / ast-grep / comby)
 - Metrics: lizard / radon (complexity) — both are PyPI packages, run via `uvx lizard` / `uvx radon` so no pre-install is required; per-language linters with `max-lines` gates
 - Test stack per registry: vitest + StrykerJS / pytest + mutmut / flutter_test (see `resources/governance.md`)
@@ -166,6 +166,8 @@ Standalone runs write plan / before-after reports under `.agents/results/refacto
 8. All metrics are proxies (Goodhart): a 499-line mechanical split, assertion-free coverage, or pattern-count gains are failures, not wins.
 
 ## References
+Follow `../_shared/core/code-intelligence.md`: discover the configured provider’s available tools; use native search and scoped reads when unavailable. Do not install or track repositories automatically.
+
 - Invariant definition (5 properties, boundaries, destination, naming roles, contexts, D&C, inline evidence): `resources/definition.md`
 - Measurement: 4 layers + git forensics commands: `resources/measurement.md`
 - Org parameters: budget floor, 500-line gate, tool registry: `resources/governance.md`

@@ -88,7 +88,7 @@ Using two hedge devices where one suffices weakens the claim unnecessarily.
 - Bad: "The results **seem to suggest** that..."
 - Good: "The results **suggest** that..." or "The results **appear to** support..."
 
-Note: "seem" is a banned generic main verb (see `academic-verb-tiers.md`); prefer "appear" for this hedge.
+Note: choose `seem` or `appear` by meaning and register. Prefer neither automatically; hedge only to the extent supported by the evidence.
 
 ### 5. Use attribution hedging for interpretive claims
 

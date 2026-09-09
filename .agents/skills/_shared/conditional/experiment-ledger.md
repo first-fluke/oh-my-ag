@@ -9,10 +9,10 @@ Inspired by autoresearch's git-commit-as-experiment-log pattern.
 
 The ledger follows the **memory protocol** (see `memory-protocol.md`):
 
-- **MCP mode** (Serena): `[WRITE]("experiment-ledger.md", ...)` → `{memoryConfig.basePath}/experiment-ledger.md`
-- **File-based mode** (Claude protocol): `.agents/results/experiment-ledger.md`
+- `[WRITE]("experiment-ledger-{sessionId}.md", ...)` →
+  `{memoryConfig.basePath}/experiment-ledger-{sessionId}.md`
 
-Both modes use the same format. The orchestrator creates the ledger; agents append via memory tools.
+The orchestrator creates the ledger; agents append through file memory.
 
 ---
 
@@ -62,7 +62,7 @@ Do NOT record: trivial formatting, changes with no measurable impact, PLAN phase
 3. Measure new quality score
 4. Calculate delta: `score_after - score_before`
 5. Apply Keep/Discard rule from `quality-score.md`
-6. Append row via memory tools: `[EDIT]("experiment-ledger.md", append row)`
+6. Append row via file memory: `[EDIT]("experiment-ledger-{sessionId}.md", append row)`
 
 ### Who Records
 
@@ -98,7 +98,7 @@ IMPL: {score} → VERIFY: {score} → REFINE: {score} → Final: {score}
 
 Discarded experiments with **delta <= -5** auto-generate lesson candidates at session end.
 
-Format (matches `lessons-learned.md` RCA format):
+Format for the session-scoped lessons artifact:
 
 ```markdown
 ### {YYYY-MM-DD}: {agent-type} - {hypothesis} (DISCARDED, delta: {delta})
@@ -108,7 +108,8 @@ Format (matches `lessons-learned.md` RCA format):
 - **Source**: Experiment Ledger #{experiment_number}, Session {session_id}
 ```
 
-The orchestrator appends these to the relevant domain section in `lessons-learned.md`.
+The orchestrator writes these to `lessons-{sessionId}.md`. A durable
+skill rule requires a separate reviewed source change.
 
 ---
 

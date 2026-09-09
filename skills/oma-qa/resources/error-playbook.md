@@ -32,12 +32,13 @@ Do NOT stop or ask for help until you have exhausted the playbook.
 
 ## Cannot Access Source Code
 
-**Symptoms**: Serena `find_symbol` returns nothing, file not found
+**Symptoms**: configured code-intelligence tool returns nothing, times out, or a file is not found
 
-1. Check: correct file path? Use `search_for_pattern` with broader terms
-2. Check: is the code in a different directory or monorepo?
-3. Use `get_symbols_overview` on parent directories to find the structure
-4. If truly inaccessible: review what you CAN access and note gaps in report
+1. Check the configured provider's discovered tools and the file path.
+2. Use the documented native scoped-search fallback; do not install, initialize,
+   track, or silently switch providers.
+3. Check whether code is in another package or monorepo directory.
+4. If truly inaccessible: review what you can access and record the coverage gap.
 
 ---
 

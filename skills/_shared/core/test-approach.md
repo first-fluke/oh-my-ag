@@ -16,16 +16,17 @@ Tasks without a `test_approach` field behave as today (tests per the agent's
 normal protocol). Refactor tasks never use `tdd` — they keep the
 characterization-test safety net (`oma-refactor`).
 
-## Coverage non-waiver rule
+## Coverage applicability rule
 
-No `test_approach` value relaxes the global unit-test coverage gate
-(**>= 80%**, QA checklist / SHIP_GATE). `not_applicable` code still counts
-toward the aggregate; excluding it requires a declarative entry in the
-project's coverage config with justification — never a silent drop.
+`test_approach` does not silently waive coverage. Use the project's declared
+baseline, changed-code target, or task-specific risk target when coverage is
+applicable. When it is not, the plan must state risk-focused tests or an
+alternative verification method and its limits. Do not impose a global numeric
+floor on projects that have not defined one.
 
 ## TDD_EVIDENCE block format
 
-Append to the agent's result file (`result-{agent}.md`), one entry per `tdd` task:
+Append to the task/run-scoped result report, one entry per `tdd` task:
 
 ```
 TDD_EVIDENCE:
