@@ -10,7 +10,7 @@
 #
 # Contents
 #   1. Global preferences        language, date/time, telemetry
-#   2. Model selection           model_preset, default_cli, agents, models, custom_presets
+#   2. Model selection           model_preset, free, default_cli, agents, models, custom_presets
 #   3. pi transport runtime      vendors.pi
 #   4. Agent spawn budget        session.quota_cap
 #   5. Memory garbage collection memory.gc
@@ -81,9 +81,19 @@ providers:
 
 # auto follows the current runtime's agent/model settings without pinning a model.
 # Explicit agents overrides still win; unknown runtimes use default_cli.
-# Fixed presets: antigravity | claude | codex | qwen | cursor | kiro | mixed
+# Fixed presets: free | antigravity | claude | codex | qwen | cursor | kiro | mixed
 # (custom_presets entries are also valid)
 model_preset: auto
+
+# FreeLLMAPI gateway settings (used when model_preset: free).
+# Routes child spawns through a local FreeLLMAPI server. Never commit API keys
+# directly; reference the environment variable name in `api_key_env`.
+# Tip: keep `model_preset: auto` in this shared file and configure `model_preset: free`
+# + `free:` in `.agents/oma-config.local.yaml` to avoid breaking team workflows.
+# free:
+#   base_url: http://127.0.0.1:31415/v1
+#   api_key_env: FREELLM_API_KEY
+#   model: auto
 
 # Fallback CLI vendor for `oma agent spawn`, used only when steps 1-3 above
 # resolve nothing. This is the only place it can be set — cli-config.yaml's

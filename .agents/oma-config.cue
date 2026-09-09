@@ -49,6 +49,12 @@ package config
 	agent_defaults?: [string]: #AgentSpec
 }
 
+#FreeConfig: {
+	base_url?:    string
+	api_key_env?: string & =~"^[A-Za-z_][A-Za-z0-9_]*$"
+	model?:       string
+}
+
 // ── 3. pi transport runtime ─────────────────────────────────────────────────
 
 #PiVendorConfig: {
@@ -284,8 +290,9 @@ package config
 	#GlobalPreferences
 
 	// 2. Model selection
-	model_preset:    "auto" | "antigravity" | "claude" | "codex" | "qwen" | "cursor" | "kiro" | "mixed" | string
+	model_preset:    "auto" | "free" | "antigravity" | "claude" | "codex" | "qwen" | "cursor" | "kiro" | "mixed" | string
 	default_cli?:    string
+	free?:           #FreeConfig
 	agents?: [string]: #AgentSpec
 	models?: [string]: #ModelSpec
 	custom_presets?: [string]: #CustomPresetSpec
@@ -414,6 +421,12 @@ package config
 	}
 
 	// ── Optional sections (uncomment to override defaults) ──
+	//
+	// free: {
+	// 	base_url:    "http://127.0.0.1:31415/v1"
+	// 	api_key_env: "FREELLM_API_KEY"
+	// 	model:       "auto"
+	// }
 	//
 	// session: quota_cap: {
 	// 	tokens:      2000000
