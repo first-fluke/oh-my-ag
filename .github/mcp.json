@@ -11,6 +11,16 @@
       "tools": [
         "*"
       ]
+    },
+    "aside": {
+      "type": "local",
+      "command": "aside",
+      "args": [
+        "mcp"
+      ],
+      "tools": [
+        "*"
+      ]
     }
   }
 }

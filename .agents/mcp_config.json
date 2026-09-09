@@ -1,14 +1,5 @@
 {
   "mcpServers": {
-    "chrome-devtools": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "chrome-devtools-mcp@latest",
-        "--no-usage-statistics",
-        "--isolated"
-      ]
-    },
     "context7": {
       "serverUrl": "https://mcp.context7.com/mcp"
     },
@@ -18,6 +9,12 @@
         "mcp",
         "--tools",
         "compact"
+      ]
+    },
+    "aside": {
+      "command": "aside",
+      "args": [
+        "mcp"
       ]
     }
   }

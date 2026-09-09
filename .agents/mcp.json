@@ -1,14 +1,5 @@
 {
   "mcpServers": {
-    "chrome-devtools": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "chrome-devtools-mcp@latest",
-        "--no-usage-statistics",
-        "--isolated"
-      ]
-    },
     "context7": {
       "type": "http",
       "url": "https://mcp.context7.com/mcp"
@@ -43,6 +34,12 @@
         "safe_delete_symbol",
         "replace_in_files",
         "initial_instructions"
+      ]
+    },
+    "aside": {
+      "command": "aside",
+      "args": [
+        "mcp"
       ]
     }
   },

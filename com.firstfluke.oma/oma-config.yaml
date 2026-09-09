@@ -348,6 +348,9 @@ scm:
     - "*.example"
     - "*.sample"
     - "*.template"
+mcp:
+  devtools_browsers:
+    - aside
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 11. Skill overrides
