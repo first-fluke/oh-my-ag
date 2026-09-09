@@ -1,5 +1,17 @@
 # Changelog
 
+## [14.7.3](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.2...cli-v14.7.3) (2026-09-09)
+
+
+### Bug Fixes
+
+* **agent:** identify invalid session plan files ([3339e80](https://github.com/first-fluke/oh-my-agent/commit/3339e809b1aa7af5ec61b78a80a2d7d8918be38c))
+
+
+### Documentation
+
+* **config:** add free preset example and schema to oma-config templates ([ce68659](https://github.com/first-fluke/oh-my-agent/commit/ce6865905a4fa0ce73be6b010059c21b2fe45704))
+
 ## [14.7.2](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.1...cli-v14.7.2) (2026-09-08)
 
 
