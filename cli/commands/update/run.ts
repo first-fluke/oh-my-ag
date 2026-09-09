@@ -58,6 +58,7 @@ import {
   DEAD_PID_GRACE_MS,
   lockPath,
 } from "../../utils/install-lock.js";
+import { loadProviders } from "../../utils/providers.js";
 import { link } from "../link/run.js";
 import { runMigrations, runMigrationsWithStatus } from "../migrations/index.js";
 import { resolveAutoUpdateCli } from "./auto-update-config.js";
@@ -325,6 +326,7 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
             force: true,
           });
         }
+        const installedSkillNames = getInstalledSkillNames(cwd);
 
         // Reconcile all vendor adaptations via the link kernel. agy HUD,
         // Claude .mcp.json seeding, vendor settings (Claude / Gemini / Qwen /
@@ -344,7 +346,7 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
             ? createVendorSymlinks(
                 cwd,
                 toCliTools(updateVendors),
-                getInstalledSkillNames(cwd),
+                installedSkillNames,
               )
             : { created: [], skipped: [], removed: [] };
 
@@ -373,41 +375,51 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
           if (existsSync(dir)) rmSync(dir, { recursive: true, force: true });
         }
 
-        // --- Serena Project Setup ---
-        // Language servers follow the project's own files; the skill-derived
-        // set only fills in when detection comes up empty. Each open agent
-        // session spawns its own serena + LSP tree, so an unused language
-        // server costs its memory once per concurrent session.
-        //
-        // Skipped in global mode: `cwd` is then $HOME (or OMA_HOME), which is
-        // not a project — see isForbiddenSerenaProjectRoot. Gating on the mode
-        // also avoids scanning $HOME for languages.
-        if (mode !== "global") {
-          const { languages, prunable } = deriveSerenaLanguages(
-            cwd,
-            inferSerenaLanguages(cwd),
-          );
-          ensureSerenaProject(cwd, languages, { prunable });
-        }
+        if (loadProviders(cwd).code_intelligence === "serena") {
+          // --- Serena Project Setup ---
+          // Language servers follow the project's own files; the skill-derived
+          // set only fills in when detection comes up empty. Each open agent
+          // session spawns its own serena + LSP tree, so an unused language
+          // server costs its memory once per concurrent session.
+          //
+          // Skipped in global mode: `cwd` is then $HOME (or OMA_HOME), which is
+          // not a project — see isForbiddenSerenaProjectRoot. Gating on the mode
+          // also avoids scanning $HOME for languages.
+          if (mode !== "global") {
+            const { languages, prunable } = deriveSerenaLanguages(
+              cwd,
+              inferSerenaLanguages(cwd),
+            );
+            ensureSerenaProject(cwd, languages, { prunable });
+          }
 
-        // --- Optional Serena Binary Upgrade ---
-        // On by default; opt out via `serena.auto_update: false` in .agents/oma-config.yaml.
-        // Skip silently if uv is not installed or the upgrade fails — the
-        // serena MCP still works on the previously installed version.
-        if (loadSerenaConfig(cwd).autoUpdate) {
-          try {
-            execFileSync(
-              "uv",
-              ["tool", "upgrade", "serena-agent", "--prerelease=allow"],
-              { stdio: "ignore" },
-            );
+          // --- Optional Serena Binary Upgrade ---
+          // On by default; opt out via `serena.auto_update: false` in .agents/oma-config.yaml.
+          // Skip silently if uv is not installed or the upgrade fails — the
+          // serena MCP still works on the previously installed version.
+          if (loadSerenaConfig(cwd).autoUpdate) {
+            try {
+              execFileSync(
+                "uv",
+                ["tool", "upgrade", "serena-agent", "--prerelease=allow"],
+                { stdio: "ignore" },
+              );
+              ui.note(
+                "Upgraded serena-agent to the latest prerelease.",
+                "Serena",
+              );
+            } catch {
+              ui.note(
+                "Skipped serena upgrade (uv unavailable or upgrade failed).",
+                "Serena",
+              );
+            }
+          }
+
+          const serenaContexts = ensureOmaSerenaContexts();
+          if (serenaContexts.failed.length > 0) {
             ui.note(
-              "Upgraded serena-agent to the latest prerelease.",
-              "Serena",
-            );
-          } catch {
-            ui.note(
-              "Skipped serena upgrade (uv unavailable or upgrade failed).",
+              `Could not install Serena's OMA context: ${serenaContexts.failed.join(", ")}`,
               "Serena",
             );
           }
@@ -424,15 +436,18 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
             import("../video/internal/remotion-workspace.js"),
             import("../video/config.js"),
           ]);
-          if (describeToolchain().version) {
+          if (
+            installedSkillNames.includes("oma-video") &&
+            describeToolchain().version
+          ) {
             const policy = (await loadVideoConfig(cwd)).remotion;
             const tc = await ensureLatestToolchain({
               checkIntervalMin: policy.checkIntervalMin,
-              force: true,
+              force: false,
             });
             const skills = await ensureRemotionSkills({
               checkIntervalMin: policy.checkIntervalMin,
-              force: true,
+              force: false,
             });
             const parts = [
               tc
@@ -442,20 +457,14 @@ export async function update(options: UpdateOptions = {}): Promise<void> {
                 ? `skills ${skills.ref} (${skills.status})`
                 : "skills: check failed",
             ];
-            ui.note(parts.join(", "), "Remotion");
+            if (tc?.status !== "current" || skills?.status !== "current") {
+              ui.note(parts.join(", "), "Remotion");
+            }
           }
         } catch (err) {
           ui.note(
             `Skipped remotion refresh (${err instanceof Error ? err.message : String(err)}).`,
             "Remotion",
-          );
-        }
-
-        const serenaContexts = ensureOmaSerenaContexts();
-        if (serenaContexts.failed.length > 0) {
-          ui.note(
-            `Could not install Serena's OMA context: ${serenaContexts.failed.join(", ")}`,
-            "Serena",
           );
         }
 

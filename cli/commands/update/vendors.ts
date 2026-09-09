@@ -84,7 +84,10 @@ export function resolveUpdateVendors(
   const configured: unknown = loadOmaConfig(cwd)?.vendors;
   const recorded = Array.isArray(configured) ? configured : [];
   return UPDATE_VENDORS.filter(
-    (vendor) => recorded.includes(vendor) || hasExistingVendorRoot(cwd, vendor),
+    (vendor) =>
+      recorded.includes(vendor) ||
+      ((!isCliTool(vendor) || !vendorRequiresHomeConsent(vendor)) &&
+        hasExistingVendorRoot(cwd, vendor)),
   );
 }
 

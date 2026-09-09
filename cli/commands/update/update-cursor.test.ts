@@ -3,11 +3,42 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Vendor reconciliation must not inspect or update the developer's toolchain.
-vi.mock("../video/internal/remotion-workspace.js", () => ({
-  describeToolchain: vi.fn(() => ({ version: null })),
+const remotionState = vi.hoisted(() => ({
+  describeToolchain: vi.fn(() => ({ version: null as string | null })),
   ensureLatestToolchain: vi.fn(),
   ensureRemotionSkills: vi.fn(),
+}));
+
+// Vendor reconciliation must not inspect or update the developer's toolchain.
+vi.mock("../video/internal/remotion-workspace.js", () => remotionState);
+
+const serenaState = vi.hoisted(() => ({
+  ensureSerenaProject: vi.fn(() => ({ configured: false, registered: false })),
+  ensureOmaSerenaContexts: vi.fn(() => ({ changed: [], failed: [] })),
+  inferSerenaLanguages: vi.fn(() => ["typescript"]),
+  deriveSerenaLanguages: vi.fn((_cwd: string, languages: string[]) => ({
+    languages,
+    prunable: true,
+  })),
+}));
+
+vi.mock("../../io/serena.js", async (original) => ({
+  ...(await original<typeof import("../../io/serena.js")>()),
+  ...serenaState,
+}));
+
+const providerState = vi.hoisted(() => ({
+  loadProviders: vi.fn(() => ({
+    docs: "context7",
+    web: "native",
+    code_intelligence: "serena" as "serena" | "gortex",
+    semantic_memory: "agentmemory",
+  })),
+}));
+
+vi.mock("../../utils/providers.js", async (original) => ({
+  ...(await original<typeof import("../../utils/providers.js")>()),
+  loadProviders: providerState.loadProviders,
 }));
 
 vi.mock("../../utils/config.js", async (original) => ({
@@ -147,6 +178,16 @@ describe("update cursor vendor adaptations", () => {
     cleanupMock = vi.fn();
     configuredVendorsForTest = [];
     vi.clearAllMocks();
+    (
+      skills.installVendorAdaptations as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation(() => undefined);
+    providerState.loadProviders.mockReturnValue({
+      docs: "context7",
+      web: "native",
+      code_intelligence: "serena",
+      semantic_memory: "agentmemory",
+    });
+    remotionState.describeToolchain.mockReturnValue({ version: null });
   });
 
   afterEach(() => {
@@ -281,5 +322,63 @@ describe("update cursor vendor adaptations", () => {
 
     await expect(update({ ci: true })).rejects.toThrow("ENOENT");
     expect(manifest.saveLocalVersion).not.toHaveBeenCalled();
+  });
+
+  it("skips Serena maintenance when Gortex is selected", async () => {
+    const projectDir = makeTempRoot("oma-update-gortex-project-");
+    const repoDir = makeTempRoot("oma-update-gortex-repo-");
+    extractedRepoDir = repoDir;
+    mockInstallRoot = projectDir;
+    writeRepoConfig(repoDir, ["codex"]);
+    createExistingVendorRoots(projectDir, ["codex"]);
+    providerState.loadProviders.mockReturnValue({
+      docs: "context7",
+      web: "native",
+      code_intelligence: "gortex",
+      semantic_memory: "agentmemory",
+    });
+
+    process.chdir(projectDir);
+    await update({ ci: true });
+
+    expect(serenaState.ensureSerenaProject).not.toHaveBeenCalled();
+    expect(serenaState.ensureOmaSerenaContexts).not.toHaveBeenCalled();
+  });
+
+  it("throttles Remotion refresh for projects with oma-video", async () => {
+    const projectDir = makeTempRoot("oma-update-remotion-project-");
+    const repoDir = makeTempRoot("oma-update-remotion-repo-");
+    extractedRepoDir = repoDir;
+    mockInstallRoot = projectDir;
+    writeRepoConfig(repoDir, ["codex"]);
+    createExistingVendorRoots(projectDir, ["codex"]);
+    (
+      skills.getInstalledSkillNames as unknown as ReturnType<typeof vi.fn>
+    ).mockReturnValue(["oma-video"]);
+    remotionState.describeToolchain.mockReturnValue({ version: "4.0.522" });
+    remotionState.ensureLatestToolchain.mockResolvedValue({
+      version: "4.0.522",
+      status: "current",
+    });
+    remotionState.ensureRemotionSkills.mockResolvedValue({
+      ref: "11986e44eeb6",
+      status: "current",
+    });
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    process.chdir(projectDir);
+    await update({ ci: true });
+
+    expect(remotionState.ensureLatestToolchain).toHaveBeenCalledWith({
+      checkIntervalMin: 60,
+      force: false,
+    });
+    expect(remotionState.ensureRemotionSkills).toHaveBeenCalledWith({
+      checkIntervalMin: 60,
+      force: false,
+    });
+    expect(logSpy.mock.calls.flat().join("\n")).not.toContain(
+      "remotion 4.0.522",
+    );
   });
 });

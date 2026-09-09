@@ -293,6 +293,33 @@ describe("resolveUpdateVendors", () => {
     expect(resolveUpdateVendors(root)).toEqual(["claude", "pi", "qwen"]);
   });
 
+  it("does not infer HOME-only vendors from project markers", () => {
+    const root = mkdtempSync(join(tmpdir(), "oma-update-vendors-"));
+    tempRoots.push(root);
+
+    mkdirSync(join(root, ".agents"), { recursive: true });
+    writeFileSync(join(root, ".agents", "hooks.json"), "{}\n");
+    writeFileSync(
+      join(root, ".agents", "oma-config.yaml"),
+      "vendors:\n  - codex\n",
+    );
+
+    expect(resolveUpdateVendors(root)).not.toContain("antigravity");
+  });
+
+  it("retains explicitly recorded HOME-only vendors", () => {
+    const root = mkdtempSync(join(tmpdir(), "oma-update-vendors-"));
+    tempRoots.push(root);
+
+    mkdirSync(join(root, ".agents"), { recursive: true });
+    writeFileSync(
+      join(root, ".agents", "oma-config.yaml"),
+      "vendors:\n  - antigravity\n",
+    );
+
+    expect(resolveUpdateVendors(root)).toContain("antigravity");
+  });
+
   it("--vendor explicitly targets vendors even when directories do not exist", () => {
     const root = mkdtempSync(join(tmpdir(), "oma-update-vendors-"));
     tempRoots.push(root);
