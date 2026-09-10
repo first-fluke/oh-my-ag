@@ -334,6 +334,45 @@ describe("qwen model request timeout", () => {
     expect(applyQwenSettings(stale).contentGenerator).toBeUndefined();
   });
 
+  it("leaves the top-level timeout unpinned when user-level modelProviders own it", () => {
+    // Qwen Code seals user-level provider entries, so a project top-level
+    // timeout is ignored for them and only prints a startup warning.
+    const options = { userModelProviders: true };
+    expect(needsQwenSettingsUpdate(baseline(), options)).toBe(false);
+
+    const result = applyQwenSettings(baseline(), options);
+    expect(result.model).toBeUndefined();
+    expect(needsQwenSettingsUpdate(result, options)).toBe(false);
+  });
+
+  it("removes a stale top-level timeout when user-level modelProviders own it", () => {
+    const options = { userModelProviders: true };
+    const stale = {
+      ...baseline(),
+      model: {
+        name: "qwen3-coder-plus",
+        generationConfig: { timeout: QWEN_REQUEST_TIMEOUT_MS },
+      },
+    };
+    expect(needsQwenSettingsUpdate(stale, options)).toBe(true);
+
+    const result = applyQwenSettings(stale, options);
+    expect(result.model).toEqual({ name: "qwen3-coder-plus" });
+    expect(needsQwenSettingsUpdate(result, options)).toBe(false);
+  });
+
+  it("still pins project modelProviders entries when user-level ones exist", () => {
+    const result = applyQwenSettings(
+      { modelProviders: { openai: [{ model: "a" }] } },
+      { userModelProviders: true },
+    );
+    expect(result.modelProviders).toEqual({
+      openai: [
+        { model: "a", generationConfig: { timeout: QWEN_REQUEST_TIMEOUT_MS } },
+      ],
+    });
+  });
+
   it("is idempotent — a freshly applied config needs no further update", () => {
     expect(needsQwenSettingsUpdate(applyQwenSettings({}))).toBe(false);
     expect(

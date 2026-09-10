@@ -10,6 +10,7 @@ import {
   applyQwenSettings,
   needsQwenSettingsUpdate,
 } from "../../vendors/qwen/settings.js";
+import { hasUserQwenModelProviders } from "../../vendors/qwen/user-settings.js";
 import type { Migration } from "./index.js";
 import { allowsVendor, type MigrationContext } from "./vendor-scope.js";
 
@@ -35,8 +36,9 @@ export const migrateCodexQwenSerena: Migration = {
       } catch {
         parsed = {};
       }
-      if (needsQwenSettingsUpdate(parsed)) {
-        const next = applyQwenSettings(parsed);
+      const qwenOptions = { userModelProviders: hasUserQwenModelProviders() };
+      if (needsQwenSettingsUpdate(parsed, qwenOptions)) {
+        const next = applyQwenSettings(parsed, qwenOptions);
         writeFileSync(qwenSettingsPath, `${JSON.stringify(next, null, 2)}\n`);
         actions.push(".qwen/settings.json (Serena MCP registered)");
       }

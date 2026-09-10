@@ -110,6 +110,11 @@ vi.mock("../../../vendors/qwen/settings.js", () => ({
   needsQwenSettingsUpdate: vi.fn(() => false),
 }));
 
+// Keep link() independent of the developer's real ~/.qwen/settings.json.
+vi.mock("../../../vendors/qwen/user-settings.js", () => ({
+  hasUserQwenModelProviders: vi.fn(() => false),
+}));
+
 import {
   _resetInstallContext,
   setInstallContext,
@@ -316,7 +321,7 @@ describe("link kernel", () => {
 
       expect(qwen.needsQwenSettingsUpdate).toHaveBeenCalledWith(
         expect.anything(),
-        { telemetry: true },
+        { telemetry: true, userModelProviders: false },
       );
     });
 
@@ -328,7 +333,7 @@ describe("link kernel", () => {
 
       expect(qwen.needsQwenSettingsUpdate).toHaveBeenCalledWith(
         expect.anything(),
-        { telemetry: false },
+        { telemetry: false, userModelProviders: false },
       );
     });
 

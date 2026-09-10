@@ -82,6 +82,7 @@ import {
   applyQwenSettings,
   needsQwenSettingsUpdate,
 } from "../../vendors/qwen/settings.js";
+import { hasUserQwenModelProviders } from "../../vendors/qwen/user-settings.js";
 import type { LinkPlanEntry } from "./plan.js";
 import { renderLinkPlan } from "./plan.js";
 
@@ -488,10 +489,14 @@ export function link(opts: LinkOptions = {}): LinkResult {
         qwenSettings = {};
       }
     }
-    if (needsQwenSettingsUpdate(qwenSettings, telemetryOptions)) {
+    const qwenOptions = {
+      ...telemetryOptions,
+      userModelProviders: hasUserQwenModelProviders(),
+    };
+    if (needsQwenSettingsUpdate(qwenSettings, qwenOptions)) {
       record(qwenSettingsPath, "write", "qwen settings (telemetry)");
       if (!dryRun) {
-        const next = applyQwenSettings(qwenSettings, telemetryOptions);
+        const next = applyQwenSettings(qwenSettings, qwenOptions);
         safeWriteJson(qwenSettingsPath, next);
       }
     }

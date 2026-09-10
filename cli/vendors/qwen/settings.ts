@@ -31,6 +31,13 @@ import {
 export interface QwenSettingsOptions {
   /** When true, omit `privacy.usageStatisticsEnabled` opt-out. */
   telemetry?: boolean;
+  /**
+   * When true, the user-level `~/.qwen/settings.json` defines
+   * `modelProviders`. Qwen Code seals provider model entries, so a
+   * project-level `model.generationConfig.timeout` is ignored for them and
+   * only produces a startup warning — oma leaves it unpinned instead.
+   */
+  userModelProviders?: boolean;
 }
 
 export const RECOMMENDED_QWEN_MCP = {
@@ -111,7 +118,9 @@ function normalizeQwenSettings(input: unknown): QwenSettings {
  * each provider entry; older configs have none, and the single top-level
  * `model.generationConfig` is the only slot. The two are mutually exclusive —
  * when `modelProviders` is present the top-level copy is removed so there is
- * exactly one source of truth.
+ * exactly one source of truth. When the providers live in the user-level
+ * settings instead (`userModelProviders`), the project file has no slot that
+ * Qwen Code honors, so no top-level copy is written either.
  */
 export const QWEN_REQUEST_TIMEOUT_MS = 300_000;
 
@@ -152,6 +161,28 @@ function hasModelProvidersTimeoutMismatch(
   return false;
 }
 
+function hasTopLevelTimeout(settings: QwenSettings): boolean {
+  return (
+    isRecord(settings.model) &&
+    isRecord(settings.model.generationConfig) &&
+    "timeout" in settings.model.generationConfig
+  );
+}
+
+/** Drops `model.generationConfig.timeout`, pruning containers it leaves empty. */
+function removeTopLevelTimeout(settings: QwenSettings): void {
+  if (!isRecord(settings.model)) return;
+  const model = settings.model;
+  if (!isRecord(model.generationConfig)) return;
+  delete model.generationConfig.timeout;
+  if (Object.keys(model.generationConfig).length === 0) {
+    delete model.generationConfig;
+  }
+  if (Object.keys(model).length === 0) {
+    delete settings.model;
+  }
+}
+
 export function needsQwenSettingsUpdate(
   rawSettings: unknown,
   options: QwenSettingsOptions = {},
@@ -177,12 +208,10 @@ export function needsQwenSettingsUpdate(
       return true;
     }
     // A leftover top-level copy must be cleared once modelProviders owns it.
-    if (
-      sanitized.model?.generationConfig &&
-      "timeout" in sanitized.model.generationConfig
-    ) {
-      return true;
-    }
+    if (hasTopLevelTimeout(sanitized)) return true;
+  } else if (options.userModelProviders) {
+    // User-level providers ignore the project top-level copy; clear it.
+    if (hasTopLevelTimeout(sanitized)) return true;
   } else if (
     sanitized.model?.generationConfig?.timeout !== QWEN_REQUEST_TIMEOUT_MS
   ) {
@@ -210,12 +239,9 @@ export function applyQwenSettings(
       qwenSettings.modelProviders,
       QWEN_REQUEST_TIMEOUT_MS,
     );
-    if (
-      isRecord(qwenSettings.model) &&
-      isRecord(qwenSettings.model.generationConfig)
-    ) {
-      delete qwenSettings.model.generationConfig.timeout;
-    }
+    removeTopLevelTimeout(qwenSettings);
+  } else if (options.userModelProviders) {
+    removeTopLevelTimeout(qwenSettings);
   } else {
     const existingModel = isRecord(qwenSettings.model)
       ? qwenSettings.model
