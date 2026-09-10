@@ -1,6 +1,7 @@
 ---
 title: "Guide: Automated Updates"
-description: Complete GitHub Action documentation for oh-my-agent, covering setup, all inputs and outputs, detailed examples, and how it works under the hood.
+sidebar_label: Automatic Updates
+description: Configure the OMA GitHub Action, understand its inputs and outputs, and see exactly what CI updates preserve or replace.
 ---
 
 # Guide: Automated Updates
@@ -38,7 +39,7 @@ jobs:
       - uses: first-fluke/oma-update-action@v1
 ```
 
-That is the minimal configuration. It creates a PR with default settings when a new version is available.
+That is the minimal configuration. When an installed component changes, the action should finish with `updated=true`, a version output, and a pull request. When no file changes, it finishes with `updated=false` and no PR.
 
 ---
 
@@ -261,11 +262,13 @@ What `oma update --ci` does internally:
 2. Compares with the local version in `.agents/skills/_version.json`.
 3. If versions match, exits with "Already up to date."
 4. If a new version is available, downloads and extracts the latest tarball.
-5. Preserves user-customized files (unless `--force`): `oma-config.yaml`, `mcp.json`, `stack/` directories.
+5. Preserves user-customized files (unless `--force`): `oma-config.yaml`, `mcp.json`, and stack directories.
 6. Copies new files over the existing `.agents/` directory.
 7. Restores preserved files.
 8. Updates vendor adaptations (hooks, settings, agent definitions) for all vendors.
 9. Refreshes CLI symlinks.
+
+The action invokes `oma update --ci` without `--with-new-skills`. That refreshes the installed skill set and reports newly available skills; run `oma update --with-new-skills` deliberately when a project should add new skills as part of the update.
 
 ### Step 4: check for changes
 
@@ -286,4 +289,3 @@ After this, depending on the `mode` input:
 - **`pr` mode:** Uses `peter-evans/create-pull-request@v8` to create a PR on branch `chore/update-oh-my-agent`. The PR includes the new version number, a link to the oh-my-agent repo, and the configured labels. If the branch already exists (from a previous unclosed PR), it updates the existing PR.
 
 - **`commit` mode:** Configures git as `github-actions[bot]`, stages `.agents/` and `.claude/`, commits with the configured message, and pushes to the base branch.
-

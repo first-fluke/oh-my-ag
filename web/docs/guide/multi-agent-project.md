@@ -1,5 +1,6 @@
 ---
 title: "Guide: Multi-Agent Projects"
+sidebar_label: Multi-Agent Projects
 description: Complete guide for coordinating multiple domain agents across frontend, backend, database, mobile, and QA, from planning through merge.
 ---
 
@@ -35,7 +36,7 @@ The `/plan` workflow runs inline (no subagent spawning) and produces a structure
 What happens:
 
 1. **Gather requirements**: The PM agent asks about target users, core features, constraints, and deployment targets.
-2. **Analyze technical feasibility**: Uses MCP code analysis tools (`get_symbols_overview`, `find_symbol`, `search_for_pattern`) to scan the existing codebase for reusable code and architecture patterns.
+2. **Analyze technical feasibility**: Uses the configured code-intelligence provider and native scoped search when it is unavailable to scan the existing codebase for reusable code and architecture patterns.
 3. **Define API contracts**: Designs endpoint contracts (method, path, request/response schemas, auth, error responses) and saves them to `.agents/results/api-contracts/` (run artifacts), promoting durable specs to `docs/plans/contracts/` when committed.
 4. **Decompose into tasks**: Breaks the project into actionable tasks, each with assigned agent, title, acceptance criteria, priority (P0-P3), and dependencies.
 5. **Review plan with user**: Presents the full plan for confirmation. The workflow will not proceed without explicit user approval.
@@ -50,8 +51,8 @@ You have two execution paths:
 | Aspect | /work | /orchestrate |
 |:-------|:-----------|:-------------|
 | **Interaction** | Interactive (user confirms at each stage) | Automated (runs to completion) |
-| **PM planning** | Built-in (Step 2 runs PM agent) | Requires plan from /plan |
-| **User checkpoint** | After plan review (Step 3) | Before starting (plan must exist) |
+| **PM planning** | Built-in (Step 2 runs PM agent) | Loads a plan when present; creates one inline when absent |
+| **User checkpoint** | After plan review (Step 3) | The inline plan still passes its review gate before fan-out |
 | **Persistent mode** | Yes (cannot be terminated until complete) | Yes (cannot be terminated until complete) |
 | **Best for** | First-time use, complex projects needing oversight | Repeat runs, well-defined tasks |
 
@@ -75,7 +76,7 @@ You have two execution paths:
 /orchestrate
 ```
 
-1. Loads `.agents/results/plan-{sessionId}.json` (will not proceed without one).
+1. Loads `.agents/results/plan-{sessionId}.json`, creating a plan inline through `/plan` when no usable plan exists.
 2. Initializes a session with ID format `session-YYYYMMDD-HHMMSS`.
 3. Creates `orchestrator-session.md` and `task-board.md` in the memory directory.
 4. Spawns agents per priority tier, each getting: task description, API contracts, and context.
@@ -95,8 +96,11 @@ oma agent spawn backend "Implement user auth API with JWT" session-20260324-1430
 
 | Flag | Description |
 |:-----|:-----------|
-| `--vendor <vendor>` | CLI vendor override (antigravity/claude/codex/qwen). Overrides all config. |
+| `--vendor <vendor>` | CLI vendor override (antigravity/claude/codex/cursor/opencode/qwen/grok/pi). Overrides model resolution for this spawn. |
 | `-w, --workspace <path>` | Working directory for the agent. Auto-detected from monorepo config if omitted. |
+| `--task-id <id>` | Binds the spawn to a task in the session plan; defaults to the agent ID. |
+| `--isolation worktree` | Creates a git worktree for the spawn; the default is no extra isolation. |
+| `--read-only` | Restricts the child to inspection tools and suppresses auto-approve flags. |
 
 **Vendor resolution order** (first match wins):
 
@@ -207,7 +211,7 @@ API contracts are the synchronization mechanism between agents. The contract-fir
    - Authentication requirements
    - Error response formats
 
-4. **Contract violations are caught during monitoring.** Step 5 of `/work` uses MCP code analysis tools (`find_symbol`, `search_for_pattern`) to verify API contract alignment between agents.
+4. **Contract violations are caught during monitoring.** Step 5 of `/work` uses the configured code-intelligence provider or native scoped search to verify API contract alignment between agents.
 
 5. **QA review checks contract adherence.** The QA agent's Alignment Review (Step 6 in ultrawork) explicitly compares implementation against the plan, including API contracts.
 
@@ -219,9 +223,9 @@ Without contracts, a backend agent might return `{ "user_id": 1 }` while the fro
 
 Before any multi-agent work is considered complete, four conditions must be met:
 
-### 1. Build succeeds
+### 1. Declared checks succeed
 
-All code compiles and builds without errors. This is checked by the verification script (`verify.sh`), which runs build commands appropriate to the agent type.
+Every acceptance criterion has a relevant check, and the checks declared by the plan pass. A build is included only when the task's project gate requires it; the result contract records the actual argv and exit code.
 
 ### 2. Tests pass
 
@@ -304,7 +308,7 @@ oma agent parallel tasks.yaml --vendor claude
 
 ### 1. Rubber-stamping the plan
 
-`/orchestrate` no longer refuses to start without a plan file — it delegates to `/plan` inline and continues with the result. That inline plan still goes through `/plan`'s review gate, and approving it without reading it is what actually causes trouble: the fan-out in the next step is authorized by that approval. For large multi-domain work, run `/plan` up front anyway — you get a durable tracker in `docs/plans/work/` and room to iterate on the decomposition before any agent spawns.
+`/orchestrate` can create a plan through `/plan` inline when no usable plan file exists. The inline plan still goes through `/plan`'s review gate, and the fan-out in the next step follows that approved decomposition. For large multi-domain work, run `/plan` up front so you have a durable tracker in `docs/plans/work/` and room to refine the decomposition before any agent spawns.
 
 ### 2. Overlapping workspaces
 
@@ -328,7 +332,7 @@ Running P1 tasks before P0 tasks complete. Priority tiers exist because P1 tasks
 
 ### 7. Skipping verification
 
-Using `agent spawn` directly without running the verification script afterward. The verification step catches build failures, test regressions, and scope violations that would otherwise propagate.
+Using `agent spawn` directly without recording the result contract afterward. Run the task's pinned checks and finish a structured claim; see [Agent results and resume](/docs/guide/agent-results-and-resume). The workflow's verification step then catches failed checks and scope drift before results are reused.
 
 ---
 
@@ -336,7 +340,7 @@ Using `agent spawn` directly without running the verification script afterward. 
 
 After all agents complete their individual tasks, cross-domain integration must be validated:
 
-1. **API contract alignment**: MCP tools (`find_symbol`, `search_for_pattern`) verify that backend implementations match the contracts consumed by frontend and mobile.
+1. **API contract alignment**: The configured code-intelligence provider or native scoped search verifies that backend implementations match the contracts consumed by frontend and mobile.
 
 2. **Type consistency**: TypeScript types, Python dataclasses, or Dart models shared across domains must use consistent field names and types.
 

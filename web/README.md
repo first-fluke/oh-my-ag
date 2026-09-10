@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OMA documentation website
 
-## Getting Started
+This directory contains the Docusaurus documentation website for oh-my-agent. English source pages live in `docs/`; translated pages live in `i18n/<locale>/docusaurus-plugin-content-docs/current/`.
 
-First, run the development server:
+## Run the website locally
+
+Use the Node.js version required by `package.json` and Bun. From the repository root, install dependencies, then start the English development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install
+bun run --cwd web dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open the URL printed by Docusaurus. Edit a page under `web/docs/` and the development server reloads it. To preview Korean instead:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+bun run --cwd web dev --locale ko
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Find the files you need
 
-## Learn More
+| Change | File or directory |
+|---|---|
+| English guide content | `docs/` |
+| Translated guide content | `i18n/<locale>/docusaurus-plugin-content-docs/current/` |
+| Sidebar order and categories | `sidebars.ts` |
+| Translated sidebar labels | `i18n/<locale>/docusaurus-plugin-content-docs/current.json` |
+| Site URL, locales, plugins and navigation | `docusaurus.config.ts` |
+| Landing page | `src/pages/index.tsx` |
+| Shared styling | `src/css/custom.css` |
 
-To learn more about Next.js, take a look at the following resources:
+## Write a guide
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Start with the reader's task and prerequisites. Give the smallest usable example, explain the result, then cover relevant defaults, choices and recovery. Link to the detailed command or configuration reference instead of copying the same long table into several guides.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Keep existing routes and correct technical details when reorganizing a page. Verify commands against the CLI's registration or `oma describe`, and verify configuration defaults against their implementation. Distinguish a skill, an agent definition and a workflow; they are different inventories.
 
-## Deploy on Vercel
+Add each new page to `sidebars.ts`. Use relative Markdown links between pages. Keep English and Korean content aligned and record any remaining translation gaps for the other supported locales. A missing translated page falls back to English; that is not a completed translation.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Check changes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+From the repository root:
+
+```bash
+bun cli/cli.ts docs verify 'web/docs/**/*.md' --json --no-urls
+bun cli/cli.ts docs i18n --json
+bun cli/cli.ts docs lint --json
+bunx tsc --noEmit -p web/tsconfig.json
+git diff --check
+```
+
+The documentation verifier checks references; translation drift checks compare structure and recency. Neither proves that a tutorial teaches the correct behavior. Read examples against the implementation and check the learning path as well.
+
+When a production build is explicitly requested, run:
+
+```bash
+bun run --cwd web build
+```
+
+The generated site is written to `web/build/`. Repository CI owns deployment; consult `.github/workflows/` from the repository root for the current publish workflow.

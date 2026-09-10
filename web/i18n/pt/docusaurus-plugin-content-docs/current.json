@@ -1,18 +1,30 @@
 {
   "sidebar.docsSidebar.category.Getting Started": {
-    "message": "Introdução",
+    "message": "Primeiros passos",
     "description": "The label for category Getting Started in sidebar docsSidebar"
   },
   "sidebar.docsSidebar.category.Core Concepts": {
     "message": "Conceitos principais",
     "description": "The label for category Core Concepts in sidebar docsSidebar"
   },
-  "sidebar.docsSidebar.category.Guide": {
-    "message": "Guia",
-    "description": "The label for category Guide in sidebar docsSidebar"
+  "sidebar.docsSidebar.category.Working with Agents": {
+    "message": "Trabalhando com agentes",
+    "description": "The label for category Working with Agents in sidebar docsSidebar"
   },
-  "sidebar.docsSidebar.category.CLI Interfaces": {
-    "message": "Interfaces CLI",
-    "description": "The label for category CLI Interfaces in sidebar docsSidebar"
+  "sidebar.docsSidebar.category.Setup and Configuration": {
+    "message": "Configuração e instalação",
+    "description": "The label for category Setup and Configuration in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Automation and Evaluation": {
+    "message": "Automação e avaliação",
+    "description": "The label for category Automation and Evaluation in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Content and Research": {
+    "message": "Conteúdo e pesquisa",
+    "description": "The label for category Content and Research in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Reference": {
+    "message": "Referência",
+    "description": "The label for category Reference in sidebar docsSidebar"
   }
 }

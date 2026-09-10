@@ -1,17 +1,17 @@
 ---
 title: 에이전트
-description: oh-my-agent 21개 에이전트의 완전한 레퍼런스입니다. 도메인, 기술 스택, 리소스 파일, 기능, Charter Preflight 프로토콜, 2계층 스킬 로딩, 범위 제한 실행 규칙, 품질 게이트, 워크스페이스 전략, 오케스트레이션 흐름, 런타임 메모리를 다룹니다.
+description: OMA의 33개 스킬 패키지, 13개 표준 디스패치 역할, 12개 체크인 서브에이전트 정의를 설명하는 레퍼런스입니다. 도메인, 리소스, Charter Preflight, 점진적 로딩, 범위 규칙, 품질 게이트, 워크스페이스 전략, 오케스트레이션, 런타임 메모리를 다룹니다.
 ---
 
 # 에이전트
 
-oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각 에이전트는 정의된 도메인, 기술 스택 지식, 리소스 파일, 품질 게이트, 실행 제약을 갖춥니다. 에이전트는 범용 챗봇이 아니라, 자신의 영역 안에서 체계적인 프로토콜을 따르는 범위가 한정된 작업자입니다.
+OMA는 스킬 패키지, 디스패치 역할, 서브에이전트 정의 파일을 분리합니다. 스킬은 도메인 지침을 라우팅하고 로드하며, 표준 역할은 디스패치에 사용하는 런타임 정체성이고, 체크인 정의는 서브에이전트에 벤더 네이티브 페르소나를 제공합니다. 이 계층들은 의도적으로 겹치므로 하나의 스킬로 충분한지는 태스크 범위와 인수 기준으로 판단합니다.
 
 `.agents/agents/` 아래의 에이전트 정의가 원본입니다. OMA는 커스텀 서브에이전트를 지원하는 런타임을 위해 이 정의를 벤더 네이티브 파일로 투사합니다.
 
 - `.claude/agents/*.md`
 - `.codex/agents/*.toml`
-- `.gemini/agents/*.md`
+- `.cursor/agents/*`, `.opencode/agents/*` 또는 지원되는 다른 선택 벤더의 투사 파일
 
 워크플로우가 어떤 에이전트를 현재 런타임과 같은 벤더로 매핑하면, 그 런타임의 네이티브 에이전트 파일을 먼저 써야 합니다. 다른 벤더로 가는 태스크는 `oma agent spawn`으로 폴백합니다.
 
@@ -26,7 +26,7 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 | **아이디에이션** | oma-brainstorm | 아이디어 탐색, 접근 방식 제안, 설계 문서 작성 |
 | **아키텍처** | oma-architecture | 시스템/모듈/서비스 경계, ADR/ATAM/CBAM 방식의 분석, 트레이드오프 기록 |
 | **기획** | oma-pm | 요구사항 분해, 태스크 분해, API 컨트랙트, 우선순위 할당 |
-| **구현** | oma-frontend, oma-backend, oma-mobile, oma-db | 각 도메인에서 프로덕션 코드 작성 |
+| **구현** | oma-frontend, oma-backend, oma-mobile, oma-db | 각 도메인에서 코드 작성 |
 | **디자인** | oma-design | 디자인 시스템, DESIGN.md, 토큰, 타이포그래피, 컬러, 모션, 접근성 |
 | **인프라** | oma-tf-infra | 멀티 클라우드 Terraform 프로비저닝, IAM, 비용 최적화, Policy-as-code |
 | **DevOps** | oma-dev-workflow | mise task runner, CI/CD, 마이그레이션, 릴리스 조율, 모노레포 자동화 |
@@ -40,6 +40,7 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 | **회고** | oma-recap | 크로스 도구 대화 이력 분석 및 주제별 작업 요약 |
 | **문서 처리** | oma-hwp, oma-pdf | LLM/RAG 수집을 위한 HWP/HWPX/HWPML 및 PDF → Markdown 변환 |
 | **문서화** | oma-docs | 문서 드리프트 탐지 (깨진 참조 검증, diff 영향 문서에 대한 동기화 패치 제안) |
+| **설명** | oma-explanation | diff, 브랜치, PR, 커밋 범위를 위한 오프라인 인터랙티브 HTML 설명서 |
 | **학술 글쓰기** | oma-academic-writing, oma-scholar | 출판 수준 학술 산문 작성과 감사, Knows 사이드카 기반 학술 연구·검색·동료 검토 |
 | **보안** | oma-deepsec | Vercel의 deepsec 에이전트 기반 취약점 스캐너를 비용을 의식하며 운용 (스캔, PR 게이트, 매처, 트리아지) |
 | **리팩터링** | oma-refactor | 동작을 보존하는 점진적 구조 개선. 핫스팟 타기팅, 특성화 테스트 안전망, 리팩터링만 담는 커밋 |
@@ -107,7 +108,7 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 - 최대 병렬 실행을 위해 의존성 최소화
 - 보안과 테스팅은 모든 태스크의 일부 (별도 단계가 아님)
 - 태스크는 단일 에이전트가 완료 가능해야 함
-- 오케스트레이터 호환성을 위한 JSON 계획 + task-board.md 출력
+- 오케스트레이터 호환성을 위한 JSON 계획과 세션 범위 task board 출력
 
 **출력:** `.agents/results/plan-{sessionId}.json`, `.agents/results/result-pm.md`, 오케스트레이터용 메모리 기록.
 
@@ -151,7 +152,7 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 - FCP 목표 < 1초
 - 반응형 브레이크포인트: 320px, 768px, 1024px, 1440px
 
-**리소스:** `execution-protocol.md`, `tech-stack.md`, `tailwind-rules.md`, `component-template.tsx`, `snippets.md`, `error-playbook.md`, `checklist.md`, `examples/`.
+**리소스:** `execution-protocol.md`, `tech-stack.md`, `tailwind-rules.md`, `snippets.md`, `angular-rules.md`, `error-playbook.md`, `checklist.md`.
 
 **품질 게이트 체크리스트:**
 - 접근성: ARIA 레이블, 시맨틱 헤딩, 키보드 네비게이션
@@ -173,7 +174,7 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 
 **아키텍처:** Router (HTTP) -> Service (비즈니스 로직) -> Repository (데이터 접근) -> Models.
 
-**스택 감지:** 프로젝트 매니페스트(pyproject.toml, package.json, Cargo.toml, go.mod 등)를 읽어 언어와 프레임워크를 결정합니다. `stack/` 디렉토리가 있으면 그쪽으로 폴백하고, 없으면 사용자에게 `/stack-set` 실행을 요청합니다.
+**스택 감지:** 프로젝트 매니페스트(pyproject.toml, package.json, Cargo.toml, go.mod 등)를 읽어 언어와 프레임워크를 결정합니다. 프로젝트별 관례가 없으면 사용자에게 `/stack-set` 실행을 요청하며, 이 명령이 제공된 스키마와 템플릿에서 해석된 `stack/` 레퍼런스를 실체화합니다.
 
 **핵심 규칙:**
 - 클린 아키텍처: 라우트 핸들러에 비즈니스 로직 금지
@@ -184,7 +185,11 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 - 중앙 집중식 에러 모듈을 통한 커스텀 예외
 - 명시적 ORM 로딩 전략, 트랜잭션 경계, 안전한 라이프사이클
 
-**리소스:** `execution-protocol.md`, `examples.md`, `orm-reference.md`, `checklist.md`, `error-playbook.md`. `stack/`의 스택별 리소스(`/stack-set`으로 생성): `tech-stack.md`, `snippets.md`, `api-template.*`, `stack.yaml`.
+**리소스:** `execution-protocol.md`, `orm-reference.md`, `checklist.md`, `error-playbook.md`. `variants/stack.schema.json`이 스택 매니페스트 형태를 정의합니다.
+
+<!-- oma-docs:ignore-start -->
+필요할 때 `/stack-set`이 프로젝트별 `stack/stack.yaml`, `stack/tech-stack.md`, 스니펫, API 템플릿을 생성합니다. 스택을 실체화하기 전에는 이 파일들이 존재하지 않습니다.
+<!-- oma-docs:ignore-end -->
 
 **턴 제한:** 기본 20, 최대 30.
 
@@ -209,7 +214,7 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 - 60fps 목표; 양 플랫폼에서 테스트
 - Swift: iOS 17+에서는 `ObservableObject` 대신 `@Observable` 사용; `swift-openapi-generator`로 OpenAPI 스펙에서 API 클라이언트 생성
 
-**리소스:** `execution-protocol.md`, `tech-stack.md`, `snippets.md`, `screen-template.dart`, `screen-template.swift`, `checklist.md`, `error-playbook.md`, `examples.md`. `variants/swift-ios/`의 Swift 변형 레퍼런스(`/stack-set`으로 생성: `stack.yaml`, `tech-stack.md`, `snippets.md`, `api-template.swift`).
+**리소스:** `execution-protocol.md`, `tech-stack.md`, `screen-template.dart`, `screen-template.swift`, `screen-template.tsx`, `checklist.md`, `error-playbook.md`. `/stack-set`이 `variants/`의 스택 스키마와 생성된 플랫폼 레퍼런스를 실체화합니다.
 
 **턴 제한:** 기본 20, 최대 30.
 
@@ -384,9 +389,7 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 
 **사용 시기:** UI 문자열, 문서, 마케팅 카피 번역, 기존 번역 검토, 용어집 생성.
 
-**4단계 방법:** 원문 분석(레지스터, 의도, 도메인 용어, 문화적 참조, 감정적 함의, 비유적 언어 매핑) -> 의미 추출(원문 구조 제거) -> 대상 언어로 재구성(자연스러운 어순, 레지스터 매칭, 문장 분할/병합) -> 검증(자연스러움 루브릭 + 안티 AI 패턴 검사).
-
-**출판 품질을 위한 선택적 7단계 정제 모드:** 비평적 리뷰, 수정, 다듬기 단계가 추가됩니다.
+**6장면 흐름:** Prepare, Acquire, Reason, Act, Verify, Finalize입니다. 번역 방법은 보호해야 할 구문과 의미를 읽고, 레지스터를 선택하고, 대상 언어로 재구성하고, 필요한 경우 저자의 문체를 보존하는 네 단계입니다.
 
 **핵심 규칙:**
 - 먼저 기존 로케일 파일을 스캔해 프로젝트 관례에 맞추기
@@ -421,7 +424,7 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 
 **에이전트 간 리뷰 루프:**
 1. 자체 리뷰: 에이전트가 인수 기준에 대해 자신의 diff를 확인
-2. 자동화 검증: `oma verify {agent-type} --workspace {workspace}`
+2. 자동화 검증: `oma verify agent {agent-type} --workspace {workspace}`
 3. 크로스 리뷰: QA 에이전트가 변경사항 리뷰
 4. 실패 시: 수정을 위해 이슈 피드백 (총 최대 5회 루프 반복)
 
@@ -433,20 +436,20 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 
 ### oma-scm
 
-**도메인:** Conventional Commits를 따르는 Git 커밋 생성.
+**도메인:** 브랜치, 머지, 워크트리, 베이스라인, 감사 준비, Conventional Commits를 다루는 소프트웨어 형상관리(SCM)와 Git.
 
 **사용 시기:** 코드 변경 완료 후, `/scm` 실행 시.
 
 **커밋 유형:** feat, fix, refactor, docs, test, chore, style, perf.
 
-**워크플로우:** 변경사항 분석 -> 기능별 분할(5개 파일 초과이며 다른 범위에 걸쳐 있을 경우) -> 유형 결정 -> 범위 결정 -> 설명 작성(명령문, 72자 미만, 소문자, 마침표 없음) -> 즉시 커밋 실행.
+**워크플로우(커밋):** 변경사항 분석 -> 필요하면 기능별 분할 -> 유형 결정 -> 범위 결정 -> 설명 작성(명령문, 72자 미만, 소문자, 마침표 없음) -> 파일을 명시해 커밋.
 
 **규칙:**
 - `git add -A`나 `git add .` 사용 금지
 - 시크릿 파일 커밋 금지
 - 스테이징 시 항상 파일 지정
 - 멀티라인 커밋 메시지에 HEREDOC 사용
-- Co-Author: `First Fluke <our.first.fluke@gmail.com>`
+- 유효한 `scm.co_author` 설정이 활성화되어 이름과 이메일을 제공할 때만 co-author trailer를 포함합니다.
 
 ---
 
@@ -623,9 +626,23 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 
 ---
 
+### oma-explanation
+
+**도메인:** 코드 변경을 위한 인터랙티브 설명서.
+
+**사용 시기:** diff, pull request, 브랜치, 커밋 범위를 배경, 직관, 코드 워크스루, 짧은 퀴즈를 하나의 오프라인 HTML 산출물로 설명할 때 사용합니다.
+
+**워크플로우:** 요청한 변경을 읽고 Background / Intuition / Code / Quiz 섹션이 있는 자체 완결형 HTML 설명서를 만들며, 산출물을 검증한 뒤 `.agents/results/explain/` 아래에 기록합니다.
+
+**사용하지 말아야 할 때:** 일반 문서 페이지, 실제 기능 구현, 발표 덱 작성에는 사용하지 않습니다. 발표에는 `oma-slide`를 사용합니다.
+
+**리소스:** 공유 실행 및 품질 리소스와 `/explain` 워크플로우의 산출물 검증을 사용합니다.
+
+---
+
 ### oma-image
 
-**도메인:** 인증 상태를 인지해 병렬로 디스패치하는 멀티 벤더 AI 이미지 생성(Codex `gpt-image-2`, `agy`를 통한 Antigravity `gemini-2.5-flash-image`(nano-banana), Pollinations flux/zimage).
+**도메인:** 인증 상태를 인지해 병렬로 디스패치하는 멀티 벤더 AI 이미지 생성(Codex `gpt-image-2`, `agy`를 통한 Antigravity Gemini 계열 “nano-banana” 모델. 정확한 모델은 내부에서 선택, Pollinations flux/zimage).
 
 **사용 시기:** 이미지, 비주얼 에셋, 일러스트, 제품 사진, 콘셉트 아트, 목업을 생성할 때, 같은 프롬프트로 여러 이미지 모델의 결과를 비교할 때, 에디터 워크플로우 안에서 프롬프트로 이미지를 만들 때.
 
@@ -635,8 +652,8 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 - 호출 전에 명확화: 피사체·스타일·구도·용도가 모호하면 먼저 묻거나, 프롬프트를 보강해 확장본을 사용자에게 보여주기
 - 인증을 인지한 디스패치: 인증된 벤더만 실행하고, `--vendor all`에서는 요청한 모든 벤더가 사용 가능해야 함
 - 비용 가드레일: 추정 비용이 0.20달러 이상이면 확인(`--yes` / `OMA_IMAGE_YES=1`로 우회). 기본값인 `pollinations`와 `antigravity`는 무료
-- 경로 안전성: `$PWD` 밖으로 출력하려면 `--allow-external-out`이 필요하고 최대 `n`은 5
-- 결정적 출력: 모든 실행이 이미지 옆에 `manifest.json`을 작성
+- 경로 안전성: `$PWD` 밖으로 출력하려면 `--allow-external-output`이 필요하고 최대 `n`은 5
+- 기록된 출력: 모든 실행이 프롬프트, 벤더/모델, 입력, 산출물 메타데이터가 담긴 `manifest.json`을 이미지 옆에 작성합니다. 재현성 데이터를 기록하지만 픽셀이 동일한 이미지를 보장하지는 않습니다.
 - 첨부된 참조 이미지를 `--reference <path>`로 자동 전달(codex, antigravity)
 
 **워크플로우:** PREPARE(프롬프트 명확화와 보강, 벤더 선택) → ACQUIRE(인증, 참조, 출력 경로 검증) → ACT(`oma image generate`) → VERIFY(매니페스트, 파일, 종료 코드) → FINALIZE(출력 경로와 경고).
@@ -649,7 +666,7 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 
 **도메인:** 커뮤니티 신호 기반 시장 조사. Reddit, HN, Bluesky, Mastodon, GitHub Issues, 웹에서 페인 포인트를 추출하고 트렌드를 감지하며 경쟁 구도를 파악하고 새로운 기회를 발견합니다.
 
-**사용 시기:** 커뮤니티 게시물에서 실제 사용자 페인 포인트를 뽑을 때, 7일·30일·90일·180일 구간에서 카테고리 트렌드를 감지할 때, 경쟁사 정서 분석과 SWOT 포지셔닝을 할 때, 여러 소스에 걸친 개방형 발견 조사를 할 때.
+**사용 시기:** 커뮤니티 게시물에서 실제 사용자 페인 포인트를 뽑을 때, 7일·30일·90일·180일 구간에서 카테고리 트렌드를 감지할 때, 경쟁사 정서 분석과 SWOT 포지셔닝을 할 때, 여러 소스에 걸친 개방형 발견 조사(`--discover`)를 할 때.
 
 **사용하지 말아야 할 때:** 시장 프레이밍 없이 일반 웹 리서치를 할 때(oma-search 직접 사용), 단일 소스 쿼리(`oma search fetch` 단독 사용), 실시간 대시보드나 예약 모니터링(v1은 일회성 실행입니다).
 
@@ -661,7 +678,7 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 - 파일을 쓰기 전에 LAW 자체 점검이 필수이며, 마크다운 본문에 원시 증거를 그대로 쏟지 않음
 - 실행 한 번에 브리프 하나를 `.agents/results/market/{topic-slug}-{YYYYMMDD}.md`에 작성. 프레임워크는 의도에 따라 자동 선택(pain·trend는 SWOT, competitor는 SWOT + Porter's 5F, discovery는 SWOT + PESTEL)
 
-**워크플로우:** PREPARE(주제와 플래그 파싱, detect-trap, 의도·팩·구간 해석) → ACT(소스별 fetch URL 구성) → ACQUIRE(병렬 harvest) → VERIFY(점수, 융합, 클러스터링) → FINALIZE(LAW를 준수하는 브리프 렌더링, 자체 점검, 파일 작성).
+**워크플로우:** PREPARE(주제와 플래그 파싱, detect-trap, 의도·팩·구간 해석) → ACT(소스별 fetch URL 구성) → ACQUIRE(병렬 harvest) → VERIFY(점수, 융합, 클러스터링) → FINALIZE(`oma market run … --emit=compact` 결과를 바탕으로 LAW를 준수하는 브리프 렌더링, 자체 점검, 파일 작성).
 
 **리소스:** `intent-rules.md`, `output-laws.md`, `execution-protocol.md`, `checklist.md`, `error-playbook.md`, `examples.md`, 그리고 `frameworks/`(swot, porters-5f, pestel)와 `operator-packs/`(pain, positive, competitor, discovery).
 
@@ -758,7 +775,7 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 
 ### oma-video
 
-**도메인:** 키가 선택 사항인 3계층(CLI 우선 / MCP / 안내형) 프로바이더 라우터로 숏폼, 설명, 데모 영상을 생성합니다. 스크립트 → 내레이션 → 비주얼 → 자막 → Remotion 렌더 순으로 조합합니다.
+**도메인:** `oma video` CLI로 숏폼, 설명 영상, 사람이 녹화하는 데모 영상을 생성합니다. 스크립트 → 내레이션 → 비주얼 → 자막 → Remotion 렌더 순으로 조합합니다.
 
 **사용 시기:** 주제로 숏폼 영상(숏츠·릴스, 9:16)을 만들 때, README·코드·데이터로 설명 영상(16:9 또는 9:16)을 만들 때, 화면 캡처(`--source file`)나 감독하에 진행하는 웹 앱 헤디드 캡처(`--source web`)로 데모와 워크스루를 만들 때, 기존 실행을 결정론적으로 다시 렌더링할 때.
 
@@ -766,11 +783,11 @@ oh-my-agent의 에이전트는 전문화된 엔지니어링 역할입니다. 각
 
 **핵심 규칙:**
 - 호출 전에 모드를 명확히 하거나 추론하고, 모호한 브리프로 조용히 렌더링하지 말고 추론한 계획을 사용자에게 보여주기
-- 키가 선택 사항인 디스패치: 모든 외부 기능에 실제 경로와 키 없는 폴백이 함께 있으며, 유료 프로바이더(Pexels, Pixelle)는 환경 키가 있을 때만 자동 활성화
+- 지원되는 에셋 폴백에는 키를 선택적으로 설정할 수 있습니다. 유료 프로바이더(Pexels, Pixelle)는 환경 키가 있을 때만 자동 활성화되며, 컴포지터 실패를 폴백 영상으로 대체하지 않음
 - 비용 가드레일은 `$0.20` 이상(`--yes` / `OMA_VIDEO_YES=1`로 우회), 길이는 180초, 장면은 40개까지
-- 결정적 출력: `render-spec.json`과 에셋(시드와 임베드된 Pretendard 포함)이 결정성의 경계이며, `OMA_VIDEO_MOCK=1`은 골든 픽스처를 재생
+- `render-spec.json`, 에셋, 시드, 임베드된 Pretendard에 렌더 입력을 기록합니다. `OMA_VIDEO_MOCK=1`은 골든 픽스처를 위한 테스트 하네스이며 사용자 산출물이 아닙니다.
 - 데모는 사람이 개입합니다. 웹 캡처는 헤디드 브라우저를 열고 사람이 흐름을 진행하는 동안 녹화만 하며, 자격 증명을 자동화하지 않습니다. `--url`과 토큰은 로그와 매니페스트에서 마스킹됩니다
-- 경로 안전성(`$PWD` 밖으로 출력하려면 `--allow-external-out`)
+- 경로 안전성(`$PWD` 밖으로 출력하려면 `--allow-external-output`)
 
 **워크플로우:** PREPARE(모드·화면비·로케일, 브리프 명확화와 보강) → ACQUIRE(프로바이더 가용성 확인, 캡처 경로 검증, 비용 확인) → ACT(스크립트 → 음성과 비주얼과 자막 → render-spec → 렌더) → VERIFY(스키마, 매니페스트 해시, 종료 코드, mp4) → FINALIZE(실행 디렉토리, mp4 경로, 커버리지 경고).
 
@@ -832,7 +849,7 @@ CHARTER_CHECK:
 
 각 에이전트의 지식은 두 계층으로 나뉩니다:
 
-**Layer 1: SKILL.md (~800바이트):**
+**Layer 1: SKILL.md (중앙값 약 3,100토큰):**
 항상 로딩됩니다. 프론트매터(이름, 설명), 사용 시기 / 사용하지 말아야 할 때, 핵심 규칙, 아키텍처 개요, 라이브러리 목록, Layer 2 리소스에 대한 참조가 포함됩니다.
 
 **Layer 2: resources/ (필요 시 로딩):**
@@ -888,12 +905,12 @@ oma agent spawn frontend "Build login form" session-01 -w ./apps/web
 멀티 에이전트 워크플로우(`/orchestrate` 또는 `/work`) 실행 시:
 
 1. **PM 에이전트**가 요청을 우선순위(P0, P1, P2)와 의존성이 있는 도메인별 태스크로 분해
-2. **세션 초기화**: 세션 ID 생성, 메모리에 `orchestrator-session.md`와 `task-board.md` 생성
+2. **세션 초기화**: 세션 ID를 생성하고 설정된 메모리 저장소에 `orchestrator-session-{sessionId}.md`와 `task-board-{sessionId}.md`를 생성
 3. **P0 태스크** 병렬 스폰 (최대 MAX_PARALLEL 동시 에이전트)
-4. **진행 상황 모니터링**: 오케스트레이터가 매 POLL_INTERVAL마다 `progress-{agent}.md` 파일 폴링
+4. **진행 상황 모니터링**: 오케스트레이터가 매 POLL_INTERVAL마다 실행 범위가 지정된 `progress-{agentId}-{taskId}-{runId}-{sessionId}.md` 파일과 구조화된 실행 기록을 폴링
 5. **P1 태스크** P0 완료 후 스폰, 이후 동일
 6. **검증 루프**: 완료된 에이전트마다 실행 (자체 리뷰 -> 자동화 검증 -> QA의 크로스 리뷰)
-7. **결과 수집**: 모든 `result-{agent}.md` 파일에서 결과를 모음
+7. **결과 수집**: 실행 범위가 지정된 결과 파일과 구조화된 클레임에서 결과를 모음
 8. **최종 보고서**: 세션 요약, 변경된 파일, 남은 이슈 포함
 
 ---
@@ -902,7 +919,7 @@ oma agent spawn frontend "Build login form" session-01 -w ./apps/web
 
 에이전트는 두 위치에 정의됩니다:
 
-**`.agents/agents/`**: 추상 원본(source of truth) 에이전트 정의가 있는 곳입니다. 예를 들면 다음과 같습니다.
+**`.agents/agents/`**: 12개의 체크인된 원본 서브에이전트 정의가 있는 곳입니다. 예를 들면 다음과 같습니다.
 - `backend-engineer.md`
 - `frontend-engineer.md`
 - `mobile-engineer.md`
@@ -912,13 +929,18 @@ oma agent spawn frontend "Build login form" session-01 -w ./apps/web
 - `pm-planner.md`
 - `architecture-reviewer.md`
 - `tf-infra-engineer.md`
+- `docs-curator.md`
+- `refactor-engineer.md`
+- `research-explorer.md`
 
 이 파일은 에이전트의 정체성, 실행 프로토콜 참조, CHARTER_CHECK 템플릿, 아키텍처 요약, 규칙을 정의합니다. Task/Agent 도구(Claude Code) 또는 CLI를 통해 서브에이전트를 스폰할 때 사용됩니다.
+
+런타임에는 13개의 표준 디스패치 역할이 있습니다: `orchestrator`, `architecture`, `qa`, `pm`, `backend`, `frontend`, `mobile`, `db`, `debug`, `refactor`, `docs`, `tf-infra`, `explore`. `research-explorer.md`는 `explore`에 별칭으로 연결된 체크인 정의이며, `orchestrator`는 별도 정의 파일이 없는 런타임 조율 역할입니다.
 
 **벤더 네이티브 투사**: OMA는 원본 정의를 런타임별 에이전트 파일로 실체화합니다.
 - `.claude/agents/*.md`
 - `.codex/agents/*.toml`
-- `.gemini/agents/*.md`
+- `.cursor/agents/*`, `.opencode/agents/*` 및 지원되는 다른 선택 벤더의 투사 파일
 
 이렇게 생성된 파일은 `oma link`, `oma install`, `oma update`가 갱신합니다.
 
@@ -930,26 +952,25 @@ oma agent spawn frontend "Build login form" session-01 -w ./apps/web
 
 | 파일 | 소유자 | 목적 | 다른 에이전트 |
 |------|-------|---------|--------|
-| `orchestrator-session.md` | 오케스트레이터 | 세션 ID, 상태, 시작 시간, 단계 추적 | 읽기 전용 |
-| `task-board.md` | 오케스트레이터 | 태스크 할당, 우선순위, 상태 업데이트 | 읽기 전용 |
-| `progress-{agent}.md` | 해당 에이전트 | 턴별 진행 상황: 수행한 작업, 읽기/수정한 파일, 현재 상태 | 오케스트레이터가 읽음 |
-| `result-{agent}.md` | 해당 에이전트 | 최종 출력: 상태(완료/실패), 요약, 변경된 파일, 인수 기준 체크리스트 | 오케스트레이터가 읽음 |
+| `orchestrator-session-{sessionId}.md` | 오케스트레이터 | 세션 ID, 상태, 시작 시간, 단계 추적 | 읽기 전용 |
+| `task-board-{sessionId}.md` | 오케스트레이터 | 태스크 할당, 우선순위, 상태 업데이트 | 읽기 전용 |
+| `progress-{agentId}-{taskId}-{runId}-{sessionId}.md` | 해당 실행 | 턴별 진행 상황: 수행한 작업, 읽기/수정한 파일, 현재 상태 | 오케스트레이터가 읽음 |
+| `result-{agentId}-{taskId}-{runId}-{sessionId}.md` | 해당 실행 | 최종 출력: 상태(완료/실패), 요약, 변경된 파일, 인수 기준 | 오케스트레이터가 읽음 |
 | `session-metrics.md` | 오케스트레이터 | Clarification Debt 추적, Quality Score 진행 | QA가 읽음 |
 | `experiment-ledger.md` | 오케스트레이터/QA | Quality Score 활성 시 실험 추적 | 모두 읽음 |
 
-메모리 도구는 설정 가능합니다. 기본값은 Serena MCP(`read_memory`, `write_memory`, `edit_memory`)를 사용하지만, 커스텀 도구를 `mcp.json`에서 설정할 수 있습니다:
+메모리 도구는 설정 가능합니다. 기본적으로 에이전트는 네이티브 파일 도구(`Read`, `Write`, `Edit`)로 조율 파일을 직접 읽고 쓰며, 사용자 지정 도구와 기본 경로를 `mcp.json`에서 설정할 수 있습니다:
 
 ```json
 {
-  "memoryConfig": {
-    "provider": "serena",
-    "basePath": ".serena/memories",
-    "tools": {
-      "read": "read_memory",
-      "write": "write_memory",
-      "edit": "edit_memory"
-    }
-  }
+"memoryConfig": {
+"basePath": ".agents/state/memories",
+"tools": {
+"read": "Read",
+"write": "Write",
+"edit": "Edit"
+}
+}
 }
 ```
 

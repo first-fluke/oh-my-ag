@@ -1,5 +1,6 @@
 ---
 title: "Guide: Code Explainer"
+sidebar_label: Code Explainers
 description: Complete guide to oh-my-agent's /explain workflow and oma-explanation skill — turns a diff, PR, branch, or commit range into a self-contained interactive HTML document with Background, Intuition, Code, and Quiz sections, covering ref resolution, reader levels, the secret gates, the validation checklist, and edge cases.
 ---
 
@@ -113,7 +114,16 @@ On any hit, generation stops immediately, only the masked locations are reported
 
 After generation, a grep-based checklist runs against the output file: no external resource-loading references, code-container `pre`/`pre-wrap` compliance, quiz script presence, the `{YYYY-MM-DD}-{slug}.html` filename format (date in Asia/Seoul), and the final-HTML secret scan. On failure, the loop fixes and re-validates up to **3 iterations**, then stops and surfaces the remaining failing items rather than delivering silently.
 
-This is a v1 constraint: validation is grep/file-based, and it verifies quiz-script *presence* only (not full behavioral correctness). A deterministic `oma explain validate` CLI is deferred to v2; until then, use a browser (or the chrome-devtools MCP) to manually exercise the quiz if you need behavioral confidence.
+This is a v1 constraint: validation is grep/file-based, and it verifies quiz-script *presence* only (not full behavioral correctness). Use a browser (or the chrome-devtools MCP) to manually exercise the quiz when behavioral confidence matters.
+
+You can validate an existing artifact with the registered CLI command:
+
+```bash
+oma explain validate .agents/results/explain/2026-09-09-payment-refactor.html
+oma explain validate --input-dir .agents/results/explain --output json
+```
+
+The first form checks one HTML file. The directory form checks every report in a directory and returns a machine-readable report. Use `--report-file <path>` (the legacy spelling is `--out-file`) to persist the JSON report. A nonzero exit means at least one artifact failed the deterministic checks; it does not inspect the teaching accuracy of the prose or quiz answers.
 
 ---
 

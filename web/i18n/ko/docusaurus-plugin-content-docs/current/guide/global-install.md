@@ -1,6 +1,7 @@
 ---
 title: "가이드: 글로벌 설치"
-description: 프로젝트마다 설치하는 대신 사용자 HOME(~/.agents/)에 oh-my-agent을 설치하여, 동일한 skill, workflow, rule을 모든 프로젝트에 적용합니다. oma install --global, oma update --global, oma uninstall --global, OMA_HOME 오버라이드, oma doctor를 통한 이중 설치 감지, 그리고 플랫폼별 주의사항(sudo 거부, CI, WSL, cwd=HOME 가드)을 다룹니다.
+sidebar_label: 전역 설치
+description: 사용자 HOME(~/.agents/)에 oh-my-agent을 설치하고 프로젝트 및 글로벌 설치를 검증하며, OMA_HOME 오버라이드와 플랫폼별 주의사항을 처리합니다.
 ---
 
 ## 글로벌 설치란?
@@ -19,6 +20,15 @@ description: 프로젝트마다 설치하는 대신 사용자 HOME(~/.agents/)�
 | oma-config.yaml 범위 | 프로젝트 한정 | 사용자 전체 기준값 |
 
 두 방식은 공존할 수 있습니다. `oma doctor`는 두 설치가 모두 존재하면 함께 보고하며, 둘 사이의 드리프트가 있을 경우 이를 표시합니다.
+
+글로벌 설치가 성공하면 사용자 기준 파일과 해석된 프로필을 확인합니다.
+
+```bash
+oma doctor --json
+oma doctor --profile
+```
+
+첫 번째 명령은 설치 및 벤더 상태를 보고하고, 프로필 명령은 에이전트가 사용하는 모델 계획을 보여줍니다. 글로벌 설치를 검사하려는 경우 어느 프로젝트에서든 실행할 수 있습니다.
 
 ## 최초 실행 설정
 
@@ -131,3 +141,5 @@ OMA_HOME=/tmp/oma-test oma install --global
 ```
 
 `OMA_HOME`은 `--global`과 `process.cwd()`보다 우선합니다. 금지된 시스템 경로(`/etc`, `/usr`, `/bin`, `/boot`, `/sys`, `/proc`)는 `OMA_HOME`을 통해서도 거부됩니다. 경로는 절대 경로여야 하며 쓰기 가능해야 합니다.
+
+안전한 smoke test를 하려면 비어 있고 쓰기 가능한 디렉토리를 `OMA_HOME`으로 지정한 뒤 `oma install --global --yes`를 실행하세요. 요약에 해당 디렉토리가 설치 root로 표시되어야 합니다. 테스트 후 디렉토리를 삭제하고, 의도한 HOME으로 실제 설치를 실행하세요.

@@ -1,6 +1,7 @@
 ---
 title: "Guide: Dashboard Monitoring"
-description: Comprehensive dashboard guide covering terminal and web dashboards, data sources, 3-terminal layout, troubleshooting, and technical implementation details.
+sidebar_label: Dashboard Monitoring
+description: Monitor OMA sessions from the terminal or a loopback web dashboard, choose the state directory, and recover common connection and discovery problems.
 ---
 
 # Guide: Dashboard Monitoring
@@ -12,9 +13,9 @@ oh-my-agent provides two real-time dashboards for monitoring agent activity duri
 | Command | Interface | URL | Technology |
 |:--------|:---------|:----|:-----------|
 | `oma dashboard terminal` | Terminal (TUI) | N/A (renders in your terminal) | chokidar file watcher, picocolors rendering |
-| `oma dashboard web` | Browser | `http://localhost:9847` | HTTP server, WebSocket, chokidar file watcher |
+| `oma dashboard web` | Browser | `http://127.0.0.1:9847` (token printed at startup) | HTTP server, WebSocket, chokidar file watcher |
 
-Both dashboards watch the same data source: the `.agents/state/memories/` directory (older projects fall back to the legacy `.serena/memories/` path).
+Both dashboards watch `.agents/state/memories/` by default. Set `MEMORIES_DIR` when the coordination files live elsewhere. The dashboard does not automatically fall back to `.serena/memories/`.
 
 ### Terminal dashboard
 
@@ -58,7 +59,7 @@ Renders a box-drawing UI directly in the terminal. Updates automatically when me
 oma dashboard web
 ```
 
-Opens a web server on port 9847 (configurable via `DASHBOARD_PORT` environment variable). The browser UI connects via WebSocket and receives live updates.
+Starts a loopback-only web server on port 9847 (configurable via `DASHBOARD_PORT`). OMA prints a URL containing `127.0.0.1`; open the exact URL and keep the token. The page uses the token for `/api/state`, `/api/recap`, and WebSocket updates. Requests without it return `401`.
 
 ```bash
 # Custom port
@@ -66,6 +67,8 @@ DASHBOARD_PORT=8080 oma dashboard web
 
 # Custom memories directory
 MEMORIES_DIR=/path/to/.agents/state/memories oma dashboard web
+
+# The process also serves the recap view at /recap; use the tokenized URL it prints.
 ```
 
 The web dashboard shows the same information as the terminal dashboard but with a styled dark-theme UI featuring:
@@ -99,7 +102,7 @@ For multi-agent workflows, the recommended setup uses three terminal panes:
 │                                                                 │
 │   $ oma agent status session-20260324-143052 backend frontend   │
 │   $ oma stats get                                                   │
-│   $ oma verify backend -w ./api                                 │
+│   $ oma verify agent backend -w ./api                           │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -114,7 +117,7 @@ For multi-agent workflows, the recommended setup uses three terminal panes:
 
 ## Data sources in .agents/state/memories/
 
-The dashboards read from the `.agents/state/memories/` directory (older projects fall back to the legacy `.serena/memories/` path). This directory is populated by agents and workflows writing coordination files during execution.
+The dashboards read from the `.agents/state/memories/` directory. This directory is populated by agents and workflows writing coordination files during execution. Use `MEMORIES_DIR` for a project whose state is stored in another location.
 
 ### File types and their contents
 
@@ -141,7 +144,7 @@ The dashboard uses multiple strategies to extract information:
 
 4. **Turn counting**: For each discovered agent, reads `progress-{agent}.md` files and extracts the turn number from `turn: N` patterns.
 
-5. **Activity feed**: Lists the 5 most recently modified `.md` files, extracts the last meaningful line (headers, status lines, action items) as the activity message.
+5. **Activity feed**: Lists the 5 most recently modified `.md` files, extracts the last meaningful line (headers, status lines, action items) as the activity message. The web dashboard also exposes the recap view at `/recap`.
 
 ---
 
@@ -232,14 +235,15 @@ The dashboard detects completion by the presence of this file and updates the ag
 
 **Possible causes:**
 - The `oma dashboard web` process was terminated.
-- A network issue between the browser and localhost.
+- The browser is using a stale URL or missing the startup token.
 - The port is in use by another process.
 
 **Actions:**
 1. Check if the dashboard process is running: `ps aux | grep dashboard`
-2. Try a different port: `DASHBOARD_PORT=8080 oma dashboard web`
-3. Check port availability: `lsof -i :9847`
-4. The web dashboard auto-reconnects with exponential backoff (starting at 1s, max 10s). Wait a few seconds for reconnection.
+2. Reopen the exact tokenized URL printed by the process; do not remove its token.
+3. Try a different port: `DASHBOARD_PORT=8080 oma dashboard web`
+4. Check port availability: `lsof -i :9847`
+5. The web dashboard auto-reconnects with exponential backoff (starting at 1s, max 10s). Wait a few seconds for reconnection.
 
 ---
 
@@ -272,15 +276,15 @@ Dashboard monitoring is done when:
 
 - **File watching:** Uses [chokidar](https://github.com/paulmillr/chokidar) with `awaitWriteFinish` (200ms stability threshold, 50ms poll interval) to avoid rendering partial file writes.
 - **Rendering:** Clears and redraws the entire terminal on every file change event. Uses `picocolors` for ANSI color output and Unicode box-drawing characters for the border.
-- **Memory directory:** Resolved from `MEMORIES_DIR` env var, CLI argument, or `{cwd}/.agents/state/memories` (falling back to the legacy `{cwd}/.serena/memories` for older projects).
+- **Memory directory:** Resolved from `MEMORIES_DIR`, then the dashboard CLI argument when supplied, then `{cwd}/.agents/state/memories`.
 - **Graceful shutdown:** Catches `SIGINT` and `SIGTERM`, closes the chokidar watcher, and exits cleanly.
 
 ### Web dashboard (oma dashboard web)
 
-- **HTTP server:** Node.js `createServer` serves the HTML page at `/` and the JSON state at `/api/state`.
-- **WebSocket:** Uses the `ws` library. A `WebSocketServer` is attached to the HTTP server. On connection, the client receives the full state immediately. Subsequent updates are pushed as `{ type: "update", event, file, data }` messages.
+- **HTTP server:** Node.js `createServer` serves the HTML page at `/`, the recap page at `/recap`, JSON state at `/api/state`, and recap data at `/api/recap`. The server binds to `127.0.0.1`.
+- **WebSocket:** Uses the `ws` library. A loopback-origin connection must include the process token in its query string. On connection, the client receives the full state immediately. Subsequent updates are pushed as `{ type: "update", event, file, data }` messages.
 - **File watching:** Same chokidar setup as the terminal dashboard. File changes trigger a `broadcast()` function that builds the current state and sends it to all connected WebSocket clients.
 - **Debouncing:** Updates are debounced at 100ms to avoid flooding clients during rapid file writes (e.g., when multiple agents write progress simultaneously).
 - **Auto-reconnect:** The browser client reconnects with exponential backoff (1s initial, 1.5x multiplier, 10s max) when the WebSocket connection drops.
-- **Port:** Default 9847, configurable via `DASHBOARD_PORT` environment variable.
+- **Port:** Default 9847, configurable via `DASHBOARD_PORT` environment variable. API requests accept `X-OMA-Dashboard-Token` or `?token=...`; missing or invalid tokens return `401`.
 - **State building:** The `buildFullState()` function aggregates session info, task board, agent status, turn counts, and activity feed into a single JSON object on every update.

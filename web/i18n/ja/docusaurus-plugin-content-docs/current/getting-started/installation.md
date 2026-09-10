@@ -1,19 +1,23 @@
 ---
 title: インストール
-description: oh-my-agentの完全インストールガイド。3つのインストール方法、ビルトインプリセットとスキルリスト、ベンダー別CLIツール要件、インストール後の設定、oma-config.yamlフィールド、oma doctorによる検証を解説します。
+sidebar_label: インストール
+description: oh-my-agent のインストール方法、スキルとプロバイダーの選択、作成されるプロジェクトファイル、モデルとランタイムのデフォルト、`oma doctor` による設定確認を説明します。
 ---
 
 # インストール
 
 ## 前提条件
 
-- **AI搭載IDEまたはCLI**: 以下のいずれか。Claude Code、Gemini CLI、Codex CLI、Qwen CLI、Antigravity CLI（`agy`）、Antigravity IDE、Cursor、またはOpenCode
-- **bun**: JavaScriptランタイムおよびパッケージマネージャー（インストールスクリプトが未インストールの場合自動インストール）
-- **uv**: Serena MCP用Pythonパッケージマネージャー（未インストールの場合自動インストール）
+- **AI 搭載 IDE または CLI**: Claude Code、Codex CLI、Qwen Code、Antigravity CLI（`agy`）、Cursor、OpenCode、Kimi Code CLI、Kiro、CommandCode、pi、GitHub Copilot、Hermes など、サポート対象のホストを少なくとも1つ
+- **bun**: JavaScript ランタイム兼パッケージマネージャー。ない場合はインストールスクリプトが自動で導入します。
+- **uv**: Python パッケージマネージャー。ない場合はブートストラップスクリプトが導入を提案します。
+- **コードインテリジェンスプロバイダー**: デフォルトは Serena です。プロバイダー設定で選択すれば Gortex も使えます。インストーラーは `uv tool install` で Serena を導入できます。任意の依存関係が利用できなくても、警告を出して処理を続けます。
+
+インストーラーは統合を機能別に扱います。フックベンダーは Antigravity、Claude、Codex、CommandCode、Cursor、Grok、Kimi、Kiro、Qwen です。OpenCode と pi は拡張ブリッジを使い、GitHub Copilot と Hermes にはスキルリンクを作り、ZCode にはワークフローコマンドを渡します。複数のベンダーを選べますが、最初のタスクに必要なのは使う予定のホストだけです。
 
 ---
 
-## 方法1：ワンライナーインストール（推奨）
+## 方法1: ワンライナーインストール（推奨）
 
 ```bash
 # macOS / Linux
@@ -25,166 +29,160 @@ curl -fsSL https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/in
 irm https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.ps1 | iex
 ```
 
-両方のブートストラップスクリプトは同様に動作します：
-1. プラットフォームを検出（macOS、Linux、またはWindows）
-2. bun、uv、serenaを確認し、未インストールの場合はインストール
-3. プリセット選択付きのインタラクティブインストーラーを実行
-4. 選択したスキルで`.agents/`を作成
-5. `.claude/`統合レイヤーをセットアップ（フック、シンボリックリンク、設定）
-6. Serena MCPが検出された場合は設定
+2つのブートストラップスクリプトは同じように動作します。
+1. プラットフォーム（macOS、Linux、Windows）を検出します。
+2. bun と uv を確認し、選択した場合は Serena も確認します。ないものはインストールします。
+3. プリセットとプロバイダーを選ぶ対話式インストーラーを起動します。
+4. 選択したスキルと設定を含む `.agents/` を作成します。
+5. 検出したベンダーにランタイム統合層（フック、シンボリックリンク、設定）を設定します。
+6. コードインテリジェンスとメモリの MCP サーバーを設定します。
 
-標準的なインストール時間：60秒未満。
+任意の依存関係で失敗してもブートストラップは処理を続け、後で実行するコマンドを表示します。インストーラーが終わったら `oma doctor` を実行してください。
 
 ---
 
-## 方法2：bunxによる手動インストール
+## 方法2: bunx による手動インストール
 
 ```bash
 bunx oh-my-agent@latest
 ```
 
-依存関係のブートストラップなしでインタラクティブインストーラーを起動します。bunが事前にインストールされている必要があります。
+このコマンドは依存関係のブートストラップなしで対話式インストーラーを起動します。事前に bun をインストールしてください。
 
-インストーラーはプリセットの選択を促し、どのスキルをインストールするかを決定します：
+インストーラーでスキルプリセットを選びます。現在のプリセットは `cli/constants/skill-data.ts` で定義されています。
 
 ### プリセット
 
 | プリセット | 含まれるスキル |
 |--------|----------------|
-| **all** | oma-brainstorm、oma-pm、oma-frontend、oma-backend、oma-db、oma-mobile、oma-design、oma-qa、oma-debug、oma-tf-infra、oma-dev-workflow、oma-translation、oma-orchestration、oma-scm、oma-coordination |
-| **fullstack** | oma-frontend、oma-backend、oma-db、oma-pm、oma-qa、oma-debug、oma-brainstorm、oma-scm |
-| **frontend** | oma-frontend、oma-pm、oma-qa、oma-debug、oma-brainstorm、oma-scm |
-| **backend** | oma-backend、oma-db、oma-pm、oma-qa、oma-debug、oma-brainstorm、oma-scm |
-| **mobile** | oma-mobile、oma-pm、oma-qa、oma-debug、oma-brainstorm、oma-scm |
-| **devops** | oma-tf-infra、oma-dev-workflow、oma-pm、oma-qa、oma-debug、oma-brainstorm、oma-scm |
+| **all** | 現在の33個のスキルパッケージすべて |
+| **fullstack** | アーキテクチャ、ブレインストーミング、デザイン、フロントエンド、バックエンド、モバイル、データベース、PM、QA、デバッグ、SCM、Terraform、開発ワークフロー |
+| **fullstack-web** | フルスタック Web 実装、アーキテクチャ、デザイン、PM、QA、デバッグ、SCM、開発ワークフロー |
+| **fullstack-mobile** | モバイル中心のフルスタック実装、アーキテクチャ、デザイン、PM、QA、デバッグ、SCM、開発ワークフロー |
+| **frontend** | アーキテクチャ、ブレインストーミング、デザイン、フロントエンド、PM、QA、デバッグ、SCM |
+| **backend** | アーキテクチャ、ブレインストーミング、バックエンド、データベース、PM、QA、デバッグ、SCM、開発ワークフロー |
+| **mobile** | アーキテクチャ、ブレインストーミング、モバイル、PM、QA、デバッグ、SCM |
+| **devops** | アーキテクチャ、ブレインストーミング、Terraform、開発ワークフロー、オブザーバビリティ、PM、QA、デバッグ、SCM |
+| **research** | Scholar、Market、PDF、HWP、Academic Writing、Search、Translation、SCM |
+| **content** | Design、Image、Voice、Academic Writing、Translation、SCM |
 
-すべてのプリセットにはベースラインエージェントとしてoma-pm（計画）、oma-qa（レビュー）、oma-debug（バグ修正）、oma-brainstorm（アイデア出し）、oma-scm（Git）が含まれます。ドメイン固有のプリセットはその上に関連する実装エージェントを追加します。
+プリセットはスキルのまとまりです。スキルごとにサブエージェント定義を1つ作るものではありません。`all` プリセットは実行時のスキルレジストリから展開されるため、リポジトリに追加されたスキルも一覧に反映されます。ドメインプリセットには、その用途に必要なスキルだけが含まれます。
 
-共有リソース（`_shared/`）はプリセットに関係なく常にインストールされます。コアルーティング、コンテキストローディング、プロンプト構造、ベンダー検出、実行プロトコル、メモリプロトコルが含まれます。
+共有リソース（`_shared/`）はプリセットに関係なく常にインストールされます。コアルーティング、コンテキスト読み込み、プロンプト構造、ベンダー検出、実行プロトコル、メモリプロトコルが含まれます。
 
 ### 作成されるもの
 
-インストール後、プロジェクトには以下が含まれます：
+インストール後、プロジェクトには次のファイルとディレクトリができます。
 
 ```
 .agents/
-├── config/
-│   └── oma-config.yaml      # 設定
+├── oma-config.yaml # Your preferences
+├── oma-config.cue # Optional schema-backed configuration
 ├── skills/
-│   ├── _shared/                    # 共有リソース（常にインストール）
-│   │   ├── core/                   # skill-routing、context-loadingなど
-│   │   ├── runtime/                # memory-protocol、execution-protocols/
-│   │   └── conditional/            # quality-score、experiment-ledgerなど
-│   ├── oma-frontend/               # プリセットごと
-│   │   ├── SKILL.md
-│   │   └── resources/
-│   └── ...                         # 選択された他のスキル
-├── workflows/                      # 全16ワークフロー定義
-├── agents/                         # サブエージェント定義
-├── mcp.json                        # MCPサーバー設定
-├── results/plan-{sessionId}.json                       # 空（/planで作成）
-├── state/                          # 空（永続ワークフローで使用）
-└── results/                        # 空（エージェント実行で作成）
+│ ├── _shared/ # Shared resources (always installed)
+│ │ ├── core/ # skill-routing, context-loading, etc.
+│ │ ├── runtime/ # memory-protocol, execution-protocols/
+│ │ └── conditional/ # quality-score, experiment-ledger, etc.
+│ ├── oma-frontend/ # Per preset
+│ │ ├── SKILL.md
+│ │ └── resources/
+│ └── ... # Other selected skills
+├── workflows/ # Current workflow definitions (21 in this checkout)
+├── agents/ # Subagent definitions
+├── mcp.json # MCP server configuration
+├── results/ # Plans and agent results (populated by workflows)
+└── state/ # Persistent workflow and coordination state
 
 .claude/
-├── settings.json                   # フックとパーミッション
-├── hooks/
-│   ├── triggers.json               # キーワード-ワークフローマッピング（11言語）
-│   ├── keyword-detector.ts         # 自動検出ロジック
-│   ├── persistent-mode.ts          # 永続ワークフロー強制
-│   └── hud.ts                      # [OMA]ステータスラインインジケーター
-├── skills/                         # シンボリックリンク → .agents/skills/
-└── agents/                         # IDE用サブエージェント定義
+├── settings.json # Vendor settings, when Claude Code is selected
+├── hooks/oma-hook.sh # Generated wrapper for the in-process hook chain
+├── hooks/hud.ts # Optional [OMA] statusline indicator
+├── skills/ # Symlinks → .agents/skills/
+└── agents/ # Generated native subagent files, when supported
 
-.serena/
-└── memories/                       # ランタイム状態（セッション中に作成）
+.agents/state/memories/
+└── ... # Runtime coordination state
 ```
+
+インストーラーは、選択したホストのベンダーディレクトリだけを作成します。フックのソースは `.agents/hooks/core/` に残り、ベンダー側に生成されるファイルは統合の出力です。古いプロジェクトでは、Serena が従来の `.serena/memories/` ディレクトリを使う場合もあります。
 
 ---
 
-## 方法3：グローバルインストール
+## 方法3: グローバルインストール
 
-CLIレベルの使用（ダッシュボード、エージェントスポーン、診断）には、oh-my-agentをグローバルにインストールします：
+ダッシュボード、エージェントのスポーン、診断など CLI レベルで使う場合は、oh-my-agent をグローバルにインストールします。
 
-### Homebrew（macOS/Linux）
+### Homebrew (macOS/Linux)
 
 ```bash
 brew install oh-my-agent
 ```
 
-### npm / bunグローバル
+### npm / bun グローバル
 
 ```bash
 bun install --global oh-my-agent
-# または
+# or
 npm install --global oh-my-agent
 ```
 
-これにより`oma`コマンドがグローバルにインストールされ、任意のディレクトリからすべてのCLIコマンドにアクセスできます：
+これで `oma` コマンドがグローバルにインストールされ、どのディレクトリからでも CLI コマンドを実行できます。
 
 ```bash
-oma doctor              # ヘルスチェック
-oma dashboard terminal           # ターミナルモニタリング
-oma dashboard web       # Webダッシュボード http://localhost:9847
-oma agent spawn         # ターミナルからエージェントをスポーン
-oma agent parallel      # 並列エージェント実行
-oma agent status        # エージェント状態確認
-oma agent review        # 外部CLI（codex/claude/gemini/qwen）経由のコードレビュー
-oma stats get               # セッション統計
-oma retro               # エンジニアリング振り返り（コミット、ホットスポット、トレンド）
-oma recap               # AIツールを横断する会話履歴サマリ
-oma cleanup             # セッションアーティファクトのクリーンアップ
-oma link                # `.agents/` SSOTからベンダー固有ファイルを再生成
-oma update              # oh-my-agentの更新
-oma verify              # エージェント出力の検証（ビルド/テスト/スコープ/シークレット）
-oma visualize           # 依存関係の可視化（エイリアス：`oma viz`）
-oma describe            # CLIコマンドをJSONとしてイントロスペクト
-oma bridge              # MCP stdio ↔ Streamable HTTPブリッジ
-oma memory init         # Serenaメモリスキーマの初期化
-oma auth status         # CLI認証状態の確認（gh/antigravity/claude/codex/qwen）
-oma search              # メカニカル検索プリミティブ（エイリアス：`oma s`）
-oma image               # マルチベンダーAI画像生成（エイリアス：`oma img`）
-oma export              # 外部IDE向けスキルエクスポート（例：cursor）
-oma star                # リポジトリにスターを付ける
+oma doctor # Health check
+oma doctor --profile # Show resolved model/CLI per dispatch role
+oma dashboard terminal # Terminal monitoring
+oma dashboard web # Web dashboard at http://localhost:9847
+oma agent spawn # Spawn agents from terminal
+oma agent parallel # Parallel agent execution
+oma agent status # Check agent status
+oma agent review # Code review via an external CLI
+oma docs verify # Check documentation references
+oma skill audit # Audit skill routing descriptions
+oma stats get # Session statistics
+oma recap # Conversation history recap across AI tools
+oma link # Regenerate vendor-native files from `.agents/` SSOT
+oma update # Update oh-my-agent
+oma verify agent <agent-type> # Verify agent output (build/test/scope/secrets)
+oma describe # Introspect CLI commands as JSON
+oma bridge # MCP stdio ↔ Streamable HTTP bridge
+oma memory init # Initialize coordination memory schema
+oma auth status # Check CLI auth status
+oma search # Mechanical search primitives (alias: `oma s`)
+oma image # Multi-vendor AI image generation (alias: `oma img`)
+oma video # Video generation and capture
+oma slide # Presentation generation and export
+oma export # Export skills for external IDEs (e.g. cursor)
+oma star # Star the repository
 ```
 
-`oma`は`oh-my-agent`の短縮形です。どちらもCLIコマンドとして使用できます。
+`oma` は `oh-my-agent` の短縮名です。どちらも CLI コマンドとして使えます。
 
 ---
 
-## AI CLIツールのインストール
+## AI CLI ツールのインストール
 
-少なくとも1つのAI CLIツールがインストールされている必要があります。oh-my-agentは複数のベンダーをサポートしており、エージェント-CLIマッピングにより異なるエージェントに異なるCLIを使い分けることができます。
-
-### Gemini CLI
-
-```bash
-bun install --global @google/gemini-cli
-# または
-npm install --global @google/gemini-cli
-```
-
-認証は初回実行時に自動で行われます。Gemini CLIはデフォルトで`.agents/skills/`からスキルを読み込みます。
+少なくとも1つの AI CLI ツールをインストールしてください。oh-my-agent は複数のベンダーをサポートしており、エージェントと CLI のマッピングを使って、エージェントごとに異なる CLI を選べます。
 
 ### Claude Code
 
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
-# または
+# or
 npm install --global @anthropic-ai/claude-code
 ```
 
-認証は初回実行時に自動で行われます。Claude Codeはフックと設定に`.claude/`を使用し、スキルは`.agents/skills/`からシンボリックリンクされます。
+初回実行時に認証が自動で行われます。Claude Code はフックと設定に `.claude/` を使い、`.agents/skills/` からスキルをシンボリックリンクします。
 
 ### Codex CLI
 
 ```bash
 bun install --global @openai/codex
-# または
+# or
 npm install --global @openai/codex
 ```
 
-インストール後、`codex login`を実行して認証します。
+インストール後、`codex login` を実行して認証します。
 
 ### Qwen CLI
 
@@ -192,44 +190,59 @@ npm install --global @openai/codex
 bun install --global @qwen-code/qwen-code
 ```
 
-インストール後、CLI内で`/auth`を実行して認証します。
+インストール後、CLI 内で `/auth` を実行して認証します。
 
-### Antigravity CLI（`agy`）
+### Antigravity CLI (`agy`)
 
 ```bash
 curl -fsSL https://antigravity.google/cli/install.sh | bash
 ```
 
-初回実行時に`agy`が認証を処理します。バイナリ名は`agy`です。ヘッドレス環境では、代わりに`ANTIGRAVITY_API_KEY`環境変数を設定してください。`oma doctor`は`~/.gemini/antigravity-cli/cache/onboarding.json`を通じて認証状態を報告します。
+初回実行時の認証は `agy` が処理します。バイナリ名は `agy` です。ヘッドレス環境では、代わりに `ANTIGRAVITY_API_KEY` 環境変数を設定します。`oma doctor` は `~/.gemini/antigravity-cli/cache/onboarding.json` から認証状態を報告します。
 
 ---
 
 ## oma-config.yaml
 
-`oma install`コマンドは`.agents/oma-config.yaml`を作成します。これはoh-my-agentのすべての動作の中央設定ファイルです：
+`oma install` コマンドは `.agents/oma-config.yaml` を作成します。これは oh-my-agent 全体の動作を設定する中心ファイルです。
 
 ```yaml
 # Required
 language: en
-model_preset: antigravity   # ビルトイン: antigravity, claude, codex, qwen, cursor, mixed
+model_preset: auto          # follows the current runtime's native model settings
 
-# Optional — 日時の設定
+# Optional — date/time preferences
 date_format: ISO
-timezone: UTC
+timezone: Australia/Sydney  # omit to use the system timezone
 
-# Optional — CLIをバックグラウンドで自動更新
+# Optional — auto-update the CLI in background
 auto_update_cli: true
+telemetry: false
 
-# Optional — エージェントごとの部分オーバーライド（オブジェクト型のみ、シャローマージ）
+# Optional — capability providers (defaults are context7/native/serena/agentmemory)
+# providers:
+#   docs: context7
+#   web: native
+#   code_intelligence: serena
+#   semantic_memory: agentmemory
+
+# Optional — browser DevTools MCP. Omit to preserve the current setup.
+# mcp:
+#   devtools_browsers: [aside]
+
+# Optional — partial override per agent (object-only, shallow merge)
 agents:
   backend: { model: openai/gpt-5.5, effort: high }
   qa:      { model: anthropic/claude-sonnet-4-6 }
 
-# Optional — ユーザー定義モデルのスラグ
+# Optional — user-defined model slugs
 # models:
-#   my-model: { cli: gemini, cli_model: gemini-3-flash, supports: { thinking: true } }
+#   my-fast:
+#     cli: antigravity
+#     cli_model: "Gemini 3.6 Flash (Medium)"
+#     supports: { thinking: true }
 
-# Optional — ユーザー定義プリセット
+# Optional — user-defined presets
 # custom_presets:
 #   my-team:
 #     extends: claude
@@ -240,84 +253,94 @@ agents:
 ### フィールドリファレンス
 
 | フィールド | 型 | 必須 | 説明 |
-|-------|------|------|-------------|
-| `language` | string | はい | 応答言語コード。en、ko、ja、zh、es、fr、de、pt、ru、nl、plをサポート。 |
-| `model_preset` | string | はい | アクティブなプリセットキー。ビルトインキー（`antigravity`、`claude`、`codex`、`qwen`、`cursor`、`mixed`）または`custom_presets`のキー。詳細は[エージェント別モデル](../guide/per-agent-models.md)を参照。 |
-| `date_format` | string | いいえ | タイムスタンプ形式（`ISO`、`US`、`EU`）。デフォルト：`ISO`。 |
-| `timezone` | string | いいえ | タイムゾーン識別子（例：`Asia/Seoul`）。デフォルト：`UTC`。 |
-| `agents` | map | いいえ | エージェントごとの部分オーバーライド（オブジェクト型`AgentSpec`のみ）。プリセットのデフォルトにシャローマージされます。 |
-| `models` | map | いいえ | ユーザー定義モデルのスラグ。以前は`models.yaml`に格納されていました。 |
-| `custom_presets` | map | いいえ | ユーザー定義プリセット。ビルトインプリセットからの部分継承用に`extends:`をサポート。 |
+|-------|------|-------------|-------------|
+| `language` | string | はい | 応答言語コード。en、ko、ja、zh、es、fr、de、pt、ru、nl、pl に対応します。 |
+| `model_preset` | string | はい | アクティブなプリセットキー。`auto` は現在のランタイムに従います。固定キーには `free`、`antigravity`、`claude`、`codex`、`qwen`、`cursor`、`kiro`、`mixed` があります。カスタムプリセットキーも使えます。[エージェント別モデル](../guide/per-agent-models.md)を参照してください。 |
+| `default_cli` | string | いいえ | 明示的なエージェント設定と選択したプリセットでベンダーが決まらないとき、`oma agent spawn` が使うフォールバック CLI です。 |
+| `free` | map | いいえ | `model_preset: free` のときに使う FreeLLMAPI ゲートウェイ設定です。API キーは環境変数に置いてください。 |
+| `providers` | map | いいえ | 機能プロバイダーです。`code_intelligence`（`serena` または `gortex`）、`docs`（`context7`）、`web`（`native` または `brave`）、`semantic_memory`（`agentmemory`、`honcho`、`none`）を指定します。 |
+| `date_format` | string | いいえ | タイムスタンプ形式（`ISO`、`US`、`EU`）。デフォルトは `ISO` です。 |
+| `timezone` | string | いいえ | タイムゾーン識別子（例: `Asia/Seoul`）。省略するとホストのシステムタイムゾーンを使います。 |
+| `auto_update_cli` | boolean | いいえ | 通常の CLI チェックでバックグラウンド更新を許可するかどうか。デフォルトは `true` で、`false` にすると無効になります。 |
+| `telemetry` | boolean | いいえ | ベンダーのテレメトリーを許可するかどうか。デフォルトは `false` です。 |
+| `agents` | map | いいえ | エージェントごとの部分オーバーライド（オブジェクト型の `AgentSpec`）。プリセットのデフォルトに浅くマージします。 |
+| `models` | map | いいえ | ユーザー定義のモデルスラッグ。以前は `models.yaml` に置かれていました。 |
+| `custom_presets` | map | いいえ | ユーザー定義のプリセット。組み込みプリセットから部分的に継承する `extends:` に対応します。 |
+| `mcp.devtools_browsers` | list | いいえ | DevTools MCP で使うブラウザー。`aside`、`chrome`、`firefox` を指定できます。省略すると既存の設定を保持し、`[]` はブラウザーサーバーを明示的に無効にします。 |
+| `serena.mode` | string | いいえ | `bridge` はプロジェクトの Serena サーバーを共有するデフォルトです。`stdio` を選ぶとセッションごとに1プロセス起動します。 |
+| `serena.auto_update` | boolean | いいえ | `oma update` で Serena を更新するかどうか。デフォルトは `true` です。 |
 
-### ベンダー解決の優先順位
+> **設定形式:** 有効な `.agents/oma-config.cue` は共有設定として評価されます。共有 CUE の評価に失敗すると、ローダーは `.agents/oma-config.yaml` にフォールバックできます。ローカルオーバーレイ（`oma-config.local.cue` または `.yaml`）は任意ですが、無効なローカル指定は致命的なエラーになります。`OMA_MODEL_PRESET` は現在のプロセスに対してファイルの値を上書きします。
 
-エージェントをスポーンする際、CLIベンダーはアクティブな`model_preset`（および`agents:`オーバーライド）から解決されます。詳細は[エージェント別モデル](../guide/per-agent-models.md)を参照してください。
+### ベンダー解決
+
+エージェントをスポーンするとき、CLI は `agents.<id>`、選択した `model_preset`、プリセットのオーケストレーター用フォールバック、`default_cli` の順で設定を解決します。`model_preset: auto` では現在のランタイムのネイティブ設定がモデルを決めます。ランタイムが不明なら `default_cli` にフォールバックします。完全な対応表は[エージェント別モデル](../guide/per-agent-models.md)を参照してください。
 
 ---
 
-## 検証：`oma doctor`
+## 検証: `oma doctor`
 
-インストールとセットアップ後、すべてが正常に動作していることを検証します：
+インストールと設定の後、次のコマンドで動作を確認します。
 
 ```bash
 oma doctor
 ```
 
-このコマンドが確認する項目：
-- 必要なすべてのCLIツールがインストールされ、アクセス可能であること
-- MCPサーバー設定が有効であること
-- 有効なSKILL.mdフロントマターを持つスキルファイルが存在すること
-- `.claude/skills/`のシンボリックリンクが有効なターゲットを指していること
-- `.claude/settings.json`でフックが適切に設定されていること
-- メモリプロバイダーが到達可能であること（Serena MCP）
-- `oma-config.yaml`が必要なフィールドを持つ有効なYAMLであること
+このコマンドは次を確認します。
+- 選択したホスト CLI がインストールされ、実行できること。任意ツールは別に報告されます。
+- 設定した MCP サーバーのエントリが有効であること（Serena、Gortex、Context7、DevTools など）。
+- 有効な SKILL.md フロントマターを持つスキルファイルが存在すること。
+- シンボリックリンクとフックスクリプトが有効な対象を指すこと。
+- ベンダー設定ファイルでフックが正しく設定されていること。
+- 選択したコードインテリジェンスとメモリのプロバイダーに到達できること。
+- `oma-config.cue` または `oma-config.yaml` が必須フィールドを含む有効な設定であること。
 
-問題がある場合、`oma doctor`は修正方法をコピペ可能なコマンドとともに正確に示します。
+問題がある場合、`oma doctor` は欠落または無効な項目を特定し、最初のタスクを止める問題と任意の統合に関する警告を分けて表示します。
 
-すべてのエージェントについて解決済みのモデルとCLIを確認するには、以下を実行します：
+すべてのエージェントで解決されたモデルと CLI を確認するには、次を実行します。
 
 ```bash
 oma doctor --profile
 ```
 
-完全なマトリクスと移行の詳細については[エージェント別モデル](../guide/per-agent-models.md)を参照してください。
+完全な対応表と移行の詳細は[エージェント別モデル](../guide/per-agent-models.md)を参照してください。
 
 ---
 
 ## 更新
 
-### CLIの更新
+### CLI の更新
 
 ```bash
 oma update
 ```
 
-グローバルのoh-my-agent CLIを最新バージョンに更新します。
+これでグローバルの oh-my-agent CLI が最新バージョンに更新されます。
 
 ### プロジェクトスキルの更新
 
-プロジェクト内のスキルとワークフローは、自動更新用のGitHub Action（`action/`）を介して、または手動でインストーラーを再実行して更新できます：
+プロジェクトのスキルとワークフローは、自動更新用 GitHub Action（`action/`）またはインストーラーの再実行で更新できます。
 
 ```bash
 bunx oh-my-agent@latest
 ```
 
-インストーラーは既存のインストールを検出し、`oma-config.yaml`やカスタム設定を保持したまま更新を提案します。
+インストーラーは既存のインストールを検出し、`oma-config.yaml` とカスタム設定を保持したまま更新を提案します。
 
 ---
 
 ## 次のステップ
 
-AI IDEでプロジェクトを開き、oh-my-agentの使用を開始します。スキルは自動検出されます。以下を試してください：
+選択した AI IDE または CLI でプロジェクトを開き、oh-my-agent を使い始めます。スキルのルーティングはホストに依存し、有効なフックはワークフローを検出できます。次を試してください。
 
 ```
-"Tailwind CSSを使ってメール検証付きのログインフォームを作成して"
+"Build a login form with email validation using Tailwind CSS"
 ```
 
-またはワークフローコマンドを使用：
+または、ワークフローコマンドを使います。
 
 ```
-/plan JWTとリフレッシュトークンを使った認証機能
+/plan authentication feature with JWT and refresh tokens
 ```
 
-詳細な例は[使い方ガイド](/docs/guide/usage)を、各スペシャリストの詳細は[エージェント](/docs/core-concepts/agents)を参照してください。
+詳しい例は[使い方ガイド](/docs/guide/usage)を、各スペシャリストの役割は[エージェント](/docs/core-concepts/agents)を参照してください。

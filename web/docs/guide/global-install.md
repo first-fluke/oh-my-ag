@@ -1,5 +1,6 @@
 ---
 title: "Guide: Global Install"
+sidebar_label: Global Installation
 description: Install oh-my-agent into your user HOME (~/.agents/) instead of per-project so the same skills, workflows, and rules apply across every project. Covers oma install --global, oma update --global, oma uninstall --global, OMA_HOME override, dual-install detection via oma doctor, and platform caveats (sudo refusal, CI, WSL, cwd=HOME guard).
 ---
 
@@ -19,6 +20,15 @@ By default, `oma install` scopes everything to the current project directory: th
 | oma-config.yaml scope | Project-specific | User-wide baseline |
 
 Both modes can coexist. `oma doctor` reports both installs if present and flags drift between them.
+
+After a successful global install, verify the user-rooted files and resolved profile:
+
+```bash
+oma doctor --json
+oma doctor --profile
+```
+
+The first command reports install and vendor health; the profile command shows the model plan used by agents. Run these from any project when the global install is the one you want to inspect.
 
 ## First-run setup
 
@@ -131,3 +141,5 @@ OMA_HOME=/tmp/oma-test oma install --global
 ```
 
 `OMA_HOME` takes precedence over `--global` and `process.cwd()`. Forbidden system paths (`/etc`, `/usr`, `/bin`, `/boot`, `/sys`, `/proc`) are rejected even via `OMA_HOME`. The path must be absolute and writable.
+
+For a safe smoke test, point `OMA_HOME` at an empty writable directory and run `oma install --global --yes`; the summary should name that directory as the install root. Remove the directory after the test, then run the real install with the intended HOME.

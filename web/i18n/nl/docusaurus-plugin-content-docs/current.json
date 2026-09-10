@@ -7,12 +7,24 @@
     "message": "Kernconcepten",
     "description": "The label for category Core Concepts in sidebar docsSidebar"
   },
-  "sidebar.docsSidebar.category.Guide": {
-    "message": "Gids",
-    "description": "The label for category Guide in sidebar docsSidebar"
+  "sidebar.docsSidebar.category.Working with Agents": {
+    "message": "Werken met agents",
+    "description": "The label for category Working with Agents in sidebar docsSidebar"
   },
-  "sidebar.docsSidebar.category.CLI Interfaces": {
-    "message": "CLI-interfaces",
-    "description": "The label for category CLI Interfaces in sidebar docsSidebar"
+  "sidebar.docsSidebar.category.Setup and Configuration": {
+    "message": "Installatie en configuratie",
+    "description": "The label for category Setup and Configuration in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Automation and Evaluation": {
+    "message": "Automatisering en evaluatie",
+    "description": "The label for category Automation and Evaluation in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Content and Research": {
+    "message": "Content en onderzoek",
+    "description": "The label for category Content and Research in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Reference": {
+    "message": "Referentie",
+    "description": "The label for category Reference in sidebar docsSidebar"
   }
 }

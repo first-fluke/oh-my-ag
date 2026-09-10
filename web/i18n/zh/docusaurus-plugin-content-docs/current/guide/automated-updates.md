@@ -1,6 +1,7 @@
 ---
 title: "指南：自动更新"
-description: oh-my-agent GitHub Action 的完整文档。设置、所有输入和输出、详细示例以及底层工作原理。
+sidebar_label: 自动更新
+description: 配置 OMA GitHub Action，了解其输入和输出，并明确 CI 更新会保留或替换哪些内容。
 ---
 
 # 指南：自动更新
@@ -13,15 +14,17 @@ oh-my-agent GitHub Action（`first-fluke/oma-update-action@v1`）通过在 CI �
 
 ## 快速设置
 
+<!-- oma-docs:ignore-start -->
 将此文件添加到项目中作为 `.github/workflows/update-oh-my-agent.yml`：
+<!-- oma-docs:ignore-end -->
 
 ```yaml
 name: Update oh-my-agent
 
 on:
   schedule:
-    - cron: '0 9 * * 1'  # 每周一 UTC 9:00
-  workflow_dispatch:        # 允许手动触发
+    - cron: '0 9 * * 1'  # Every Monday at 9am UTC
+  workflow_dispatch:        # Allow manual trigger
 
 permissions:
   contents: write
@@ -36,7 +39,7 @@ jobs:
       - uses: first-fluke/oma-update-action@v1
 ```
 
-这是最小配置。有新版本可用时，使用默认设置创建 PR。
+这是最小配置。安装的组件发生变化时，Action 会以 `updated=true` 结束，输出版本并创建 PR。没有文件变化时，会以 `updated=false` 结束且不创建 PR。
 
 ---
 
@@ -116,7 +119,7 @@ name: Update oh-my-agent (Direct)
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # 每天 UTC 6:00
+    - cron: '0 6 * * *'  # Daily at 6am UTC
   workflow_dispatch:
 
 permissions:
@@ -197,7 +200,7 @@ jobs:
 name: Update oh-my-agent (Force)
 
 on:
-  workflow_dispatch:  # 仅手动触发用于强制更新
+  workflow_dispatch:  # Manual trigger only for force updates
 
 permissions:
   contents: write
@@ -264,6 +267,8 @@ oma update $FLAGS
 7. 恢复保留的文件。
 8. 更新所有供应商的供应商适配（钩子、设置、智能体定义）。
 9. 刷新 CLI 符号链接。
+
+Action 调用 `oma update --ci` 时不会带 `--with-new-skills`。这会刷新已安装的技能集并报告新提供的技能；只有在项目确实要在更新中加入新技能时，才应明确运行 `oma update --with-new-skills`。
 
 ### 步骤 4：检查变更
 

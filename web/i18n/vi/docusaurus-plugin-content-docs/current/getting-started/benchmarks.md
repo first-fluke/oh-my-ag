@@ -81,10 +81,10 @@ Spec judge và visual judge chạy 3 lần cho mỗi harness qua `judge-multi.sh
 ## Tái hiện
 
 ```bash
-# Chạy cả 5 harness (tuần tự, ~45 phút, ~$15-20 chi phí API)
+# Run all harnesses (sequential, ~45 min, ~$15-20 in API spend)
 ./benchmarks/run.sh
 
-# Chấm điểm multiaxis cho từng harness (5 trục, 100pt) — single judge round
+# Multiaxis scoring per harness (5-axis, 100pt) — single judge round
 for h in vanilla oma omc ecc superpowers; do
   ./benchmarks/scoring/multiaxis/score.sh \
     /tmp/oma-benchmark-<timestamp>/projects/$h \
@@ -93,7 +93,7 @@ for h in vanilla oma omc ecc superpowers; do
     /tmp/oma-benchmark-<timestamp>/multiaxis/$h
 done
 
-# Tạo báo cáo
+# Generate the report
 ./benchmarks/scoring/multiaxis/build-report.sh \
   /tmp/oma-benchmark-<timestamp> \
   $(pwd)

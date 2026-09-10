@@ -1,154 +1,206 @@
 ---
 title: はじめに
-description: oh-my-agentの包括的な概要。AIコーディングアシスタントを21の専門エージェント、段階的スキルローディング、クロスIDE対応を備えた専門エンジニアリングチームへと変換するマルチエージェントオーケストレーションフレームワークです。
+sidebar_label: はじめに
+description: 33個のスキルパッケージ、12個のサブエージェント定義、段階的なスキル読み込み、IDEをまたぐ可搬性を備え、AIコーディングアシスタントを専門的なエンジニアリングチームに変える oh-my-agent の概要です。
 ---
 
 # はじめに
 
-oh-my-agentは、AI搭載IDEおよびCLIツール向けのマルチエージェントオーケストレーションフレームワークです。単一のAIアシスタントにすべてを任せるのではなく、oh-my-agentは作業を21の専門エージェントに分散させます。各エージェントは実際のエンジニアリングチームの役割に基づいてモデリングされており、それぞれ固有の技術スタック知識、実行プロトコル、エラー対応手順、品質チェックリストを備えています。
+oh-my-agent は、AI 搭載 IDE と CLI ツール向けのマルチエージェント・オーケストレーションフレームワークです。1つの AI アシスタントにすべてを任せるのではなく、33個のスキルパッケージと13個の標準ディスパッチロールに作業を振り分けます。12個のリポジトリ内サブエージェント定義ファイルが、実装、レビュー、計画、デバッグ、ドキュメント、リサーチ、インフラの役割を再利用できる形で提供します。`research-explorer.md` は標準の `explore` ロールに対応し、`orchestrator` は個別の定義ファイルを持たないランタイム調整ロールです。
 
-システム全体はプロジェクト内のポータブルな`.agents/`ディレクトリに格納されます。Claude Code、Gemini CLI、Codex CLI、Antigravity IDE、Cursor、その他のサポートされたツール間を自由に切り替えられます。エージェント設定はコードとともに移動します。
+OMA は、明示的に呼び出したとき、またはそのチェックを含むワークフローを選んだときに機械的なチェックを実行します。`oma verify agent <agent-type>` は選択したエージェント種別のチェックを実行し、`/ralph` は成果物を使った検証と judge ループを追加します。有効なベンダーの Stop フックは、設定されたチェックが実行される間、ワークフローを継続できます。スキルを読み込んだだけでは受入は成立せず、通常のプロンプトだけで全ワークフローのゲートが自動実行されるわけでもありません。ワークフローの受入基準と生成されたファイルを使って、完了を判断してください。
+
+システム全体は、プロジェクト内の可搬な `.agents/` ディレクトリに保存されます。Claude Code、Codex CLI、Antigravity CLI または IDE、Cursor、OpenCode など、サポート対象のツールを切り替えても、エージェント設定はコードと一緒に移動します。
+
+OMA を初めて使う場合は、まず [クイックスタート](./quick-start.md)、続いて[重要なデフォルト](./important-defaults.md)を読んでください。インストールで SSOT とベンダー統合が作られます。最初に役立つ確認は `oma doctor` で、最初のタスクには小さな単一ドメインの変更を選ぶとよいでしょう。調整が必要になったら `/work` や `/orchestrate` に進みます。
 
 ---
 
 ## マルチエージェントパラダイム
 
-従来のAIコーディングアシスタントはジェネラリストとして動作します。フロントエンド、バックエンド、データベース、セキュリティ、インフラストラクチャを同じプロンプトコンテキストと同じレベルの専門知識で扱います。これにより以下の問題が生じます：
+従来の AI コーディングアシスタントは、フロントエンド、バックエンド、データベース、セキュリティ、インフラを1つのプロンプトコンテキストで扱うことが多くあります。その結果、次の問題が起こります。
 
-- **コンテキストの希薄化**: すべてのドメインの知識をロードするとコンテキストウィンドウが無駄になる
-- **品質の不安定さ**: ジェネラリストは単一ドメインにおいてスペシャリストに及ばない
-- **協調の欠如**: 複数ドメインにまたがる複雑な機能が順次処理される
+- **コンテキストの希薄化:** すべてのドメインの知識を読み込むと、コンテキストウィンドウを消費します。
+- **担当範囲が不明確:** 複数ドメインにまたがるタスクで、各部分の境界が決まりません。
+- **手動調整:** 複雑な機能では、ホストやユーザーが引き継ぎの順序を決める必要があります。
 
-oh-my-agentは専門化によってこれを解決します：
+oh-my-agent は専門化でこの問題に対応します。
 
-1. **各エージェントが一つのドメインに精通。** フロントエンドエージェントはReact/Next.js、shadcn/ui、TailwindCSS v4、FSD-liteアーキテクチャを熟知しています。バックエンドエージェントはRepository-Service-Routerパターン、パラメータ化クエリ、JWT認証を理解しています。それぞれの守備範囲は重複しません。
-
-2. **エージェントは並列で動作。** バックエンドエージェントがAPIを構築している間に、フロントエンドエージェントはすでにUIを作成しています。オーケストレータが共有メモリを介して調整します。
-
-3. **品質が組み込み済み。** すべてのエージェントにドメイン固有のチェックリストとエラー対応手順があります。チャータープリフライトがコード記述前にスコープクリープを検出します。QAレビューは付け足しではなく、正式なステップです。
+1. **各スキルには主なドメインがあります。** フロントエンドスキルは React/Next.js、shadcn/ui、TailwindCSS v4、FSD-lite アーキテクチャを扱います。バックエンドスキルは Repository-Service-Router パターン、パラメーター化クエリ、JWT 認証を扱います。ドメインの境界では重なりもあるため、2つ目のスキルや調整ワークフローが必要かどうかは、タスクの受入基準で判断してください。
+2. **エージェントは並列で実行できます。** バックエンドエージェントが API を構築している間、フロントエンドエージェントは自分のワークスペースで作業できます。オーケストレーターはファイルとして保存される実行単位の状態と実行記録を介して調整します。
+3. **品質に関するガイダンスが組み込まれています。** スキルにはドメイン別のチェックリスト、エラー対応手順、チャーター規則があります。チャータープリフライトでコードを書く前に範囲を絞り、選択したワークフローに含まれる場合、または依頼した場合に QA レビューを実行します。
 
 ---
 
-## 全21エージェント
+## 現在のカタログ: 33スキル、12定義、21ワークフロー
+
+カタログでは、混同しやすい3つを分けています。
+
+- **スキル**は `.agents/skills/*/SKILL.md` にある33個のドメイン知識パッケージです。自然言語の意図からルーティングし、リソースを段階的に読み込みます。
+- **エージェント定義**は `.agents/agents/` にある12個のファイルです。ベンダーのネイティブなサブエージェント人格を提供し、1つ以上のスキルを参照します。
+- **ワークフロー**は `.agents/workflows/` にある21個のプロセス定義です。4つ（`orchestrate`、`work`、`ultrawork`、`ralph`）が永続的で、残りはレポートまで実行して永続モードを維持しません。
+
+以下では詳細なスキルカタログを保持します。名前や説明が変わった場合は、各 `SKILL.md` のフロントマターが最新の基準です。
+
+12個のリポジトリ内定義ファイルは、エイリアスを通じて13個のランタイムロールをカバーします。`research-explorer.md` は `explore` に対応し、`orchestrator` はランタイム専用です。その他の定義ファイルは [エージェント](../core-concepts/agents.md)に掲載したロールに対応します。
 
 ### アイデア出し、アーキテクチャ、計画
 
 | エージェント | 役割 | 主な機能 |
 |-------|------|-----------------|
-| **oma-brainstorm** | デザインファーストのアイデア出し | ユーザーの意図を探り、2〜3のアプローチをトレードオフ分析とともに提案し、コード記述前に設計ドキュメントを作成。6フェーズワークフロー：Context、Questions、Approaches、Design、Documentation、`/plan`への遷移。 |
-| **oma-architecture** | システムアーキテクチャスペシャリスト | モジュール／サービス／オーナーシップ境界、トレードオフ分析、ステークホルダー統合。方法論：診断ルーティング、design-twice比較、ATAM方式のリスク分析、CBAM方式の優先順位付け、ADR方式の意思決定記録。デフォルトでコストを意識。 |
-| **oma-pm** | プロダクトマネージャー | 要件を依存関係付きの優先タスクに分解。APIコントラクトを定義。`.agents/results/plan-{sessionId}.json`と`task-board.md`を出力。ISO 21500コンセプト、ISO 31000リスクフレーミング、ISO 38500ガバナンスをサポート。 |
+| **oma-brainstorm** | デザインファーストのアイデア出し | ユーザーの意図を探り、トレードオフ付きで2〜3の案を出し、コードを書く前にデザインドキュメントを作成します。6段階のワークフローは Context、Questions、Approaches、Design、Documentation、`/plan` への移行です。 |
+| **oma-architecture** | システムアーキテクチャスペシャリスト | モジュール、サービス、所有権の境界、トレードオフ分析、ステークホルダーの統合を扱います。診断ルーティング、design-twice 比較、ATAM 型のリスク分析、CBAM 型の優先順位付け、ADR 型の意思決定記録を使い、デフォルトでコストも考慮します。 |
+| **oma-pm** | プロダクトマネージャー | 要件を依存関係付きの優先タスクに分解し、API コントラクトを定義します。`.agents/results/plan-{sessionId}.json` とセッション単位のタスクボードを出力します。ISO 21500 の概念、ISO 31000 のリスク整理、ISO 38500 のガバナンスに対応します。 |
 
 ### 実装
 
 | エージェント | 役割 | 技術スタックとリソース |
 |-------|------|----------------------|
-| **oma-frontend** | UI/UXスペシャリスト | React、Next.js、TypeScript、TailwindCSS v4、shadcn/ui、FSD-liteアーキテクチャ。ライブラリ：luxon（日付）、ahooks（フック）、es-toolkit（ユーティリティ）、Jotai（クライアント状態）、TanStack Query（サーバー状態）、@tanstack/react-form + Zod（フォーム）、better-auth（認証）、nuqs（URL状態）。リソース：`execution-protocol.md`、`tech-stack.md`、`tailwind-rules.md`、`component-template.tsx`、`snippets.md`、`error-playbook.md`、`checklist.md`、`examples/`。 |
-| **oma-backend** | API・サーバーサイドスペシャリスト | クリーンアーキテクチャ（Router-Service-Repository-Models）。スタック非依存で、プロジェクトマニフェストからPython/Node.js/Rust/Go/Java/Elixir/Ruby/.NETを検出。認証にJWT + Argon2id。リソース：`execution-protocol.md`、`orm-reference.md`、`examples.md`、`checklist.md`、`error-playbook.md`。言語固有の`stack/`リファレンス生成に`/stack-set`をサポート。 |
-| **oma-mobile** | クロスプラットフォームモバイル | Flutter、Dart、Riverpod/Bloc（状態管理）、Dio with interceptors（API呼び出し）、GoRouter（ナビゲーション）。クリーンアーキテクチャ：domain-data-presentation。Material Design 3（Android）+ iOS HIG。60fpsターゲット。リソース：`execution-protocol.md`、`tech-stack.md`、`snippets.md`、`screen-template.dart`、`checklist.md`、`error-playbook.md`。 |
-| **oma-db** | データベースアーキテクチャ | SQL、NoSQL、ベクトルデータベースのモデリング。スキーマ設計（デフォルト3NF）、正規化、インデックス、トランザクション、キャパシティプランニング、バックアップ戦略。ISO 27001/27002/22301対応設計をサポート。リソース：`execution-protocol.md`、`document-templates.md`、`anti-patterns.md`、`vector-db.md`、`iso-controls.md`、`checklist.md`、`error-playbook.md`。 |
+| **oma-frontend** | UI/UX スペシャリスト | React、Next.js、TypeScript、TailwindCSS v4、shadcn/ui、FSD-lite アーキテクチャ。ライブラリは luxon（日時）、ahooks または @mantine/hooks（フック）、es-toolkit（ユーティリティ）、Jotai/Zustand（クライアント状態）、orval が生成するフック経由の TanStack Query（サーバー状態）、@tanstack/react-form + Zod（フォーム）、better-auth（認証）、nuqs（URL 状態）です。リソースは `execution-protocol.md`、`tech-stack.md`、`tailwind-rules.md`、`snippets.md`、`angular-rules.md`、`error-playbook.md`、`checklist.md` です。 |
+| **oma-backend** | API とサーバーのスペシャリスト | クリーンアーキテクチャ（Router-Service-Repository-Models）。スタックに依存せず、プロジェクトのマニフェストから Python/Node.js/Rust/Go/Java/Elixir/Ruby/.NET を検出します。認証には JWT + Argon2id を使います。リソースは `execution-protocol.md`、`orm-reference.md`、`checklist.md`、`error-playbook.md` です。`/stack-set` で言語別の `stack/` リファレンスを生成できます。 |
+| **oma-mobile** | クロスプラットフォームモバイル | 状態管理に Flutter、Dart、Riverpod/Bloc、API 呼び出しに interceptors 付き Dio、ナビゲーションに GoRouter を使います。クリーンアーキテクチャは domain-data-presentation です。Material Design 3（Android）と iOS HIG、60fps を目標にします。Swift ネイティブ iOS にも対応し、SwiftUI + `@Observable`（iOS 17以降）、Apple の `swift-openapi-generator`、`App/Core/Features/Shared` 構成を使えます。リソースは `execution-protocol.md`、`tech-stack.md`、`screen-template.dart`、`screen-template.swift`、`screen-template.tsx`、`checklist.md`、`error-playbook.md` で、プラットフォーム別の variant は `/stack-set` が展開します。 |
+| **oma-db** | データベースアーキテクチャ | SQL、NoSQL、ベクトルデータベースのモデリングを扱います。スキーマ設計（デフォルトは3NF）、正規化、インデックス、トランザクション、キャパシティプランニング、バックアップ戦略を扱い、ISO 27001/27002/22301 を考慮した設計に対応します。リソースは `execution-protocol.md`、`document-templates.md`、`anti-patterns.md`、`vector-db.md`、`iso-controls.md`、`checklist.md`、`error-playbook.md` です。 |
 
 ### デザイン
 
 | エージェント | 役割 | 主な機能 |
 |-------|------|-----------------|
-| **oma-design** | デザインシステムスペシャリスト | トークン、タイポグラフィ、カラーシステム、モーションデザイン（motion/react、GSAP、Three.js）、レスポンシブファーストレイアウト、WCAG 2.2準拠のDESIGN.mdを作成。7フェーズワークフロー：Setup、Extract、Enhance、Propose、Generate、Audit、Handoff。アンチパターン（「AIスロップ」排除）を強制。オプションでStitch MCP統合。リソース：`design-md-spec.md`、`design-tokens.md`、`anti-patterns.md`、`prompt-enhancement.md`、`stitch-integration.md`、さらにタイポグラフィ、カラー、空間、モーション、レスポンシブ、コンポーネント、アクセシビリティ、シェーダーの各ガイドを含む`reference/`ディレクトリ。 |
+| **oma-design** | デザインシステムスペシャリスト | トークン、タイポグラフィ、カラーシステム、モーションデザイン（motion/react、GSAP、Three.js）、レスポンシブファーストのレイアウト、WCAG 2.2 準拠の DESIGN.md を作成します。7段階は Setup、Extract、Enhance、Propose、Generate、Audit、Handoff です。アンチパターン（「AI スロップ」）を禁止し、Stitch MCP 統合は任意です。リソースは `design-md-spec.md`、`design-tokens.md`、`anti-patterns.md`、`prompt-enhancement.md`、`stitch-integration.md` と、タイポグラフィ、色、空間、モーション、レスポンシブ、コンポーネント、アクセシビリティ、シェーダーのガイドを収めた `reference/` です。 |
 
 ### インフラストラクチャ、DevOps、オブザーバビリティ
 
 | エージェント | 役割 | 主な機能 |
 |-------|------|-----------------|
-| **oma-tf-infra** | Infrastructure-as-Code | マルチクラウドTerraform（AWS、GCP、Azure、Oracle Cloud）。OIDCファースト認証、最小権限IAM、Policy-as-Code（OPA/Sentinel）、コスト最適化。ISO/IEC 42001 AI制御、ISO 22301継続性、ISO/IEC/IEEE 42010アーキテクチャドキュメントをサポート。リソース：`multi-cloud-examples.md`、`cost-optimization.md`、`policy-testing-examples.md`、`iso-42001-infra.md`、`checklist.md`。 |
-| **oma-dev-workflow** | モノレポタスク自動化 | miseタスクランナー、CI/CDパイプライン、データベースマイグレーション、リリース調整、gitフック、pre-commitバリデーション。リソース：`validation-pipeline.md`、`database-patterns.md`、`api-workflows.md`、`i18n-patterns.md`、`release-coordination.md`、`troubleshooting.md`。 |
-| **oma-observability** | インテントベースのオブザーバビリティルーター | MELT+Pシグナルカバレッジ（metrics/logs/traces/profiles/cost/audit/privacy）、トランスポートチューニング（UDP/MTU、OTLP gRPC vs HTTP、Collectorトポロジー、サンプリング）、W3C Trace Context伝搬、SLO管理とburn-rateアラート、インシデントフォレンジック（6次元局在化）、メタオブザーバビリティ（自己健全性、クロック同期、カーディナリティ、保持）。CNCFファースト；Fluentdは非推奨（Fluent BitまたはOTel Collectorを使用）。 |
+| **oma-tf-infra** | Infrastructure as Code | AWS、GCP、Azure、Oracle Cloud を対象とするマルチクラウド Terraform。OIDC を優先する認証、最小権限 IAM、Policy as Code（OPA/Sentinel）、コスト最適化を扱います。ISO/IEC 42001 の AI 制御、ISO 22301 の継続性、ISO/IEC/IEEE 42010 のアーキテクチャドキュメントに対応します。リソースは `multi-cloud-examples.md`、`cost-optimization.md`、`policy-testing-examples.md`、`iso-42001-infra.md`、`checklist.md` です。 |
+| **oma-dev-workflow** | モノレポのタスク自動化 | mise タスクランナー、CI/CD パイプライン、データベースマイグレーション、リリース調整、Git フック、pre-commit 検証を扱います。リソースは `validation-pipeline.md`、`database-patterns.md`、`api-workflows.md`、`i18n-patterns.md`、`release-coordination.md`、`troubleshooting.md` です。 |
+| **oma-observability** | インテントベースのオブザーバビリティルーター | MELT+P シグナル（metrics/logs/traces/profiles/cost/audit/privacy）のカバレッジ、UDP/MTU、OTLP gRPC と HTTP、Collector トポロジー、サンプリング、W3C Trace Context の伝播、SLO と burn-rate アラート、6次元のインシデント局在化、自己健全性や保持期間などのメタオブザーバビリティを扱います。CNCF を優先し、非推奨の Fluentd ではなく Fluent Bit または OTel Collector を使います。 |
 
 ### 品質とデバッグ
 
 | エージェント | 役割 | 主な機能 |
 |-------|------|-----------------|
-| **oma-qa** | 品質保証 | セキュリティ監査（OWASP Top 10）、パフォーマンス分析、アクセシビリティ（WCAG 2.1 AA）、コード品質レビュー。重要度：CRITICAL/HIGH/MEDIUM/LOWにファイル:行と修正コードを添付。ISO/IEC 25010品質特性とISO/IEC 29119テスト準拠をサポート。リソース：`execution-protocol.md`、`iso-quality.md`、`checklist.md`、`self-check.md`、`error-playbook.md`。 |
-| **oma-debug** | バグ診断と修正 | 再現ファーストの手法。根本原因分析、最小限の修正、回帰テスト必須、類似パターンスキャン。シンボルトレースにSerena MCPを使用。リソース：`execution-protocol.md`、`common-patterns.md`、`debugging-checklist.md`、`bug-report-template.md`、`error-playbook.md`。 |
+| **oma-qa** | 品質保証 | OWASP Top 10 のセキュリティ監査、パフォーマンス分析、WCAG 2.2 AA のアクセシビリティ、コード品質レビューを行います。CRITICAL/HIGH/MEDIUM/LOW の重要度に `file:line` と修正コードを添付します。ISO/IEC 25010 の品質特性と ISO/IEC 29119 のテスト整合性に対応します。リソースは `execution-protocol.md`、`iso-quality.md`、`checklist.md`、`self-check.md`、`error-playbook.md` です。 |
+| **oma-debug** | バグの診断と修正 | 再現を先に行います。根本原因分析、最小限の修正、必須の回帰テスト、類似パターンの検索を含みます。シンボル追跡にはコードインテリジェンス MCP ツール（Gortex または Serena）を使います。リソースは `execution-protocol.md`、`common-patterns.md`、`debugging-checklist.md`、`bug-report-template.md`、`error-playbook.md` です。 |
+| **oma-refactor** | 挙動を保ったリファクタリング | 特性テストの安全網で段階的な再構成を確認します。ホットスポット（複雑度 × 変更頻度）の特定、コードスメル/SATD の選択、失敗時の Mikado 法による復元、状態を持つ変更の expand-contract、挙動を混ぜないリファクタリング専用コミットを扱います。IDE のリネームや jscodeshift/ast-grep を使うエンジン優先の変換と、`uvx lizard` / `uvx radon` による指標を使います。成功基準は読みやすさであり、指標は代理値です。 |
 
-### ローカライゼーション、協調、Git
+### ローカライゼーション、調整、Git
 
 | エージェント | 役割 | 主な機能 |
 |-------|------|-----------------|
-| **oma-translation** | コンテキスト対応翻訳 | 4段階翻訳法：原文分析、意味抽出、ターゲット言語での再構成、検証。トーン、レジスター、ドメイン用語を保持。アンチAIパターン検出。バッチ翻訳（i18nファイル）をサポート。出版品質向けのオプション7段階精密モード。ターゲット言語ごとのプロファイル（`resources/lang/{code}.md`）にレジスター体系、約物、言語固有の翻訳調ルールを収録。リソース：`translation-rubric.md`、`anti-ai-patterns.md`、`lang/{ko,ja,zh,en}.md`。 |
-| **oma-orchestration** | 自動マルチエージェントコーディネーター | CLIサブエージェントを並列で起動し、MCPメモリで調整、進捗を監視、検証ループを実行。設定可能：MAX_PARALLEL（デフォルト3）、MAX_RETRIES（デフォルト2）、POLL_INTERVAL（デフォルト30秒）。エージェント間レビューループとClarification Debtモニタリングを含む。リソース：`subagent-prompt-template.md`、`memory-schema.md`。 |
-| **oma-scm** | Conventional Commits | 変更を分析し、タイプ/スコープを決定し、適切な場合は機能ごとに分割し、Conventional Commits形式でコミットメッセージを生成。Co-Author：`First Fluke <our.first.fluke@gmail.com>`。 |
+| **oma-translation** | コンテキストに応じた翻訳 | Prepare、Acquire、Reason、Act、Verify、Finalize の6場面を使います。翻訳方法は、意味と保護対象の構文を読む、レジスターを選ぶ、ターゲット言語で再構成する、必要な場合は著者の文体を保つ、の4段階です。ターゲット言語別プロファイル（`resources/lang/{code}.md`）にレジスターとタイポグラフィの規則があります。リソースは `translation-rubric.md`、`anti-ai-patterns.md`、`lang/{ko,ja,zh,en}.md` です。 |
+| **oma-orchestration** | 自動マルチエージェントコーディネーター | CLI サブエージェントを並列起動し、セッション、タスクボード、進捗、結果の永続ファイルで調整し、検証ループを監視します。MAX_PARALLEL（デフォルト3）、MAX_RETRIES（デフォルト2）、POLL_INTERVAL（デフォルト30秒）を設定できます。エージェント間レビューと Clarification Debt の監視も含みます。リソースは `subagent-prompt-template.md`、`memory-schema.md` です。 |
+| **oma-scm** | ソフトウェア構成管理（SCM）と Git | ブランチ、merge/rebase/conflict、ワークツリー、ベースライン、リリース状態を扱います。安全なステージング付きの Conventional Commit メッセージも案内し、co-author の末尾情報は有効な `scm.co_author` 設定から取得します。 |
+| **oma-coordination** | 手動マルチエージェントワークフローガイド | CLI `oma agent spawn` で PM、Frontend、Backend、Mobile、QA エージェントを調整する手順を示します。PM による分解、同じ優先度のタスクを別ワークスペースで起動、実行単位の進捗と結果の監視、Frontend/Mobile 作業前の API とデータ契約の調整、QA レビューまでを扱います。`oma-orchestration` の手動版です。 |
 
 ### 検索、レトロスペクティブ、ドキュメント処理
 
 | エージェント | 役割 | 主な機能 |
 |-------|------|-----------------|
-| **oma-search** | インテントベースの検索ルーター | クエリをContext7（ドキュメント）、ネイティブウェブ検索、`gh`/`glab`（コード）、Serena（ローカル）にルーティング。すべての非ローカル結果にドメイン信頼度スコアリング。Fail-forwardルーティング（docs→web→fetch）。フラグ：`--docs`、`--code`、`--web`、`--strict`、`--wide`、`--gitlab`。 |
-| **oma-recap** | ツール横断の作業レトロスペクティブ | Claude、Codex、Qwen、Cursorの会話履歴を分析。自然言語の日付／期間入力を解決し、ツール+セッションごとにグループ化、テーマを抽出、スタンドアップ、週次レトロ、作業ログ用の日次／期間サマリーをレンダリング。 |
-| **oma-hwp** | HWP/HWPX/HWPML → Markdown | `bunx kordoc@latest`による韓国語ワードプロセッサ文書の変換。見出し、表（ネスト含む）、脚注、ハイパーリンク、画像を保持。`flatten-tables.ts`後処理でHancomの私用領域文字を除去。 |
-| **oma-pdf** | PDF → Markdown | `uvx opendataloader-pdf`によるPDF文書の変換。見出し、表、リスト、画像を保持；スキャンされたPDF用のOCRハイブリッドモード；`uvx mdformat`で出力を正規化。 |
+| **oma-search** | インテントベースの検索ルーター | クエリを Context7（ドキュメント）、ネイティブ Web 検索、`gh`/`glab`（コード）、ローカルコードインテリジェンス（Gortex または Serena）にルーティングします。ローカル以外の結果にドメイン信頼度を付けます。docs→web→fetch の fail-forward ルーティングに対応し、`--docs`、`--code`、`--web`、`--strict`、`--wide`、`--gitlab` フラグを使えます。 |
+| **oma-recap** | ツール横断の作業レトロスペクティブ | Grok、Claude、Codex、Gemini、Qwen、Cursor、Antigravity の会話履歴を分析します。自然言語の日付や期間を解決し、ツールとセッションでグループ化し、テーマを抽出し、日次や期間のサマリーをレンダリングします。CLI が要求された期間を30日で上限設定した場合も記録します。 |
+| **oma-hwp** | HWP/HWPX/HWPML → Markdown | `bunx kordoc@latest` で韓国語ワープロ文書を変換します。見出し、ネストした表、脚注、ハイパーリンク、画像を保持し、`flatten-tables.ts` の後処理で Hancom の私用領域文字を除去します。 |
+| **oma-pdf** | PDF → Markdown | `uvx opendataloader-pdf` で PDF を変換します。見出し、表、リスト、画像を保持し、スキャン PDF には OCR ハイブリッドモードを使い、`uvx mdformat` で出力を正規化します。 |
+
+### 学術・リサーチ執筆
+
+| エージェント | 役割 | 主な機能 |
+|-------|------|-----------------|
+| **oma-academic-writing** | 出版品質の英語文章 | エッセイ、レポート、エグゼクティブサマリー、結論、文献レビューを執筆、改稿、監査します。Sentence Structure（4種類の文と長さ・書き出しの変化）、Verb（段階化した学術コーパスから一般的な動詞を置き換える規則）、Hedging（証拠に合わせた強さ）、Anti-AI 準拠の4プロトコルを同時に適用します。Quote-before-judgment のルーブリックゲート、Claim-Evidence Map、逆向きアウトラインを使い、`draft` / `revise` / `review` モードに対応します。 |
+| **oma-scholar** | 研究論文のサイドカー | Knows の `.knows.yaml` サイドカー仕様（v0.9.0 / `paper@1`）で学術論文を検索、生成、検証、レビュー、比較します。主張だけなら約700トークン、PDF 全体なら約10Kトークンで取得でき、`oma scholar search/resolve/get/lint` は knows.academy 上で動作します。2026年より前の論文には OpenAlex を自動フォールバックとして使い、未知のフィールドは推測せず省略します。 |
+
+### セキュリティ
+
+| エージェント | 役割 | 主な機能 |
+|-------|------|-----------------|
+| **oma-deepsec** | エージェント型脆弱性スキャナーのドライバー | Vercel の `deepsec`（`bunx deepsec`）をエンドツーエンドで操作します。`.deepsec/` ワークスペースを `init` し、プロジェクト固有の `INFO.md` を書き、コストを考慮して `scan`/`process`/`triage`/`revalidate`/`export` を実行し、2ジョブの CI パターンで `process --diff` による PR ゲートを設定し、カスタムマッチャーを作成します。大規模な実行の前に `--limit 50 --concurrency 5` で較正し、有料処理の前にドル単位の見積もりを示します。コストはリポジトリの規模とバックエンドで変わります。エージェントのバックエンドは `codex`（gpt-5.5）または `claude`（claude-opus-4-8）です。 |
+
+### ドキュメントとメタツール
+
+| エージェント | 役割 | 主な機能 |
+|-------|------|-----------------|
+| **oma-docs** | ドキュメントの整合性検出 | `verify` モードは `docs/**/*.md` の壊れた参照（ファイルパス、CLI コマンド、設定キー、環境変数、スクリプト）を決定論的に確認し、0/1 を終了コードとして返します。`sync` モードは Git の差分を候補ドキュメントに対応付け、ホスト LLM によるパッチ案をドキュメントごとに確認してから適用します（自動適用はしません）。URL 確認は `lychee` に委ねます。CLI は構造化 JSON を出力し、ホスト LLM が自然言語の整理を担います。`.agents/` は変更しません。 |
+| **oma-skill-creation** | SSL-lite スキル作成スペシャリスト | SSL-lite 形式で OMA スキルを作成、更新、監査します。必須4セクション（Scheduling / Structural Flow / Logical Operations / References）を検査し、標準パスを1つだけインラインに入れ、`When NOT to use` の相互ルートを設定し、`oma skill audit` で説明の衝突を検出します。TF-IDF コサイン類似度は警告が60%以上、失敗が75%以上です。長い variant の詳細は `resources/` に移します。 |
+| **oma-explanation** | コード変更の解説 | 差分、PR、ブランチ、コミット範囲を Background、Intuition、Code、Quiz を含むオフライン HTML の解説にします。`/explain` ワークフローは最終成果物を検証し、`.agents/results/explain/` に書き出します。 |
+
+### 市場調査
+
+| エージェント | 役割 | 主な機能 |
+|-------|------|-----------------|
+| **oma-market** | コミュニティシグナル分析 | Reddit、X、YouTube、TikTok、HN、Polymarket、GitHub、arXiv、Techmeme、Bluesky、Web などを含む上流の `last30days` エンジンを `oma market run` から実行します。`oma` はエンジンを常に最新リリース（`~/.cache/oma-market/`）に保ち、各実行を `detect-trap` で確認し、意図（pain / trend / competitor / discovery）を分類し、SWOT / Porter's 5F / PESTEL を追加します。LAW に準拠したブリーフを `.agents/results/market/{slug}-{YYYYMMDD}.md` に出力します。 |
+
+### メディアとコンテンツ生成
+
+| エージェント | 役割 | 主な機能 |
+|-------|------|-----------------|
+| **oma-image** | マルチベンダー画像ルーター | Codex（ChatGPT OAuth 経由の `gpt-image-2`、CLI 優先）、Antigravity の Gemini 系「nano-banana」モデル（`agy` CLI + Gemini Code Assist、モデルは内部で選択）、Pollinations（無料の `flux`/`zimage`）へ、認証状態を見て並列ディスパッチします。生成前の明確化とプロンプト補強、最大10個の参照画像、0.20ドル以上でのコスト確認、再現用の `manifest.json` を備えます。CLI は `oma image generate`、`oma image doctor`、`oma image vendor list` です。 |
+| **oma-slide** | アニメーション付き HTML デッキ生成 | 固定 1920×1080 ステージで、アンチ「AI スロップ」のプレゼンデッキを作成します。ジオメトリを決定論的に検証し、単一 HTML にまとめ、`oma slide` で PDF/PNG/PPTX に出力します。スタイルプリセットとテンプレート、CJK→Pretendard 規則、`prefers-reduced-motion`、可視フォーカス、最大3回の自動修正検証ループを使います。画像は `oma-image` に委ね、Canva MCP の入出力は任意です。 |
+| **oma-video** | ショート、解説、デモのルーター | `oma video` CLI でショート/リール（9:16）、解説（16:9）、人が録画するデモ（16:9）を作成します。決定論的なアセットバス（`script.json` → `timing.json` → `render-spec.json`）が、同梱の Remotion コンポジターに入力されます。アセットプロバイダーはローカルのフォールバックを使う場合がありますが、コンポジションやツールチェーンの不足、レンダーエラーがあれば実行は失敗します。人によるキャプチャで認証情報を自動入力することはありません。 |
+| **oma-voice** | ローカル優先の TTS と STT | Voicebox MCP サーバーを使い、クラウド呼び出しや1回ごとの料金なしで、端末上の通知、アセット用 TTS、文字起こしを実行します。TTS は WAV がデフォルトで、ローカルで MP3 に変換できます。文字起こしは音声パスまたは base64 を受け付けます。TTS は5000文字、STT は30分までで、保存するアセットや文字起こしはマニフェストを書き出します。 |
 
 ---
 
 ## 段階的開示モデル
 
-oh-my-agentはコンテキストウィンドウの枯渇を防ぐため、2層スキルアーキテクチャを採用しています：
+oh-my-agent は、コンテキストウィンドウの枯渇を防ぐために2層のスキルアーキテクチャを使います。
 
-**レイヤー1: SKILL.md（約800バイト、常にロード済み）**
-エージェントのアイデンティティ、ルーティング条件、コアルール、「使うべき場合/使うべきでない場合」のガイダンスを含みます。エージェントがアクティブに作業していないときにロードされるのはこれだけです。
+**レイヤー1: SKILL.md（現行ツリーの中央値で約3,100トークン、スキルがルーティングされたときに読み込み）**
+エージェントの役割、ルーティング条件、コアルール、「使う場合／使わない場合」のガイダンスを含みます。エージェントが作業していないときに読み込まれるのは、この層です。
 
-**レイヤー2: resources/（オンデマンドでロード）**
-実行プロトコル、技術スタックリファレンス、コードスニペット、エラー対応手順、チェックリスト、サンプルを含みます。エージェントがタスクのために呼び出されたときのみロードされ、その場合でも特定のタスクタイプに関連するリソースのみがロードされます（`context-loading.md`の難易度評価とタスク-リソースマッピングに基づく）。
+**レイヤー2: resources/（オンデマンド）**
+実行プロトコル、技術スタックのリファレンス、コードスニペット、エラー対応手順、チェックリスト、例を含みます。エージェントがタスクに呼び出されたときに、タスクの種類に関係するリソースだけが読み込まれます（`context-loading.md` の難易度評価とタスク・リソース対応表に基づきます）。
 
-この設計により、すべてを事前にロードする場合と比較して約75%のトークンを節約できます。Flashティアモデル（128Kコンテキスト）では、総リソース予算は約3,100トークン、コンテキストウィンドウのわずか2.4%です。
+5エージェントのセッションで測定したところ、Simple または Medium のタスクではスキルコンテキストが約17〜19Kトークンとなり、72K の上限に対して最大値の約75%を避けられます。Complex タスクでスタックリファレンスを読み込む場合は約47%です。測定表と再現用スクリプトは[トークン節約の計算](../core-concepts/skills.md#token-savings-math)を参照してください。
 
 ---
 
-## .agents/: 唯一の信頼できるソース（SSOT）
+## `.agents/`: 単一の信頼できるソース（SSOT）
 
-oh-my-agentに必要なすべてが`.agents/`ディレクトリに格納されています：
+oh-my-agent に必要なものはすべて `.agents/` ディレクトリにあります。
 
 ```
 .agents/
-├── config/                 # oma-config.yaml
-├── skills/                 # 22のスキルディレクトリ（21エージェント + _shared）
-│   ├── _shared/            # 全エージェント共通のコアリソース
-│   └── oma-{agent}/        # エージェントごとのSKILL.md + resources/
-├── workflows/              # 16のワークフロー定義
-├── agents/                 # 9つのサブエージェント定義
-├── results/plan-{sessionId}.json               # 生成されたプラン出力
-├── state/                  # アクティブワークフロー状態ファイル
-├── results/                # エージェント結果ファイル
-└── mcp.json                # MCPサーバー設定
+├── oma-config.yaml         # Shared preferences and provider/model settings
+├── oma-config.cue          # Optional schema-backed configuration
+├── skills/                 # 33 skill directories + _shared resources
+│   ├── _shared/            # Core resources used by all agents
+│   └── oma-{skill}/         # Per-skill SKILL.md + resources/variants
+├── workflows/              # 21 workflow definitions
+├── agents/                 # 12 subagent definitions
+├── results/plan-{sessionId}.json               # Generated plan output
+├── state/                  # Active workflow state files
+├── results/                # Agent result files
+└── mcp.json                # MCP server configuration
 ```
 
-`.claude/`ディレクトリはIDE統合レイヤーとしてのみ存在し、`.agents/`を指すシンボリックリンクと、キーワード検出やHUDステータスラインのフックを含みます。`.serena/memories/`ディレクトリはオーケストレーションセッション中のランタイム状態を保持します。
+`.claude/` ディレクトリは IDE 統合層としてだけ存在します。`.agents/` を指すシンボリックリンク、キーワード検出と HUD ステータスラインのフックを含みます。`.agents/state/memories/` はオーケストレーション中のランタイム調整状態を保存し、古いプロジェクトでは従来の `.serena/memories/` にフォールバックします。
 
-このアーキテクチャにより、エージェント設定は：
-- **ポータブル**: IDEを切り替えても再設定不要
-- **バージョン管理可能**: `.agents/`をコードとともにコミット
-- **共有可能**: チームメンバーが同じエージェント設定を取得
+この構成により、エージェント設定は次の性質を持ちます。
+- **可搬:** IDE を切り替えても再設定は不要です。
+- **バージョン管理可能:** `.agents/` をコードと一緒にコミットできます。
+- **共有可能:** チームメンバーが同じエージェント設定を取得できます。
 
 ---
 
-## サポートされるIDEとCLIツール
+## サポートされる IDE と CLI ツール
 
-oh-my-agentはスキル/プロンプトローディングをサポートする任意のAI搭載IDEまたはCLIで動作します：
+oh-my-agent は、ネイティブのスキル／プロンプト読み込みまたは生成された統合ファイルを通じて、選択した AI 搭載 IDE と CLI で動作します。
 
 | ツール | 統合方法 | 並列エージェント |
-|------|-------------------|----------------|
-| **Claude Code** | ネイティブスキル + Agent tool | 真の並列処理にTask tool |
-| **Gemini CLI** | `.agents/skills/`からスキル自動ロード | `oma agent spawn` |
-| **Codex CLI** | スキル自動ロード | モデル仲介並列リクエスト |
-| **Antigravity IDE** | スキル自動ロード | `oma agent spawn` |
-| **Cursor** | `.cursor/`統合によるスキル | 手動スポーン |
+|---|---|---|
+| **Claude Code** | ネイティブスキル + Agent tool | 真の並列処理には Task tool |
+| **Antigravity CLI/IDE** | `agy` 用にスキルと MCP 設定を展開 | `oma agent spawn` |
+| **Codex CLI** | スキルを自動読み込み | モデルを介した並列リクエスト |
+| **Cursor** | `.cursor/` 統合経由のスキル | 手動スポーン |
 | **OpenCode** | スキル + インプロセスプラグインブリッジ + 生成されたサブエージェント（`.opencode/agents/`） | `oma agent spawn --vendor opencode` |
+| **Kimi Code CLI** | `~/.kimi-code/` のフックとスキル（HOME への書き込みは同意が必要。SSOT の `.agents/skills/` もネイティブに読む）とプロジェクト単位の Serena MCP | `oma agent spawn --vendor kimi` |
 
-エージェントスポーンはベンダー検出プロトコルにより各ベンダーに自動適応します。これはベンダー固有のマーカーをチェックします（例：Claude CodeのAgent tool、Codex CLIの`apply_patch`）。
+エージェントのスポーン方法は、ベンダー検出と有効な設定に応じて変わります。同じベンダーのランタイムではネイティブサブエージェントを使うことがあり、異なるベンダーでは `oma agent spawn` にフォールバックします。ディスパッチ規則は[並列実行](../core-concepts/parallel-execution.md)を参照してください。
 
 ---
 
 ## スキルルーティングシステム
 
-プロンプトを送信すると、oh-my-agentはスキルルーティングマップ（`.agents/skills/_shared/core/skill-routing.md`）を使用してどのエージェントが処理するかを決定します：
+プロンプトを送ると、oh-my-agent はスキルルーティングマップ（`.agents/skills/_shared/core/skill-routing.md`）で担当エージェントを決めます。
 
 | ドメインキーワード | ルーティング先 |
 |----------------|-----------|
@@ -156,7 +208,7 @@ oh-my-agentはスキル/プロンプトローディングをサポートする�
 | auth、JWT、login、register、password | oma-backend |
 | UI、component、page、form、screen（Web） | oma-frontend |
 | style、Tailwind、responsive、CSS | oma-frontend |
-| mobile、iOS、Android、Flutter、React Native、app | oma-mobile |
+| mobile、iOS、Android、Flutter、React Native、Swift、SwiftUI、app | oma-mobile |
 | bug、error、crash、broken、slow | oma-debug |
 | review、security、performance、accessibility | oma-qa |
 | UI design、design system、landing page、DESIGN.md | oma-design |
@@ -164,52 +216,59 @@ oh-my-agentはスキル/プロンプトローディングをサポートする�
 | plan、breakdown、task、sprint | oma-pm |
 | automatic、parallel、orchestrate | oma-orchestration |
 
-複数ドメインにまたがる複雑なリクエストの場合、ルーティングは確立された実行順序に従います。例えば、「フルスタックアプリを作成」は：oma-pm（計画）→ oma-backend + oma-frontend（並列実装）→ oma-qa（レビュー）にルーティングされます。
+複数ドメインにまたがる複雑なリクエストでは、ルーティングは決められた実行順序に従います。たとえば「フルスタックアプリを作成」は、oma-pm（計画）→ oma-backend + oma-frontend（並列実装）→ oma-qa（レビュー）にルーティングされます。
 
 ---
 
-## HUDステータスライン
+## HUD ステータスライン
 
-Claude Code上で動作する場合、oh-my-agentは永続的なステータスインジケーター`[OMA]`をステータスバーに表示します。表示内容は次のとおりです。
+Claude Code で実行すると、oh-my-agent はステータスバーに `[OMA]` のステータスインジケーターを表示します。次を表示します。
 
-- モデル名（例：Opus、Sonnet）
-- カラーコード付きのコンテキスト使用率（緑 < 70%、黄 70-85%、赤 > 85%）
-- 永続ワークフローが実行中の場合、そのアクティブな状態
+- モデル名（例: Opus、Sonnet）
+- 色分けされたコンテキスト使用率（緑 < 70%、黄 70〜85%、赤 > 85%）
+- 永続ワークフローが実行中の場合は、その状態
 
-HUDは`.claude/hooks/hud.ts`によって動作し、Claude Codeの`statusLine`フック機能を利用しています。
+HUD は Claude Code の `statusLine` フック機能を使う `.claude/hooks/hud.ts` で動作します。
 
 ---
 
 ## 自動ワークフロー検出
 
-ワークフローを起動するために`/command`を入力する必要はありません。oh-my-agentの`UserPromptSubmit`フックは、自然言語入力を`.claude/hooks/triggers.json`で定義されたキーワードトリガーと照合します。サポート言語は11言語です（英語、韓国語、日本語、中国語、スペイン語、フランス語、ドイツ語、ポルトガル語、ロシア語、オランダ語、ポーランド語）。
+`/command` を入力しなくてもワークフローを起動できます。oh-my-agent のフックシステムは、`.agents/hooks/core/triggers.json` に定義されたキーワードトリガー（oma バイナリにインライン化され、すべてのベンダーで共有されます）に対して自然言語の入力をスキャンします。対応言語は11言語（英語、韓国語、日本語、中国語、スペイン語、フランス語、ドイツ語、ポルトガル語、ロシア語、オランダ語、ポーランド語）です。
 
-- **アクション可能な入力**（例：「認証機能をplanして」）→ ワークフローを自動的にロード
-- **情報照会の入力**（例：「orchestrateとは？」）→ フィルタリングされ、ワークフローは起動しない
-- **明示的な`/command`** → 重複を避けるためフックは検出をスキップ
-- **永続ワークフロー** → 「workflow done」と言うまで、メッセージごとにコンテキストを再注入
+- **実行可能な入力**（例: 「認証機能を plan する」）→ ワークフローを自動的に読み込みます。
+- **情報を尋ねる入力**（例: 「orchestrate とは？」）→ フィルタリングされ、ワークフローは起動しません。
+- **明示的な `/command`** → 重複を避けるため、フックは検出をスキップします。
+- **永続ワークフロー** → 「workflow done」と言うまで、メッセージごとにコンテキストを再注入します。
+
+すべてのフックイベントは `oma hook run` の標準 ABI を通ります。ベンダーは `oma-hook.sh --vendor <v> --event <nativeEvent>` を起動し、インプロセスのハンドラーチェーンへ渡してベンダー固有の形式を標準出力に出します（常に終了コード0で、失敗時もエージェントを止めません）。
 
 ---
 
 ## クロスベンダーサポート
 
-oh-my-agentはClaude Codeに限定されません。フックシステムは以下をサポートします。
+oh-my-agent は Claude Code に限定されません。フック対応ベンダーは同じ `oma hook run` ABI を共有し、拡張ベンダーはインプロセスブリッジを使います。
 
-| ベンダー | 統合 |
-|--------|------------|
-| **Claude Code** | ネイティブフック（`UserPromptSubmit`、`Notification`、statusLine） |
-| **Gemini CLI** | `.agents/skills/`からスキル自動ロード、`oma agent spawn`でエージェントスポーン |
-| **Codex CLI** | スキル自動ロード、モデル仲介の並列リクエスト |
-| **Qwen Code** | ワークフロー検出のためのフックサポート |
+| ベンダー | フックの配送 | StatusLine |
+|--------|--------------|------------|
+| **Claude Code** | `oma-hook.sh --vendor claude --event UserPromptSubmit` / `PreToolUse` / `Stop` | `bun .claude/hooks/hud.ts`（直接実行、変更なし） |
+| **Codex CLI** | `oma-hook.sh --vendor codex --event UserPromptSubmit` / `PreToolUse` / `Stop` | なし |
+| **Qwen Code** | `oma-hook.sh --vendor qwen --event UserPromptSubmit` / `PreToolUse` / `Stop` | `ui.statusLine` 経由の `bun` パス |
+| **Cursor** | `oma-hook.sh --vendor cursor --event beforeSubmitPrompt` / `preToolUse` | なし |
+| **Grok** | `oma-hook.sh --vendor grok --event UserPromptSubmit` / `Stop` | なし |
+| **Kiro** | `oma-hook.sh --vendor kiro --event userPromptSubmit` / `preToolUse` / `stop` | なし |
+| **Kimi Code** | `oma-hook.sh --vendor kimi --event UserPromptSubmit` / `PreToolUse` / `Stop`（`~/.kimi-code/config.toml` のグローバル専用 `[[hooks]]`） | なし |
+| **Antigravity** | `oma-hook.sh --vendor antigravity --event PreInvocation` / `PreToolUse` / `Stop` | なし |
+| **pi** | インプロセスブリッジ（`installPiExtension`）。`oma hook run` は経由しません。 | なし |
 
-ベンダー検出は自動的に行われます。エージェントは検出されたランタイム環境に基づいてスポーン方法を適応させます。
+`.agents/` ディレクトリが引き続き SSOT です。インストールは、選択したベンダーにスキル、ワークフロー、フック、エージェント定義をリンクまたは投影します。利用できる機能はベンダーによって異なります。同じベンダーのネイティブサブエージェントも、CLI で起動した異なるベンダーのエージェントも、同じソースを読みます。
 
 ---
 
 ## 次のステップ
 
-- **[インストール](./installation.md)**: 3つのインストール方法、プリセット、CLIセットアップ、検証
-- **[エージェント](/docs/core-concepts/agents)**: 全21エージェントとチャータープリフライトの詳細
-- **[スキル](/docs/core-concepts/skills)**: 2層アーキテクチャの解説
-- **[ワークフロー](/docs/core-concepts/workflows)**: トリガーとフェーズ付きの全16ワークフロー
-- **[使い方ガイド](/docs/guide/usage)**: 単一タスクからフルオーケストレーションまでの実例
+- **[インストール](./installation.md):** 3つのインストール方法、プリセット、CLI 設定、検証
+- **[エージェント](/docs/core-concepts/agents):** 33個のスキル、13個のディスパッチロール、チャータープリフライトの詳細
+- **[スキル](/docs/core-concepts/skills):** 2層アーキテクチャの説明
+- **[ワークフロー](/docs/core-concepts/workflows):** トリガーとフェーズを含む21個のワークフロー
+- **[使い方ガイド](/docs/guide/usage):** 単一タスクから完全なオーケストレーションまでの実例

@@ -1,13 +1,13 @@
 ---
 title: 워크플로우
-description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬래시 명령, 영구 vs 비영구 모드, 11개 언어의 트리거 키워드, 단계 및 스텝, 읽기/쓰기 파일, triggers.json과 keyword-detector.ts를 통한 자동 감지 메커니즘, 정보성 패턴 필터링, 영구 모드 상태 관리를 다룹니다.
+description: OMA의 21개 워크플로우 레퍼런스입니다. 슬래시 명령, 지속·비지속 모드, 트리거 키워드, 단계, 읽기·쓰기 파일, triggers.json과 keyword-detector.ts를 통한 자동 감지, 정보성 패턴 필터링, 지속 모드 상태 관리를 다룹니다.
 ---
 
 # 워크플로우
 
 워크플로우는 슬래시 명령이나 자연어 키워드로 트리거되는 구조화된 다단계 프로세스입니다. 단일 단계 유틸리티부터 복잡한 5단계 품질 게이트까지 에이전트가 태스크에서 어떻게 협업하는지 정의합니다.
 
-16개의 워크플로우가 있으며, 그 중 4개는 영구 워크플로우입니다(상태를 유지하며 실수로 중단할 수 없습니다).
+21개의 워크플로우가 있으며, 그 중 4개는 지속 워크플로우입니다(상태를 유지하며 실수로 중단할 수 없습니다).
 
 ---
 
@@ -33,15 +33,15 @@ description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬
 
 ---
 
-## 영구 워크플로우
+## 지속 워크플로우
 
-영구 워크플로우는 모든 태스크가 완료될 때까지 계속 실행됩니다. `.agents/state/`에 상태를 유지하고, 명시적으로 비활성화될 때까지 매 사용자 메시지에 `[OMA PERSISTENT MODE: ...]` 컨텍스트를 재주입합니다.
+지속 워크플로우는 모든 태스크가 완료될 때까지 계속 실행됩니다. `.agents/state/`에 상태를 유지하고, 명시적으로 비활성화될 때까지 매 사용자 메시지에 `[OMA PERSISTENT MODE: ...]` 컨텍스트를 재주입합니다.
 
 ### /orchestrate
 
-**설명:** 자동화된 CLI 기반 병렬 에이전트 실행. CLI로 서브에이전트를 스폰하고, MCP 메모리로 조율하며, 진행 상황을 모니터링하고, 검증 루프를 실행합니다.
+**설명:** 자동화된 CLI 기반 병렬 에이전트 실행. CLI로 서브에이전트를 스폰하고, 파일로 보존되는 실행 상태와 실행 기록으로 조율하며, 진행 상황을 모니터링하고, 검증 루프를 실행합니다.
 
-**영구:** 예. 상태 파일: `.agents/state/orchestrate-state.json`.
+**지속:** 예. 상태 파일: `.agents/state/orchestrate-state.json`.
 
 **트리거 키워드:**
 | 언어 | 키워드 |
@@ -71,15 +71,15 @@ description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬
 **단계:**
 1. **Step 0 (준비):** 코디네이션 스킬, 컨텍스트 로딩 가이드, 메모리 프로토콜 읽기. 벤더 감지.
 2. **Step 1 (계획 로딩/생성):** `.agents/results/plan-{sessionId}.json`을 확인하고, 없으면 가장 최근의 `plan-*.json`을 확인합니다. 계획이 없거나 태스크별 에이전트, 우선순위, 의존성, 인수 기준이 빠져 있으면 같은 세션 ID로 `/plan`을 실행해 계획을 생성합니다. 계획을 제시하고 기존 승인을 적용하며, 위임 전에 중요한 미결정 사항이나 새로운 승인이 필요한 경우에만 확인합니다.
-3. **Step 2 (세션 초기화):** `oma-config.yaml` 로딩, CLI 매핑 테이블 표시, 계획 생성 시 사용한 세션 ID를 재사용하거나 새 ID(`session-YYYYMMDD-HHMMSS`) 생성, 메모리에 `orchestrator-session.md`와 `task-board.md` 생성.
-4. **Step 3 (에이전트 스폰):** 각 우선순위 티어(P0 먼저, 그 다음 P1...)에 대해 벤더에 맞는 방식으로 에이전트 스폰. MAX_PARALLEL을 초과하지 않음.
-5. **Step 4 (모니터링):** `progress-{agent}.md` 파일 폴링, `task-board.md` 업데이트. 완료, 실패, 크래시 감시.
+3. **Step 2 (세션 초기화):** `oma-config.yaml`을 로딩하고 CLI 매핑 테이블을 표시합니다. 계획 생성 시 사용한 세션 ID를 재사용하거나 새 ID(`session-YYYYMMDD-HHMMSS`)를 생성하고, 설정된 메모리 저장소에 `orchestrator-session-{sessionId}.md`와 `task-board-{sessionId}.md`를 만듭니다.
+4. **Step 3 (에이전트 스폰):** 각 우선순위 티어(P0 먼저, 그 다음 P1...)에 대해 현재 런타임과 대상 벤더가 일치하면 네이티브 서브에이전트를 사용하고, 외부 또는 다른 벤더 작업에는 `oma agent spawn`을 사용합니다. MAX_PARALLEL을 초과하지 않습니다.
+5. **Step 4 (모니터링):** 실행 범위가 지정된 `progress-{agentId}-{taskId}-{runId}-{sessionId}.md` 파일과 구조화된 실행 기록을 폴링하고 태스크 보드를 업데이트합니다. 완료, 실패, 크래시를 감시합니다.
 6. **Step 5 (검증):** 완료된 에이전트별로 `verify.sh {agent-type} {workspace}` 실행. 실패 시 에러 컨텍스트와 함께 재스폰 (최대 2회 재시도). 2회 재시도 후에도 실패하면 Exploration Loop 활성화: 2-3개 가설 생성, 병렬 실험 스폰, 점수 매기기, 최적 선택.
-7. **Step 6 (수집):** 모든 `result-{agent}.md` 파일 읽기, 요약 정리.
+7. **Step 6 (수집):** 실행 범위가 지정된 결과 파일과 구조화된 클레임을 읽고 요약을 정리합니다.
 8. **Step 7 (최종 보고서):** 세션 요약 제시. Quality Score가 측정된 경우 Experiment Ledger 요약 포함 및 교훈 자동 생성.
 
-**읽는 파일:** `.agents/results/plan-{sessionId}.json`, `.agents/oma-config.yaml`, `progress-{agent}.md`, `result-{agent}.md`.
-**쓰는 파일:** `orchestrator-session.md`, `task-board.md` (메모리), 최종 보고서.
+**읽는 파일:** `.agents/results/plan-{sessionId}.json`, `.agents/oma-config.yaml`, 실행 범위 진행·결과 파일, 구조화된 실행 실행 기록.
+**쓰는 파일:** 설정된 메모리 저장소의 세션·태스크 보드 상태, 구조화된 실행 기록과 클레임, 최종 보고서.
 
 **사용 시기:** 자동화된 조율과 최대 병렬성이 필요한 대규모 프로젝트.
 
@@ -89,7 +89,7 @@ description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬
 
 **설명:** 단계별 멀티 도메인 조율. PM이 먼저 계획하고, 승인된 범위 안에서 에이전트가 실행한 후, QA 리뷰와 이슈 수정이 이어집니다.
 
-**영구:** 예. 상태 파일: `.agents/state/work-state.json`.
+**지속:** 예. 상태 파일: `.agents/state/work-state.json`.
 
 **트리거 키워드:**
 | 언어 | 키워드 |
@@ -119,9 +119,9 @@ description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬
 
 ### /ultrawork
 
-**설명:** 품질에 집착하는 워크플로우. 5단계, 17개 스텝, 그 중 11개가 리뷰 스텝. 모든 단계에는 진행 전 통과해야 하는 게이트가 있습니다.
+**설명:** 품질에 초점을 둔 워크플로우입니다. 5단계, 17개 스텝, 그 중 12개가 별도 리뷰 스텝이며 모든 단계에는 진행 전 통과해야 하는 게이트가 있습니다.
 
-**영구:** 예. 상태 파일: `.agents/state/ultrawork-state.json`.
+**지속:** 예. 상태 파일: `.agents/state/ultrawork-state.json`.
 
 **트리거 키워드:**
 | 언어 | 키워드 |
@@ -153,7 +153,7 @@ description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬
 
 **REFINE 건너뛰기 조건:** 50줄 미만의 Simple 태스크.
 
-**사용 시기:** 최대 품질 제공. 포괄적인 리뷰를 거쳐 프로덕션 준비 상태가 필요할 때.
+**사용 시기:** 결과가 출시 준비 상태인지 직접 판단하기 전에 전체 리뷰 절차를 실행할 때 사용합니다. 워크플로우는 검사와 발견 사항을 기록하지만 프로덕션 준비 여부를 대신 결정하지 않습니다.
 
 ---
 
@@ -161,7 +161,7 @@ description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬
 
 **설명:** 지속적 자기 참조 실행 루프. ultrawork를 독립적 검증자로 감싸서 매 반복마다 완료 기준을 확인합니다. 모든 기준이 통과하면 전체 완료를, 통과하거나 차단된 기준만 남으면 부분 완료를 보고하며, 안전장치가 작동해도 종료합니다.
 
-**영구:** 예. 상태 파일: `.agents/state/ralph-state.json`.
+**지속:** 예. 상태 파일: `.agents/state/ralph-state.json`.
 
 **트리거 키워드:**
 | 언어 | 키워드 |
@@ -188,7 +188,7 @@ description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬
 
 ---
 
-## 비영구 워크플로우
+## 비지속 워크플로우
 
 ### /plan
 
@@ -406,7 +406,7 @@ description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬
 
 **단계:** 변경사항 분석 -> 기능 분리 -> 유형 결정 -> 범위 결정 -> 설명 작성 -> 즉시 커밋 실행.
 
-**규칙:** `git add -A` 금지. 시크릿 커밋 금지. HEREDOC 사용. Co-Author: `First Fluke <our.first.fluke@gmail.com>`.
+**규칙:** `git add -A` 금지. 시크릿 커밋 금지. 멀티라인 메시지에는 HEREDOC 사용. 유효한 `scm.co_author` 설정이 활성화되어 이름과 이메일을 제공할 때만 co-author trailer를 추가합니다.
 
 ---
 
@@ -416,7 +416,7 @@ description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬
 
 **트리거 키워드:** 없음 (자동 감지에서 제외).
 
-**기능:** 현재 MCP 도구 상태 표시, 도구 그룹 활성화/비활성화, 영구 또는 임시 변경, 자연어 파싱.
+**기능:** 현재 MCP 도구 상태 표시, 도구 그룹 활성화/비활성화, 지속 또는 임시(`--temp`) 변경, 자연어 파싱.
 
 **도구 그룹:**
 - memory: read_memory, write_memory, edit_memory, list_memories, delete_memory
@@ -442,7 +442,7 @@ description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬
 
 ### /video
 
-**설명:** `oma-video` 스킬을 엔드 투 엔드로 구동합니다. 브리프 → 스크립트 → 내레이션 → 비주얼 → 자막 → render-spec → 벤더링된 Remotion(또는 MoneyPrinterTurbo) 컴포지터 순으로 진행해, 실제 `.mp4`가 담긴 재현 가능한 실행 디렉토리를 만듭니다. 키는 선택 사항입니다. 모든 단계에 결정론적 분기가 있어서 API 키가 없어도 실행이 완료됩니다. 인라인으로 실행합니다(서브에이전트를 스폰하지 않습니다).
+**설명:** `oma-video` 스킬을 엔드 투 엔드로 구동합니다. 브리프 → 스크립트 → 내레이션 → 비주얼 → 자막 → render-spec → 벤더링된 Remotion(또는 MoneyPrinterTurbo) 컴포지터 순으로 진행합니다. 재현 가능한 실행 디렉토리를 만들며 컴포지터와 ffprobe 검사를 통과한 뒤에만 실제 `.mp4`를 내보냅니다. 지원되는 에셋 폴백에는 키를 선택적으로 설정할 수 있지만 컴포지터나 도구 체인의 실패는 실패한 실행으로 남습니다. 인라인으로 실행합니다(서브에이전트를 스폰하지 않습니다).
 
 **트리거 키워드:**
 | 언어 | 키워드 |
@@ -458,7 +458,7 @@ description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬
 2. **스크립트 작성:** 장면과 내레이션을 생성합니다(키가 있으면 LLM으로, 없으면 브리프에서 결정론적 개요로).
 3. **에셋 합성:** 내레이션은 `oma-voice`, 비주얼은 `oma-image` / `oma-slide` / 스톡, 자막은 키가 필요 없는 정렬로 만들며, `demo --source web`에서는 감독하의 브라우저 웹 캡처를 씁니다. 각 프로바이더는 결정론적 폴백으로 저하됩니다.
 4. **render-spec 구성:** 실행 디렉토리에 `render-spec.json`(결정성의 경계)과 에셋을 씁니다.
-5. **렌더:** 벤더링된 Remotion 프로젝트(또는 MoneyPrinterTurbo)를 서브프로세스로 스폰합니다. 실패하면 결정론적 플레이스홀더를 내보내 실행이 어쨌든 완료되게 합니다. 라이브 캡처는 매니페스트에 `nondeterministic`으로 기록됩니다.
+5. **렌더:** 벤더링된 Remotion 프로젝트(또는 MoneyPrinterTurbo)를 서브프로세스로 스폰합니다. 일반 컴포지터나 도구 체인 실패는 실행을 실패시킵니다. 결정론적 플레이스홀더는 명시적인 mock/test 경로(`OMA_VIDEO_MOCK=1`)에서만 사용할 수 있습니다. 라이브 캡처는 매니페스트에 `nondeterministic`으로 기록됩니다.
 
 **출력:** `.agents/results/videos/{timestamp}-{shortid}-{mode}/`에 실행 디렉토리가 생기며, `script.json`, `render-spec.json`, `timing.json`, `captions.{srt,vtt}`, `audio/`, `visuals/`, `{composition}.mp4`, `manifest.json`이 들어갑니다. [영상 생성 가이드](../guide/video-generation.md)를 참고하세요.
 
@@ -494,7 +494,9 @@ description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬
 
 **트리거 키워드:** 없음 (자동 감지에서 제외).
 
+<!-- oma-docs:ignore-start -->
 **단계:** 감지(매니페스트 스캔) -> 확인 -> 생성(`stack/`) -> 검증.
+<!-- oma-docs:ignore-end -->
 
 **출력:** `.agents/skills/oma-backend/stack/`에 파일 생성.
 
@@ -516,11 +518,11 @@ description: oh-my-agent 16개 워크플로우 완전 레퍼런스입니다. 슬
 
 ### 훅 시스템
 
-oh-my-agent은 각 사용자 메시지가 처리되기 전에 실행되는 `UserPromptSubmit` 훅을 사용합니다:
+oh-my-agent은 각 사용자 메시지가 처리되기 전에 실행되는 `UserPromptSubmit` 훅을 사용합니다. 벤더 설정은 `<hookDir>/oma-hook.sh --vendor <v> --event <e>` 항목 하나를 등록하고, 이 항목이 인프로세스 핸들러 체인이 실행되는 `oma hook run`으로 연결됩니다:
 
 1. **`triggers.json`** (`.claude/hooks/triggers.json`): 11개 언어에 대한 키워드-워크플로우 매핑을 정의합니다.
 2. **`keyword-detector.ts`** (`.claude/hooks/keyword-detector.ts`): 사용자 입력을 트리거 키워드와 대조하고, 언어별 매칭을 존중하며, 워크플로우 활성화 컨텍스트를 주입하는 TypeScript 로직.
-3. **`persistent-mode.ts`** (`.claude/hooks/persistent-mode.ts`): 활성 상태 파일을 확인하고 영구 워크플로우 실행을 강제합니다.
+3. **`persistent-mode.ts`** (`.claude/hooks/persistent-mode.ts`): 활성 상태 파일을 확인하고 지속 워크플로우 실행을 강제합니다.
 
 ### 감지 흐름
 
@@ -594,11 +596,11 @@ oh-my-agent은 각 사용자 메시지가 처리되기 전에 실행되는 `User
 
 ---
 
-## 영구 모드 메커니즘
+## 지속 모드 메커니즘 {#persistent-mode-mechanics}
 
 ### 상태 파일
 
-영구 워크플로우(orchestrate, ultrawork, work, ralph)는 `.agents/state/`에 상태 파일을 생성합니다:
+지속 워크플로우(orchestrate, ultrawork, work, ralph)는 `.agents/state/`에 상태 파일을 생성합니다:
 
 ```
 .agents/state/
@@ -612,22 +614,22 @@ oh-my-agent은 각 사용자 메시지가 처리되기 전에 실행되는 `User
 
 ### 강화
 
-영구 워크플로우가 활성인 동안 `persistent-mode.ts` 훅이 모든 사용자 메시지에 `[OMA PERSISTENT MODE: {workflow-name}]`를 주입합니다.
+지속 워크플로우가 활성인 동안 `persistent-mode.ts` 훅이 모든 사용자 메시지에 `[OMA PERSISTENT MODE: {workflow-name}]`를 주입합니다.
 
 ### 목표 계약 (선택적 정지 게이트와 예산)
 
-`oma goal set`은 활성 영구 워크플로우에 기계적으로 확인 가능한 완료 계약을 붙입니다.
+`oma goal set`은 활성 지속 워크플로우에 기계적으로 확인 가능한 완료 계약을 붙입니다.
 
 - `--gate typecheck|test|lint`: Stop 훅은 **해당 package.json 스크립트가 통과할 때만** 세션 종료를 허용합니다(셸 없이 argv 배열로 실행하며, 자유 형식 명령은 설계상 거부합니다). 실패하면 출력 끝부분과 함께 차단하고, 실패와 타임아웃은 강화 한도에 반영되므로 빨간 게이트가 영원히 막을 수는 없습니다.
 - `--budget-minutes <n>`: 활성화 시점부터의 wall-clock 예산입니다. 이를 넘기면 워크플로우를 비활성화하고 솔직하게 부분 완료로 멈추도록 허용하며, 세션 이벤트 기록에 남깁니다.
 
-계약이 없으면 영구 모드는 위에서 설명한 대로 동작합니다. 계약은 선택 사항입니다. [CLI 명령 레퍼런스](../cli-interfaces/commands.md#goal-set)의 `goal set`을 참고하세요.
+계약이 없으면 지속 모드는 위에서 설명한 대로 동작합니다. 계약은 선택 사항입니다. [CLI 명령 레퍼런스](../cli-interfaces/commands.md#goal-set)의 `goal set`을 참고하세요.
 
 ### 비활성화
 
 "workflow done"(또는 설정 언어의 동등 표현)이라고 말하면:
 1. `.agents/state/`에서 상태 파일 삭제
-2. 영구 모드 컨텍스트 주입 중지
+2. 지속 모드 컨텍스트 주입 중지
 3. 정상 동작으로 복귀
 
 모든 스텝이 완료되고 마지막 게이트를 통과하면 자연스럽게 종료될 수도 있습니다.
@@ -653,17 +655,17 @@ Describe the task → relevant skill → implement → focused verification
 
 ### 최대 품질 제공
 ```
-/ultrawork → PLAN (4개 리뷰 스텝) → IMPL → VERIFY (3개 리뷰 스텝) → REFINE (5개 리뷰 스텝) → SHIP (4개 리뷰 스텝)
+/ultrawork → PLAN (4 review steps) → IMPL → VERIFY (3 review steps) → REFINE (5 review steps) → SHIP (4 review steps)
 ```
 
 ### 버그 조사
 ```
-/debug → 재현 → 근본 원인 → 최소 수정 → 회귀 테스트 → 유사 패턴 스캔
+/debug → reproduce → root cause → minimal fix → regression test → similar pattern scan
 ```
 
 ### 디자인에서 구현까지
 ```
-/brainstorm → 설계 문서 → /plan → 태스크 분해 → /orchestrate → 병렬 구현 → /review → /scm
+/brainstorm → design document → /plan → task breakdown → /orchestrate → parallel implementation → /review → /scm
 ```
 
 ### 새 코드베이스 설정

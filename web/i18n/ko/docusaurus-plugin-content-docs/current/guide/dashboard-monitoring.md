@@ -1,6 +1,7 @@
 ---
 title: "가이드: 대시보드 모니터링"
-description: 터미널 및 웹 대시보드, 데이터 소스, 3-터미널 레이아웃, 문제 해결, 기술 구현 세부사항을 다루는 종합 대시보드 가이드.
+sidebar_label: 대시보드 모니터링
+description: 터미널이나 loopback 웹 대시보드에서 OMA 세션을 모니터링하고 상태 디렉토리를 선택하며, 연결·탐색 문제를 복구합니다.
 ---
 
 # 가이드: 대시보드 모니터링
@@ -12,9 +13,9 @@ oh-my-agent은 멀티 에이전트 워크플로우 중 에이전트 활동을 �
 | 명령 | 인터페이스 | URL | 기술 |
 |:-----|:---------|:----|:-----|
 | `oma dashboard terminal` | 터미널 (TUI) | 해당 없음 (터미널에서 렌더링) | chokidar 파일 감시자, picocolors 렌더링 |
-| `oma dashboard web` | 브라우저 | `http://localhost:9847` | HTTP 서버, WebSocket, chokidar 파일 감시자 |
+| `oma dashboard web` | 브라우저 | `http://127.0.0.1:9847` (시작 시 token 출력) | HTTP 서버, WebSocket, chokidar 파일 감시자 |
 
-두 대시보드 모두 동일한 데이터 소스를 감시합니다: `.serena/memories/` 디렉토리.
+두 대시보드는 기본적으로 `.agents/state/memories/`를 감시합니다. 조정 파일이 다른 위치에 있으면 `MEMORIES_DIR`을 설정하세요. 대시보드는 `.serena/memories/`로 자동 폴백하지 않습니다.
 
 ### 터미널 대시보드
 
@@ -26,7 +27,7 @@ oma dashboard terminal
 
 ```
 ╔════════════════════════════════════════════════════════╗
-║  Serena Memory Dashboard                              ║
+║  OMA Memory Dashboard                                 ║
 ║  Session: session-20260324-143052  [RUNNING]          ║
 ╠════════════════════════════════════════════════════════╣
 ║  Agent        Status       Turn   Task                ║
@@ -58,14 +59,16 @@ oma dashboard terminal
 oma dashboard web
 ```
 
-포트 9847에서 웹 서버를 엽니다(`DASHBOARD_PORT` 환경 변수로 설정 가능). 브라우저 UI가 WebSocket으로 연결되어 실시간 업데이트를 수신합니다.
+`DASHBOARD_PORT`로 설정할 수 있는 포트 9847에서 loopback 전용 웹 서버를 시작합니다. OMA는 `127.0.0.1`과 token이 포함된 URL을 출력하므로 정확한 URL을 열고 token을 유지하세요. 페이지는 `/api/state`, `/api/recap`, WebSocket 업데이트에 token을 사용하며, token이 없는 요청은 `401`을 반환합니다.
 
 ```bash
 # 커스텀 포트
 DASHBOARD_PORT=8080 oma dashboard web
 
 # 커스텀 메모리 디렉토리
-MEMORIES_DIR=/path/to/.serena/memories oma dashboard web
+MEMORIES_DIR=/path/to/.agents/state/memories oma dashboard web
+
+# 프로세스는 /recap 보기에도 응답합니다. 출력된 token 포함 URL을 사용하세요.
 ```
 
 웹 대시보드는 터미널 대시보드와 같은 정보를 보여주면서, 다크 테마 UI에 다음 기능을 더합니다:
@@ -99,7 +102,7 @@ MEMORIES_DIR=/path/to/.serena/memories oma dashboard web
 │                                                                 │
 │   $ oma agent status session-20260324-143052 backend frontend   │
 │   $ oma stats get                                                   │
-│   $ oma verify backend -w ./api                                 │
+│   $ oma verify agent backend -w ./api                           │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -112,9 +115,9 @@ MEMORIES_DIR=/path/to/.serena/memories oma dashboard web
 
 ---
 
-## .serena/memories/의 데이터 소스
+## .agents/state/memories/의 데이터 소스
 
-대시보드는 `.serena/memories/` 디렉토리에서 읽습니다. 이 디렉토리는 실행 중 에이전트와 워크플로우가 MCP 메모리 도구를 사용하여 채웁니다.
+대시보드는 `.agents/state/memories/` 디렉토리에서 읽습니다. 이 디렉토리는 실행 중 에이전트와 워크플로우가 조정 파일을 기록하면서 채워집니다. 상태를 다른 위치에 저장하는 프로젝트에서는 `MEMORIES_DIR`을 사용하세요.
 
 ### 파일 타입과 내용
 
@@ -141,7 +144,7 @@ MEMORIES_DIR=/path/to/.serena/memories oma dashboard web
 
 4. **턴 카운팅**: 발견된 각 에이전트에 대해 `progress-{agent}.md` 파일을 읽고 `turn: N` 패턴에서 턴 번호를 추출합니다.
 
-5. **활동 피드**: 가장 최근에 수정된 5개의 `.md` 파일을 나열하고, 마지막 의미 있는 줄(헤더, 상태 줄, 액션 항목)을 활동 메시지로 추출합니다.
+5. **활동 피드**: 가장 최근에 수정된 5개의 `.md` 파일을 나열하고, 마지막 의미 있는 줄(헤더, 상태 줄, 액션 항목)을 활동 메시지로 추출합니다. 웹 대시보드는 `/recap`에서 요약 보기도 제공합니다.
 
 ---
 
@@ -217,29 +220,29 @@ MEMORIES_DIR=/path/to/.serena/memories oma dashboard web
 
 **가능한 원인:**
 - 워크플로우가 아직 에이전트 생성 단계에 도달하지 않음.
-- `.serena/memories/` 디렉토리가 비어 있음.
+- `.agents/state/memories/` 디렉토리가 비어 있음.
 - 대시보드가 잘못된 디렉토리를 감시 중.
 
 **조치:**
-1. 메모리 디렉토리 확인: `ls -la .serena/memories/`
+1. 메모리 디렉토리 확인: `ls -la .agents/state/memories/`
 2. 워크플로우가 아직 기획 단계에 있는지 확인 (에이전트가 아직 생성되지 않음).
 3. 대시보드가 올바른 프로젝트 디렉토리를 감시하고 있는지 확인: 대시보드는 현재 작업 디렉토리에서 메모리 경로를 해석합니다.
-4. 커스텀 경로를 사용하는 경우: `MEMORIES_DIR=/path/to/.serena/memories oma dashboard terminal`
+4. 커스텀 경로를 사용하는 경우: `MEMORIES_DIR=/path/to/.agents/state/memories oma dashboard terminal`
 
 ### 신호 4: 웹 대시보드에 "Disconnected" 표시
 
 **증상:** 웹 대시보드의 연결 뱃지가 빨간색 "Disconnected"를 표시.
 
 **가능한 원인:**
-- `oma dashboard web` 프로세스가 종료됨.
-- 브라우저와 localhost 간의 네트워크 문제.
+- 브라우저가 오래된 URL을 사용하거나 시작 token이 없음.
 - 다른 프로세스가 포트를 사용 중.
 
 **조치:**
 1. 대시보드 프로세스가 실행 중인지 확인: `ps aux | grep dashboard`
-2. 다른 포트 시도: `DASHBOARD_PORT=8080 oma dashboard web`
-3. 포트 가용성 확인: `lsof -i :9847`
-4. 웹 대시보드는 지수 백오프(1초 초기, 1.5배 승수, 10초 최대)로 자동 재연결합니다. 재연결을 위해 몇 초 기다리세요.
+2. 프로세스가 출력한 token 포함 URL을 다시 엽니다. URL에서 token을 제거하지 마세요.
+3. 다른 포트 시도: `DASHBOARD_PORT=8080 oma dashboard web`
+4. 포트 가용성 확인: `lsof -i :9847`
+5. 웹 대시보드는 지수 백오프(1초 초기, 1.5배 승수, 10초 최대)로 자동 재연결합니다. 재연결을 위해 몇 초 기다리세요.
 
 ---
 
@@ -272,15 +275,15 @@ MEMORIES_DIR=/path/to/.serena/memories oma dashboard web
 
 - **파일 감시:** [chokidar](https://github.com/paulmillr/chokidar)를 `awaitWriteFinish` (200ms 안정성 임계값, 50ms 폴링 간격)와 함께 사용하여 파일이 다 쓰이기 전에 렌더링되는 것을 방지합니다.
 - **렌더링:** 모든 파일 변경 이벤트에서 전체 터미널을 지우고 다시 그립니다. ANSI 색상 출력에 `picocolors`를 사용하고 테두리에 유니코드 박스 그리기 문자를 사용합니다.
-- **메모리 디렉토리:** `MEMORIES_DIR` 환경 변수, CLI 인자, 또는 `{cwd}/.serena/memories`에서 해석됩니다.
+- **메모리 디렉토리:** `MEMORIES_DIR`, 지정된 경우 대시보드 CLI 인자, 그다음 `{cwd}/.agents/state/memories` 순서로 해석됩니다.
 - **안전 종료:** `SIGINT`와 `SIGTERM` 시그널을 수신하면 chokidar 감시자를 닫고 깔끔하게 종료합니다.
 
 ### 웹 대시보드 (oma dashboard web)
 
-- **HTTP 서버:** Node.js `createServer`가 `/`에서 HTML 페이지를, `/api/state`에서 JSON 상태를 제공합니다.
-- **WebSocket:** `ws` 라이브러리를 사용합니다. `WebSocketServer`가 HTTP 서버에 연결됩니다. 연결 시 클라이언트가 즉시 전체 상태를 수신합니다. 이후 업데이트는 `{ type: "update", event, file, data }` 메시지로 푸시됩니다.
+- **HTTP 서버:** Node.js `createServer`가 `/`의 HTML 페이지, `/recap`의 요약 페이지, `/api/state`의 JSON 상태, `/api/recap`의 요약 데이터를 제공하며 `127.0.0.1`에 바인딩됩니다.
+- **WebSocket:** `ws` 라이브러리를 사용합니다. loopback origin 연결은 query string에 프로세스 token을 포함해야 합니다. 연결 시 클라이언트가 즉시 전체 상태를 수신합니다. 이후 업데이트는 `{ type: "update", event, file, data }` 메시지로 푸시됩니다.
 - **파일 감시:** 터미널 대시보드와 동일한 chokidar 설정. 파일 변경이 `broadcast()` 함수를 트리거하여 현재 상태를 빌드하고 연결된 모든 WebSocket 클라이언트에 전송합니다.
 - **디바운싱:** 빠른 파일 쓰기(예: 여러 에이전트가 동시에 진행 상황을 기록할 때) 중 클라이언트 과부하를 방지하기 위해 100ms로 디바운싱됩니다.
 - **자동 재연결:** 브라우저 클라이언트가 WebSocket 연결이 끊기면 지수 백오프(1초 초기, 1.5배 승수, 10초 최대)로 재연결합니다.
-- **포트:** 기본값 9847, `DASHBOARD_PORT` 환경 변수로 설정 가능.
+- **포트:** 기본값 9847, `DASHBOARD_PORT` 환경 변수로 설정 가능합니다. API 요청은 `X-OMA-Dashboard-Token` 또는 `?token=...`을 허용하며, token이 없거나 유효하지 않으면 `401`을 반환합니다.
 - **상태 빌드:** `buildFullState()` 함수가 매 업데이트마다 세션 정보, 태스크 보드, 에이전트 상태, 턴 카운트, 활동 피드를 하나의 JSON 객체로 집계합니다.

@@ -7,12 +7,24 @@
     "message": "핵심 개념",
     "description": "The label for category Core Concepts in sidebar docsSidebar"
   },
-  "sidebar.docsSidebar.category.Guide": {
-    "message": "가이드",
-    "description": "The label for category Guide in sidebar docsSidebar"
+  "sidebar.docsSidebar.category.Working with Agents": {
+    "message": "에이전트로 작업하기",
+    "description": "The label for category Working with Agents in sidebar docsSidebar"
   },
-  "sidebar.docsSidebar.category.CLI Interfaces": {
-    "message": "CLI 인터페이스",
-    "description": "The label for category CLI Interfaces in sidebar docsSidebar"
+  "sidebar.docsSidebar.category.Setup and Configuration": {
+    "message": "설치와 설정",
+    "description": "The label for category Setup and Configuration in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Automation and Evaluation": {
+    "message": "자동화와 평가",
+    "description": "The label for category Automation and Evaluation in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Content and Research": {
+    "message": "콘텐츠와 리서치",
+    "description": "The label for category Content and Research in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Reference": {
+    "message": "참조",
+    "description": "The label for category Reference in sidebar docsSidebar"
   }
 }

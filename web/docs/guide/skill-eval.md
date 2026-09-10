@@ -1,5 +1,6 @@
 ---
 title: "Skill Utility Eval"
+sidebar_label: Skill Evaluation
 description: How to write eval task fixtures for oma skill eval, the .agents/eval/ directory convention, checker types, and the mock/live execution modes.
 ---
 
@@ -158,6 +159,15 @@ Spawns real agent arms via `oma agent spawn --read-only`. Both arms run in a tem
 
 Before dispatching, the command prints a cost preview listing the number of tasks, arm dispatches, judge dispatches, and the resolved vendor. Confirm with `y` or skip with `--yes`.
 
+The other controls are useful in CI and coverage investigations:
+
+| Option | Effect |
+| --- | --- |
+| `--task-dir <path>` | Evaluate fixtures from a directory other than `.agents/eval/<skill>`. |
+| `--max-tasks <n>` | Cap the number of fixtures for a bounded live run. |
+| `--neg-transfer` | Sample same-domain neighbors to look for negative transfer; off by default. |
+| `--require-coverage` | Exit non-zero when fewer than five scoreable paired tasks remain. |
+
 ```bash
 # Preview and confirm
 oma skill eval --skill oma-scholar --live
@@ -219,6 +229,8 @@ for everyone who pulls. The directory is gitignored; record locally instead.
 ```bash
 oma skill eval --skill oma-scholar --live --record --yes
 ```
+
+After a successful live run, the report includes baseline and treatment counts, `utilityLift`, `coverage: "ok"`, the isolation status, and a pass/warn/fail decision. A later mock run reuses only recordings whose task prompts and treatment skill body still match.
 
 ---
 
@@ -328,6 +340,8 @@ Use `--live` with judge checkers to measure actual utility on open-ended tasks. 
 Mock determinism is preserved by recording the judge's binary verdict (PASS/FAIL) into the rollout entry during `--live --record`, then replaying that recorded score in subsequent `--mock` runs — no re-calling the LLM.
 
 **Data egress:** During `--live`, the judge dispatches candidate arm output to the configured vendor for grading. A one-time warning is printed at the start of each live run.
+
+If a mock run reports insufficient coverage, inspect the warning for discarded or missing `_rollouts` entries, then run a live recording pass after fixing the fixture or skill. If isolation is `best-effort` or `unavailable`, choose a cwd-relative vendor such as Claude, Codex, or Qwen before treating a lift as a strong signal.
 
 ---
 

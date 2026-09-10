@@ -1,5 +1,6 @@
 ---
 title: "가이드: 코드 설명서"
+sidebar_label: 코드 설명서
 description: oh-my-agent의 /explain 워크플로우와 oma-explanation 스킬을 다루는 완전 가이드입니다. diff, PR, 브랜치, 커밋 범위를 Background / Intuition / Code / Quiz 절을 갖춘 자체 완결형 인터랙티브 HTML 문서로 바꾸며, ref 해석, 독자 수준, 시크릿 게이트, 검증 체크리스트, 엣지 케이스를 설명합니다.
 ---
 
@@ -113,7 +114,16 @@ diff 내용과 PR 설명은 철저히 **데이터**로만 취급합니다. 설�
 
 생성이 끝나면 결과 파일을 대상으로 grep 기반 체크리스트를 돌립니다. 외부 리소스 로딩 참조가 없는지, 코드 컨테이너가 `pre` 또는 `pre-wrap`을 지키는지, 퀴즈 스크립트가 있는지, 파일명이 `{YYYY-MM-DD}-{slug}.html` 형식인지(날짜는 Asia/Seoul 기준), 최종 HTML 시크릿 스캔이 통과하는지 확인합니다. 실패하면 최대 **3회**까지 수정하고 재검증한 뒤, 그래도 남으면 조용히 전달하지 않고 멈춰서 실패 항목을 보여줍니다.
 
-이는 v1의 제약입니다. 검증은 grep과 파일 기반이며, 퀴즈 스크립트의 *존재* 여부만 확인합니다(동작이 완전히 올바른지는 보지 않습니다). 결정론적 `oma explain validate` CLI는 v2로 미뤘습니다. 그때까지 동작을 확신해야 한다면 브라우저(또는 chrome-devtools MCP)로 퀴즈를 직접 돌려 보세요.
+이는 v1의 제약입니다. 검증은 grep과 파일 기반이며, 퀴즈 스크립트의 *존재* 여부만 확인합니다(동작이 완전히 올바른지는 보지 않습니다). 동작을 확신해야 한다면 브라우저(또는 chrome-devtools MCP)로 퀴즈를 직접 실행해 보세요.
+
+등록된 CLI 명령으로 기존 산출물을 검증할 수도 있습니다.
+
+```bash
+oma explain validate .agents/results/explain/2026-09-09-payment-refactor.html
+oma explain validate --input-dir .agents/results/explain --output json
+```
+
+첫 번째 형식은 HTML 파일 하나를 확인합니다. 디렉토리 형식은 디렉토리의 모든 보고서를 확인하고 기계 판독 가능한 결과를 반환합니다. JSON 결과를 저장하려면 `--report-file <path>`를 사용합니다(레거시 표기는 `--out-file`입니다). 종료 코드가 0이 아니면 결정론적 검사 중 하나 이상이 실패한 것이며, 설명의 교육적 정확성이나 퀴즈 답변 자체를 평가한 결과는 아닙니다.
 
 ---
 
@@ -126,6 +136,10 @@ diff 내용과 PR 설명은 철저히 **데이터**로만 취급합니다. 설�
 날짜는 Asia/Seoul 기준으로 지역화합니다. 같은 날짜와 슬러그로 다시 실행하면 이전 파일을 덮어쓰므로, 앞선 실행 결과를 남기는 것은 사용자 몫입니다. 검증이 통과하면 워크플로우가 `open <path>`를 시도하고(경고만 하므로 헤드리스이거나 `open`이 없는 환경에서는 경로 보고로 넘어갑니다), TL;DR과 파일 경로를 보고합니다.
 
 ---
+
+## 선택적 archify 사이드카
+
+`oma-config.yaml`에서 `diagram.explain_sidecar: true`를 설정하거나(`/explain 640 with archify`처럼 요청하면), `/explain`은 설명서의 기본 흐름 다이어그램에서 대화형 `{date}-{slug}.archify.html`을 추가로 만들고 일반 앵커로 연결합니다. 설명서는 하나의 자체 완결형 HTML 문서로 유지되며 사이드카는 삽입하지 않습니다. 사이드카가 실패해도 설명서 전달을 막지 않습니다. [다이어그램 엔진](/docs/guide/diagram-engine)을 참고하세요.
 
 ## 엣지 케이스
 

@@ -7,12 +7,24 @@
     "message": "核心概念",
     "description": "The label for category Core Concepts in sidebar docsSidebar"
   },
-  "sidebar.docsSidebar.category.Guide": {
-    "message": "指南",
-    "description": "The label for category Guide in sidebar docsSidebar"
+  "sidebar.docsSidebar.category.Working with Agents": {
+    "message": "使用代理",
+    "description": "The label for category Working with Agents in sidebar docsSidebar"
   },
-  "sidebar.docsSidebar.category.CLI Interfaces": {
-    "message": "CLI 接口",
-    "description": "The label for category CLI Interfaces in sidebar docsSidebar"
+  "sidebar.docsSidebar.category.Setup and Configuration": {
+    "message": "安装与配置",
+    "description": "The label for category Setup and Configuration in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Automation and Evaluation": {
+    "message": "自动化与评估",
+    "description": "The label for category Automation and Evaluation in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Content and Research": {
+    "message": "内容与研究",
+    "description": "The label for category Content and Research in sidebar docsSidebar"
+  },
+  "sidebar.docsSidebar.category.Reference": {
+    "message": "参考",
+    "description": "The label for category Reference in sidebar docsSidebar"
   }
 }

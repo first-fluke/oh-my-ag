@@ -1,5 +1,6 @@
 ---
 title: "Guide: Market Research (last30days engine)"
+sidebar_label: Market Research
 description: How oh-my-agent's oma-market skill runs community-signal research on the upstream mvanhorn/last30days engine, kept at the latest release automatically — the market config section, oma market resolve / update / run, the detect-trap gate, intent-to-framework mapping, and failure modes.
 ---
 
@@ -7,13 +8,14 @@ description: How oh-my-agent's oma-market skill runs community-signal research o
 
 `oma-market` answers "what are people actually saying about X in the last N days" — pain points, trends, competitor sentiment, discovery — from community sources with real engagement numbers: Reddit (upvotes and top comments), X, YouTube transcripts, TikTok, Instagram, Hacker News, Polymarket, GitHub, arXiv, Techmeme, Digg, LinkedIn, StockTwits, Bluesky, the web, and more.
 
-The research itself runs on the upstream [**last30days**](https://github.com/mvanhorn/last30days-skill) engine (MIT, Python 3.12+, zero runtime dependencies, 60k+ stars, released every few days). oh-my-agent does not fork it: it keeps an **always-latest managed copy**, gates every run, and adds a strategic-framework layer on top.
+The research itself runs on the upstream [**last30days**](https://github.com/mvanhorn/last30days-skill) engine (MIT, Python 3.12+). oh-my-agent does not fork it: it keeps an **always-latest managed copy**, gates every run, and adds a strategic-framework layer on top. Release cadence, star count, and provider coverage belong to the upstream project and can change.
 
 ---
 
 ## Always the latest engine — nothing to install
 
 ```bash
+# Illustrative output; the release tag, cache path, and Python version vary.
 oma market resolve
 # engine:   last30days
 # reason:   last30days 3.21.1 via managed:v3.21.1 (current)

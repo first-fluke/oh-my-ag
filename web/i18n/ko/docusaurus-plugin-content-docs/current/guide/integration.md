@@ -1,5 +1,6 @@
 ---
 title: "가이드: 기존 프로젝트 통합"
+sidebar_label: 기존 프로젝트에 통합
 description: 기존 프로젝트에 oh-my-agent을 추가하는 완전 가이드입니다. CLI 경로, 수동 경로, 검증, SSOT 심볼릭 링크 구조, 설치 프로그램의 내부 동작을 다룹니다.
 ---
 
@@ -12,7 +13,7 @@ description: 기존 프로젝트에 oh-my-agent을 추가하는 완전 가이드
 1. **CLI 경로**: `oma` (또는 `npx oh-my-agent`)를 실행하고 대화형 프롬프트를 따릅니다. 대부분의 사용자에게 권장됩니다.
 2. **수동 경로**: 파일을 직접 복사하고 심볼릭 링크를 설정합니다. 제한된 환경이나 커스텀 설정에 유용합니다.
 
-두 경로 모두 동일한 결과를 생성합니다: IDE별 디렉토리가 심볼릭 링크로 연결된 `.agents/` 디렉토리 (SSOT).
+두 경로 모두 동일한 결과를 생성합니다: `.agents/` 디렉토리(SSOT)와 `.claude/agents/`, `.codex/agents/`, `.gemini/agents/` 같은 벤더 네이티브 생성 파일입니다.
 
 ---
 
@@ -36,7 +37,7 @@ npx oh-my-agent
 cd /path/to/your/project
 ```
 
-설치 프로그램은 프로젝트 루트(`.git/`이 있는 곳)에서 실행되어야 합니다.
+설정할 프로젝트 디렉토리에서 설치 프로그램을 실행하세요. OMA는 설치 root를 기준으로 SSOT를 기록합니다. 검토와 롤백에는 Git 저장소를 권장하지만, 설치 프로그램에 Git 저장소가 필수는 아닙니다.
 
 ### 3. 설치 프로그램 실행
 
@@ -71,7 +72,7 @@ oma
 
 ### 6. IDE 심볼릭 링크 설정
 
-설치 프로그램은 항상 Claude Code 심볼릭 링크(`.claude/skills/`)를 생성합니다. 또한 Antigravity, Claude, Codex, Qwen에 대한 벤더 네이티브 에이전트 파일과 훅을 생성하며, `.github/` 디렉토리가 존재하면 GitHub Copilot 심볼릭 링크도 자동으로 생성합니다. 그렇지 않으면 다음과 같이 질문합니다:
+설치 프로그램은 항상 Claude Code 심볼릭 링크(`.claude/skills/`)를 생성합니다. 또한 선택한 벤더의 네이티브 에이전트 파일, 훅, 설정, 통합 파일을 생성합니다. 현재 벤더 계열에는 Antigravity, Claude, Codex, Cursor, Kiro, Kimi, Qwen과 pi 및 OpenCode 확장 경로가 포함됩니다. `.github/` 디렉토리가 존재하면 GitHub Copilot 심볼릭 링크를 자동으로 생성할 수 있습니다. ZCode를 선택하면 워크플로우만 `.zcode/commands/*.md` 심볼릭 링크를 통해 슬래시 명령으로 노출합니다(에이전트 파일이나 훅은 없음). 그 외에는 다음과 같이 질문합니다:
 
 ```
 Also create symlinks for GitHub Copilot? (.github/skills/)
@@ -173,36 +174,17 @@ tar -xzf agent-skills.tar.gz
 # 핵심 .agents/ 디렉토리 복사
 cp -r .agents/ /path/to/your/project/.agents/
 
-# Claude Code 심볼릭 링크 생성
-mkdir -p /path/to/your/project/.claude/skills
-mkdir -p /path/to/your/project/.claude/agents
-
-# 스킬 심볼릭 링크 (풀스택 프로젝트 예시)
-ln -sf ../../.agents/skills/oma-frontend /path/to/your/project/.claude/skills/oma-frontend
-ln -sf ../../.agents/skills/oma-backend /path/to/your/project/.claude/skills/oma-backend
-ln -sf ../../.agents/skills/oma-qa /path/to/your/project/.claude/skills/oma-qa
-ln -sf ../../.agents/skills/oma-pm /path/to/your/project/.claude/skills/oma-pm
-
-# 공유 리소스 심볼릭 링크
-ln -sf ../../.agents/skills/_shared /path/to/your/project/.claude/skills/_shared
-
-# 워크플로우 라우터 심볼릭 링크
-for workflow in .agents/workflows/*.md; do
-  name=$(basename "$workflow" .md)
-  ln -sf ../../.agents/workflows/"$name".md /path/to/your/project/.claude/skills/"$name".md
-done
-
-# 에이전트 정의 심볼릭 링크
-for agent in .agents/agents/*.md; do
-  name=$(basename "$agent")
-  ln -sf ../../.agents/agents/"$name" /path/to/your/project/.claude/agents/"$name"
-done
+# SSOT에서 벤더 네이티브 파일 재생성
+cd /path/to/your/project
+oma link
 ```
+
+`oma link`는 `.agents/agents/`에서 `.claude/`, `.codex/`, `.gemini/` 및 관련 벤더 네이티브 파일을 다시 만듭니다. 런타임에는 현재 런타임 벤더가 해당 에이전트의 대상 벤더와 일치할 때만 OMA가 네이티브 디스패치를 사용합니다. 벤더가 섞인 설정도 동작하지만, 일치하지 않는 에이전트는 외부 `oma agent spawn`으로 폴백합니다.
 
 ### 3단계: 사용자 환경설정 구성
 
 ```bash
-mkdir -p /path/to/your/project/.agents/config
+mkdir -p /path/to/your/project/.agents
 cat > /path/to/your/project/.agents/oma-config.yaml << 'EOF'
 language: en
 date_format: ISO
@@ -216,7 +198,7 @@ EOF
 ```bash
 oma memory init
 # 또는 수동으로:
-mkdir -p /path/to/your/project/.serena/memories
+mkdir -p /path/to/your/project/.agents/state/memories
 ```
 
 ---
@@ -258,7 +240,7 @@ ls -la .claude/skills/
 cat .agents/oma-config.yaml
 
 # 메모리 디렉토리 확인
-ls .serena/memories/ 2>/dev/null || echo "Memory not initialized"
+ls .agents/state/memories/ 2>/dev/null || echo "Memory not initialized"
 
 # 버전 확인
 cat .agents/skills/_version.json 2>/dev/null
@@ -280,10 +262,11 @@ your-project/
       frontend-engineer.md
       qa-reviewer.md
       ...
-    config/                         # 설정
-      oma-config.yaml
+    config/                         # 배포된 보조 설정 파일
+      ...
+    oma-config.yaml                 # 사용자가 소유한 프로젝트 설정
     mcp.json                        # MCP 서버 설정
-    results/plan-{sessionId}.json                       # 현재 계획 (/plan으로 생성)
+    results/plan-{sessionId}.json    # 현재 계획 (/plan으로 생성)
     skills/                         # 설치된 스킬
       _shared/                      # 모든 스킬에 걸친 공유 리소스
         core/                       # 핵심 프로토콜 및 참조
@@ -299,14 +282,18 @@ your-project/
       ultrawork.md
       plan.md
       ...
+    state/                          # 런타임 조정 상태
+      memories/                     # 조정 아티팩트(progress-*, result-*, task-board, session-cost-*)
     results/                        # 에이전트 실행 결과
   .claude/                          # Claude Code — 심볼릭 링크만
     skills/                         # -> .agents/skills/* 및 .agents/workflows/*
     agents/                         # -> .agents/agents/*
   .github/                          # GitHub Copilot — 심볼릭 링크만 (선택)
     skills/                         # -> .agents/skills/*
-  .serena/                          # MCP 메모리 저장소
-    memories/                       # 런타임 메모리 파일
+  .zcode/                           # ZCode — 워크플로우 명령만 (선택)
+    commands/                       # -> .agents/workflows/*
+  .serena/                          # OMA 상태와 별개인 Serena MCP 저장소
+    memories/                       # Serena 자체 온보딩 메모리
     metrics.json                    # 생산성 메트릭
 ```
 
@@ -326,13 +313,11 @@ your-project/
 ### 설치 후
 
 1. **생성된 것을 검토하세요.** `git status`를 실행하여 모든 새 파일을 확인합니다. 설치 프로그램은 `.agents/`, `.claude/`, 그리고 선택적으로 `.github/`에만 파일을 생성합니다.
-2. **선택적으로 `.gitignore`에 추가하세요.** 대부분의 팀은 설정을 공유하기 위해 `.agents/`와 `.claude/`를 커밋합니다. 하지만 `.serena/` (런타임 메모리)와 `.agents/results/` (실행 결과)는 gitignore에 추가해야 합니다:
+2. **`.gitignore`를 확인하세요.** Git 저장소에서 install/update/link는 런타임 항목(`.antigravitycli/`, `.agents/results/`, `.agents/state/`, `.agents/backup/`, `docs/plans/`)을 root `.gitignore`에 자동으로 추가합니다. 추가된 내용을 확인하세요. 대부분의 팀은 설정 공유를 위해 `.agents/`와 `.claude/`를 커밋합니다. `.serena/`는 Serena가 내부 `.serena/.gitignore`로 자체 캐시를 관리하므로 판단에 따라 `.serena/project.yml`만 커밋하거나 디렉토리 전체를 무시할 수 있습니다:
 
 ```gitignore
-# oh-my-agent 런타임 파일
+# 선택 사항 — Serena 전체 무시(런타임 메모리)
 .serena/
-.agents/results/
-.agents/state/
 ```
 
 ### 롤백
@@ -367,10 +352,10 @@ git clean -fd .agents/ .claude/ .serena/
 빠른 설정:
 
 ```bash
-# 터미널 대시보드 (.serena/memories/ 변경 감시)
+# 터미널 대시보드 (.agents/state/memories/ 변경 감시)
 oma dashboard terminal
 
-# 웹 대시보드 (브라우저 기반, http://localhost:9847)
+# 웹 대시보드 (브라우저 기반, OMA가 token 포함 loopback URL 출력)
 oma dashboard web
 ```
 
@@ -406,7 +391,7 @@ oma dashboard web
 
 ### 6. 설정 설치
 
-`installConfigs()`가 기본 설정 파일을 `.agents/config/`에 복사합니다. `oma-config.yaml`과 `mcp.json`을 포함합니다. 이 파일이 이미 있으면 `--force`를 사용하지 않는 한 보존됩니다(덮어쓰지 않음).
+`installConfigs()`가 보조 파일을 `.agents/config/`에 복사하고, `.agents/mcp.json`을 만들며, 사용자가 소유한 `.agents/oma-config.yaml` 또는 `.agents/oma-config.cue`를 부트스트랩합니다. 기존 사용자 파일은 `--force`를 사용하지 않는 한 보존됩니다. `oma update`도 사용자 설정을 유지하고 필요하면 새 최상위 템플릿 키를 덧붙입니다.
 
 ### 7. 스킬 설치
 
@@ -414,7 +399,7 @@ oma dashboard web
 
 ### 8. 벤더 적응
 
-`installVendorAdaptations()`가 지원되는 모든 벤더(Antigravity, Claude, Codex, Qwen)에 대한 IDE별 파일을 설치합니다:
+`installVendorAdaptations()`가 선택한 지원 벤더에 대한 IDE별 파일을 설치합니다:
 
 - 에이전트 정의 (`.claude/agents/*.md`, `.codex/agents/*.toml`, `.gemini/agents/*.md`)
 - 훅 설정 (`.claude/hooks/`, `.codex/hooks.json`)

@@ -1,16 +1,18 @@
 ---
 title: 安装
-description: oh-my-agent 完整安装指南。三种安装方式、全部六个预设及其技能列表、五个供应商的 CLI 工具要求、安装后配置、oma-config.yaml 字段说明以及 oma doctor 验证。
+description: 安装 oh-my-agent，选择技能和能力提供商，了解生成的项目文件，配置模型与运行时默认值，并使用 oma doctor 验证设置。
 ---
 
 # 安装
 
 ## 前置要求
 
-- **AI 驱动的 IDE 或 CLI**：至少安装以下之一：Claude Code、Gemini CLI、Codex CLI、Qwen CLI、Antigravity CLI（`agy`）、Antigravity IDE、Cursor 或 OpenCode
-- **bun**：JavaScript 运行时和包管理器（安装脚本会在缺失时自动安装）
-- **uv**：Python 包管理器（缺失时自动安装）
-- **serena-agent**：Serena MCP 二进制文件，通过 `uv tool install -p 3.13 serena-agent@latest --prerelease=allow` 全局安装（安装脚本会在缺失时自动安装）
+- **AI 驱动的 IDE 或 CLI**：至少安装一个受支持的主机，例如 Claude Code、Codex CLI、Qwen Code、Antigravity CLI（`agy`）、Cursor、OpenCode、Kimi Code CLI、Kiro、CommandCode、pi、GitHub Copilot 或 Hermes
+- **bun**：JavaScript 运行时和包管理器（安装脚本缺少时会自动安装）
+- **uv**：Python 包管理器（引导脚本缺少时会提供安装选项）
+- **代码智能提供商**：Serena 是默认提供商。选择提供商配置后也支持 Gortex。安装器可以使用 `uv tool install` 引导安装 Serena；可选依赖不可用时会发出警告并继续。
+
+安装器按能力组织集成。钩子供应商包括 Antigravity、Claude、Codex、CommandCode、Cursor、Grok、Kimi、Kiro 和 Qwen；OpenCode 与 pi 使用扩展桥接；GitHub Copilot 和 Hermes 会获得技能链接；ZCode 会获得工作流命令。你可以选择多个供应商，但第一次任务只需要选择计划使用的主机。
 
 ---
 
@@ -21,20 +23,22 @@ description: oh-my-agent 完整安装指南。三种安装方式、全部六个�
 curl -fsSL https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.sh | bash
 ```
 
+
 ```powershell
 # Windows (PowerShell)
 irm https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.ps1 | iex
 ```
 
-两个脚本的行为相同：
-1. 检测你的平台（macOS、Linux 或 Windows）
-2. 检查 bun、uv 和 serena，缺失时自动安装
-3. 运行交互式安装程序并选择预设
-4. 使用你选择的技能创建 `.agents/`
-5. 设置 `.claude/` 集成层（钩子、符号链接、设置）
-6. 如果检测到 Serena MCP 则进行配置
 
-典型安装时间：不到 60 秒。
+两个引导脚本的行为相同：
+1. 检测平台（macOS、Linux 或 Windows）
+2. 检查 bun 和 uv（以及选择的 serena），缺少时安装
+3. 运行交互式安装器，选择预设和提供商
+4. 使用选定的技能和配置创建 `.agents/`
+5. 设置运行时集成层（针对检测到的供应商配置钩子、符号链接和设置）
+6. 配置代码智能和内存 MCP 服务器
+
+引导脚本会在可选依赖失败后继续，并报告后续命令。安装器结束后运行 `oma doctor`。
 
 ---
 
@@ -44,68 +48,72 @@ irm https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.p
 bunx oh-my-agent@latest
 ```
 
-这会启动交互式安装程序，无需依赖引导。你需要已经安装了 bun。
 
-安装程序会提示你选择一个预设，决定安装哪些技能：
+这会启动交互式安装器，但不会执行依赖引导。你需要先安装 bun。
+
+安装器会提示你选择技能预设。当前预设定义在 `cli/constants/skill-data.ts` 中：
 
 ### 预设
 
 | 预设 | 包含的技能 |
-|------|----------|
-| **all** | oma-brainstorm、oma-pm、oma-frontend、oma-backend、oma-db、oma-mobile、oma-design、oma-qa、oma-debug、oma-tf-infra、oma-dev-workflow、oma-translation、oma-orchestration、oma-scm、oma-coordination |
-| **fullstack** | oma-frontend、oma-backend、oma-db、oma-pm、oma-qa、oma-debug、oma-brainstorm、oma-scm |
-| **frontend** | oma-frontend、oma-pm、oma-qa、oma-debug、oma-brainstorm、oma-scm |
-| **backend** | oma-backend、oma-db、oma-pm、oma-qa、oma-debug、oma-brainstorm、oma-scm |
-| **mobile** | oma-mobile、oma-pm、oma-qa、oma-debug、oma-brainstorm、oma-scm |
-| **devops** | oma-tf-infra、oma-dev-workflow、oma-pm、oma-qa、oma-debug、oma-brainstorm、oma-scm |
+|--------|----------------|
+| **all** | 当前全部 33 个技能包 |
+| **fullstack** | 架构、头脑风暴、设计、前端、后端、移动端、数据库、产品管理、QA、调试、SCM、Terraform 和开发工作流 |
+| **fullstack-web** | 全栈 Web 实现、架构、设计、产品管理、QA、调试、SCM 和开发工作流 |
+| **fullstack-mobile** | 面向移动端的全栈实现、架构、设计、产品管理、QA、调试、SCM 和开发工作流 |
+| **frontend** | 架构、头脑风暴、设计、前端、产品管理、QA、调试和 SCM |
+| **backend** | 架构、头脑风暴、后端、数据库、产品管理、QA、调试、SCM 和开发工作流 |
+| **mobile** | 架构、头脑风暴、移动端、产品管理、QA、调试和 SCM |
+| **devops** | 架构、头脑风暴、Terraform、开发工作流、可观测性、产品管理、QA、调试和 SCM |
+| **research** | Scholar、市场研究、PDF、HWP、学术写作、搜索、翻译和 SCM |
+| **content** | 设计、图像、语音、学术写作、翻译和 SCM |
 
-每个预设都包含 oma-pm（规划）、oma-qa（审查）、oma-debug（Bug 修复）、oma-brainstorm（构思）和 oma-scm（git）作为基础智能体。领域特定的预设在此基础上添加相关的实现智能体。
+预设是技能集合，不会为每项技能创建一个子智能体定义。`all` 预设从实时技能注册表展开，因此列表可以随着仓库增长。领域预设只包含该方向所需的技能。
 
-共享资源（`_shared/`）无论选择哪个预设都会安装。包括核心路由、上下文加载、提示结构、供应商检测、执行协议和内存协议。
+无论选择哪个预设，共享资源（`_shared/`）都会安装。这些资源包括核心路由、上下文加载、提示结构、供应商检测、执行协议和内存协议。
 
 ### 安装后生成的内容
 
-安装完成后，你的项目将包含：
+安装后，项目会包含：
 
 ```
 .agents/
-├── config/
-│   └── oma-config.yaml      # 你的偏好设置
+├── oma-config.yaml # Your preferences
+├── oma-config.cue # Optional schema-backed configuration
 ├── skills/
-│   ├── _shared/                    # 共享资源（始终安装）
-│   │   ├── core/                   # skill-routing、context-loading 等
-│   │   ├── runtime/                # memory-protocol、execution-protocols/
-│   │   └── conditional/            # quality-score、experiment-ledger 等
-│   ├── oma-frontend/               # 按预设选择
-│   │   ├── SKILL.md
-│   │   └── resources/
-│   └── ...                         # 其他选定的技能
-├── workflows/                      # 全部 16 个工作流定义
-├── agents/                         # 子智能体定义
-├── mcp.json                        # MCP 服务器配置
-├── results/plan-{sessionId}.json                       # 空（由 /plan 填充）
-├── state/                          # 空（用于持久化工作流）
-└── results/                        # 空（由智能体运行填充）
+│ ├── _shared/ # Shared resources (always installed)
+│ │ ├── core/ # skill-routing, context-loading, etc.
+│ │ ├── runtime/ # memory-protocol, execution-protocols/
+│ │ └── conditional/ # quality-score, experiment-ledger, etc.
+│ ├── oma-frontend/ # Per preset
+│ │ ├── SKILL.md
+│ │ └── resources/
+│ └── ... # Other selected skills
+├── workflows/ # Current workflow definitions (21 in this checkout)
+├── agents/ # Subagent definitions
+├── mcp.json # MCP server configuration
+├── results/ # Plans and agent results (populated by workflows)
+└── state/ # Persistent workflow and coordination state
 
 .claude/
-├── settings.json                   # 钩子和权限
-├── hooks/
-│   ├── triggers.json               # 关键词到工作流的映射（11 种语言）
-│   ├── keyword-detector.ts         # 自动检测逻辑
-│   ├── persistent-mode.ts          # 持久化工作流强制执行
-│   └── hud.ts                      # [OMA] 状态栏指示器
-├── skills/                         # 符号链接 → .agents/skills/
-└── agents/                         # IDE 的子智能体定义
+├── settings.json # Vendor settings, when Claude Code is selected
+├── hooks/oma-hook.sh # Generated wrapper for the in-process hook chain
+├── hooks/hud.ts # Optional [OMA] statusline indicator
+├── skills/ # Symlinks → .agents/skills/
+└── agents/ # Generated native subagent files, when supported
 
-.serena/
-└── memories/                       # 运行时状态（会话期间填充）
+.agents/state/memories/
+└── ... # Runtime coordination state
 ```
+
+
+安装器只会为你选择的主机创建供应商目录。钩子源代码保留在 `.agents/hooks/core/`；生成的供应商文件是集成输出。较旧项目中，Serena 也可能使用传统的 `.serena/memories/` 目录。
 
 ---
 
 ## 方式三：全局安装
 
-如需 CLI 级别的功能（仪表板、智能体启动、诊断），请全局安装 oh-my-agent：
+如需使用 CLI 级功能（仪表盘、智能体启动和诊断），请全局安装 oh-my-agent：
 
 ### Homebrew（macOS/Linux）
 
@@ -113,73 +121,76 @@ bunx oh-my-agent@latest
 brew install oh-my-agent
 ```
 
-### npm / bun 全局
+
+### npm / bun 全局安装
 
 ```bash
 bun install --global oh-my-agent
-# 或
+# or
 npm install --global oh-my-agent
 ```
 
-这会全局安装 `oma` 命令，让你可以从任何目录访问所有 CLI 命令：
+
+这会全局安装 `oma` 命令，让你可以从任意目录访问全部 CLI 命令：
 
 ```bash
-oma doctor              # 健康检查
-oma dashboard terminal           # 终端监控
-oma dashboard web       # Web 仪表板 http://localhost:9847
-oma agent spawn         # 从终端启动智能体
-oma agent parallel      # 并行执行智能体
-oma agent status        # 检查智能体状态
-oma stats get               # 会话统计
-oma retro               # 回顾分析
-oma cleanup             # 清理会话产物
-oma update              # 更新 oh-my-agent
-oma verify              # 验证智能体输出
-oma visualize           # 依赖可视化
-oma describe            # 描述项目结构
-oma bridge              # Antigravity 的 SSE-to-stdio 桥接
-oma memory init         # 初始化内存提供者
-oma auth status         # 检查 CLI 认证状态
-oma star                # 为仓库加星
+oma doctor # Health check
+oma doctor --profile # Show resolved model/CLI per dispatch role
+oma dashboard terminal # Terminal monitoring
+oma dashboard web # Web dashboard at http://localhost:9847
+oma agent spawn # Spawn agents from terminal
+oma agent parallel # Parallel agent execution
+oma agent status # Check agent status
+oma agent review # Code review via an external CLI
+oma docs verify # Check documentation references
+oma skill audit # Audit skill routing descriptions
+oma stats get # Session statistics
+oma recap # Conversation history recap across AI tools
+oma link # Regenerate vendor-native files from `.agents/` SSOT
+oma update # Update oh-my-agent
+oma verify agent <agent-type> # Verify agent output (build/test/scope/secrets)
+oma describe # Introspect CLI commands as JSON
+oma bridge # MCP stdio ↔ Streamable HTTP bridge
+oma memory init # Initialize coordination memory schema
+oma auth status # Check CLI auth status
+oma search # Mechanical search primitives (alias: `oma s`)
+oma image # Multi-vendor AI image generation (alias: `oma img`)
+oma video # Video generation and capture
+oma slide # Presentation generation and export
+oma export # Export skills for external IDEs (e.g. cursor)
+oma star # Star the repository
 ```
 
-`oma` 是 `oh-my-agent` 的缩写。两者均可作为 CLI 命令使用。
+
+`oma` 是 `oh-my-agent` 的缩写。两者都可以作为 CLI 命令使用。
 
 ---
 
 ## AI CLI 工具安装
 
-你至少需要安装一个 AI CLI 工具。oh-my-agent 支持五个供应商，你可以混合使用，通过智能体-CLI 映射为不同智能体使用不同的 CLI。
-
-### Gemini CLI
-
-```bash
-bun install --global @google/gemini-cli
-# 或
-npm install --global @google/gemini-cli
-```
-
-首次运行时自动认证。Gemini CLI 默认从 `.agents/skills/` 读取技能。
+你至少需要安装一个 AI CLI 工具。oh-my-agent 支持多个供应商，可以通过智能体到 CLI 的映射，为不同智能体混用不同 CLI。
 
 ### Claude Code
 
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
-# 或
+# or
 npm install --global @anthropic-ai/claude-code
 ```
 
-首次运行时自动认证。Claude Code 使用 `.claude/` 存放钩子和设置，技能通过符号链接从 `.agents/skills/` 引用。
+
+首次运行时会自动完成认证。Claude Code 使用 `.claude/` 保存钩子和设置，技能通过符号链接从 `.agents/skills/` 引入。
 
 ### Codex CLI
 
 ```bash
 bun install --global @openai/codex
-# 或
+# or
 npm install --global @openai/codex
 ```
 
-安装后，运行 `codex login` 进行认证。
+
+安装后运行 `codex login` 完成认证。
 
 ### Qwen CLI
 
@@ -187,7 +198,8 @@ npm install --global @openai/codex
 bun install --global @qwen-code/qwen-code
 ```
 
-安装后，在 CLI 内运行 `/auth` 进行认证。
+
+安装后在 CLI 中运行 `/auth` 完成认证。
 
 ### Antigravity CLI（`agy`）
 
@@ -195,36 +207,52 @@ bun install --global @qwen-code/qwen-code
 curl -fsSL https://antigravity.google/cli/install.sh | bash
 ```
 
-首次运行时，`agy` 会自动处理认证。二进制文件名为 `agy`。在无头（headless）环境中，改为设置 `ANTIGRAVITY_API_KEY` 环境变量。`oma doctor` 通过 `~/.gemini/antigravity-cli/cache/onboarding.json` 报告认证状态。
+
+首次运行时由 `agy` 处理认证。二进制文件名为 `agy`。在无头环境中，改为设置 `ANTIGRAVITY_API_KEY` 环境变量。`oma doctor` 会通过 `~/.gemini/antigravity-cli/cache/onboarding.json` 报告认证状态。
 
 ---
 
 ## oma-config.yaml
 
-`oma install` 命令创建 `.agents/oma-config.yaml`。这是控制所有 oh-my-agent 行为的中心配置文件：
+`oma install` 命令会创建 `.agents/oma-config.yaml`。这是所有 oh-my-agent 行为的中央配置文件：
 
 ```yaml
-# 必填
+# Required
 language: en
-model_preset: antigravity   # 内置: antigravity, claude, codex, qwen, cursor, mixed
+model_preset: auto          # follows the current runtime's native model settings
 
-# 可选 — 日期/时间偏好
+# Optional — date/time preferences
 date_format: ISO
-timezone: UTC
+timezone: Australia/Sydney  # omit to use the system timezone
 
-# 可选 — 后台自动更新 CLI
+# Optional — auto-update the CLI in background
 auto_update_cli: true
+telemetry: false
 
-# 可选 — 按智能体的部分覆盖（仅对象，浅合并）
+# Optional — capability providers (defaults are context7/native/serena/agentmemory)
+# providers:
+#   docs: context7
+#   web: native
+#   code_intelligence: serena
+#   semantic_memory: agentmemory
+
+# Optional — browser DevTools MCP. Omit to preserve the current setup.
+# mcp:
+#   devtools_browsers: [aside]
+
+# Optional — partial override per agent (object-only, shallow merge)
 agents:
   backend: { model: openai/gpt-5.5, effort: high }
   qa:      { model: anthropic/claude-sonnet-4-6 }
 
-# 可选 — 用户自定义模型 slug
+# Optional — user-defined model slugs
 # models:
-#   my-model: { cli: gemini, cli_model: gemini-3-flash, supports: { thinking: true } }
+#   my-fast:
+#     cli: antigravity
+#     cli_model: "Gemini 3.6 Flash (Medium)"
+#     supports: { thinking: true }
 
-# 可选 — 用户自定义预设
+# Optional — user-defined presets
 # custom_presets:
 #   my-team:
 #     extends: claude
@@ -232,42 +260,63 @@ agents:
 #       backend: { model: openai/gpt-5.5, effort: high }
 ```
 
+
 ### 字段参考
 
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|-------|------|
-| `language` | string | `en` | 响应语言代码。所有智能体输出、工作流消息和报告使用此语言。支持 11 种语言（en、ko、ja、zh、es、fr、de、pt、ru、nl、pl）。 |
-| `date_format` | string | `YYYY-MM-DD` | 计划、内存文件和报告中时间戳的日期格式字符串。 |
-| `timezone` | string | `UTC` | 所有时间戳的时区。使用标准时区标识符（例如 `Asia/Seoul`、`America/New_York`）。 |
-| `model_preset` | string | `claude` | 活动预设键。可以是内置键（`antigravity`、`claude`、`codex`、`qwen`、`cursor`、`mixed`）之一，或 `custom_presets` 中的键。参见[按智能体的模型](../guide/per-agent-models.md)。 |
-| `agents` | map | （空） | 按智能体的部分覆盖（仅对象形式的 `AgentSpec`）。在预设值之上做浅合并。 |
-| `models` | map | （空） | 用户自定义模型 slug。 |
-| `custom_presets` | map | （空） | 用户自定义预设。支持 `extends:` 以部分继承内置预设。 |
+| 字段 | 类型 | 必填 | 说明 |
+|-------|------|----------|-------------|
+| `language` | string | 是 | 响应语言代码。支持 en、ko、ja、zh、es、fr、de、pt、ru、nl、pl。 |
+| `model_preset` | string | 是 | 当前预设键。`auto` 遵循当前运行时；固定键包括 `free`、`antigravity`、`claude`、`codex`、`qwen`、`cursor`、`kiro` 和 `mixed`。也可以使用自定义预设键。参见[按智能体配置模型](../guide/per-agent-models.md)。 |
+| `default_cli` | string | 否 | 当显式智能体设置和选定预设未解析出供应商时，`oma agent spawn` 使用的回退 CLI。 |
+| `free` | map | 否 | `model_preset: free` 时使用的 FreeLLMAPI 网关设置；请把 API 密钥放在环境变量中。 |
+| `providers` | map | 否 | 能力提供商：`code_intelligence`（`serena` 或 `gortex`）、`docs`（`context7`）、`web`（`native` 或 `brave`）以及 `semantic_memory`（`agentmemory`、`honcho` 或 `none`）。 |
+| `date_format` | string | 否 | 时间戳格式（`ISO`、`US`、`EU`）。默认值：`ISO`。 |
+| `timezone` | string | 否 | 时区标识符（例如 `Asia/Seoul`）。省略时使用主机系统时区。 |
+| `auto_update_cli` | boolean | 否 | 是否允许例行 CLI 检查在后台更新。默认值：`true`（使用 `false` 退出）。 |
+| `telemetry` | boolean | 否 | 是否加入供应商遥测。默认值：`false`。 |
+| `agents` | map | 否 | 按智能体进行的部分覆盖（仅对象形式的 `AgentSpec`）。在预设默认值之上进行浅合并。 |
+| `models` | map | 否 | 用户定义的模型 slug，过去保存在 `models.yaml` 中。 |
+| `custom_presets` | map | 否 | 用户定义的预设。支持 `extends:`，可从内置预设部分继承。 |
+| `mcp.devtools_browsers` | list | 否 | DevTools MCP 使用的浏览器：`aside`、`chrome` 或 `firefox`。省略时保留现有设置；`[]` 会显式停用浏览器服务器。 |
+| `serena.mode` | string | 否 | `bridge` 共享项目 Serena 服务器，也是默认值；`stdio` 选择每个会话启动一个进程。 |
+| `serena.auto_update` | boolean | 否 | `oma update` 是否升级 Serena。默认值：`true`。 |
+
+> **配置格式：** 有效的 `.agents/oma-config.cue` 会作为共享配置求值。如果共享 CUE 求值失败，加载器可以回退到 `.agents/oma-config.yaml`；本地覆盖文件（`oma-config.local.cue` 或 `.yaml`）是可选的，但无效的本地意图会导致失败。`OMA_MODEL_PRESET` 会在当前进程中覆盖文件值。
 
 ### 供应商解析
 
-启动智能体时，CLI 供应商由活动的 `model_preset`（以及可能存在的 `agents:` 覆盖）解析得出。完整细节参见[按智能体的模型](../guide/per-agent-models.md)。
+启动智能体时，CLI 按以下顺序解析设置：`agents.<id>`、选定的 `model_preset`、预设编排器回退值，然后是 `default_cli`。当 `model_preset: auto` 时，当前运行时的原生配置提供模型；未知运行时回退到 `default_cli`。完整矩阵见[按智能体配置模型](../guide/per-agent-models.md)。
 
 ---
 
 ## 验证：`oma doctor`
 
-安装和设置完成后，验证一切是否正常工作：
+安装和设置完成后，验证各项是否正常：
 
 ```bash
 oma doctor
 ```
 
-此命令检查：
-- 所有必需的 CLI 工具已安装且可访问
-- MCP 服务器配置有效
-- 技能文件存在且 SKILL.md 前置元数据有效
-- `.claude/skills/` 中的符号链接指向有效目标
-- 钩子在 `.claude/settings.json` 中正确配置
-- 内存提供者可达（Serena MCP）
-- `oma-config.yaml` 是有效的 YAML 且包含必需字段
 
-如果有任何问题，`oma doctor` 会准确告诉你需要修复什么，并附带可直接复制粘贴的命令。
+此命令会检查：
+- 选定的主机 CLI 已安装且可访问；可选工具会单独报告
+- 已配置的 MCP 服务器条目有效（例如 Serena、Gortex、Context7 或 DevTools）
+- 技能文件存在，且 SKILL.md 的前置元数据有效
+- 符号链接和钩子脚本指向有效目标
+- 供应商设置文件中的钩子配置正确
+- 选定的代码智能和内存提供商可访问
+- `oma-config.cue` / `oma-config.yaml` 有效且包含必填字段
+
+如果发现问题，`oma doctor` 会指出缺失或无效的项目，并区分第一次任务的阻塞项与可选集成警告。
+
+要查看每个智能体解析出的模型和 CLI，请运行：
+
+```bash
+oma doctor --profile
+```
+
+
+完整矩阵和迁移细节见[按智能体配置模型](../guide/per-agent-models.md)。
 
 ---
 
@@ -279,32 +328,36 @@ oma doctor
 oma update
 ```
 
-这会将全局 oh-my-agent CLI 更新到最新版本。
+
+这会把全局 oh-my-agent CLI 更新到最新版本。
 
 ### 项目技能更新
 
-项目中的技能和工作流可以通过 GitHub Action（`action/`）进行自动更新，或通过重新运行安装程序手动更新：
+可以通过 GitHub Action（`action/`）自动更新项目中的技能和工作流，也可以手动重新运行安装器：
 
 ```bash
 bunx oh-my-agent@latest
 ```
 
-安装程序会检测现有安装并提供更新选项，同时保留你的 `oma-config.yaml` 和任何自定义配置。
+
+安装器会检测已有安装并提供更新选项，同时保留你的 `oma-config.yaml` 和所有自定义配置。
 
 ---
 
 ## 接下来
 
-在你的 AI IDE 中打开项目，开始使用 oh-my-agent。技能会自动检测。试试：
+在选定的 AI IDE 或 CLI 中打开项目，开始使用 oh-my-agent。技能路由取决于主机；启用的钩子可以检测工作流。试试：
 
 ```
-"使用 Tailwind CSS 构建一个带邮箱验证的登录表单"
+"Build a login form with email validation using Tailwind CSS"
 ```
 
-或使用工作流命令：
+
+也可以使用工作流命令：
 
 ```
-/plan 带 JWT 和刷新令牌的认证功能
+/plan authentication feature with JWT and refresh tokens
 ```
 
-查看[使用指南](/docs/guide/usage)了解详细示例，或了解[智能体](/docs/core-concepts/agents)以理解每个专家的职责。
+
+详见[使用指南](/docs/guide/usage)，或阅读[智能体](/docs/core-concepts/agents)了解每个专家的职责。

@@ -1,6 +1,7 @@
 ---
 title: "가이드: 자동 업데이트"
-description: oh-my-agent용 완전한 GitHub Action 문서입니다. 설정, 모든 입력과 출력, 상세 예제, 내부 동작 원리를 다룹니다.
+sidebar_label: 자동 업데이트
+description: OMA GitHub Action을 설정하고 입력과 출력을 확인하며, CI 업데이트에서 보존하거나 교체하는 항목을 파악합니다.
 ---
 
 # 가이드: 자동 업데이트
@@ -13,7 +14,9 @@ oh-my-agent GitHub Action(`first-fluke/oma-update-action@v1`)은 CI에서 `oma u
 
 ## 빠른 설정
 
+<!-- oma-docs:ignore-start -->
 이 파일을 프로젝트에 `.github/workflows/update-oh-my-agent.yml`로 추가합니다:
+<!-- oma-docs:ignore-end -->
 
 ```yaml
 name: Update oh-my-agent
@@ -36,7 +39,7 @@ jobs:
       - uses: first-fluke/oma-update-action@v1
 ```
 
-위가 최소 설정입니다. 새 버전이 나오면 기본 설정으로 PR을 생성합니다.
+이 구성이 최소 설정입니다. 설치된 구성 요소가 변경되면 action은 `updated=true`와 버전 출력을 남기고 PR을 생성합니다. 파일이 변경되지 않으면 `updated=false`로 종료하며 PR을 만들지 않습니다.
 
 ---
 
@@ -259,11 +262,13 @@ oma update $FLAGS
 2. `.agents/skills/_version.json`의 로컬 버전과 비교합니다.
 3. 버전이 일치하면 "Already up to date."로 종료합니다.
 4. 새 버전이 사용 가능하면 최신 tarball을 다운로드하고 추출합니다.
-5. 사용자가 커스터마이즈한 파일을 보존합니다(`--force` 제외): `oma-config.yaml`, `mcp.json`, `stack/` 디렉토리.
+5. 사용자가 커스터마이즈한 파일을 보존합니다(`--force` 제외): `oma-config.yaml`, `mcp.json`, stack 디렉토리.
 6. 기존 `.agents/` 디렉토리 위에 새 파일을 복사합니다.
 7. 보존된 파일을 복원합니다.
 8. 모든 벤더의 벤더 적응(훅, 설정, 에이전트 정의)을 업데이트합니다.
 9. CLI 심볼릭 링크를 갱신합니다.
+
+이 action은 `--with-new-skills` 없이 `oma update --ci`를 실행합니다. 설치된 스킬을 갱신하고 새로 제공되는 스킬을 보고하지만, 프로젝트에 새 스킬을 추가하려면 `oma update --with-new-skills`를 명시적으로 실행해야 합니다.
 
 ### 4단계: 변경 확인
 
@@ -284,4 +289,3 @@ fi
 - **`pr` 모드:** `peter-evans/create-pull-request@v8`을 사용하여 `chore/update-oh-my-agent` 브랜치에 PR을 생성합니다. PR에는 새 버전 번호, oh-my-agent 리포 링크, 설정된 라벨이 포함됩니다. 브랜치가 이미 존재하면(이전에 닫지 않은 PR에서) 기존 PR을 업데이트합니다.
 
 - **`commit` 모드:** `github-actions[bot]`으로 git을 설정하고, `.agents/`와 `.claude/`를 스테이징하고, 설정된 메시지로 커밋하고, 베이스 브랜치에 푸시합니다.
-

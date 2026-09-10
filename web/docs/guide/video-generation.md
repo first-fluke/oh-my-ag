@@ -1,11 +1,12 @@
 ---
 title: "Guide: Video Generation"
+sidebar_label: Video Generation
 description: Complete guide to oh-my-agent video generation — a key-optional, three-tier router that composes script, narration, visuals, captions, and a vendored Remotion compositor into reproducible run directories across shorts, explainer, and demo modes.
 ---
 
 # Video Generation
 
-`oma-video` is the video router for oh-my-agent. From a one-line brief it composes a script, narration, visuals, and captions, then renders them with a vendored compositor into a reproducible run directory — every stage degrades to a deterministic fallback, so a run completes with **no API keys**.
+`oma-video` is the video router for oh-my-agent. From a one-line brief it composes a script, narration, visuals, and captions, then records the plan in a run directory. Provider stages are key-optional and can use local or deterministic fallbacks; a real MP4 still requires a working compositor and valid composition.
 
 The skill auto-activates on keywords like *video*, *shorts*, *reels*, *explainer*, *demo*, *walkthrough*, *screencast*, or when another skill needs a video as a side effect.
 
@@ -31,26 +32,26 @@ The skill auto-activates on keywords like *video*, *shorts*, *reels*, *explainer
 |------|--------|------------------|
 | `shorts` | 9:16 | Short-form vertical clip (script → narration → visuals → captions). |
 | `explainer` | 16:9 | Horizontal explainer from a README, code, or data brief. |
-| `demo` | derived | A walkthrough built from a screen recording — a pre-recorded file (`--source file`) or a supervised headed web capture of any URL (`--source web`). |
+| `demo` | derived | A walkthrough built from a human recording supplied with `--capture`; `--source web --url` supplies context for a supervised headed capture and never automates login. |
 
-The mode picks sensible defaults; every default is overridable by a flag.
+The mode picks sensible defaults; pass the relevant flags when you need different values.
 
 ---
 
 ## Quick start
 
 ```bash
-# Key-free short — script, captions, and a placeholder-free local render
+# Key-optional short — script, captions, and a local render when the toolchain is ready
 oma video generate "three quick tips for better focus" --mode shorts -y
 
 # 16:9 explainer in Korean
 oma video generate "what oh-my-agent does" --mode explainer --aspect 16:9 --locale ko -y
 
-# Demo from a supervised web capture of a running app (you drive the flow; ENTER stops)
-oma video generate "product walkthrough" --mode demo --source web --url http://localhost:3000 --polish
+# Demo from a human recording (you control login and capture)
+oma video generate "product walkthrough" --mode demo --capture ./capture.mp4 --polish
 ```
 
-Each run prints its run directory. Re-running with the same `--seed` reproduces the same script and render-spec.
+Each run prints its run directory. A fixed `--seed` stabilizes the deterministic planning inputs; live provider output and capture footage can still vary. Re-render an existing run directory when you need to reuse its saved render spec and assets.
 
 Other tools that shell out to `oma video generate --output json` parse a JSON envelope from stdout: `{exitCode, runDir, manifestPath, scriptPath, renderSpecPath, warnings, error}`. There is no `outputs` key — read output/asset paths from the manifest at `manifestPath`.
 
@@ -60,7 +61,7 @@ Other tools that shell out to `oma video generate --output json` parse a JSON en
 
 ```
 oma video generate <brief...> [options]
-oma video doctor [--install|--install-mpt]  # toolchain readiness / provisioning
+oma video doctor [--install|--upgrade|--install-mpt|--install-strudel]  # toolchain readiness / provisioning
 oma video render <runDir>        # re-render from render-spec.json (deterministic)
 oma video provider list         # provider availability + key/fallback status
 ```
@@ -74,23 +75,34 @@ oma video provider list         # provider availability + key/fallback status
 | `--locale <lang>` | Narration/caption language tag. |
 | `--captions <s>` | `tiktok` \| `lower-third` \| `none` (key-free alignment). |
 | `--visual <m>` | `auto` \| `generate` \| `stock` \| `aigc` \| `slide`. |
-| `--voice <profile>` | Narration voice, or `none` (the default — omit it and the video renders silent with estimated caption timing). |
+| `--voice <profile>` | Narration voice, or `none` (the default; omit it and the video renders silent with estimated caption timing). |
+| `--music <mode>` | `upbeat`, `calm`, `cinematic`, `lofi`, `piano`, or `none`. |
 | `--compositor <c>` | `remotion` (default) \| `mpt`. |
-| `--source <k>` | Demo capture source: `file` \| `web`. |
-| `--url <url>` | Target URL for `--source web` (local, staging, or prod). |
+| `--capture <path>` | Input recording path for demo mode (`--source file`). |
+| `--source <k>` | Demo capture source: `file` or `web` (default: `file`). |
+| `--url <url>` | Target URL for `--source web` (local, staging, or production); it does not replace `--capture` when a recording is required. |
+| `--device <name>` | Device frame for web capture; overrides aspect sizing. |
+| `--ready-selector <css>` | CSS selector to await before web capture. |
+| `--show-cursor` | Overlay a visible cursor in web capture. |
 | `--polish` | Overlay the Remotion composition on captured footage. |
+| `--capture-timeout <sec>` | Hard ceiling for live web capture. |
+| `--capture-stop <mode>` | Non-interactive stop for CI: `duration:<sec>` or `selector:<css>`. |
+| `--output-dir <path>` | Output base directory. Paths outside `$PWD` require `--allow-external-output`. |
+| `--allow-external-output` | Permit output paths outside `$PWD`. |
+| `--max-usd <n>` | Maximum estimated cost before confirmation. |
 | `--duration <sec>` | Target length, or `auto`. |
 | `--seed <n>` | Deterministic seed. |
 | `--dry-run` | Emit script / render-spec / manifest, skip rendering. |
 | `--script <path>` | Agent-authored `script.json` to inject (overrides the skeleton; controls narration, on-screen text, and per-scene visual prompts). |
 | `-y, --yes` | Skip the cost-confirmation prompt. |
-| `--format <f>` | CLI output: `text` (default) \| `json`. |
+| `--output <f>` | CLI output: `text` (default) or `json`. |
+| `--no-brief-in-manifest` | Store a SHA-256 of the brief instead of the raw brief. |
 
 ---
 
 ## Key-optional providers
 
-Every capability resolves to a provider with a **real branch** and a **deterministic fallback** (backend rule 11), so a run never hard-fails for a missing key or tool:
+Provider stages resolve to a **real branch** and, where the stage supports it, a **deterministic fallback**. Missing keys can therefore leave a planned run with estimated timing or local assets. The compositor is a required final stage and has no normal placeholder fallback:
 
 | Capability | Real branch | Fallback |
 |------------|-------------|----------|
@@ -98,8 +110,8 @@ Every capability resolves to a provider with a **real branch** and a **determini
 | voice | `oma-voice` (Voicebox, local) | estimated timing, no audio |
 | visual | `oma-image` / `oma-slide` / stock | placeholder asset |
 | caption | key-free forced alignment | estimated word timing |
-| capture | supervised browser web capture (`--source web`) or Cap (`--source file`) | guided "record it yourself" protocol |
-| compositor | Remotion (vendored) or MoneyPrinterTurbo | deterministic placeholder mp4 |
+| capture | supervised browser web capture (`--source web`) or a supplied recording (`--source file --capture`) | guided "record it yourself" protocol |
+| compositor | Remotion (vendored) or MoneyPrinterTurbo | no compositor fallback; the run fails with diagnostics |
 
 No credential automation: a human performs any on-screen login during capture; URLs and query tokens are masked in logs and the manifest.
 
@@ -151,26 +163,26 @@ The `render-spec.json` + assets are the determinism boundary; live capture is re
 
 | Symptom | Cause / fix |
 |---------|-------------|
-| Output is a tiny text file, not an mp4 | The compositor fell back to the placeholder — run `oma video doctor` and provision the flagged tool. |
+| No MP4 is produced | A compositor, composition, or toolchain check failed. Run `oma video doctor`, then `oma video compose <runDir>` and fix the reported composition before rerunning `oma video render <runDir>`. |
 | Narration is silent (`source: estimated`) | Voicebox is unreachable; start the `oma-voice` server, or accept estimated timing. |
-| `--source web` prints a guided protocol instead of recording | No TTY (CI) or browser capture runtime unavailable → guided fallback. Use an interactive terminal with a provisioned capture runtime, or pass a recorded file with `--capture`. |
+| `--source web` prints a guided protocol instead of recording | No TTY or browser capture runtime unavailable → guided fallback. Use an interactive terminal with a provisioned capture runtime and `--capture-stop`, or pass a recorded file with `--capture`. |
 | Render is slow on the first run | The Remotion browser / MPT checkout is being provisioned once; subsequent runs reuse the cache. |
 
 ---
 
 ## Always-latest Remotion — you author the composition
 
-oh-my-agent ships **no Remotion composition code**. Each run gets its own project at `<runDir>/remotion/`, scaffolded by `oma video compose` on the latest npm Remotion (toolchain cache `~/.cache/oma-video/remotion/<version>/`, shared via a `node_modules` symlink) with [remotion-dev/skills](https://github.com/remotion-dev/skills) at HEAD (`~/.cache/oma-video/remotion-skills/`). The agent authors `src/Root.tsx` for that run following the scaffold's `AUTHORING.md`, the skills, and the mode spec in `.agents/skills/oma-video/resources/remotion-authoring/`.
+oh-my-agent ships **no Remotion composition code**. Each run gets its own project at `<runDir>/remotion/`, scaffolded by `oma video compose` on the latest npm Remotion (toolchain cache `~/.cache/oma-video/remotion/<version>/`, shared via a `node_modules` symlink) with [remotion-dev/skills](https://github.com/remotion-dev/skills) at HEAD (`~/.cache/oma-video/remotion-skills/`). The agent authors the generated composition source following the scaffold's `AUTHORING.md`, the skills, and the mode spec in `.agents/skills/oma-video/resources/remotion-authoring/`.
 
 ```bash
 oma video generate "…"                     # → render-spec.json + <runDir>/remotion/ (composition pending)
 oma video compose <runDir> --output json   # refresh scaffold / print the contract (idempotent)
-#   author <runDir>/remotion/src/Root.tsx
+#   author the generated composition source as instructed by AUTHORING.md
 oma video render <runDir> --output json    # tsc → npx remotion render → ffprobe; exit 1 on any failure
 ```
 
 - Latest-version checks (npm + GitHub) are throttled by `video.remotion.check_interval_min` (default 60; `0` = every compose). `oma update` and `oma video doctor --upgrade` force them; offline runs use the cached toolchain and report `stale`.
-- Reproducibility lives in the run dir: `render-spec.json` + the authored `src/` + the toolchain version recorded in `remotion/package.json` (`omaVideo.remotion`). Re-rendering the same run reproduces the same output; a new run uses the latest Remotion.
+- Reproducibility lives in the run dir: `render-spec.json`, the authored composition source, and the toolchain version recorded in the generated Remotion package metadata. Re-rendering the same run reuses that render contract; a new run checks the latest Remotion.
 - A typecheck or render failure is **not** hidden behind a placeholder (that exists only for `OMA_VIDEO_MOCK=1`): `oma video render` exits 1 with the diagnostics and the agent fixes the composition using the latest skills. Breakage on a new Remotion release is a composition bug, never a reason to pin.
 
 ```yaml

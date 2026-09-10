@@ -1,5 +1,6 @@
 ---
 title: "가이드: 에이전트별 모델 설정"
+sidebar_label: 에이전트별 모델
 description: oma-config.yaml의 model_preset으로 각 에이전트가 사용할 AI 모델을 설정합니다. 빌트인 프리셋, 에이전트별 오버라이드, 인라인 모델 정의, extends 기반 커스텀 프리셋, oma doctor --profile, 그리고 레거시 agent_cli_mapping에서 넘어오는 마이그레이션을 다룹니다.
 ---
 
@@ -7,9 +8,11 @@ description: oma-config.yaml의 model_preset으로 각 에이전트가 사용할
 
 ## 개요
 
-`model_preset`은 모든 에이전트가 사용할 모델을 결정하는 단일 개념입니다. 빌트인 프리셋 중 하나를 선택하면 모든 에이전트(pm, backend, frontend, qa 등)가 해당 벤더 스택에 적합한 모델로 자동 연결됩니다. 필요한 경우 개별 에이전트를 오버라이드할 수 있습니다. 팀이 비표준 조합을 사용한다면 추가 프리셋을 정의하면 됩니다.
+새 설치에서 `model_preset: auto`가 기본값입니다. 설정하지 않은 에이전트는 현재 벤더의 네이티브 에이전트 정의와 모델 설정을 사용합니다. 모델을 고정하려면 고정 프리셋을 선택하고, 다른 모델이나 벤더가 필요하면 개별 에이전트를 오버라이드하세요. 재설치와 업데이트에서는 기존의 명시적 프리셋을 보존합니다.
 
-모든 설정은 `.agents/oma-config.yaml` 단일 파일에 모여 있습니다.
+공유 설정은 `.agents/oma-config.cue` 또는 `.agents/oma-config.yaml`에 있습니다. 선택 사항인 Git-ignored local 파일은 현재 컴퓨터의 설정을 오버라이드합니다.
+
+전체 최상위 키와 우선순위는 [설정 레퍼런스](/docs/guide/configuration-reference)를 참고하세요.
 
 이 페이지에서 다루는 내용:
 
@@ -29,20 +32,92 @@ description: oma-config.yaml의 model_preset으로 각 에이전트가 사용할
 ```yaml
 # .agents/oma-config.yaml
 language: en
-model_preset: antigravity
+model_preset: auto
 ```
 
 | 키 | 설명 | 적합한 사용자 |
 |:----|:-----------|:---------|
-| `antigravity` | 모든 에이전트가 Antigravity CLI(`agy`)를 사용합니다. 구현/아키텍처 역할은 Gemini 3.1 Pro, 오케스트레이션 및 검색 역할은 Gemini 3.5 Flash를 사용합니다. 모델 선택은 `agy` 내부 설정으로 처리되며, `--model`이나 `--thinking-budget` 플래그는 노출되지 않습니다. | Antigravity CLI 사용자 |
+| `auto` | 현재 런타임의 에이전트/모델 설정을 따르며 model 또는 effort 플래그를 주입하지 않습니다. | 새 설치의 기본값 |
+| `free` | OMA가 spawn한 Codex, Claude 또는 Qwen 프로세스를 위한 특수 gateway 모드이며, 빌트인 프리셋 registry와 별도로 해석됩니다. | 로컬 FreeLLMAPI gateway |
+| `antigravity` | 모든 에이전트가 Antigravity CLI(`agy`)를 사용합니다. 구현/아키텍처 역할은 Gemini 3.1 Pro, 오케스트레이션·문서화·검색 역할은 Gemini 3.6 Flash를 사용합니다. 모델 선택은 `agy` 내부 설정으로 처리되며, `--model`이나 `--thinking-budget` 플래그는 노출되지 않습니다. | Antigravity CLI 사용자 |
 | `claude` | 모든 에이전트가 Claude (Sonnet/Opus) 사용 | Claude Max 구독자 |
-| `codex` | 모든 에이전트가 effort 레벨이 적용된 OpenAI Codex (GPT-5.x) 사용 | ChatGPT Plus/Pro 사용자 |
-| `gemini` | 모든 에이전트가 Gemini CLI 사용, 구현 역할에는 thinking 활성화 | Google AI Pro 사용자 |
+| `codex` | 모든 에이전트가 OpenAI Codex(GPT-5.5가 대부분의 역할, GPT-5.4-mini가 explore에 사용)를 effort 레벨과 함께 사용합니다. | ChatGPT Plus/Pro 사용자 |
 | `qwen` | 모든 에이전트를 Qwen Code로 외부 라우팅. 이진 thinking 방식(effort 레벨 없음) | 로컬 또는 자체 호스팅 추론 |
+| `kiro` | 모든 에이전트가 Kiro CLI를 사용합니다. Sonnet은 구현/아키텍처를, Haiku는 오케스트레이션/검색을 담당합니다. | Kiro 사용자 |
 | `cursor` | 모든 에이전트가 Cursor `composer-2.5` 사용 (orchestrator/qa/pm/docs/explore은 `composer-2.5-fast`) | Cursor Pro / Pro Student 사용자 |
 | `mixed` | 혼합 구성: 구현 역할은 Codex, architecture/qa/pm은 Claude, explore은 Gemini | 에이전트별 설정 부담 없이 벤더별 강점을 활용하고 싶을 때 |
 
-빌트인 프리셋은 CLI 패키지에 포함되어 제공되며, `oh-my-agent`을 업그레이드하면 자동으로 갱신됩니다. 별도로 관리할 로컬 파일이 없습니다.
+빌트인 프리셋은 CLI 패키지에 포함되어 제공되며, `oh-my-agent`을 업그레이드하면 자동으로 갱신됩니다. `gemini`는 `antigravity`로 리디렉션되는 호환성 alias이며 현재 별도의 프리셋이 아닙니다. 로컬 프리셋 파일은 필요하지 않습니다.
+
+---
+
+## 자동 디스패치
+
+`auto`에서는 명시적인 `agents.<id>` 모델 오버라이드가 우선합니다. 그 외에는 OMA가 현재 런타임을 감지하고 가능하면 네이티브 subagent 경로를 사용합니다. 벤더가 다르거나 네이티브 디스패치를 지원하지 않는 런타임은 `oma agent spawn`을 사용합니다. `auto`는 고정된 벤더 프리셋으로 확장되지 않습니다.
+
+CLI 디스패치에서는 `--vendor`로 대상을 명시적으로 선택합니다. 생략하면 OMA는 감지된 런타임을 사용하고, 감지에 실패하면 `default_cli`를 사용합니다(`default_cli`가 없으면 `claude`). 상속된 계획에는 OMA model 또는 effort 플래그가 주입되지 않으며, 벤더의 자체 agent/session 설정이 이를 제공합니다. 외부 CLI 프로세스는 해당 CLI의 저장된 기본값을 사용하므로, parent session에서만 선택한 모델과 다를 수 있습니다.
+
+`oma doctor --profile`은 상속된 에이전트에는 `(vendor agent default)`를, 명시적 오버라이드에는 해석된 모델을 표시합니다. 네이티브 에이전트 파일은 벤더 정의를 유지하며, auto 모드의 동일 벤더 오버라이드는 install/update에서 파일을 생성할 때 적용됩니다.
+
+## 로컬 설정
+
+공유 설정 옆에 `.agents/oma-config.local.cue` 또는 `.agents/oma-config.local.yaml` 중 **하나**를 만드세요. install, link, update는 두 경로를 모두 `.gitignore`에 추가하며, `--force`를 사용해도 기존 local 파일을 보존합니다.
+
+OMA는 가장 가까운 프로젝트 설정 디렉토리를 선택합니다. 그 디렉토리 안에서는 공유 CUE가 공유 YAML보다 우선하고, local 파일이 공유 값을 오버라이드합니다. CUE 파일은 병합 전에 독립적으로 평가되므로 공유 `model_preset: "auto"`를 local `"free"`로 바꿀 수 있습니다. 객체는 재귀적으로 병합하고 배열·스칼라·`null`은 공유 값을 대체합니다. 잘못된 local 파일, local CUE에 필요한 CUE 실행 파일의 부재, 또는 두 local 형식의 동시 존재는 shared 기본값을 사용할 수 있는 상태가 아니라 오류입니다.
+
+명령 옵션과 지원되는 환경 오버라이드는 유효한 파일 설정보다 우선합니다. `oma doctor --profile`에서 사용된 파일을 확인할 수 있습니다. Local 파일은 Git clone이나 새 worktree로 따라가지 않습니다. Free 모드 subprocess는 `OMA_MODEL_PRESET=free`와 해석된 gateway 환경을 상속하므로 중첩 OMA spawn에서도 경로를 유지합니다. 독립적으로 시작한 session에는 자체 local 설정이나 환경 변수가 필요합니다. install/setup 명령이 저장한 설정은 공유 설정을 대상으로 하며, 런타임에서는 local override가 계속 우선합니다.
+
+## FreeLLMAPI 프리셋 {#freellmapi-preset}
+
+공유 파일에는 `model_preset: auto`를 유지하고 local에서 활성화하세요.
+
+```cue
+// .agents/oma-config.local.cue
+model_preset: "free"
+free: {
+    base_url:    "http://127.0.0.1:31415/v1"
+    api_key_env: "FREELLM_API_KEY"
+    model:       "auto"
+}
+```
+
+동등한 YAML 파일은 다음과 같습니다.
+
+```yaml
+# .agents/oma-config.local.yaml
+model_preset: free
+free:
+  base_url: http://127.0.0.1:31415/v1
+  api_key_env: FREELLM_API_KEY
+  model: auto
+```
+
+FreeLLMAPI를 별도로 시작하고 통합 key를 `FREELLM_API_KEY`로 export하세요. 기본 key 변수를 선택하면 upstream의 `FREELLMAPI_API_KEY`도 허용되며, 둘 다 설정된 경우 canonical 변수가 우선합니다. 사용자 지정 `api_key_env`는 해당 변수만 읽습니다. key 자체를 설정 파일에 넣지 마세요. `OMA_MODEL_PRESET`은 프리셋보다 우선합니다. `FREELLM_BASE_URL`과 `FREELLM_MODEL`은 각각 파일 설정을 오버라이드합니다. 예시의 값이 기본값이므로 server와 key가 준비되면 `model_preset: free`만으로 충분합니다.
+
+```bash
+oma doctor --profile
+oma agent spawn backend "Review the API error handling" free-review --vendor codex --read-only
+```
+
+Free 모드는 기존 `agents.*.model` pin이 있는 역할을 포함하여 OMA가 디스패치하는 모든 역할에 `free.model`을 사용합니다. 해당 pin을 유료 subscription으로 해석하지 않습니다. `auto`, gateway model ID 또는 `auto:coding` 같은 이름 있는 gateway chain을 선택하세요(FreeLLMAPI에서 먼저 chain을 만들어야 함).
+
+Transport는 `--vendor`, `OMA_RUNTIME_VENDOR`, 지원되는 감지 런타임, `default_cli`, `codex` 순으로 선택됩니다. Codex, Claude, Qwen transport만 지원됩니다. 명시적으로 선택한 미지원 transport는 오류입니다.
+
+| Transport | Gateway endpoint | CLI base URL |
+|:--|:--|:--|
+| Codex | `/v1/responses` | `/v1` 포함 |
+| Claude | `/v1/messages` | server root; OMA가 `/v1` suffix를 제거 |
+| Qwen | `/v1/chat/completions` | `/v1` 포함 |
+
+parent가 같은 벤더를 사용하더라도 `oma agent spawn`을 사용하세요. OMA는 gateway 연결과 credential을 해당 subprocess에만 주입합니다. 프리셋을 바꿔도 이미 열린 host session이나 host-native subagent tool의 모델은 바뀌지 않습니다. Codex에는 invocation arguments를 통해 custom Responses provider를 전달하고 key는 child 환경에 둡니다. Claude와 Qwen에는 호환 endpoint 설정을 전달합니다. 경로 또는 key를 덮어쓰는 충돌하는 Claude/Qwen 설정은 실행 전에 보고하며, OMA는 해당 파일을 다시 쓰지 않습니다.
+
+Spawn과 review는 agent를 시작하기 전에 인증된 `GET /v1/models`를 확인합니다. key 누락, 연결 실패, HTTP 인증 오류가 있으면 실행을 중단합니다. `oma doctor --profile`은 key를 출력하지 않고 유효 URL/model, 환경 오버라이드, key 존재 여부, server readiness를 보여줍니다. readiness가 task를 완료할 quota를 보장하지는 않습니다.
+
+FreeLLMAPI는 request 수준의 provider failover를 소유합니다. OMA의 명시적인 checkpoint 기반 벤더 failover는 별도의 프로세스 복구 메커니즘이며, free 모드의 모든 successor도 지원되는 FreeLLMAPI transport를 사용해야 합니다. 유료 벤더 설정으로 자동 복귀하지 않습니다.
+
+free 프리셋은 agent inference를 설정합니다. 기존 memory service의 embedding 설정은 바꾸지 않습니다. FreeLLMAPI도 `/v1/embeddings`를 제공하므로 vector store를 별도로 설정할 때 model family를 고정하여 기존 vector가 호환되는 space를 유지하세요.
+
+Upstream 참고 자료: [client setup](https://github.com/tashfeenahmed/freellmapi/blob/main/docs/en/clients/01-agent-clients.md), [API and embedding families](https://github.com/tashfeenahmed/freellmapi/blob/main/docs/en/api/01-rest-api.md).
 
 ---
 
@@ -53,7 +128,7 @@ model_preset: antigravity
 ```yaml
 # .agents/oma-config.yaml
 language: en
-model_preset: antigravity
+model_preset: auto
 
 agents:
   backend: { model: openai/gpt-5.5, effort: high }
@@ -65,17 +140,17 @@ agents:
 | 필드 | 타입 | 필수 여부 | 설명 |
 |:------|:-----|:---------|:-----------|
 | `model` | string | 필수 | 모델 슬러그 (빌트인 또는 사용자 정의) |
-| `effort` | `low` \| `medium` \| `high` | 선택 | 추론 effort (지원하지 않는 모델에서는 무시됨) |
+| `effort` | `none` \| `low` \| `medium` \| `high` \| `xhigh` | 선택 | 추론 effort (지원하지 않는 모델에서는 무시됨) |
 | `thinking` | boolean | 선택 | 확장 thinking 활성화 (모델별 동작) |
 | `memory` | `user` \| `project` \| `local` | 선택 | 에이전트의 메모리 스코프 |
 
-유효한 에이전트 ID: `orchestrator`, `architecture`, `qa`, `pm`, `backend`, `frontend`, `mobile`, `db`, `debug`, `tf-infra`, `explore`.
+유효한 에이전트 ID: `orchestrator`, `architecture`, `qa`, `pm`, `backend`, `frontend`, `mobile`, `db`, `debug`, `refactor`, `docs`, `tf-infra`, `explore`.
 
 병합은 얕게 이루어집니다. 오버라이드에 정의한 각 필드가 해당 필드의 프리셋 값을 대체하며, 생략한 필드는 프리셋 값을 그대로 유지합니다.
 
 ---
 
-## 모델 슬러그 인라인 등록
+## 모델 슬러그 인라인 등록 {#inlining-model-slugs}
 
 빌트인 레지스트리에 아직 없는 모델 슬러그는 `models:` 아래에 등록합니다. 등록한 슬러그는 `agents:`나 `custom_presets:` 어디에서든 사용할 수 있습니다.
 
@@ -128,7 +203,7 @@ custom_presets:
       # all other agents inherited from claude
 ```
 
-`extends:`가 없으면 11개 에이전트 역할 모두에 대해 `agent_defaults`를 제공해야 합니다. `extends:`를 사용하면 명시한 항목만 오버라이드되고 나머지는 베이스 프리셋에서 상속됩니다.
+`extends:`가 없으면 해당 프리셋이 사용하는 canonical 에이전트 역할에 기본값을 제공하세요. `extends:`를 사용하면 명시한 항목만 오버라이드되고 나머지는 베이스 프리셋에서 상속됩니다.
 
 ---
 
@@ -174,7 +249,9 @@ oh-my-agent — Profile Health (preset=mixed)
 
 변경 전 원본은 `.agents/.backup-pre-008-{timestamp}/`에 백업됩니다. 마이그레이션은 멱등성을 보장합니다(이미 `model_preset`이 존재하면 건너뜁니다).
 
+<!-- oma-docs:ignore-start -->
 마이그레이션이 끝나면 `.agents/config/defaults.yaml`, `.agents/config/models.yaml`, 그리고 `.agents/config/` 디렉토리가 제거됩니다.
+<!-- oma-docs:ignore-end -->
 
 ---
 
@@ -208,10 +285,18 @@ agents:
   frontend: { model: anthropic/claude-sonnet-4-6 }
 
 models:
-  my-fast-model:
+  google/gemini-3-flash-fast:
     cli: gemini
     cli_model: gemini-3-flash
-    supports: { native_dispatch_from: [gemini], thinking: true }
+    auth_hint: "Google AI Pro"
+    supports:
+      effort: null
+      apply_patch: false
+      task_budget: false
+      prompt_cache: false
+      computer_use: false
+      native_dispatch_from: [gemini]
+      api_only: false
 
 custom_presets:
   my-team:
@@ -239,7 +324,7 @@ session:
 **전송 오버레이**로 다룹니다. `model_preset`과 `agents:` 오버라이드는 그대로
 두고, 특정 에이전트를 실행하는 CLI만 pi로 바뀝니다.
 
-`-m pi` 오버라이드로 어떤 에이전트든 pi를 통해 디스패치합니다.
+`--vendor pi` 오버라이드로 어떤 에이전트든 pi를 통해 디스패치합니다.
 
 ```bash
 oma agent spawn backend "Implement the export endpoint" <session> --vendor pi
@@ -317,7 +402,7 @@ opencode는 설정 파일 기반 훅을 등록하는 대신 `.opencode/plugins/o
 
 ### 명시적 디스패치
 
-`-m opencode` 오버라이드로 어떤 에이전트든 opencode를 통해 라우팅합니다.
+`--vendor opencode` 오버라이드로 어떤 에이전트든 opencode를 통해 라우팅합니다.
 
 ```bash
 oma agent spawn pm "Draft the rollout plan" <session> --vendor opencode
@@ -423,7 +508,7 @@ opencode models opencode-go                            # list everything your pl
 
 ### 명시적 디스패치
 
-`-m kimi` 오버라이드로 어떤 에이전트든 Kimi를 통해 라우팅합니다.
+`--vendor kimi` 오버라이드로 어떤 에이전트든 Kimi를 통해 라우팅합니다.
 
 ```bash
 oma agent spawn pm "Draft the rollout plan" <session> --vendor kimi

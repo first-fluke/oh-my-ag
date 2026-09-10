@@ -1,6 +1,7 @@
 ---
 title: "指南：现有项目集成"
-description: 将 oh-my-agent 添加到现有项目的完整指南。CLI 路径、手动路径、验证、SSOT 符号链接结构以及安装器的底层工作原理。
+sidebar_label: 现有项目
+description: 将 oh-my-agent 添加到现有项目的完整指南，涵盖 CLI 路径、手动路径、验证、SSOT 符号链接结构，以及安装器的底层工作原理。
 ---
 
 # 指南：现有项目集成
@@ -12,7 +13,7 @@ description: 将 oh-my-agent 添加到现有项目的完整指南。CLI 路径�
 1. **CLI 路径**：运行 `oma`（或 `npx oh-my-agent`）并按照交互式提示操作。推荐大多数用户使用。
 2. **手动路径**：自行复制文件和配置符号链接。适用于受限环境或自定义设置。
 
-两种路径产生相同的结果：一个 `.agents/` 目录（SSOT），IDE 特定目录通过符号链接指向它。
+两种路径产生相同结果：一个 `.agents/` 目录（SSOT），以及由它生成的供应商原生文件，例如 `.claude/agents/`、`.codex/agents/` 和 `.gemini/agents/`。
 
 ---
 
@@ -21,10 +22,10 @@ description: 将 oh-my-agent 添加到现有项目的完整指南。CLI 路径�
 ### 1. 安装 CLI
 
 ```bash
-# 全局安装（推荐）
+# Global install (recommended)
 bun install --global oh-my-agent
 
-# 或使用 npx 一次性运行
+# Or use npx for one-time runs
 npx oh-my-agent
 ```
 
@@ -36,7 +37,7 @@ npx oh-my-agent
 cd /path/to/your/project
 ```
 
-安装器需要从项目根目录（`.git/` 所在位置）运行。
+请从要配置的项目目录运行安装器。OMA 会相对于安装根目录写入 SSOT；虽然建议使用 Git 仓库来审查和回滚，但安装器并不要求仓库存在。
 
 ### 3. 运行安装器
 
@@ -71,21 +72,36 @@ oma
 
 ### 6. 配置 IDE 符号链接
 
-安装器始终创建 Claude Code 符号链接（`.claude/skills/`）。它还会为 Antigravity、Claude、Codex 和 Qwen 生成供应商原生的智能体文件和钩子。如果存在 `.github/` 目录，还会自动创建 GitHub Copilot 符号链接。否则，会询问：
+安装器始终创建 Claude Code 符号链接（`.claude/skills/`）。它还会生成所选供应商的原生智能体文件、钩子、设置和集成文件；当前供应商系列包括 Antigravity、Claude、Codex、Cursor、Kiro、Kimi、Qwen，以及 pi 和 OpenCode 的扩展路径。如果存在 `.github/` 目录，还可以自动创建 GitHub Copilot 符号链接。选择 **ZCode** 时，会通过 `.zcode/commands/*.md` 符号链接暴露工作流斜杠命令（只有工作流，不包含智能体文件或钩子）。否则，会询问：
 
 ```
 Also create symlinks for GitHub Copilot? (.github/skills/)
 ```
 
-### 7. Git Rerere 设置
+### 7. 推荐的全局 git 配置
 
-安装器检查是否启用了 `git rerere`（重用已记录的解决方案）。如果未启用，会提议全局启用：
+在 `oma install` 和 `oma update` 接近结束时，CLI 会检查两个有助于多智能体工作流的**全局** git 设置：
+
+| 键 | 目标值 | 原因 |
+|:----|:--------------|:----|
+| `rerere.enabled` | `true` | 重用已记录的解决方案。多智能体合并经常遇到相同冲突，rerere 会重放之前的修复 |
+| `init.defaultBranch` | `main` | 为新仓库统一默认分支名称 |
 
 ```
-Enable git rerere? (Recommended for multi-agent merge conflict reuse)
+Enable git rerere? (Recommended for multi-agent merge conflict reuse) (unset)
+Set git init.defaultBranch to main? (Recommended global default) (currently "master")
 ```
 
-推荐启用，因为多智能体工作流可能产生合并冲突，rerere 会记住你的解决方式，下次自动应用相同的解决方案。
+接受后会运行等效命令：
+
+```bash
+git config --global rerere.enabled true
+git config --global init.defaultBranch main
+```
+
+非交互路径（`--yes`、`--ci`、`CI=true`）不会写入全局 git 配置，只会打印跳过提示和手动修复命令。
+
+`oma doctor` 会在 **Git Config** 下报告相同检查，将不匹配计为问题，在 `--json` 输出中以 `gitRecommended` 暴露，并可交互式应用修复。
 
 ### 8. MCP 配置
 
@@ -138,54 +154,35 @@ Configure Serena MCP with bridge? (Required for full functionality)
 ### 步骤 1：下载和解压
 
 ```bash
-# 从注册表下载最新 tarball
+# Download the latest tarball from the registry
 VERSION=$(curl -s https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/prompt-manifest.json | jq -r '.version')
 curl -L "https://github.com/first-fluke/oh-my-agent/releases/download/cli-v${VERSION}/agent-skills.tar.gz" -o agent-skills.tar.gz
 
-# 验证校验和
+# Verify checksum
 curl -L "https://github.com/first-fluke/oh-my-agent/releases/download/cli-v${VERSION}/agent-skills.tar.gz.sha256" -o agent-skills.tar.gz.sha256
 sha256sum -c agent-skills.tar.gz.sha256
 
-# 解压
+# Extract
 tar -xzf agent-skills.tar.gz
 ```
 
 ### 步骤 2：复制文件到你的项目
 
 ```bash
-# 复制核心 .agents/ 目录
+# Copy the core .agents/ directory
 cp -r .agents/ /path/to/your/project/.agents/
 
-# 创建 Claude Code 符号链接
-mkdir -p /path/to/your/project/.claude/skills
-mkdir -p /path/to/your/project/.claude/agents
-
-# 符号链接技能（以全栈项目为例）
-ln -sf ../../.agents/skills/oma-frontend /path/to/your/project/.claude/skills/oma-frontend
-ln -sf ../../.agents/skills/oma-backend /path/to/your/project/.claude/skills/oma-backend
-ln -sf ../../.agents/skills/oma-qa /path/to/your/project/.claude/skills/oma-qa
-ln -sf ../../.agents/skills/oma-pm /path/to/your/project/.claude/skills/oma-pm
-
-# 符号链接共享资源
-ln -sf ../../.agents/skills/_shared /path/to/your/project/.claude/skills/_shared
-
-# 符号链接工作流路由器
-for workflow in .agents/workflows/*.md; do
-  name=$(basename "$workflow" .md)
-  ln -sf ../../.agents/workflows/"$name".md /path/to/your/project/.claude/skills/"$name".md
-done
-
-# 符号链接智能体定义
-for agent in .agents/agents/*.md; do
-  name=$(basename "$agent")
-  ln -sf ../../.agents/agents/"$name" /path/to/your/project/.claude/agents/"$name"
-done
+# Regenerate vendor-native files from the SSOT
+cd /path/to/your/project
+oma link
 ```
+
+`oma link` 会从 SSOT 重新构建 `.claude/`、`.codex/`、`.gemini/` 以及其他供应商原生文件。运行时只有当前运行时供应商与该智能体的目标供应商一致时，OMA 才使用原生分发；混合供应商设置仍然可用，但不匹配的智能体会回退到外部 `oma agent spawn`。
 
 ### 步骤 3：配置用户偏好
 
 ```bash
-mkdir -p /path/to/your/project/.agents/config
+mkdir -p /path/to/your/project/.agents
 cat > /path/to/your/project/.agents/oma-config.yaml << 'EOF'
 language: en
 date_format: ISO
@@ -198,8 +195,8 @@ EOF
 
 ```bash
 oma memory init
-# 或手动：
-mkdir -p /path/to/your/project/.serena/memories
+# Or manually:
+mkdir -p /path/to/your/project/.agents/state/memories
 ```
 
 ---
@@ -209,10 +206,10 @@ mkdir -p /path/to/your/project/.serena/memories
 安装后（无论哪种路径），验证一切设置正确：
 
 ```bash
-# 运行 doctor 命令进行完整健康检查
+# Run the doctor command for a full health check
 oma doctor
 
-# CI 用的输出格式
+# Check output format for CI
 oma doctor --json
 ```
 
@@ -225,27 +222,27 @@ doctor 命令检查：
 | **MCP 配置** | 每个 CLI 环境的 Serena MCP 服务器设置 |
 | **技能状态** | 已安装哪些技能以及是否为最新版本 |
 
-手动验证命令：
-
 ```bash
-# 验证 .agents/ 目录存在
+# Verify .agents/ directory exists
 ls -la .agents/
 
-# 验证技能已安装
+# Verify skills are installed
 ls .agents/skills/
 
-# 验证符号链接指向正确目标
+# Verify symlinks point to correct targets
 ls -la .claude/skills/
 
-# 验证配置存在
+# Verify config exists
 cat .agents/oma-config.yaml
 
-# 验证内存目录
-ls .serena/memories/ 2>/dev/null || echo "Memory not initialized"
+# Verify memory directory
+ls .agents/state/memories/ 2>/dev/null || echo "Memory not initialized"
 
-# 检查版本
+# Check version
 cat .agents/skills/_version.json 2>/dev/null
 ```
+
+手动验证命令：
 
 ---
 
@@ -257,48 +254,50 @@ oh-my-agent 使用唯一事实来源（SSOT）架构。`.agents/` 目录是技�
 
 ```
 your-project/
-  .agents/                          # SSOT —— 真实文件在这里
-    agents/                         # 智能体定义文件
+  .agents/                          # SSOT — the real files live here
+    agents/                         # Agent definition files
       backend-engineer.md
       frontend-engineer.md
       qa-reviewer.md
       ...
-    config/                         # 配置
-      oma-config.yaml
-    mcp.json                        # MCP 服务器配置
-    results/plan-{sessionId}.json                       # 当前计划（由 /plan 生成）
-    skills/                         # 已安装技能
-      _shared/                      # 所有技能共享的资源
-        core/                       # 核心协议和参考
-        runtime/                    # 运行时执行协议
-        conditional/                # 条件加载的资源
-      oma-frontend/                 # Frontend 技能
-      oma-backend/                  # Backend 技能
-      oma-qa/                       # QA 技能
+    config/                         # Shipped auxiliary config files
       ...
-    workflows/                      # 工作流定义
+    oma-config.yaml                 # User-owned project configuration
+    mcp.json                        # MCP server configuration
+    results/plan-{sessionId}.json    # Current plan (generated by /plan)
+    skills/                         # Installed skills
+      _shared/                      # Shared resources across all skills
+        core/                       # Core protocols and references
+        runtime/                    # Runtime execution protocols
+        conditional/                # Conditionally-loaded resources
+      oma-frontend/                 # Frontend skill
+      oma-backend/                  # Backend skill
+      oma-qa/                       # QA skill
+      ...
+    workflows/                      # Workflow definitions
       orchestrate.md
       work.md
       ultrawork.md
       plan.md
       ...
-    results/                        # 智能体执行结果
-  .claude/                          # Claude Code —— 仅符号链接
-    skills/                         # -> .agents/skills/* 和 .agents/workflows/*
+    state/                          # Runtime coordination state
+      memories/                     # Coordination artifacts (progress-*, result-*, task-board, session-cost-*)
+    results/                        # Agent execution results
+  .claude/                          # Claude Code — symlinks only
+    skills/                         # -> .agents/skills/* and .agents/workflows/*
     agents/                         # -> .agents/agents/*
-  .github/                          # GitHub Copilot —— 仅符号链接（可选）
+  .github/                          # GitHub Copilot — symlinks only (optional)
     skills/                         # -> .agents/skills/*
-  .serena/                          # MCP 内存存储
-    memories/                       # 运行时内存文件
-    metrics.json                    # 生产力指标
+  .zcode/                           # ZCode — workflow commands only (optional)
+    commands/                       # -> .agents/workflows/*
+  .serena/                          # Serena MCP storage (separate from OMA state)
+    memories/                       # Serena's own onboarding memories
+    metrics.json                    # Productivity metrics
 ```
 
 ### 为什么使用符号链接？
 
-- **一次更新，所有 IDE 受益。** 当 `oma update` 刷新 `.agents/` 时，每个 IDE 自动获取变更。
-- **无重复。** 技能存储一次，不按 IDE 复制。
-- **安全移除。** 删除 `.claude/` 不会销毁你的技能。`.agents/` 中的 SSOT 保持完整。
-- **Git 友好。** 符号链接很小，diff 清晰。
+`oma update` 刷新 `.agents/` 后，所有指向它的 IDE 都会获取更新。技能只保存一份，不需要按 IDE 复制。删除 `.claude/` 不会删除技能，SSOT 仍保留在 `.agents/` 中。符号链接体积小，在 Git 中也容易审查差异。
 
 ---
 
@@ -312,30 +311,28 @@ your-project/
 ### 安装后
 
 1. **审查创建的内容。** 运行 `git status` 查看所有新文件。安装器只在 `.agents/`、`.claude/` 和可选的 `.github/` 中创建文件。
-2. **选择性添加到 `.gitignore`。** 大多数团队提交 `.agents/` 和 `.claude/` 以共享设置。但 `.serena/`（运行时内存）和 `.agents/results/`（执行结果）应被 gitignore：
+2. **选择性添加到 `.gitignore`。** 大多数团队提交 `.agents/` 和 `.claude/` 以共享设置。安装或更新会自动把运行时条目追加到根目录 `.gitignore`（`.antigravitycli/`、`.agents/results/`、`.agents/state/`、`.agents/backup/`、`docs/plans/`），请确认这些条目已写入。多数团队会提交 `.agents/` 和 `.claude/` 来共享设置。`.serena/` 由 Serena 通过内部 `.serena/.gitignore` 管理，你可以提交共享项目配置 `.serena/project.yml`，也可以完全忽略该目录：
 
 ```gitignore
-# oh-my-agent 运行时文件
+# optional — ignore Serena entirely (runtime memory)
 .serena/
-.agents/results/
-.agents/state/
 ```
 
 ### 回滚
 
-完全从项目中移除 oh-my-agent：
-
 ```bash
-# 移除 SSOT 目录
+# Remove the SSOT directory
 rm -rf .agents/
 
-# 移除 IDE 符号链接
+# Remove IDE symlinks
 rm -rf .claude/skills/ .claude/agents/
-rm -rf .github/skills/  # 如果创建了
+rm -rf .github/skills/  # if created
 
-# 移除运行时文件
+# Remove runtime files
 rm -rf .serena/
 ```
+
+完全从项目中移除 oh-my-agent：
 
 或简单地用 git 还原：
 
@@ -353,10 +350,10 @@ git clean -fd .agents/ .claude/ .serena/
 快速设置：
 
 ```bash
-# 终端仪表盘（监视 .serena/memories/ 的变化）
+# Terminal dashboard (watches .agents/state/memories/ for changes)
 oma dashboard terminal
 
-# Web 仪表盘（基于浏览器，http://localhost:9847）
+# Web dashboard (browser-based; OMA prints a tokenized loopback URL)
 oma dashboard web
 ```
 
@@ -392,7 +389,7 @@ oma dashboard web
 
 ### 6. 配置安装
 
-`installConfigs()` 将默认配置文件复制到 `.agents/config/`，包括 `oma-config.yaml` 和 `mcp.json`。如果这些文件已存在，除非使用 `--force`，否则保留（不覆盖）。
+`installConfigs()` 会将辅助文件复制到 `.agents/config/`，创建 `.agents/mcp.json`，并引导用户拥有的 `.agents/oma-config.yaml` 或 `.agents/oma-config.cue`。除非使用 `--force`，否则保留现有用户文件；`oma update` 也会保留用户配置，并在需要时追加新的顶层模板键。
 
 ### 7. 技能安装
 
@@ -400,12 +397,13 @@ oma dashboard web
 
 ### 8. 供应商适配
 
-`installVendorAdaptations()` 为所有支持的供应商（Antigravity、Claude、Codex、Qwen）安装 IDE 特定文件：
+`installVendorAdaptations()` 会为所选且受支持的供应商安装 IDE 特定文件：
 
-- 智能体定义（`.claude/agents/*.md`）
-- 钩子配置（`.claude/hooks/`）
-- 设置文件
-- CLAUDE.md 项目指令
+- 智能体定义（`.claude/agents/*.md`、`.codex/agents/*.toml`、`.gemini/agents/*.md`）
+- 钩子配置（`.claude/hooks/`、`.codex/hooks.json`）
+- 设置文件和供应商集成文档（`CLAUDE.md`、`AGENTS.md`、`GEMINI.md`）
+
+Codex 会将钩子置于一次性信任步骤之后，因此 `.codex/hooks.json` 在你通过 Codex `/hooks` 浏览器完成一次审查前不会运行。详情请参见 [Codex Hook Trust](/docs/guide/codex-hook-trust)。
 
 ### 9. CLI 符号链接
 
@@ -413,7 +411,7 @@ oma dashboard web
 
 - `.claude/skills/{skill}` -> `../../.agents/skills/{skill}`
 - `.claude/skills/{workflow}.md` -> `../../.agents/workflows/{workflow}.md`
-- `.claude/agents/{agent}.md` -> `../../.agents/agents/{agent}.md`
+供应商原生智能体文件由 `.agents/agents/` 经 `oma link`、`oma install` 或 `oma update` 生成，不会直接创建符号链接。
 - `.github/skills/{skill}` -> `../../.agents/skills/{skill}`（如果启用了 Copilot）
 
 ### 10. 全局工作流
@@ -422,4 +420,4 @@ oma dashboard web
 
 ### 11. Git Rerere + MCP 配置
 
-如上文 CLI 路径所述，安装器可选配置 git rerere 和 MCP 设置。
+如上文 CLI 路径所述，安装或更新会根据交互式同意可选配置**全局** git 设置（`rerere.enabled`、`init.defaultBranch`），并在适用时配置 MCP 设置。

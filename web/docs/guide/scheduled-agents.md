@@ -1,11 +1,12 @@
 ---
 title: "Guide: Scheduled Agents"
-description: Run any agent on a recurring or one-shot schedule using the OS scheduler (macOS launchd, Linux systemd, Windows Task Scheduler). Works across all seven supported AI vendors without requiring a vendor runtime to stay open.
+sidebar_label: Scheduled Agents
+description: Run any agent on a recurring or one-shot schedule using the OS scheduler (macOS launchd, Linux systemd, Windows Task Scheduler) without requiring a vendor runtime to stay open.
 ---
 
 # Scheduled Agents
 
-`oma schedule` lets you run any agent on a time-based schedule, independent of which AI vendor runtime (Claude Code, Codex, Antigravity, Cursor, Qwen, Grok, opencode) is currently open. The OS scheduler fires the job, and the job calls `oma agent spawn` headlessly using the vendor credentials already cached on disk.
+`oma schedule` lets you run any agent on a time-based schedule, independent of which AI vendor runtime (Claude Code, Codex, Antigravity, Cursor, Qwen, Grok, opencode, or pi) is currently open. The OS scheduler fires the job, and the job calls `oma agent spawn` headlessly using the vendor credentials already cached on disk.
 
 ---
 
@@ -79,7 +80,7 @@ oma schedule delete sch_abc123def456
 Register a scheduled agent job.
 
 ```
-oma schedule create <agent-id> <prompt> --cron "<5-field>" | --every "<phrase>" [-m <vendor>] [-w <path>] [--once] [--expires-after <n>] [--env <KEY1,KEY2>]
+oma schedule create <agent-id> <prompt> --cron "<5-field>" | --every "<phrase>" [--vendor <vendor>] [-w <path>] [--once] [--expires-after <n>] [--env <KEY1,KEY2>] [--dry-run] [--accept-rounded]
 ```
 
 **Arguments:**
@@ -100,6 +101,8 @@ oma schedule create <agent-id> <prompt> --cron "<5-field>" | --every "<phrase>" 
 | `--once` | One-shot mode: the job fires once and self-removes. Default is recurring. |
 | `--expires-after <duration>` | Auto-expire a recurring job after a duration such as 30d. `0` means indefinite (default). |
 | `--env <KEY1,KEY2>` | Capture the named environment variables (only those listed) into `~/.agents/schedule/env/<id>` (permissions 0600) for injection at run time. Secrets are never written to the manifest itself. |
+| `--dry-run` | Print the resolved cron and any rounding note without writing a scheduler job, manifest entry, or environment file. |
+| `--accept-rounded` | Required to register a natural-language interval after OMA rounds it to a cron-expressible step. Preview it first with `--dry-run`. |
 
 Exactly one of `--cron` or `--every` is required.
 
@@ -115,6 +118,17 @@ Exactly one of `--cron` or `--every` is required.
 | Seconds | `30s` | Ceiled to 1-minute minimum; cron cannot express sub-minute intervals |
 
 Non-divisible intervals are rounded to the nearest clean step and a note is printed. For example, `--every 7m` rounds to `6m` (`*/6`) because 7 does not divide 60.
+
+Preview a rounded interval before registering it:
+
+```bash
+oma schedule create backend "Check logs" --every 7m --dry-run
+# Preview: requested interval resolves to */6 * * * *
+# Preview only: no OS job, manifest entry, or env file was written.
+oma schedule create backend "Check logs" --every 7m --accept-rounded
+```
+
+If the preview is omitted, the command refuses to register a rounded interval. Schedules use the local time rules of the selected OS scheduler.
 
 **Examples:**
 

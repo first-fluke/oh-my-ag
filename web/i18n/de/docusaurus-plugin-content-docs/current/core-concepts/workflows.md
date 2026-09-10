@@ -1,13 +1,13 @@
 ---
 title: Workflows
-description: Vollständige Referenz aller 16 oh-my-agent-Workflows — Slash-Befehle, persistenter vs. nicht-persistenter Modus, Trigger-Keywords in 11 Sprachen, Phasen und Schritte, gelesene und geschriebene Dateien, Auto-Erkennung-Mechanik und Zustandsverwaltung des persistenten Modus.
+description: Vollständige Referenz aller 21 oh-my-agent-Workflows mit Slash-Befehlen, persistenten und nicht-persistenten Modi, Trigger-Keywords in 11 Sprachen, Phasen und Schritten, gelesenen und geschriebenen Dateien, Auto-Erkennung über triggers.json und keyword-detector.ts, Filterung informationeller Muster und Zustandsverwaltung.
 ---
 
 # Workflows
 
 Workflows sind strukturierte mehrstufige Prozesse, die durch Slash-Befehle oder natürlichsprachliche Keywords ausgelöst werden. Sie definieren, wie Agenten bei Aufgaben zusammenarbeiten — von einphasigen Hilfsprogrammen bis hin zu komplexen 5-Phasen-Qualitäts-Gates.
 
-Es gibt 16 Workflows, von denen 4 persistent sind (sie halten den Zustand und können nicht versehentlich unterbrochen werden).
+Es gibt 21 Workflows, davon sind 4 persistent (sie halten den Zustand und können nicht versehentlich unterbrochen werden).
 
 ---
 
@@ -39,7 +39,7 @@ Persistente Workflows laufen weiter, bis alle Aufgaben erledigt sind. Sie halten
 
 ### /orchestrate
 
-**Beschreibung:** Automatisierte CLI-basierte parallele Agentenausführung. Startet Subagenten über die CLI, koordiniert über MCP-Memory, überwacht den Fortschritt und führt Verifikationsschleifen durch.
+**Beschreibung:** Automatisierte parallele Agentenausführung über die CLI. Startet Subagenten über die CLI, koordiniert mit dauerhaftem Laufzeitstatus und Ausführungsbelegen (Receipts), überwacht den Fortschritt und führt Verifikationsschleifen aus.
 
 **Persistent:** Ja. Zustandsdatei: `.agents/state/orchestrate-state.json`.
 
@@ -62,24 +62,24 @@ Persistente Workflows laufen weiter, bis alle Aufgaben erledigt sind. Sie halten
 **Trigger-Regex-Muster** (Absicht + Substantiv-Whitelist, siehe [Auto-Erkennung: Pattern-Feld](#pattern-field-raw-regex)):
 | Abschnitt | Muster | Beispiele, die auslösen |
 |-----------|--------|------------------------|
-| `*` (universal) | `(build\|create\|make\|develop\|implement\|scaffold) + (a\|an\|the) + [modifier]{0,3} + <noun>` | "Build a TODO app with user authentication", "Create an awesome web service", "Develop a backend with PostgreSQL" |
+| `*` (universal) | `(build\|create\|make\|develop\|implement\|scaffold) + (a\|an\|the) + [modifier]{0,3} + <noun>` | "Baue eine TODO-App mit Benutzerauthentifizierung", "Erstelle einen guten Webservice", "Entwickle ein Backend mit PostgreSQL" |
 | `*` (universal) | `i want a/an + <noun>` | "I want a CLI for parsing logs" |
 | `ko` | `<noun> + (을\|를\|이\|가)? + (만들어\|구현해\|개발해 + 변형)` | "TODO 앱 만들어줘", "REST API 구현해", "백엔드를 개발해주세요" |
 
 Substantiv-Whitelist (15): app, api, service, server, cli, tool, website, dashboard, system, feature, backend, frontend, prototype, mvp, bot.
 
 **Schritte:**
-1. **Schritt 0 — Vorbereitung:** Koordinations-Skill, Context-Loading-Leitfaden, Memory-Protokoll lesen. Vendor erkennen.
-2. **Schritt 1 — Plan laden/erstellen:** Zuerst `.agents/results/plan-{sessionId}.json`, dann die neueste Datei `plan-*.json` prüfen. Fehlt ein Plan oder fehlen bei einer Aufgabe Agent, Prioritätsstufe, Abhängigkeiten oder Akzeptanzkriterien, wird über `/plan` mit derselben Sitzungs-ID ein Plan erstellt. Den Plan vorstellen und die bestehende Autorisierung nutzen; vor der Delegation nur wesentliche fehlende Entscheidungen oder eine neue Autorisierung erfragen.
-3. **Schritt 2 — Sitzung initialisieren:** `oma-config.yaml` laden, CLI-Zuordnungstabelle anzeigen, die Sitzungs-ID aus der Planerstellung wiederverwenden oder eine neue generieren (`session-YYYYMMDD-HHMMSS`), `orchestrator-session.md` und `task-board.md` im Memory erstellen.
-4. **Schritt 3 — Agenten starten:** Für jede Prioritätsstufe (P0 zuerst, dann P1...) Agenten mit der vendor-geeigneten Methode starten (Agent-Tool für Claude Code, `oma agent spawn` für Gemini/Antigravity, modellvermittelt für Codex). MAX_PARALLEL niemals überschreiten.
-5. **Schritt 4 — Überwachen:** `progress-{agent}.md`-Dateien abfragen, `task-board.md` aktualisieren. Auf Abschlüsse, Fehler und Abstürze achten.
-6. **Schritt 5 — Verifizieren:** `verify.sh {agent-type} {workspace}` pro abgeschlossenem Agenten ausführen. Bei Fehlschlag mit Fehlerkontext erneut starten (max. 2 Wiederholungen). Nach 2 Wiederholungen Explorationsschleife aktivieren: 2-3 Hypothesen generieren, parallele Experimente starten, bewerten, bestes beibehalten.
-7. **Schritt 6 — Zusammentragen:** Alle `result-{agent}.md`-Dateien lesen, Zusammenfassung zusammenstellen.
-8. **Schritt 7 — Abschlussbericht:** Sitzungszusammenfassung präsentieren. Falls die Qualitätsbewertung gemessen wurde, Experimentprotokoll-Zusammenfassung einbeziehen und automatisch Erkenntnisse generieren.
+1. **Schritt 0 — Vorbereitung:** Koordinations-Skill, Context-Loading-Leitfaden und Memory-Protokoll lesen. Vendor erkennen.
+2. **Schritt 1 — Plan laden/erstellen:** `.agents/results/plan-{sessionId}.json`, danach den neuesten `plan-*.json` prüfen. Fehlt ein Plan oder ist er nicht ausführungsbereit (Aufgabe ohne Agent, Prioritätsstufe, Abhängigkeiten oder Akzeptanzkriterien), `/plan` inline mit derselben Sitzungs-ID aufrufen. Den Plan vorstellen und die bestehende Autorisierung nutzen; vor der Delegation nur wesentliche fehlende Entscheidungen oder eine neue Autorisierung erfragen.
+3. **Schritt 2 — Sitzung initialisieren:** `oma-config.yaml` laden, CLI-Zuordnung anzeigen, die Sitzungs-ID aus der Planerstellung wiederverwenden oder eine neue erzeugen (`session-YYYYMMDD-HHMMSS`) und `orchestrator-session-{sessionId}.md` sowie `task-board-{sessionId}.md` im konfigurierten Memory-Speicher anlegen.
+4. **Schritt 3 — Agenten starten:** Für jede Prioritätsstufe (zuerst P0, dann P1 ...) Agenten mit der passenden Vendor-Methode starten (native Subagenten bei passendem Runtime-/Vendor-Paar, `oma agent spawn` für externe oder Cross-Vendor-Arbeit). MAX_PARALLEL nie überschreiten.
+5. **Schritt 4 — Überwachen:** Run-bezogene `progress-{agentId}-{taskId}-{runId}-{sessionId}.md`-Dateien und strukturierte Ausführungsbelege (Receipts) abfragen, dann das Task Board aktualisieren. Abschlüsse, Fehler und Abstürze beobachten.
+6. **Schritt 5 — Verifizieren:** Pro abgeschlossenem Agenten `verify.sh {agent-type} {workspace}` ausführen. Bei Fehlschlag mit Fehlerkontext erneut starten (maximal 2 Wiederholungen). Danach die Explorationsschleife aktivieren: 2–3 Hypothesen erzeugen, parallele Experimente starten, bewerten und die beste Lösung behalten.
+7. **Schritt 6 — Zusammentragen:** Run-bezogene Ergebnisdateien und strukturierte Ergebnisdeklarationen (Claims) lesen und die Zusammenfassung erstellen.
+8. **Schritt 7 — Abschlussbericht:** Sitzungszusammenfassung präsentieren. Wenn ein Quality Score gemessen wurde, Experiment-Ledger zusammenfassen und Lessons automatisch erzeugen.
 
-**Gelesene Dateien:** `.agents/results/plan-{sessionId}.json`, `.agents/oma-config.yaml`, `progress-{agent}.md`, `result-{agent}.md`.
-**Geschriebene Dateien:** `orchestrator-session.md`, `task-board.md` (Memory), Abschlussbericht.
+**Gelesene Dateien:** `.agents/results/plan-{sessionId}.json`, `.agents/oma-config.yaml`, run-bezogene Fortschritts-/Ergebnisdateien und strukturierte Ausführungsbelege (Run-Receipts).
+**Geschriebene Dateien:** Run-bezogener Sitzungs- und Task-Board-Status im konfigurierten Memory-Speicher, strukturierte Ausführungsbelege (Receipts) und Ergebnisdeklarationen (Claims) sowie der Abschlussbericht.
 
 **Einsatzbereich:** Große Projekte, die maximale Parallelität mit automatisierter Koordination erfordern.
 
@@ -119,7 +119,7 @@ Substantiv-Whitelist (15): app, api, service, server, cli, tool, website, dashbo
 
 ### /ultrawork
 
-**Beschreibung:** Der qualitätsfokussierte Workflow. 5 Phasen, 17 Schritte insgesamt, davon 11 Review-Schritte. Jede Phase hat ein Gate, das bestanden werden muss, bevor es weitergeht.
+**Beschreibung:** Der qualitätsfokussierte Workflow. Er umfasst 5 Phasen, insgesamt 17 Schritte und 12 isolierte Review-Schritte. Jede Phase hat ein Gate, das vor dem Fortfahren bestanden werden muss.
 
 **Persistent:** Ja. Zustandsdatei: `.agents/state/ultrawork-state.json`.
 
@@ -135,7 +135,7 @@ Substantiv-Whitelist (15): app, api, service, server, cli, tool, website, dashbo
 | **PLAN** | 1-4 | PM-Agent (inline) | Vollständigkeit, Meta-Review, Überarbeitung/Einfachheit |
 | **IMPL** | 5 | Dev-Agenten (gestartet) | Implementierung |
 | **VERIFY** | 6-8 | QA-Agent (gestartet) | Übereinstimmung, Sicherheit (OWASP), Regressionsprävention |
-| **REFINE** | 9-13 | Debug-Agent (gestartet) | Dateiaufteilung, Wiederverwendbarkeit, Kaskadenauswirkung, Konsistenz, Toter Code |
+| **REFINE** | 9-13 | Refactor-Agent (gestartet) | Dateiaufteilung, Wiederverwendbarkeit, Kaskadenauswirkung, Konsistenz, toter Code |
 | **SHIP** | 14-17 | QA-Agent (gestartet) | Code-Qualität (Lint/Abdeckung), UX-Flow, Verwandte Probleme, Deployment-Bereitschaft |
 
 **Gate-Definitionen:**
@@ -153,7 +153,7 @@ Substantiv-Whitelist (15): app, api, service, server, cli, tool, website, dashbo
 
 **REFINE-Überspringbedingung:** Einfache Aufgaben unter 50 Zeilen.
 
-**Einsatzbereich:** Maximale Lieferqualität. Wenn Code produktionsreif mit umfassendem Review sein muss.
+**Einsatzbereich:** Ein umfassender Review-Prozess, bevor entschieden wird, ob das Ergebnis auslieferungsbereit ist. Der Workflow hält Prüfungen und Befunde fest; er entscheidet nicht selbst über Produktionsreife.
 
 ---
 
@@ -206,27 +206,11 @@ Substantiv-Whitelist (15): app, api, service, server, cli, tool, website, dashbo
 | Japanisch | "計画", "要件分析", "タスク分解" |
 | Chinesisch | "计划", "需求分析", "任务分解" |
 
-**Schritte:** Anforderungen erfassen -> Technische Machbarkeit analysieren (MCP-Code-Analyse) -> API-Verträge definieren -> In Aufgaben zerlegen -> Mit Benutzer prüfen -> Plan speichern.
+**Schritte:** Anforderungen erfassen -> technische Machbarkeit analysieren (MCP-Code-Analyse) -> Komplexität einstufen (Simple/Medium/Complex) -> API-Verträge definieren (bei Cross-Boundary-Arbeit) -> in Aufgaben zerlegen -> mit dem Benutzer prüfen -> Plan-Artefakte speichern (maschinenlesbares JSON und für Medium/Complex ein menschenlesbares Markdown-Task-Board).
 
-**Ausgabe:** `.agents/results/plan-{sessionId}.json`, Memory-Eintrag, optional `docs/exec-plans/active/` für komplexe Pläne.
+**Ausgabe:** `.agents/results/plan-{sessionId}.json`, Memory-Eintrag und bei Medium/Complex `docs/plans/work/{NNN}-{name}.md` mit Aufgabentabelle, Entscheidungsprotokoll und Fortschrittsnotizen. Der Lebenszyklus wird über das Feld `Status` im Markdown-Kopf (`Active` -> `Completed`) verfolgt; Pläne wechseln nicht zwischen Verzeichnissen. Über `/brainstorm` erstellte Designs liegen in `docs/plans/designs/{NNN}-{name}.md`.
 
-**Ausführung:** Inline (kein Subagenten-Spawning). Wird von `/orchestrate` oder `/work` konsumiert.
-
----
-
-### /exec-plan
-
-**Beschreibung:** Erstellt, verwaltet und verfolgt Ausführungspläne als erstklassige Repository-Artefakte in `docs/exec-plans/`.
-
-**Trigger-Keywords:** Keine (von der Auto-Erkennung ausgeschlossen, muss explizit aufgerufen werden).
-
-**Schritte:** Vorbereitung -> Umfang analysieren (Komplexität bewerten: Einfach/Mittel/Komplex) -> Ausführungsplan erstellen (Markdown in `docs/exec-plans/active/`) -> API-Verträge definieren (bei domänenübergreifenden Schnittstellen) -> Mit Benutzer prüfen -> Ausführen (an `/orchestrate` oder `/work` übergeben) -> Abschließen (nach `completed/` verschieben).
-
-**Ausgabe:** `docs/exec-plans/active/{plan-name}.md` mit Aufgabentabelle, Entscheidungsprotokoll, Fortschrittsnotizen.
-
-**Einsatzbereich:** Nach `/plan` für komplexe Features, die eine nachverfolgte Ausführung mit Entscheidungsprotokollierung benötigen.
-
----
+**Ausführung:** Inline (kein Subagenten-Spawning). Wird von `/orchestrate` oder `/work` verwendet; beide aktualisieren Aufgaben- und Statusfelder während der Ausführung.
 
 ### /brainstorm
 
@@ -316,6 +300,9 @@ Substantiv-Whitelist (15): app, api, service, server, cli, tool, website, dashbo
 |----------|----------|
 | Universal | "/deepsec", "deepsec workflow" |
 | Englisch | "run deepsec", "deepsec scan this repo", "scan repo with deepsec", "deepsec pr review", "deepsec ci gate", "deepsec triage", "deepsec matchers" |
+| Koreanisch | "딥섹 워크플로우", "딥섹 실행", "딥섹 스캔", "딥섹으로 검사", "딥섹 PR 리뷰", "딥섹 CI 게이트" |
+| Japanisch | "ディープセック実行", "deepsecワークフロー", "deepsecでスキャン", "deepsec PRレビュー" |
+| Chinesisch | "运行 deepsec", "deepsec 工作流", "用 deepsec 扫描", "deepsec PR 审查" |
 
 **Schritte:**
 1. **Schritt 1, Skill laden:** Lies `.agents/skills/oma-deepsec/SKILL.md` und lade nur die zur aufgelösten Intent passenden Ressourcendateien (`setup.md`, `scanning.md`, `pr-review.md`, `matchers.md`, `triage.md`, `config.md`). Existiert `.deepsec/` bereits im Repo-Root, wird der Lauf inkrementell behandelt; niemals erneut `init`.
@@ -386,7 +373,7 @@ Substantiv-Whitelist (15): app, api, service, server, cli, tool, website, dashbo
 
 **Schritte:** Änderungen analysieren (git status, git diff) -> Features trennen (wenn > 5 Dateien über verschiedene Scopes/Typen) -> Typ bestimmen (feat/fix/refactor/docs/test/chore/style/perf) -> Scope bestimmen (geändertes Modul) -> Beschreibung schreiben (Imperativ, < 72 Zeichen) -> Commit sofort ausführen (keine Bestätigungsaufforderung).
 
-**Regeln:** Niemals `git add -A`. Niemals Secrets committen. HEREDOC für mehrzeilige Nachrichten. Co-Author: `First Fluke <our.first.fluke@gmail.com>`.
+**Regeln:** Niemals `git add -A`. Niemals Secrets committen. HEREDOC für mehrzeilige Nachrichten. Einen Co-Author-Trailer nur hinzufügen, wenn die Konfiguration `scm.co_author` aktiviert ist und beide Werte liefert.
 
 ---
 
@@ -420,15 +407,99 @@ Substantiv-Whitelist (15): app, api, service, server, cli, tool, website, dashbo
 
 ---
 
+### /docs
+
+**Beschreibung:** Dokumentations-Drift mit `oma-docs` erkennen und synchronisieren. Der Verify-Modus findet defekte Referenzen in allen Markdown-Dateien des Repos (Standard-Glob `**/*.md`); der Sync-Modus schlägt pro Dokument Patches für Docs vor, die von einem Git-Diff betroffen sind. Der Workflow läuft inline (kein Subagent-Spawning); alle Vendors rufen direkt `oma docs` auf.
+
+**Trigger-Keywords:** Universal: "oma-docs", "docs verify", "docs sync". Englisch: "verify docs", "check docs", "docs drift", "broken doc links", "stale docs", "sync docs", "patch docs". Koreanisch: "문서 검증", "문서 드리프트", "문서 동기화". Japanisch: "ドキュメント検証", "ドキュメント同期". Chinesisch: "文档校验", "文档同步".
+
+**Schritte:** Modus erkennen (`verify` standardmäßig; `sync`, wenn der Prompt Sync erwähnt oder einen Git-Diff-Bereich angibt) -> Vorprüfung (`command -v oma`; bei Sync einen verwendbaren Diff bestätigen, sonst auf `HEAD~1..HEAD` zurückfallen) -> Verify: `oma docs verify --json` (Exit `0` sauber, `1` defekte Referenzen) oder Sync: `oma docs sync --json` über den Bereich -> Befunde nach dem Host-LLM-Vertrag synthetisieren (Verify: nach CRITICAL/HIGH/MEDIUM/LOW gruppieren und konkrete Korrekturen nennen; Sync: minimale Unified-Diff-Patches entwerfen) -> jeden Sync-Patch interaktiv anzeigen (`[y] apply [n] skip [d] show diff [s] show full proposal`; nie automatisch anwenden) -> nach dem Anwenden den Index mit `oma docs verify --json` neu erzeugen -> Modus, Zählungen nach Art sowie Verweise auf `docs/generated/doc-refs.json` und `url-drift.json` melden.
+
+**Regeln:** Sync-Patches nie automatisch anwenden (pro Dokument ist `[y]` erforderlich). `.agents/` (SSOT) nie ändern. Fehlt `oma docs`, einen Installationshinweis ausgeben und beenden — nicht auf manuelle Greps ausweichen.
+
+**Gelesene Dateien:** Zieldokumentation (`**/*.md` oder angeforderter Glob), bei Sync `git diff` für `changedFiles`.
+**Geschriebene Dateien:** `docs/generated/doc-refs.json` (bei Verify immer neu erzeugt), `docs/generated/url-drift.json` (bei URL-Prüfung), freigegebene Dokument-Patches (bei Sync `[y]`).
+
+**Einsatzbereich:** Prüfen, ob die Dokumentation noch zur Codebasis passt (Dateipfade, CLI-Befehle, Konfigurationsschlüssel, Umgebungsvariablen), oder Patches nach Codeänderungen vorschlagen.
+
+---
+
+### /recap
+
+**Beschreibung:** Tages- oder Zeitraum-Zusammenfassung über `oma-recap`. Löst Datum oder Zeitfenster aus natürlicher Sprache auf, ruft mit `oma recap --json` mehrere KI-Tool-Historien ab (Grok, Claude, Codex, Qwen, Cursor, Antigravity), übergibt Themenanalyse und Markdown-Formatierung an den Skill und meldet TL;DR sowie Speicherpfad. Der Workflow läuft inline (kein Subagent-Spawning); alle Vendors rufen direkt `oma recap` auf.
+
+**Trigger-Keywords:** Universal: "recap". Koreanisch: "리캡". Japanisch: "リキャップ".
+
+**Schritte:** Modus erkennen und Fenster auflösen (`daily` standardmäßig mit heute; `period`, wenn Ausdrücke wie "this week" / "지난 7일" zu `--window Nd` führen) -> einen `--tool`-Filter nur bei ausdrücklich genannten Tools extrahieren (`grok, claude, codex, qwen, cursor, antigravity`) -> Vorprüfung (`command -v oma`) -> `oma recap --json` ausführen (daily: `--date YYYY-MM-DD` oder ohne Datum; period: `--window 7d` / `30d`) -> nach dem Skill-Vertrag synthetisieren und speichern (15-Minuten-Themenschwelle, Vorlage für Tag oder mehrere Tage) -> ein TL;DR mit 3 Punkten und den Speicherpfad melden.
+
+**Regeln:** `.agents/` (SSOT) nie ändern. Technische Begriffe (Projekt- und Toolnamen, CLI-Flags) in der gespeicherten Zusammenfassung nie automatisch übersetzen. Ohne Quellen keine Zusammenfassung erfinden.
+
+**Gelesene Dateien:** KI-Tool-Konversationshistorien (über `oma recap`).
+**Geschriebene Dateien:** `.agents/results/recap/{date}.md` oder `.agents/results/recap/{start}~{end}.md`.
+
+**Einsatzbereich:** Arbeit über KI-Tools hinweg für einen Tag oder Zeitraum (Woche/Monat) zusammenfassen, optional auf bestimmte Tools begrenzen.
+
+---
+
 ### /stack-set
 
-**Beschreibung:** Projekt-Tech-Stack automatisch erkennen und sprachspezifische Referenzen für den Backend-Skill generieren.
+**Beschreibung:** Den Tech-Stack des Projekts automatisch erkennen und sprachspezifische Referenzen für den aufgelösten Domänen-Skill (Backend oder Mobile) generieren. Mobile-Stacks (Swift/iOS über `Package.swift`/`.xcodeproj`, Flutter über `pubspec.yaml`, React Native über `package.json` + react-native) werden an `oma-mobile` geroutet; sonst an `oma-backend`. Sind in einem Monorepo beide vorhanden, wird gefragt, welcher konfiguriert werden soll.
 
 **Trigger-Keywords:** Keine (von der Auto-Erkennung ausgeschlossen).
 
-**Schritte:** Erkennen (Manifeste scannen: pyproject.toml, package.json, Cargo.toml, pom.xml, go.mod, mix.exs, Gemfile, *.csproj) -> Bestätigen (erkannten Stack anzeigen, Benutzerbestätigung einholen) -> Generieren (`stack/stack.yaml`, `stack/tech-stack.md`, `stack/snippets.md` mit 8 Pflichtmustern, `stack/api-template.*`) -> Verifizieren.
+<!-- oma-docs:ignore-start -->
+**Schritte:** Erkennen (Manifeste scannen: pyproject.toml, package.json, Cargo.toml, pom.xml, go.mod, mix.exs, Gemfile, *.csproj, Package.swift, *.xcodeproj, pubspec.yaml) -> Bestätigen (erkannten Stack anzeigen, Benutzerbestätigung einholen) -> Generieren (`stack/stack.yaml`, `stack/tech-stack.md`, `stack/snippets.md` mit 8 Pflichtmustern, `stack/api-template.*`) -> Verifizieren.
+<!-- oma-docs:ignore-end -->
 
-**Ausgabe:** Dateien in `.agents/skills/oma-backend/stack/`. Modifiziert weder SKILL.md noch `resources/`.
+**Ausgabe:** Dateien im `stack/`-Verzeichnis des aufgelösten Domänen-Skills (z. B. `.agents/skills/oma-backend/stack/` oder `.agents/skills/oma-mobile/stack/`). Modifiziert weder SKILL.md noch `resources/`.
+
+---
+
+### /video
+
+**Beschreibung:** Den `oma-video`-Skill durchgehend ausführen: Brief -> Skript -> Narration -> Visuals -> Untertitel -> Render-Spezifikation -> versionierter Remotion- (oder MoneyPrinterTurbo-)Compositor. Der Workflow erstellt ein reproduzierbares Laufverzeichnis und gibt erst dann eine echte `.mp4` aus, wenn Compositor- und `ffprobe`-Prüfungen bestehen. Für unterstützte Asset-Fallbacks ist die Provider-Konfiguration optional; ein Compositor- oder Toolchain-Fehler bleibt ein fehlgeschlagener Lauf. Der Workflow läuft inline (kein Subagent-Spawning).
+
+**Trigger-Keywords:**
+| Sprache | Keywords |
+|----------|----------|
+| Universal | "/video", "oma-video", "remotion", "shorts", "reels", "screencast" |
+| Englisch | "generate video", "create a video", "make a video", "short-form video", "explainer video", "demo video", "walkthrough video", "video from readme", "video from code" |
+| Koreanisch | "영상 만들어", "영상 생성", "비디오 만들어", "숏폼 만들어", "쇼츠 영상", "릴스 영상", "데모 영상", "설명 영상" |
+| Japanisch | "動画を生成", "動画を作成", "ショート動画", "解説動画", "デモ動画" |
+| Chinesisch | "生成视频", "制作视频", "短视频", "讲解视频", "演示视频" |
+
+**Schritte:**
+1. **Brief und Modus auflösen:** `shorts` (9:16), `explainer` (16:9) oder `demo` (Screen-/Web-Capture) wählen; Modus-Defaults anwenden, die Flags überschreiben können.
+2. **Skript zusammenstellen:** Szenen und Narration erzeugen (LLM bei vorhandenem Schlüssel, sonst deterministische Gliederung aus dem Brief).
+3. **Assets synthetisieren:** Narration über `oma-voice`, Visuals über `oma-image`/`oma-slide`/Stock, schlüsselfreie Untertitel-Zuordnung oder überwachten Browser-Capture für `demo --source web`. Jeder Provider fällt auf einen deterministischen Fallback zurück.
+4. **Render-Spezifikation erstellen:** `render-spec.json` (Determinismus-Grenze) sowie Assets in das Laufverzeichnis schreiben.
+5. **Rendern:** Das versionierte Remotion-Projekt (oder MoneyPrinterTurbo) als Subprozess starten. Ein normaler Compositor- oder Toolchain-Fehler lässt den Lauf fehlschlagen; der deterministische Platzhalter ist nur über den ausdrücklichen Mock-/Testpfad (`OMA_VIDEO_MOCK=1`) verfügbar. Live-Capture wird im Manifest als `nondeterministic` vermerkt.
+
+**Ausgabe:** Ein Laufverzeichnis unter `.agents/results/videos/{timestamp}-{shortid}-{mode}/` mit `script.json`, `render-spec.json`, `timing.json`, `captions.{srt,vtt}`, `audio/`, `visuals/`, `{composition}.mp4` und `manifest.json`. Siehe [Anleitung zur Videogenerierung](../guide/video-generation.md).
+
+---
+
+### /schedule
+
+**Beschreibung:** Zeitbasierte Agentenjobs über die Befehle `oma schedule <action>` registrieren und verwalten. Jobs liegen in einer globalen Registry (`~/.agents/schedule/`) und werden über den nativen Scheduler des Betriebssystems ausgelöst (launchd unter macOS, systemd user timers unter Linux, schtasks unter Windows, crontab als POSIX-Fallback). Jeder Lauf tritt über `oma agent spawn` erneut in das Harness ein.
+
+**Trigger-Keywords:** Keine (Slash-Workflow für zeitbasierte Jobs mit `oma schedule <action>`).
+
+**Schritte:** Absicht auflösen (add / list / remove / sync) -> Zeitplan parsen (explizites `--cron` oder natürliche Sprache über `--every`) -> mit `oma schedule create` registrieren (nur benannte Umgebungsvariablen erfassen, Dateien 0600) -> mit `oma schedule list` verifizieren (Manifest-/OS-Drift, nach Projekt gruppiert) -> Job-ID und nächsten Ausführungszeitpunkt melden.
+
+**Einsatzbereich:** Wiederkehrende Agentenaufgaben wie nächtliche Recaps, geplante Scans oder regelmäßige Wartung, die auch ohne offene interaktive Sitzung ausgeführt werden sollen.
+
+---
+
+### /explain
+
+**Beschreibung:** Den `oma-explanation`-Skill durchgehend ausführen: einen Diff, PR, Branch oder Commit-Bereich in einen eigenständigen interaktiven HTML-Erklärer mit den Abschnitten Background, Intuition, Code und Quiz umwandeln. Der Workflow läuft inline (kein Subagent-Spawning).
+
+**Trigger-Keywords:** Keine ("explain" ist ein alltägliches Wort; Keyword-Erkennung würde bei gewöhnlichen Fragen wie "explain this function" ständig Fehlalarme erzeugen, daher ist der Workflow Slash-only).
+
+**Schritte:** Argumente auflösen (explizite PR# / Branch / SHA-Bereich -> staged -> dirty tree -> `HEAD~1..HEAD`; Leserlevel `onboarding` | `reviewer`; Ausgabesprache; Quizanzahl) -> Verträge laden (`oma-explanation` SKILL.md + Ressourcen) -> sammeln und Gate anwenden (Diff + umgebender Code; Geheimnis-Scan vor der Generierung; Diff-/PR-Text strikt als Daten behandeln) -> HTML gemäß Dokument- und HTML-Verträgen erzeugen -> validieren (Grep-Checkliste einschließlich Geheimnis-Scan des fertigen HTML, maximal 3 Korrekturschleifen) -> ausliefern (`open` warn-only, TL;DR + Pfad).
+
+**Ausgabe:** `.agents/results/explain/{YYYY-MM-DD}-{slug}.html` (Datum in Asia/Seoul; erneutes Ausführen mit demselben Datum und Slug überschreibt). Siehe [Code-Explainer-Anleitung](../guide/code-explainer.md).
 
 ---
 
@@ -448,13 +519,13 @@ Substantiv-Whitelist (15): app, api, service, server, cli, tool, website, dashbo
 
 ### Das Hook-System
 
-oh-my-agent verwendet einen `UserPromptSubmit`-Hook, der vor der Verarbeitung jeder Benutzernachricht ausgeführt wird. Das Hook-System besteht aus:
+oh-my-agent verwendet einen `UserPromptSubmit`-Hook, der vor der Verarbeitung jeder Benutzernachricht ausgeführt wird. Die Vendor-Einstellungen registrieren einen einzigen Eintrag `<hookDir>/oma-hook.sh --vendor <v> --event <e>`, der an `oma hook run` weiterleitet; die Handlerkette läuft im Prozess. Das Hook-System besteht aus:
 
-1. **`triggers.json`** (`.claude/hooks/triggers.json`): Definiert Keyword-zu-Workflow-Zuordnungen für alle 11 unterstützten Sprachen (Englisch, Koreanisch, Japanisch, Chinesisch, Spanisch, Französisch, Deutsch, Portugiesisch, Russisch, Niederländisch, Polnisch).
+1. **`triggers.json`** (`.agents/hooks/core/triggers.json`, in das `oma`-Binary eingebettet): Definiert Keyword-zu-Workflow-Zuordnungen für alle 11 unterstützten Sprachen (Englisch, Koreanisch, Japanisch, Chinesisch, Spanisch, Französisch, Deutsch, Portugiesisch, Russisch, Niederländisch, Polnisch).
 
-2. **`keyword-detector.ts`** (`.claude/hooks/keyword-detector.ts`): TypeScript-Logik, die die Benutzereingabe gegen die Trigger-Keywords scannt, sprachspezifische Zuordnung berücksichtigt und den Workflow-Aktivierungskontext injiziert.
+2. **`keyword-detector.ts`** (`.agents/hooks/core/keyword-detector.ts`): TypeScript-Logik, die die Benutzereingabe gegen die Trigger-Keywords scannt, sprachspezifisches Matching berücksichtigt und den Workflow-Aktivierungskontext injiziert.
 
-3. **`persistent-mode.ts`** (`.claude/hooks/persistent-mode.ts`): Erzwingt die Ausführung persistenter Workflows, indem aktive Zustandsdateien geprüft und der Workflow-Kontext erneut injiziert werden.
+3. **`persistent-mode.ts`** (`.agents/hooks/core/persistent-mode.ts`): Erzwingt persistente Workflows, indem aktive Zustandsdateien geprüft und der Workflow-Kontext erneut injiziert wird.
 
 ### Erkennungsablauf
 
@@ -519,26 +590,27 @@ Wenn die Eingabe sowohl einem Workflow-Trigger als auch einem informationellen M
 
 ### Ausgeschlossene Workflows
 
-Die folgenden Workflows werden nicht per Keyword ausgelöst und müssen mit einem expliziten `/command` aufgerufen werden. `/convert` liefert schlicht keine Trigger-Keywords (die Skills `oma-pdf` und `oma-hwp` bringen ihre eigene Keyword-Erkennung mit):
-- `/scm`
+Die folgenden Workflows werden nicht per Keyword ausgelöst und müssen mit einem expliziten `/command` aufgerufen werden. `/tools` und `/stack-set` stehen in `excludedWorkflows` (sie wurden absichtlich aus der Keyword-Erkennung entfernt); `/convert` liefert schlicht keine Trigger-Keywords (die Skills `oma-pdf` und `oma-hwp` bringen ihre eigene Keyword-Erkennung mit). `/schedule` ist ein Slash-Workflow für zeitbasierte Jobs mit `oma schedule <action>`; `/explain` hat keine Trigger-Keywords, weil „explain“ alltäglich ist und die Erkennung sonst ständig Fehlalarme erzeugen würde:
 - `/tools`
 - `/stack-set`
-- `/exec-plan`
 - `/convert`
+- `/schedule`
+- `/explain`
 
 ---
 
-## Mechanik des persistenten Modus
+## Mechanik des persistenten Modus {#persistent-mode-mechanics}
 
 ### Zustandsdateien
 
-Persistente Workflows (orchestrate, ultrawork, work) erstellen Zustandsdateien in `.agents/state/`:
+Persistente Workflows (orchestrate, ultrawork, work, ralph) erstellen Zustandsdateien in `.agents/state/`:
 
 ```
 .agents/state/
 ├── orchestrate-state.json
 ├── ultrawork-state.json
-└── work-state.json
+├── work-state.json
+└── ralph-state.json
 ```
 
 Diese Dateien enthalten: Workflow-Name, aktuelle Phase/aktueller Schritt, Sitzungs-ID, Zeitstempel und etwaigen ausstehenden Zustand.
@@ -547,6 +619,15 @@ Diese Dateien enthalten: Workflow-Name, aktuelle Phase/aktueller Schritt, Sitzun
 
 Während ein persistenter Workflow aktiv ist, injiziert der `persistent-mode.ts`-Hook `[OMA PERSISTENT MODE: {workflow-name}]` in jede Benutzernachricht. Dies stellt sicher, dass der Workflow auch über Konversationszüge hinweg weiter ausgeführt wird.
 
+### Goal Contract (optionales Stop-Gate und Budget)
+
+`oma goal set` hängt an einen aktiven persistenten Workflow einen mechanischen Abschlussvertrag an:
+
+- `--gate typecheck|test|lint`: Der Stop-Hook lässt die Sitzung **nur dann** enden, wenn das entsprechende `package.json`-Skript besteht (als Argv-Array und ohne Shell; freie Befehle werden absichtlich abgelehnt). Bei einem Fehlschlag wird sie mit dem Ende der Ausgabe blockiert; Fehlschläge und Timeouts zählen zum Verstärkungslimit, damit ein rotes Gate nicht unbegrenzt blockieren kann.
+- `--budget-minutes <n>`: Zeitbudget ab Aktivierung. Nach Ablauf wird der Workflow deaktiviert und ein ehrlicher partieller Stopp zugelassen, der in der Ereignisspur der Sitzung vermerkt wird.
+
+Ohne Vertrag verhält sich der persistente Modus wie oben beschrieben; der Vertrag ist optional. Siehe `goal set` in der [CLI-Befehlsreferenz](../cli-interfaces/commands.md#goal-set).
+
 ### Deaktivierung
 
 Um einen persistenten Workflow zu deaktivieren, sagt der Benutzer "workflow done" (oder das Äquivalent in seiner konfigurierten Sprache). Dies bewirkt:
@@ -554,7 +635,7 @@ Um einen persistenten Workflow zu deaktivieren, sagt der Benutzer "workflow done
 2. Die Injektion des persistenten Modus-Kontexts wird gestoppt
 3. Rückkehr zum Normalbetrieb
 
-Der Workflow kann auch natürlich enden, wenn alle Schritte abgeschlossen sind und das abschließende Gate bestanden wird.
+Der Workflow kann auch natürlich enden, wenn alle Schritte abgeschlossen und das abschließende Gate bestanden ist. Ist ein `goal set`-Gate konfiguriert, deaktiviert ein bestandenes Gate den Workflow automatisch.
 
 ---
 
@@ -577,17 +658,17 @@ Describe the task → relevant skill → implement → focused verification
 
 ### Maximale Lieferqualität
 ```
-/ultrawork → PLAN (4 Review-Schritte) → IMPL → VERIFY (3 Review-Schritte) → REFINE (5 Review-Schritte) → SHIP (4 Review-Schritte)
+/ultrawork → PLAN (4 review steps) → IMPL → VERIFY (3 review steps) → REFINE (5 review steps) → SHIP (4 review steps)
 ```
 
 ### Bug-Untersuchung
 ```
-/debug → reproduzieren → Grundursache → minimale Korrektur → Regressionstest → Scan nach ähnlichen Mustern
+/debug → reproduce → root cause → minimal fix → regression test → similar pattern scan
 ```
 
 ### Design-zu-Implementierung-Pipeline
 ```
-/brainstorm → Designdokument → /plan → Aufgabenzerlegung → /orchestrate → parallele Implementierung → /review → /scm
+/brainstorm → design document → /plan → task breakdown → /orchestrate → parallel implementation → /review → /scm
 ```
 
 ### Neue-Codebasis-Einrichtung

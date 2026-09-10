@@ -39,7 +39,7 @@ Persistent workflows keep running until all tasks are done. They maintain state 
 
 ### /orchestrate
 
-**Description:** Automated CLI-based parallel agent execution. Spawns subagents via CLI, coordinates through MCP memory, monitors progress, and runs verification loops.
+**Description:** Automated CLI-based parallel agent execution. Spawns subagents via CLI, coordinates through durable run state and receipts, monitors progress, and runs verification loops.
 
 **Persistent:** Yes. State file: `.agents/state/orchestrate-state.json`.
 
@@ -71,15 +71,15 @@ Noun whitelist (15): app, api, service, server, cli, tool, website, dashboard, s
 **Steps:**
 1. **Step 0, Preparation:** Read coordination skill, context-loading guide, memory protocol. Detect vendor.
 2. **Step 1, Load/Create Plan:** Check for `.agents/results/plan-{sessionId}.json`, then the most recent `plan-*.json`. If none is found — or the plan is not execution-ready (a task missing its agent, priority tier, dependencies, or acceptance criteria) — delegate to `/plan` inline to create one, keeping the same session ID. Present the plan and reuse existing authorization; ask only for a material missing decision or new authorization before delegation.
-3. **Step 2, Initialize Session:** Load `oma-config.yaml`, display CLI mapping table, reuse the session ID from plan creation or generate one (`session-YYYYMMDD-HHMMSS`), create `orchestrator-session.md` and `task-board.md` in memory.
-4. **Step 3, Spawn Agents:** For each priority tier (P0 first, then P1...), spawn agents using vendor-appropriate method (Agent tool for Claude Code, `oma agent spawn` for Gemini/Antigravity, model-mediated for Codex). Never exceed MAX_PARALLEL.
-5. **Step 4, Monitor:** Poll `progress-{agent}.md` files, update `task-board.md`. Watch for completions, failures, crashes.
+3. **Step 2, Initialize Session:** Load `oma-config.yaml`, display the CLI mapping table, reuse the session ID from plan creation or generate one (`session-YYYYMMDD-HHMMSS`), and create `orchestrator-session-{sessionId}.md` and `task-board-{sessionId}.md` in the configured memory store.
+4. **Step 3, Spawn Agents:** For each priority tier (P0 first, then P1...), spawn agents using the vendor-appropriate method (native subagents when the current runtime and target vendor match; `oma agent spawn` for external or cross-vendor work). Never exceed MAX_PARALLEL.
+5. **Step 4, Monitor:** Poll run-scoped `progress-{agentId}-{taskId}-{runId}-{sessionId}.md` files and structured receipts, then update the task board. Watch for completions, failures, and crashes.
 6. **Step 5, Verify:** Run `verify.sh {agent-type} {workspace}` per completed agent. On failure, re-spawn with error context (max 2 retries). After 2 retries, activate Exploration Loop: generate 2-3 hypotheses, spawn parallel experiments, score, keep best.
-7. **Step 6, Collect:** Read all `result-{agent}.md` files, compile summary.
+7. **Step 6, Collect:** Read run-scoped result files and structured claims, then compile the summary.
 8. **Step 7, Final Report:** Present session summary. If Quality Score was measured, include Experiment Ledger summary and auto-generate lessons.
 
-**Files read:** `.agents/results/plan-{sessionId}.json`, `.agents/oma-config.yaml`, `progress-{agent}.md`, `result-{agent}.md`.
-**Files written:** `orchestrator-session.md`, `task-board.md` (memory), final report.
+**Files read:** `.agents/results/plan-{sessionId}.json`, `.agents/oma-config.yaml`, run-scoped progress/result files, and structured run receipts.
+**Files written:** run-scoped session/task-board state in the configured memory store, structured receipts and claims, and the final report.
 
 **When to use:** Large projects requiring maximum parallelism with automated coordination.
 
@@ -119,7 +119,7 @@ Noun whitelist (15): app, api, service, server, cli, tool, website, dashboard, s
 
 ### /ultrawork
 
-**Description:** The quality-obsessed workflow. 5 phases, 17 total steps, 11 of which are review steps. Every phase has a gate that must pass before proceeding.
+**Description:** The quality-focused workflow. It has 5 phases, 17 total steps, and 12 isolated review steps. Every phase has a gate that must pass before proceeding.
 
 **Persistent:** Yes. State file: `.agents/state/ultrawork-state.json`.
 
@@ -153,7 +153,7 @@ Noun whitelist (15): app, api, service, server, cli, tool, website, dashboard, s
 
 **REFINE skip condition:** Simple tasks under 50 lines.
 
-**When to use:** Maximum quality delivery. When code must be production-ready with comprehensive review.
+**When to use:** A full review process before you decide whether the result is ready for release. The workflow records checks and findings; it does not make a production-readiness decision for you.
 
 ---
 
@@ -375,7 +375,7 @@ Noun whitelist (15): app, api, service, server, cli, tool, website, dashboard, s
 
 **Steps:** Analyze changes (git status, git diff) -> Separate features (if > 5 files spanning different scope/type) -> Determine type (feat/fix/refactor/docs/test/chore/style/perf) -> Determine scope (changed module) -> Write description (imperative, < 72 chars) -> Execute commit immediately (no confirmation prompt).
 
-**Rules:** Never `git add -A`. Never commit secrets. HEREDOC for multi-line messages. Co-Author: `First Fluke <our.first.fluke@gmail.com>`.
+**Rules:** Never `git add -A`. Never commit secrets. Use a HEREDOC for multi-line messages. Add a co-author trailer only when effective `scm.co_author` configuration enables it and supplies both values.
 
 ---
 
@@ -459,7 +459,7 @@ Noun whitelist (15): app, api, service, server, cli, tool, website, dashboard, s
 
 ### /video
 
-**Description:** Drive the `oma-video` skill end-to-end: brief → script → narration → visuals → captions → render-spec → vendored Remotion (or MoneyPrinterTurbo) compositor, producing a reproducible run directory with a real `.mp4`. Key-optional — every stage falls back to a deterministic branch, so a run completes with no API keys. Executes inline (no subagent spawning).
+**Description:** Drive the `oma-video` skill end-to-end: brief → script → narration → visuals → captions → render-spec → vendored Remotion (or MoneyPrinterTurbo) compositor. The workflow creates a reproducible run directory and emits a real `.mp4` only after the compositor and ffprobe checks pass. Provider configuration is key-optional for supported asset fallbacks; a compositor or toolchain failure remains a failed run. Executes inline (no subagent spawning).
 
 **Trigger keywords:**
 | Language | Keywords |
@@ -475,7 +475,7 @@ Noun whitelist (15): app, api, service, server, cli, tool, website, dashboard, s
 2. **Compose the script:** Generate scenes + narration (LLM when a key is present, else a deterministic outline from the brief).
 3. **Synthesize assets:** Narration via `oma-voice`, visuals via `oma-image`/`oma-slide`/stock, key-free caption alignment, or a supervised browser web capture for `demo --source web`. Each provider degrades to a deterministic fallback.
 4. **Build the render-spec:** Write `render-spec.json` (the determinism boundary) plus assets into the run directory.
-5. **Render:** Spawn the vendored Remotion project (or MoneyPrinterTurbo) as a subprocess; on any failure, emit a deterministic placeholder so the run still completes. Live capture is recorded as `nondeterministic` in the manifest.
+5. **Render:** Spawn the vendored Remotion project (or MoneyPrinterTurbo) as a subprocess. A normal compositor or toolchain failure fails the run; the deterministic placeholder is available only through the explicit mock/test path (`OMA_VIDEO_MOCK=1`). Live capture is recorded as `nondeterministic` in the manifest.
 
 **Output:** A run directory at `.agents/results/videos/{timestamp}-{shortid}-{mode}/` with `script.json`, `render-spec.json`, `timing.json`, `captions.{srt,vtt}`, `audio/`, `visuals/`, `{composition}.mp4`, and `manifest.json`. See the [Video Generation guide](../guide/video-generation.md).
 

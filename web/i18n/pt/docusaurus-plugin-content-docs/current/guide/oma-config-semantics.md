@@ -1,53 +1,65 @@
 ---
-title: "Guia: Semântica do oma-config.yaml"
-description: Regras de precedência por chave para o oma-config.yaml quando coexistem instalações de projeto e global. Cobre auto_update_cli (projeto vence global), serena.mode, telemetry, language, model_preset, translation_voice, timezone e quais dotfiles agy / claude / codex / gemini / qwen leem.
+title: "Guia: Semântica de oma-config.yaml"
+sidebar_label: Carregamento da configuração
+description: "Como o OMA seleciona as camadas de configuração CUE e YAML, aplica overlays locais e resolve os poucos fallbacks ligados ao contexto de instalação. Consulte a referência de configuração para chaves e padrões suportados."
 ---
 
 ## Visão geral
 
-`oma-config.yaml` pode viver em dois lugares:
+A configuração é selecionada a partir do diretório `.agents/` mais próximo encontrado ao subir a partir do diretório de trabalho atual:
 
-- **Projeto**: `<cwd>/.agents/oma-config.yaml`
-- **Global**: `~/.agents/oma-config.yaml`
+- **Compartilhada:** `.agents/oma-config.cue` ou `.agents/oma-config.yaml` quando o CUE está ausente ou não pode ser avaliado.
+- **Local:** `.agents/oma-config.local.cue` ou `.agents/oma-config.local.yaml` (um arquivo, aplicado sobre o compartilhado; mantenha este arquivo privado).
 
-Quando os dois arquivos existem, o arquivo de projeto vence para toda chave. Isso é intencional: a customização por projeto é o sinal mais específico e não deve ser sobrescrita por um default em nível de usuário.
+O OMA não mescla um arquivo do projeto com `~/.agents/oma-config.*` nas consultas normais de runtime. Uma instalação global lê o arquivo do HOME porque sua raiz de instalação é o HOME; um comando de projeto lê a camada do projeto mais próxima. `auto_update_cli` é a exceção deliberada: sua verificação de atualização consulta a configuração do projeto, depois a configuração do HOME e, por fim, fica habilitado. Consulte a [Referência de configuração](/docs/guide/configuration-reference) para o modelo completo.
 
 ## Tabela de precedência
 
-| Chave | Projeto vence? | Notas |
+| Chave | Regra efetiva | Observações |
 |-----|:---:|-------|
-| `auto_update_cli` | Sim | O valor do projeto sobrescreve o global. Implementado em `resolveAutoUpdateCli` (`cli/commands/update/update.ts`). |
-| `serena.mode` | Sim | Controla o modo de transporte do MCP do Serena (ex.: `stdio`, `sse`). |
-| `serena.auto_update` | Sim | Atualiza o `serena-agent` durante o `oma update` (`uv tool upgrade serena-agent --prerelease=allow`). |
-| `telemetry` | Sim | Opt-in de telemetria do fornecedor (`true` / `false`). |
-| `language` | Sim | Idioma de resposta para saídas do agente (ex.: `en`, `ko`, `ja`). |
-| `model_preset` | Sim | Preset de seleção de modelo (ex.: `claude`, `mixed`, `codex`). |
-| `translation_voice` | Sim | Tom do tradutor: `formal`, `balanced`, `interpreter`. |
-| `timezone` | Sim | Identificador de fuso horário (ex.: `Asia/Seoul`, `America/New_York`). |
+| `OMA_MODEL_PRESET` | Mais alta | Um valor de ambiente não vazio substitui `model_preset` nesse processo. |
+| Arquivo local | Aplica sobre o compartilhado | Mapas comuns são mesclados recursivamente; arrays, escalares e `null` substituem o valor compartilhado. Os dois formatos de arquivo local não podem existir juntos. |
+| CUE compartilhado | Preferido | Se o CUE estiver ausente ou falhar, o carregador tenta o arquivo YAML compartilhado. Um erro no CUE local é fatal. |
+| YAML compartilhado | Fallback | Usado quando nenhum arquivo CUE compartilhado utilizável é selecionado. |
+| `auto_update_cli` | Projeto, depois HOME, depois `true` | Esse fallback específico de atualização é implementado em `resolveAutoUpdateCli`; não é uma camada global geral. |
 
-"Projeto vence" significa: se a chave estiver presente no arquivo de projeto, esse valor é usado independentemente do que o arquivo global diga. Se a chave estiver ausente no arquivo de projeto, o valor do arquivo global é usado. Se estiver ausente em ambos, o default se aplica.
+Para uma substituição local do projeto, coloque apenas as folhas alteradas no arquivo local. Por exemplo, uma escolha local de modelo pode ficar fora do arquivo compartilhado:
 
-## Valores default
+```yaml
+# .agents/oma-config.local.yaml
+model_preset: claude
+agents:
+  backend:
+    model: anthropic/claude-sonnet-4-6
+```
 
-| Chave | Default | Quando se aplica |
+Execute o comando no projeto para que o diretório `.agents/` mais próximo seja selecionado. Um arquivo local malformado falha de modo explícito; corrija-o ou remova-o antes de tentar novamente.
+
+## Valores padrão
+
+| Chave | Padrão | Quando aplicado |
 |-----|---------|--------------|
-| `auto_update_cli` | `true` | Ambos arquivos ausentes ou chave faltando |
-| `serena.mode` | `stdio` | Ambos arquivos ausentes ou chave faltando |
-| `serena.auto_update` | `true` | Ambos arquivos ausentes ou chave faltando |
-| `telemetry` | `false` | Ambos arquivos ausentes ou chave faltando |
-| `language` | `en` | Ambos arquivos ausentes ou chave faltando |
-| `model_preset` | `claude` | Ambos arquivos ausentes ou chave faltando |
-| `translation_voice` | `balanced` | Ambos arquivos ausentes ou chave faltando |
-| `timezone` | Fuso horário do sistema | Ambos arquivos ausentes ou chave faltando |
+| `auto_update_cli` | `true` | Os dois arquivos estão ausentes ou a chave não existe |
+| `serena.mode` | `bridge` | Os dois arquivos estão ausentes ou a chave não existe |
+| `serena.auto_update` | `true` | Os dois arquivos estão ausentes ou a chave não existe |
+| `telemetry` | `false` | Os dois arquivos estão ausentes ou a chave não existe |
+| `language` | `en` | Os dois arquivos estão ausentes ou a chave não existe |
+| `model_preset` | Obrigatório | O template de projeto distribuído usa `auto`; o schema exige um valor não vazio. |
+| `translation_voice` | `balanced` | Os dois arquivos estão ausentes ou a chave não existe |
+| `timezone` | Fuso horário do sistema | Os dois arquivos estão ausentes ou a chave não existe |
 
-## Racional da ordem de leitura
+## Justificativa da ordem de leitura
 
-O config de projeto é lido primeiro porque representa o contexto mais específico — o repositório em que o desenvolvedor está trabalhando ativamente. Um time pode impor `language: ko` ou `model_preset: mixed` para seu projeto, e essas escolhas não devem ser sobrescritas silenciosamente pelo `oma-config.yaml` global de um indivíduo.
+A regra da camada mais próxima mantém a configuração de um projeto autocontida. Se você quiser uma base para todo o usuário, instale globalmente e edite `~/.agents/oma-config.yaml`; as instalações de projeto ainda podem definir sua própria camada mais próxima.
 
-O arquivo global fornece uma baseline em nível de usuário. Chaves que o projeto não define caem para o valor global, que por sua vez cai para o default hardcoded.
+## Observações
 
-## Notas
-
-- `language` no `oma-config.yaml` controla o idioma de resposta do agente. **Não** é usado para determinar mensagens de aviso de install/update — essas usam o locale do sistema (`$LANG`) porque o `oma-config.yaml` ainda não foi carregado no momento do install.
-- A precedência de `auto_update_cli` está explicitamente implementada no comando de update. Quando coexistem uma instalação de projeto e uma global, o `oma-config.yaml` do projeto é consultado primeiro.
-- Editar `oma-config.yaml` diretamente é seguro. `oma install` e `oma update` usam substituição de campos em nível de regex e preservam chaves editadas pelo usuário que eles não gerenciam (ex.: overrides customizados de `agents:`, `session.quota_cap`).
+- `language` em `oma-config.yaml` controla o idioma das respostas do agente. Ele **não** é usado para determinar mensagens de aviso de instalação ou atualização; elas usam o locale do sistema (`$LANG`) porque `oma-config.yaml` ainda não foi carregado no momento da instalação.
+- A precedência de `auto_update_cli` é implementada explicitamente no comando de atualização. Quando uma instalação de projeto e uma instalação global estão presentes, o valor do projeto é consultado primeiro e o valor do HOME depois.
+- `telemetry` (padrão `false`) é mapeado para o opt-out próprio de cada vendor, escrito por `oma install`, `oma update` e `oma link`: Claude usa `DISABLE_TELEMETRY` + `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY`, Gemini/Qwen usam `privacy.usageStatisticsEnabled`, Codex usa `analytics.enabled` + `feedback.enabled`, Grok usa `[features] telemetry` e Antigravity (agy) usa `enableTelemetry` em `~/.gemini/antigravity-cli/settings.json`. Definir `telemetry: true` ativa novamente a telemetria ao remover o opt-out do oma para esse vendor.
+- `diagram` (engine `auto` / `archify` / `mermaid`, `explain_sidecar`, `archify.managed|channel|check_interval_min|path|quality|open`) é uma seção esparsa de substituição de skill, como `video` e `image`; consulte o [Diagram Engine](/docs/guide/diagram-engine).
+- `video.remotion.check_interval_min` limita a frequência das verificações de versão mais recente para a toolchain Remotion por execução e remotion-dev/skills (`oma video compose`, `oma update`).
+- `market` (`managed|channel|check_interval_min|path|python|save_dir`) configura o engine `last30days`, sempre atualizado, por trás de `oma market`; consulte o [Market Research](/docs/guide/market-research).
+- O schema de runtime tipado cobre `providers`, `free`, `agents`, `models`, `custom_presets`, `vendors`, `session`, `docs` e as seções esparsas de skills. Os templates distribuídos também contêm blocos pertencentes ao consumidor, como `scm`, `memory`, `serena_reaper` e `mcp`; os consumidores são responsáveis pelas chaves aninhadas. Não deduza uma chave a partir desta lista; use a [Referência de configuração](/docs/guide/configuration-reference) e o guia da feature desse bloco.
+- Editar `oma-config.yaml` diretamente é seguro. `oma install` e `oma update` usam substituição de campos no nível de regex e preservam chaves editadas pelo usuário que não gerenciam (por exemplo, substituições personalizadas em `agents:` e `session.quota_cap`).
+- `oma update` também acrescenta chaves de nível superior que o template distribuído define, mas que faltam no seu arquivo (com os padrões do template), sob um marcador `# Added by oma update`. Chaves que você já tem nunca são modificadas: o conteúdo existente permanece byte a byte idêntico. Chaves que você apagou deliberadamente reaparecem com o padrão do template; defina o valor explicitamente em vez de apagar a chave para optar por não usá-la.

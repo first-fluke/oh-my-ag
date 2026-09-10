@@ -1,6 +1,7 @@
 ---
 title: "Anleitung: Bugfixing"
-description: Umfassende Debugging-Anleitung mit der strukturierten 5-Schritte-Schleife, Schweregrad-Triage, Eskalationssignalen und Post-Fix-Validierung.
+sidebar_label: Bugfixing
+description: Strukturierter siebenstufiger Debugging-Workflow mit Schweregrad-Triage, Eskalationssignalen, quellengestützter Diagnose und Post-Fix-Validierung.
 ---
 
 # Anleitung: Bugfixing
@@ -9,7 +10,7 @@ description: Umfassende Debugging-Anleitung mit der strukturierten 5-Schritte-Sc
 
 Verwenden Sie `/debug` (oder sagen Sie in natürlicher Sprache "fix bug", "fix error", "debug"), wenn Sie einen bestimmten Bug diagnostizieren und beheben möchten. Der Workflow bietet einen strukturierten, reproduzierbaren Ansatz zum Debuggen, der die häufige Falle vermeidet, Symptome statt Ursachen zu beheben.
 
-Der Debug-Workflow unterstützt alle Anbieter (Gemini, Claude, Codex, Qwen). Die Schritte 1-5 werden inline ausgeführt. Schritt 6 (Scan nach ähnlichen Mustern) kann an einen `debug-investigator`-Subagenten delegiert werden, wenn der Scan-Umfang groß ist (10+ Dateien oder domänenübergreifende Fehler).
+Der Debug-Workflow unterstützt alle konfigurierten Anbieter. Die Stufen 1-5 werden inline ausgeführt. Stufe 6 (Scan nach ähnlichen Mustern) kann an einen `debug-investigator`-Subagenten delegiert werden, wenn der Scan-Umfang groß ist (10+ Dateien oder domänenübergreifende Fehler); anschließend legt Stufe 7 den Memory-Eintrag an.
 
 ---
 
@@ -28,6 +29,7 @@ Geben Sie beim Melden eines Bugs so viele der folgenden Informationen wie mögli
 
 ### Optionale Felder (dringend empfohlen)
 
+<!-- oma-docs:ignore-start -->
 | Feld | Beschreibung | Beispiel |
 |:------|:-----------|:--------|
 | **Umgebung** | Browser, Betriebssystem, Node-Version, Gerät | Chrome 124, macOS 15.3, Node 22.1 |
@@ -36,6 +38,7 @@ Geben Sie beim Melden eines Bugs so viele der folgenden Informationen wie mögli
 | **Betroffener Code** | Dateien oder Funktionen, die Sie vermuten | `src/api/users.ts`, `deleteUser()` |
 | **Logs** | Server-Logs, Konsolenausgabe | `[ERROR] UserService.delete: user.organizationId is undefined` |
 | **Screenshots/Aufzeichnungen** | Visuelle Belege | Screenshot der Fehlerseite |
+<!-- oma-docs:ignore-end -->
 
 Je mehr Kontext Sie von Anfang an liefern, desto weniger Rückfragen benötigt der Debug-Workflow.
 
@@ -71,7 +74,7 @@ Der Schweregrad bestimmt, wie der Bug behandelt wird und wie schnell er behoben 
 - Mobile App stürzt beim Start auf Android-14-Geräten ab.
 - Passwort-Zurücksetzen-E-Mails werden nicht gesendet (E-Mail-Service-Integration defekt).
 
-**Debug-Ansatz:** Vollständige 5-Schritte-Schleife. QA-Review nach der Behebung empfohlen.
+**Debug-Ansatz:** Vollständige siebenstufige Schleife. QA-Review nach der Behebung empfohlen.
 
 ### P2 — Mittel (dieser Sprint)
 
@@ -85,7 +88,7 @@ Der Schweregrad bestimmt, wie der Bug behandelt wird und wie schnell er behoben 
 - API-Antwortzeit für den /users-Endpunkt beträgt 8 Sekunden (sollte unter 1 s liegen).
 - Seitenumbruch zeigt "Seite 1 von 0" an, wenn die Liste leer ist.
 
-**Debug-Ansatz:** Vollständige 5-Schritte-Schleife. In die QA-Regressions-Suite aufnehmen.
+**Debug-Ansatz:** Vollständige siebenstufige Schleife. In die QA-Regressions-Suite aufnehmen.
 
 ### P3 — Niedrig (Backlog)
 
@@ -103,9 +106,9 @@ Der Schweregrad bestimmt, wie der Bug behandelt wird und wie schnell er behoben 
 
 ---
 
-## Die 5-Schritte-Debug-Schleife im Detail
+## Die siebenstufige Debug-Schleife im Detail
 
-Der `/debug`-Workflow führt diese Schritte in strikter Reihenfolge aus. Dabei werden durchgehend MCP-Code-Analyse-Tools eingesetzt — niemals rohe Dateizugriffe oder grep.
+Der `/debug`-Workflow führt diese Stufen in der angegebenen Reihenfolge aus. Er verwendet nach Möglichkeit den konfigurierten Code-Intelligence-Anbieter sowie native Suche und begrenzte Dateizugriffe, wenn dieser Anbieter nicht verfügbar ist oder eine Zeitüberschreitung auftritt.
 
 ### Schritt 1: Fehlerinformationen sammeln
 
@@ -119,15 +122,15 @@ Wurde bereits eine Fehlermeldung im Prompt angegeben, fährt der Workflow sofort
 
 ### Schritt 2: Den Bug reproduzieren
 
-**Verwendete Tools:** `search_for_pattern` mit der Fehlermeldung oder Stack-Trace-Schlüsselwörtern, `find_symbol` zur Lokalisierung der exakten Funktion und Datei.
+**Verwendete Tools:** die konfigurierten Such- und Symbolwerkzeuge oder native Suche mit `rg` und begrenzte Lesezugriffe, wenn die konfigurierten Werkzeuge nicht verfügbar sind.
 
 Das Ziel ist die Lokalisierung des Fehlers in der Codebasis — die exakte Zeile finden, in der die Exception geworfen wird, die exakte Funktion, die falsche Ausgabe produziert, oder die exakte Bedingung, die das unerwartete Verhalten verursacht.
 
-Dieser Schritt wandelt ein vom Benutzer gemeldetes Symptom ("die Seite stürzt ab") in eine Codebasis-Lokalisierung um (`src/api/users.ts:47, deleteUser() wirft TypeError`).
+Dieser Schritt wandelt ein vom Benutzer gemeldetes Symptom ("die Seite stürzt ab") in eine Codebasis-Lokalisierung um (`src/api/users.ts:47, deleteUser() throws TypeError`).
 
 ### Schritt 3: Grundursache diagnostizieren
 
-**Verwendete Tools:** `find_referencing_symbols` zur Rückverfolgung des Ausführungspfads vom Fehlerpunkt aus.
+**Verwendete Tools:** Referenz- und Symbolnavigation, sofern verfügbar, gefolgt von gezielten nativen Lesezugriffen, wenn sie nicht verfügbar ist.
 
 Der Workflow verfolgt den Fehler vom Fehlerort rückwärts, um die tatsächliche Ursache zu finden. Dabei wird auf diese häufigen Grundursachenmuster geprüft:
 
@@ -149,7 +152,7 @@ Der Workflow präsentiert:
 2. Die vorgeschlagene Korrektur (nur das Notwendigste ändernd).
 3. Eine Erklärung, warum diese Korrektur die Grundursache behebt und nicht nur das Symptom.
 
-**Der Workflow blockiert hier, bis der Benutzer bestätigt.** Dies verhindert, dass der Debug-Agent ohne Genehmigung Änderungen vornimmt.
+Der Workflow präsentiert den Vorschlag vor der Bearbeitung. Er wartet auf Bestätigung, wenn die Änderung nicht bereits durch die Anfrage oder den Ausführungsvertrag autorisiert ist; eine bestehende Autorisierung macht eine zweite Rückfrage überflüssig.
 
 **Prinzip der minimalen Korrektur:** So wenige Zeilen wie möglich ändern. Nicht refaktorisieren, keinen Code-Stil verbessern, keine unverwandten Features hinzufügen. Die Korrektur sollte in unter 2 Minuten reviewbar sein.
 
@@ -169,7 +172,7 @@ Der Regressionstest ist das wichtigste Ergebnis des Debug-Workflows. Ohne ihn ka
 
 Nach der Korrektur scannt der Workflow die gesamte Codebasis nach demselben Muster, das den Bug verursacht hat.
 
-**Verwendete Tools:** `search_for_pattern` mit dem als Grundursache identifizierten Muster.
+**Verwendete Tools:** die konfigurierte Mustersuche oder eine begrenzte native Suche mit dem als Grundursache identifizierten Muster.
 
 Beispiel: Wurde der Bug dadurch verursacht, dass `user.organization.id` ohne Prüfung auf null bei `organization` zugegriffen wurde, sucht der Scan nach allen anderen Zugriffen auf `organization.id` ohne Null-Prüfung.
 
@@ -269,7 +272,7 @@ Der Bug tritt nur in der Produktion auf, und eine lokale Reproduktion ist nicht 
 
 Der Regressionstest kann nicht geschrieben werden, weil die Testinfrastruktur defekt, fehlend oder unzureichend ist.
 
-**Aktion:** Zuerst die Testinfrastruktur reparieren (oder `oma install` zur Konfiguration verwenden), dann zum Debug-Workflow zurückkehren.
+**Aktion:** Zuerst die Testinfrastruktur reparieren (oder `oma install` zur Konfiguration verwenden), dann zum Debug-Workflow zurückkehren. Wenn keine ausführbare Prüfung anwendbar ist, den Grund im Ergebnisvertrag festhalten, statt eine bestandene Prüfung zu erfinden.
 
 ---
 
@@ -279,8 +282,7 @@ Nach dem Anwenden der Korrektur und des Regressionstests ist zu prüfen:
 
 - [ ] **Regressionstest schlägt ohne die Korrektur fehl** — Korrektur vorübergehend zurücknehmen und bestätigen, dass der Test den Bug erkennt.
 - [ ] **Regressionstest besteht mit der Korrektur** — Korrektur anwenden und bestätigen, dass der Test besteht.
-- [ ] **Vorhandene Tests bestehen weiterhin** — Vollständige Testsuite ausführen, um keine Regressionen zu verifizieren.
-- [ ] **Build ist erfolgreich** — Projekt kompilieren/bauen, um Typfehler oder Import-Probleme zu erkennen.
+- [ ] **Relevante vorhandene Prüfungen bestehen weiterhin** — Die Projektprüfungen ausführen, die das geänderte Verhalten abdecken. Einen Build nur ausführen, wenn die Aufgabe ihn ausdrücklich verlangt.
 - [ ] **Ähnliche Muster gescannt** — Schritt 6 wurde abgeschlossen und alle gefundenen Fälle sind behoben oder dokumentiert.
 - [ ] **Korrektur ist minimal** — Nur die notwendigen Zeilen wurden geändert. Kein unverwandtes Refactoring enthalten.
 - [ ] **Grundursache dokumentiert** — Die Memory-Datei enthält: Symptom, Grundursache, angewendete Korrektur, geänderte Dateien, Regressionstest-Speicherort und gefundene ähnliche Muster.
@@ -292,7 +294,7 @@ Nach dem Anwenden der Korrektur und des Regressionstests ist zu prüfen:
 Der Debug-Workflow ist abgeschlossen, wenn:
 
 1. Die Grundursache identifiziert und dokumentiert ist (nicht nur das Symptom).
-2. Eine minimale Korrektur mit Benutzergenehmigung angewendet wurde.
+2. Eine minimale Korrektur im Rahmen der Aufgabenautorisierung angewendet wurde.
 3. Ein Regressionstest existiert, der ohne die Korrektur fehlschlägt und mit ihr besteht.
 4. Die Codebasis nach ähnlichen Mustern gescannt wurde und alle bestätigten Fälle behandelt sind.
 5. Ein Fehlerbericht im Memory mit folgenden Informationen hinterlegt ist: Symptom, Grundursache, angewendete Korrektur, geänderte Dateien, Regressionstest-Speicherort und gefundene ähnliche Muster.

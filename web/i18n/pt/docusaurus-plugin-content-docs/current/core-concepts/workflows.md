@@ -1,13 +1,13 @@
 ---
 title: Workflows
-description: "Referência completa para todos os 16 workflows do oh-my-agent — comandos slash, modos persistente vs não-persistente, palavras-chave gatilho em 11 idiomas, fases e etapas, arquivos lidos e escritos, mecânica de auto-detecção via triggers.json e keyword-detector.ts, filtragem de padrões informativos e gerenciamento de estado de modo persistente."
+description: "Referência completa para todos os 21 workflows do oh-my-agent, cobrindo comandos slash, modos persistente e não persistente, palavras-chave gatilho em 11 idiomas, fases e etapas, arquivos lidos e escritos, mecânica de auto-detecção via triggers.json e keyword-detector.ts, filtragem de padrões informativos e gerenciamento de estado do modo persistente."
 ---
 
 # Workflows
 
-Workflows são processos estruturados de múltiplas etapas acionados por comandos slash ou palavras-chave em linguagem natural. Eles definem como os agentes colaboram em tarefas — desde utilitários de fase única até portões de qualidade complexos de 5 fases.
+Workflows são processos estruturados de múltiplas etapas acionados por comandos slash ou palavras-chave em linguagem natural. Eles definem como os agentes colaboram em tarefas, desde utilitários de fase única até portões de qualidade complexos de 5 fases.
 
-Existem 16 workflows, 4 dos quais são persistentes (mantêm estado e não podem ser interrompidos acidentalmente).
+Existem 21 workflows, 4 dos quais são persistentes (mantêm estado e não podem ser interrompidos acidentalmente).
 
 ---
 
@@ -39,7 +39,7 @@ Workflows persistentes continuam executando até que todas as tarefas sejam conc
 
 ### /orchestrate
 
-**Descrição:** Execução paralela automatizada de agentes via CLI. Inicia subagentes via CLI, coordena através de memória MCP, monitora progresso e executa loops de verificação.
+**Descrição:** Execução paralela automatizada de agentes via CLI. Inicia subagentes via CLI, coordena por meio de estado de execução durável e recibos, monitora o progresso e executa loops de verificação.
 
 **Persistente:** Sim. Arquivo de estado: `.agents/state/orchestrate-state.json`.
 
@@ -69,17 +69,17 @@ Workflows persistentes continuam executando até que todas as tarefas sejam conc
 Lista permitida de substantivos (15): app, api, service, server, cli, tool, website, dashboard, system, feature, backend, frontend, prototype, mvp, bot.
 
 **Etapas:**
-1. **Step 0 — Preparação:** Ler skill de coordenação, guia de context-loading, protocolo de memória. Detectar vendor.
-2. **Step 1 — Carregar/Criar Plano:** Procurar `.agents/results/plan-{sessionId}.json` e depois o arquivo `plan-*.json` mais recente. Se nenhum existir ou se o plano não estiver pronto para execução (alguma tarefa sem agente, tier de prioridade, dependências ou critérios de aceitação), delegar a `/plan` no próprio fluxo para criar um, mantendo o mesmo ID de sessão. Apresentar o plano e reutilizar a autorização existente; perguntar apenas quando faltar uma decisão relevante ou uma nova autorização antes da delegação.
-3. **Step 2 — Inicializar Sessão:** Carregar `oma-config.yaml`, exibir tabela de mapeamento CLI, reutilizar o ID de sessão da criação do plano ou gerar um (`session-YYYYMMDD-HHMMSS`), criar `orchestrator-session.md` e `task-board.md` na memória.
-4. **Step 3 — Spawnar Agentes:** Para cada tier de prioridade (P0 primeiro, depois P1...), spawnar agentes usando método apropriado ao vendor (Agent tool para Claude Code, `oma agent spawn` para Gemini/Antigravity, mediado por modelo para Codex). Nunca exceder MAX_PARALLEL.
-5. **Step 4 — Monitorar:** Poll dos arquivos `progress-{agent}.md`, atualizar `task-board.md`. Observar completações, falhas, crashes.
-6. **Step 5 — Verificar:** Executar `verify.sh {agent-type} {workspace}` por agente completado. Em caso de falha, re-spawnar com contexto do erro (máximo 2 retries). Após 2 retries, ativar Exploration Loop: gerar 2-3 hipóteses, spawnar experimentos paralelos, pontuar, manter o melhor.
-7. **Step 6 — Coletar:** Ler todos os arquivos `result-{agent}.md`, compilar resumo.
-8. **Step 7 — Relatório Final:** Apresentar resumo da sessão. Se Quality Score foi medido, incluir resumo do Experiment Ledger e auto-gerar lições.
+1. **Step 0 — Preparação:** Ler skill de coordenação, guia de context-loading e protocolo de memória. Detectar o vendor.
+2. **Step 1 — Carregar/Criar Plano:** Procurar `.agents/results/plan-{sessionId}.json` e depois o `plan-*.json` mais recente. Se nenhum for encontrado — ou se o plano não estiver pronto para execução (uma tarefa sem agente, tier de prioridade, dependências ou critérios de aceitação) — delegar a `/plan` inline para criar um, mantendo o mesmo ID de sessão. Apresentar o plano e reutilizar a autorização existente; perguntar somente quando faltar uma decisão relevante ou uma nova autorização antes da delegação.
+3. **Step 2 — Inicializar Sessão:** Carregar `oma-config.yaml`, exibir a tabela de mapeamento CLI, reutilizar o ID de sessão da criação do plano ou gerar um (`session-YYYYMMDD-HHMMSS`) e criar `orchestrator-session-{sessionId}.md` e `task-board-{sessionId}.md` no armazenamento de memória configurado.
+4. **Step 3 — Iniciar Agentes:** Para cada tier de prioridade (P0 primeiro, depois P1...), iniciar agentes usando o método apropriado ao vendor (subagentes nativos quando o runtime atual e o vendor-alvo coincidirem; `oma agent spawn` para trabalho externo ou entre vendors). Nunca exceder MAX_PARALLEL.
+5. **Step 4 — Monitorar:** Consultar os arquivos `progress-{agentId}-{taskId}-{runId}-{sessionId}.md` específicos da execução e os recibos estruturados, depois atualizar o quadro de tarefas. Observar conclusões, falhas e crashes.
+6. **Step 5 — Verificar:** Executar `verify.sh {agent-type} {workspace}` para cada agente concluído. Em caso de falha, iniciar novamente com o contexto do erro (no máximo 2 retries). Após 2 retries, ativar o Exploration Loop: gerar 2-3 hipóteses, iniciar experimentos paralelos, pontuar e manter o melhor.
+7. **Step 6 — Coletar:** Ler os arquivos de resultado específicos da execução e os claims estruturados, depois compilar o resumo.
+8. **Step 7 — Relatório Final:** Apresentar o resumo da sessão. Se o Quality Score tiver sido medido, incluir o resumo do Experiment Ledger e gerar lições automaticamente.
 
-**Arquivos lidos:** `.agents/results/plan-{sessionId}.json`, `.agents/oma-config.yaml`, `progress-{agent}.md`, `result-{agent}.md`.
-**Arquivos escritos:** `orchestrator-session.md`, `task-board.md` (memória), relatório final.
+**Arquivos lidos:** `.agents/results/plan-{sessionId}.json`, `.agents/oma-config.yaml`, arquivos de progresso e resultado específicos da execução e recibos estruturados das execuções.
+**Arquivos escritos:** estado de sessão e quadro de tarefas específicos da execução no armazenamento de memória configurado, recibos e claims estruturados e o relatório final.
 
 **Quando usar:** Projetos grandes requerendo máximo paralelismo com coordenação automatizada.
 
@@ -206,25 +206,11 @@ Lista permitida de substantivos (15): app, api, service, server, cli, tool, webs
 | Japonês | "計画", "要件分析", "タスク分解" |
 | Chinês | "计划", "需求分析", "任务分解" |
 
-**Etapas:** Coletar requisitos -> Analisar viabilidade técnica (análise de código MCP) -> Definir contratos de API -> Decompor em tarefas -> Revisar com usuário -> Salvar plano.
+**Etapas:** Coletar requisitos -> Analisar viabilidade técnica (análise de código MCP) -> Avaliar complexidade (Simples/Médio/Complexo) -> Definir contratos de API (quando houver fronteira entre componentes) -> Decompor em tarefas -> Revisar com o usuário -> Salvar artefatos do plano (JSON legível por máquina e tracker Markdown legível por humanos para tarefas Médias/Complexas).
 
-**Saída:** `.agents/results/plan-{sessionId}.json`, escrita em memória, opcionalmente `docs/exec-plans/active/` para planos complexos.
+**Saída:** `.agents/results/plan-{sessionId}.json`, escrita em memória e, para planos Médios/Complexos, `docs/plans/work/{NNN}-{name}.md` com tabela de tarefas, registro de decisões e notas de progresso. O ciclo de vida é acompanhado pelo campo `Status` no cabeçalho Markdown (`Active` -> `Completed`); os planos não são movidos entre pastas. Designs criados via `/brainstorm` vão para `docs/plans/designs/{NNN}-{name}.md`.
 
-**Execução:** Inline (sem spawning de subagentes). Consumido por `/orchestrate` ou `/work`.
-
----
-
-### /exec-plan
-
-**Descrição:** Cria, gerencia e rastreia planos de execução como artefatos de primeira classe do repositório em `docs/exec-plans/`.
-
-**Palavras-chave gatilho:** Nenhuma (excluído da auto-detecção, deve ser invocado explicitamente).
-
-**Etapas:** Preparação -> Analisar escopo (avaliar complexidade: Simples/Média/Complexa) -> Criar plano de execução (markdown em `docs/exec-plans/active/`) -> Definir contratos de API (se cross-boundary) -> Revisar com usuário -> Executar (passar para `/orchestrate` ou `/work`) -> Completar (mover para `completed/`).
-
-**Saída:** `docs/exec-plans/active/{plan-name}.md` com tabela de tarefas, log de decisões, notas de progresso.
-
-**Quando usar:** Após `/plan` para funcionalidades complexas que precisam de execução rastreada com log de decisões.
+**Execução:** Inline (sem iniciar subagentes). Consumido por `/orchestrate` ou `/work`, que atualizam os campos de tarefa e status durante a execução.
 
 ---
 
@@ -241,7 +227,7 @@ Lista permitida de substantivos (15): app, api, service, server, cli, tool, webs
 | Japonês | "ブレインストーミング", "アイデア", "設計探索" |
 | Chinês | "头脑风暴", "创意", "设计探索" |
 
-**Etapas:** Explorar contexto do projeto (análise MCP) -> Fazer perguntas de esclarecimento (uma por vez) -> Propor 2-3 abordagens com tradeoffs -> Apresentar design seção por seção (com aprovação do usuário em cada etapa) -> Salvar documento de design em `docs/plans/` -> Transição: sugerir `/plan`.
+**Etapas:** Explorar o contexto do projeto (análise MCP) -> Fazer perguntas de esclarecimento (uma por vez) -> Propor 2-3 abordagens com tradeoffs -> Apresentar o design seção por seção (com aprovação do usuário em cada etapa) -> Salvar o documento de design em `docs/plans/designs/{NNN}-{name}.md` -> Transição: sugerir `/plan`.
 
 **Regras:** Sem implementação ou planejamento antes da aprovação do design. Sem saída de código. YAGNI.
 
@@ -316,6 +302,9 @@ Lista permitida de substantivos (15): app, api, service, server, cli, tool, webs
 |--------|---------------|
 | Universal | "/deepsec", "deepsec workflow" |
 | Inglês | "run deepsec", "deepsec scan this repo", "scan repo with deepsec", "deepsec pr review", "deepsec ci gate", "deepsec triage", "deepsec matchers" |
+| Coreano | "딥섹 워크플로우", "딥섹 실행", "딥섹 스캔", "딥섹으로 검사", "딥섹 PR 리뷰", "딥섹 CI 게이트" |
+| Japonês | "ディープセック実行", "deepsecワークフロー", "deepsecでスキャン", "deepsec PRレビュー" |
+| Chinês | "运行 deepsec", "deepsec 工作流", "用 deepsec 扫描", "deepsec PR 审查" |
 
 **Etapas:**
 1. **Etapa 1, Carregar a skill:** Leia `.agents/skills/oma-deepsec/SKILL.md` e carregue apenas os arquivos de recurso correspondentes à intenção resolvida (`setup.md`, `scanning.md`, `pr-review.md`, `matchers.md`, `triage.md`, `config.md`). Se `.deepsec/` já existir na raiz do repositório, trate a execução como incremental e nunca refaça `init`.
@@ -386,7 +375,7 @@ Lista permitida de substantivos (15): app, api, service, server, cli, tool, webs
 
 **Etapas:** Analisar mudanças (git status, git diff) -> Separar funcionalidades (se > 5 arquivos abrangendo escopo/tipo diferente) -> Determinar tipo (feat/fix/refactor/docs/test/chore/style/perf) -> Determinar escopo (módulo alterado) -> Escrever descrição (imperativo, < 72 chars) -> Executar commit imediatamente (sem prompt de confirmação).
 
-**Regras:** Nunca `git add -A`. Nunca commitar secrets. HEREDOC para mensagens multi-linha. Co-Author: `First Fluke <our.first.fluke@gmail.com>`.
+**Regras:** Nunca `git add -A`. Nunca commitar secrets. Use um HEREDOC para mensagens com várias linhas. Adicione o trailer de coautor somente quando a configuração `scm.co_author` efetiva estiver habilitada e fornecer os dois valores.
 
 ---
 
@@ -420,17 +409,104 @@ Lista permitida de substantivos (15): app, api, service, server, cli, tool, webs
 
 ---
 
+### /docs
+
+**Descrição:** Detecta deriva documental e sincroniza documentos por meio de `oma-docs`. O modo verify encontra referências quebradas em todo o Markdown do repositório (glob padrão `**/*.md`); o modo sync propõe patches por documento para docs afetados por um diff do git. Executa inline (sem iniciar subagentes); todos os fornecedores chamam `oma docs` diretamente.
+
+**Palavras-chave gatilho:** Universal: "oma-docs", "docs verify", "docs sync". Inglês: "verify docs", "check docs", "docs drift", "broken doc links", "stale docs", "sync docs", "patch docs". Coreano: "문서 검증", "문서 드리프트", "문서 동기화". Japonês: "ドキュメント検証", "ドキュメント同期". Chinês: "文档校验", "文档同步".
+
+**Etapas:** Detectar o modo (`verify` por padrão; `sync` quando o prompt menciona sync ou fornece um intervalo de diff do git) → Preflight (`command -v oma`; para sync, confirmar um diff utilizável e recorrer a `HEAD~1..HEAD`) → Verify: `oma docs verify --json` (saída `0` limpa, `1` referências quebradas) ou Sync: `oma docs sync --json` no intervalo → Sintetizar achados sob o contrato do host LLM (verify: agrupar por CRITICAL/HIGH/MEDIUM/LOW com correções concretas; sync: redigir patches unified diff mínimos) → Apresentar cada patch de sync interativamente (`[y] apply [n] skip [d] show diff [s] show full proposal`; nunca aplicar automaticamente) → Ao aplicar, regenerar o índice com `oma docs verify --json` → Relatar modo, contagens por tipo e ponteiros para `docs/generated/doc-refs.json` / `url-drift.json`.
+
+**Regras:** Nunca aplique patches de sync automaticamente (é necessária confirmação `[y]` por documento). Nunca modifique `.agents/` (SSOT). Se `oma docs` não existir, mostre uma dica de instalação e saia — não recorra a greps manuais.
+
+**Arquivos lidos:** Markdown-alvo (`**/*.md` ou glob solicitado), `git diff` dos `changedFiles` de sync.
+**Arquivos escritos:** `docs/generated/doc-refs.json` (sempre regenerado por verify), `docs/generated/url-drift.json` (quando a checagem de URL roda), patches documentais aprovados (em sync `[y]`).
+
+**Quando usar:** Verificar se os documentos continuam compatíveis com o código (caminhos, comandos CLI, chaves de configuração e variáveis de ambiente) ou propor patches depois de uma mudança de código.
+
+---
+
+### /recap
+
+**Descrição:** Recapitulação diária ou por período com `oma-recap`. Resolve uma data ou janela a partir de linguagem natural, executa `oma recap --json` nos históricos de várias ferramentas de IA (Grok, Claude, Codex, Qwen, Cursor, Antigravity), delega análise de temas e formatação Markdown à skill e relata um TL;DR com o caminho salvo. Executa inline (sem iniciar subagentes); todos os fornecedores chamam `oma recap` diretamente.
+
+**Palavras-chave gatilho:** Universal: "recap". Coreano: "리캡". Japonês: "リキャップ".
+
+**Etapas:** Detectar o modo e resolver a janela (`daily` por padrão com hoje; `period` quando frases como "this week" / "지난 7일" resolvem para `--window Nd`) → Extrair um filtro `--tool` somente quando o usuário nomear explicitamente ferramentas (`grok, claude, codex, qwen, cursor, antigravity`) → Preflight (`command -v oma`) → Executar `oma recap --json` (daily: `--date YYYY-MM-DD` ou omitido; period: `--window 7d` / `30d`) → Sintetizar e salvar conforme o contrato da skill (limiar de tema de 15 minutos, template diário ou de vários dias) → Relatar um TL;DR de 3 bullets e o caminho salvo.
+
+**Regras:** Nunca modifique `.agents/` (SSOT). Nunca traduza automaticamente termos técnicos (nomes de projeto, ferramentas e flags CLI) no recap salvo. Não invente um recap quando nenhuma fonte estiver disponível.
+
+**Arquivos lidos:** Históricos de conversas de ferramentas de IA (via `oma recap`).
+**Arquivos escritos:** `.agents/results/recap/{date}.md` ou `.agents/results/recap/{start}~{end}.md`.
+
+**Quando usar:** Resumir o que foi trabalhado entre ferramentas de IA em um dia ou período (semana/mês), opcionalmente filtrado por ferramentas específicas.
+
+---
+
+
 ### /stack-set
 
-**Descrição:** Auto-detectar stack tecnológico do projeto e gerar referências específicas de linguagem para a skill backend.
+**Descrição:** Detecta automaticamente a stack tecnológica do projeto e gera referências específicas da linguagem para a skill de domínio resolvida (backend ou mobile). Detecta stacks mobile (Swift/iOS via `Package.swift`/`.xcodeproj`, Flutter via `pubspec.yaml`, React Native via `package.json` + react-native) e encaminha para `oma-mobile`; caso contrário, encaminha para `oma-backend`. Em monorepos onde ambos estão presentes, pergunta qual configurar.
 
 **Palavras-chave gatilho:** Nenhuma (excluído da auto-detecção).
 
-**Etapas:** Detectar (escanear manifestos: pyproject.toml, package.json, Cargo.toml, pom.xml, go.mod, mix.exs, Gemfile, *.csproj) -> Confirmar (exibir stack detectada, obter confirmação do usuário) -> Gerar (`stack/stack.yaml`, `stack/tech-stack.md`, `stack/snippets.md` com 8 padrões obrigatórios, `stack/api-template.*`) -> Verificar.
+<!-- oma-docs:ignore-start -->
+**Etapas:** Detectar (escanear manifestos: pyproject.toml, package.json, Cargo.toml, pom.xml, go.mod, mix.exs, Gemfile, *.csproj, Package.swift, *.xcodeproj, pubspec.yaml) -> Confirmar (exibir a stack detectada e obter confirmação do usuário) -> Gerar (`stack/stack.yaml`, `stack/tech-stack.md`, `stack/snippets.md` com 8 padrões obrigatórios, `stack/api-template.*`) -> Verificar.
+<!-- oma-docs:ignore-end -->
 
-**Saída:** Arquivos em `.agents/skills/oma-backend/stack/`. Não modifica SKILL.md ou `resources/`.
+**Saída:** Arquivos no diretório `stack/` da skill de domínio resolvida (por exemplo, `.agents/skills/oma-backend/stack/` ou `.agents/skills/oma-mobile/stack/`). Não modifica SKILL.md nem `resources/`.
 
 ---
+
+### /video
+
+**Descrição:** Conduz a skill `oma-video` de ponta a ponta: brief → script → narração → visuais → legendas → render-spec → compositor Remotion fornecido (ou MoneyPrinterTurbo). O workflow cria um diretório de execução reproduzível e emite um `.mp4` real somente depois que o compositor e as verificações do ffprobe passam. A configuração de fornecedores é opcional por chave para fallbacks de assets compatíveis; uma falha do compositor ou toolchain continua sendo uma execução com falha. Executa inline (sem iniciar subagentes).
+
+**Palavras-chave gatilho:**
+| Idioma | Palavras-chave |
+|----------|----------|
+| Universal | "/video", "oma-video", "remotion", "shorts", "reels", "screencast" |
+| Inglês | "generate video", "create a video", "make a video", "short-form video", "explainer video", "demo video", "walkthrough video", "video from readme", "video from code" |
+| Coreano | "영상 만들어", "영상 생성", "비디오 만들어", "숏폼 만들어", "쇼츠 영상", "릴스 영상", "데모 영상", "설명 영상" |
+| Japonês | "動画を生成", "動画を作成", "ショート動画", "解説動画", "デモ動画" |
+| Chinês | "生成视频", "制作视频", "短视频", "讲解视频", "演示视频" |
+
+**Etapas:**
+1. **Resolver o brief e o modo:** escolha `shorts` (9:16), `explainer` (16:9) ou `demo` (captura de tela/web); aplique os padrões do modo, que podem ser substituídos por flags.
+2. **Compor o script:** gere cenas e narração (LLM quando houver uma chave; caso contrário, outline determinístico do brief).
+3. **Sintetizar assets:** narração via `oma-voice`, visuais via `oma-image`/`oma-slide`/estoque, alinhamento de legendas sem chave ou captura web supervisionada para `demo --source web`. Cada fornecedor degrada para um fallback determinístico.
+4. **Construir o render-spec:** escreva `render-spec.json` (a fronteira de determinismo) e assets no diretório de execução.
+5. **Renderizar:** inicie o projeto Remotion fornecido (ou MoneyPrinterTurbo) como subprocesso. Falha normal do compositor ou toolchain reprova a execução; o placeholder determinístico só fica disponível no caminho explícito de mock/teste (`OMA_VIDEO_MOCK=1`). A captura ao vivo é registrada como `nondeterministic` no manifest.
+
+**Saída:** um diretório em `.agents/results/videos/{timestamp}-{shortid}-{mode}/` com `script.json`, `render-spec.json`, `timing.json`, `captions.{srt,vtt}`, `audio/`, `visuals/`, `{composition}.mp4` e `manifest.json`. Consulte o [guia de geração de vídeo](../guide/video-generation.md).
+
+---
+
+
+### /schedule
+
+**Descrição:** Registra e gerencia jobs de agentes baseados em tempo com os comandos `oma schedule <action>`. Os jobs vivem em um registro global (`~/.agents/schedule/`) e são disparados pelo scheduler nativo do SO (launchd no macOS, timers de usuário do systemd no Linux, schtasks no Windows, crontab como fallback POSIX); cada execução reentra no harness via `oma agent spawn`.
+
+**Palavras-chave gatilho:** Nenhuma (workflow invocado por slash para jobs baseados em tempo `oma schedule <action>`).
+
+**Etapas:** Resolver intenção (add / list / remove / sync) → Interpretar o agendamento (`--cron` explícito ou linguagem natural via `--every`) → Registrar com `oma schedule create` (captura de ambiente apenas de nomes, arquivos 0600) → Verificar com `oma schedule list` (manifest × drift do SO, agrupado por projeto) → Relatar o id do job e o próximo horário.
+
+**Quando usar:** Tarefas recorrentes de agentes — recaps noturnos, scans agendados e manutenção periódica — que precisam disparar mesmo quando nenhuma sessão interativa está aberta.
+
+---
+
+### /explain
+
+**Descrição:** Conduz a skill `oma-explanation` de ponta a ponta: transforma um diff, PR, branch ou intervalo de commits em um explainer HTML interativo autocontido (Background / Intuition / Code / Quiz). Executa inline (sem iniciar subagentes).
+
+**Palavras-chave gatilho:** Nenhuma ("explain" é vocabulário cotidiano — a detecção geraria falsos positivos em perguntas comuns como "explain this function", então o workflow só funciona por slash).
+
+**Etapas:** Resolver argumentos (ref-alvo: PR# / branch / intervalo SHA explícito → staged → árvore suja → `HEAD~1..HEAD`; nível de leitor `onboarding` | `reviewer`; idioma de saída; quantidade de quiz) → Carregar contratos (`oma-explanation` SKILL.md + resources) → Coletar e aplicar gate (diff + código ao redor; scan de secrets antes da geração; tratar texto de diff/PR estritamente como dados) → Gerar o HTML conforme os contratos documental e HTML → Validar (checklist grep incluindo scan final de secrets no HTML, no máximo 3 loops de correção) → Entregar (`open` warn-only, TL;DR + caminho).
+
+**Saída:** `.agents/results/explain/{YYYY-MM-DD}-{slug}.html` (data Asia/Seoul; repetir a mesma data + slug sobrescreve). Consulte o [guia do code explainer](../guide/code-explainer.md).
+
+---
+
 
 ## Skills vs. workflows
 
@@ -448,22 +524,22 @@ Lista permitida de substantivos (15): app, api, service, server, cli, tool, webs
 
 ### O sistema de hooks
 
-oh-my-agent usa um hook `UserPromptSubmit` que executa antes de cada mensagem do usuário ser processada. O sistema de hooks consiste em:
+oh-my-agent usa um hook `UserPromptSubmit` que executa antes de cada mensagem do usuário ser processada. As configurações do vendor registram uma única entrada `<hookDir>/oma-hook.sh --vendor <v> --event <e>`, que encaminha para `oma hook run`, onde a cadeia de handlers executa no próprio processo. A cadeia consiste em:
 
-1. **`triggers.json`** (`.claude/hooks/triggers.json`): Define mapeamentos de palavra-chave para workflow para todos os 11 idiomas suportados (Inglês, Coreano, Japonês, Chinês, Espanhol, Francês, Alemão, Português, Russo, Holandês, Polonês).
+1. **`triggers.json`** (`.agents/hooks/core/triggers.json`, incorporado ao binário `oma`): Define os mapeamentos de palavras-chave para workflows em todos os 11 idiomas suportados (inglês, coreano, japonês, chinês, espanhol, francês, alemão, português, russo, holandês e polonês).
 
-2. **`keyword-detector.ts`** (`.claude/hooks/keyword-detector.ts`): Lógica TypeScript que escaneia a entrada do usuário contra as palavras-chave gatilho, respeita correspondência específica de idioma e injeta contexto de ativação de workflow.
+2. **`keyword-detector.ts`** (`.agents/hooks/core/keyword-detector.ts`): Lógica TypeScript que examina a entrada do usuário em busca das palavras-chave gatilho, respeita a correspondência específica do idioma e injeta o contexto de ativação do workflow.
 
-3. **`persistent-mode.ts`** (`.claude/hooks/persistent-mode.ts`): Aplica execução de workflow persistente verificando arquivos de estado ativos e reinjetando contexto de workflow.
+3. **`persistent-mode.ts`** (`.agents/hooks/core/persistent-mode.ts`): Impõe a execução persistente do workflow verificando arquivos de estado ativos e reinjetando o contexto do workflow.
 
 ### Fluxo de detecção
 
-1. Usuário digita entrada em linguagem natural
-2. Hook verifica se `/command` explícito está presente (se sim, pular detecção para evitar duplicação)
-3. Hook sanitiza a entrada (remove blocos de código, strings entre aspas, blocos colados de eco do sistema) e então escaneia contra `.agents/hooks/core/triggers.json` — tanto listas de palavras-chave (frases literais) quanto `patterns` (regex bruto). Uma guarda de reforço suprime re-acionamentos se o mesmo workflow disparou 2+ vezes nos últimos 60 segundos.
-4. Se correspondência encontrada, verificar se a entrada corresponde a padrões informativos
-5. Se informativa (ex: "what is orchestrate?"), filtrar — sem ativação de workflow
-6. Se acionável, injetar `[OMA WORKFLOW: {workflow-name}]` no contexto
+1. O usuário digita uma entrada em linguagem natural
+2. O hook verifica se há um `/command` explícito (se houver, ignora a detecção para evitar duplicação)
+3. O hook higieniza a entrada (remove blocos de código, strings entre aspas e blocos colados de eco do sistema) e então procura em `.agents/hooks/core/triggers.json`, incluindo listas de palavras-chave (frases literais) e `patterns` (regex bruta). Uma guarda de reforço suprime novos gatilhos se o mesmo workflow tiver sido acionado 2 ou mais vezes nos últimos 60 segundos.
+4. Se houver correspondência, verifica se a entrada corresponde a padrões informativos
+5. Se for informativa (por exemplo, "what is orchestrate?"), filtra a entrada (nenhum workflow é acionado)
+6. Se for acionável, injeta `[OMA WORKFLOW: {workflow-name}]` no contexto
 7. O agente lê a tag injetada e carrega o arquivo de workflow correspondente de `.agents/workflows/`
 
 ### Convenção de seções de idioma
@@ -472,15 +548,15 @@ oh-my-agent usa um hook `UserPromptSubmit` que executa antes de cada mensagem do
 
 | Seção | Comportamento |
 |-------|---------------|
-| `*` | Universal — sempre carregada independentemente da configuração `language` em `.agents/oma-config.yaml`. Use para conteúdo em inglês (lingua franca) e tokens verdadeiramente cross-language (ex: nome de workflow `"orchestrate"`). |
-| `en` | Inglês — carregada por compatibilidade retroativa. Funcionalmente equivalente a `*`. Novo conteúdo em inglês deve ir em `*`. |
-| `ko`, `ja`, `zh`, `es`, `fr`, `de`, `pt`, `ru`, `nl`, `pl` | Específicas por idioma — carregadas apenas quando `language: <lang>` estiver definido em `.agents/oma-config.yaml`. |
+| `*` | Universal: sempre carregada independentemente da configuração `language` em `.agents/oma-config.yaml`. Use para conteúdo em inglês (lingua franca) e tokens realmente multilíngues (por exemplo, o nome do workflow `"orchestrate"`). |
+| `en` | Inglês: carregada para compatibilidade retroativa. É funcionalmente equivalente a `*`. Conteúdo novo em inglês deve ir em `*`. |
+| `ko`, `ja`, `zh`, `es`, `fr`, `de`, `pt`, `ru`, `nl`, `pl` | Específicas do idioma: carregadas somente quando `language: <lang>` estiver definido em `.agents/oma-config.yaml`. |
 
-**Implicação**: Se você definir `language: en` em `.agents/oma-config.yaml`, apenas os padrões de `*` e `en` serão carregados. Gatilhos em linguagem natural em coreano/japonês/etc. não dispararão mesmo se o usuário digitar nesses idiomas. Para habilitar um idioma diferente do inglês, defina `language: <code>` adequadamente. O fallback em inglês em `*` permanece sempre ativo.
+**Implicação:** Se você definir `language: en` em `.agents/oma-config.yaml`, somente os padrões de `*` e `en` serão carregados. Gatilhos em linguagem natural coreana, japonesa etc. não serão acionados mesmo se o usuário escrever nesses idiomas. Para habilitar um idioma diferente do inglês, defina `language: <code>` adequadamente. O fallback em inglês de `*` permanece sempre ativo.
 
-### Campo pattern (regex bruto) {#pattern-field-raw-regex}
+### Campo pattern (regex bruta) {#pattern-field-raw-regex}
 
-Além de `keywords` literais, cada workflow pode declarar `patterns` — strings regex brutas compiladas com flags `iu`. Patterns permitem correspondência de intenção multi-token que de outra forma exigiria listas combinatórias de palavras-chave.
+Além de `keywords` literais, cada workflow pode declarar `patterns`, strings de regex brutas compiladas com as flags `iu`. Patterns permitem a correspondência de intenções com vários tokens que, de outro modo, exigiriam listas combinatórias de palavras-chave.
 
 ```jsonc
 {
@@ -498,63 +574,73 @@ Além de `keywords` literais, cada workflow pode declarar `patterns` — strings
 ```
 
 Regras de autoria:
-- Strings são compiladas diretamente — escape barras invertidas uma vez para JSON, uma vez para regex (`\\b`, `\\s+`)
-- Sem encapsulamento automático de fronteira de palavra — autores de pattern lidam com `\b` por conta própria
-- Regex inválido é silenciosamente ignorado em runtime (visível em tempo de edição de configuração via falhas de teste)
+- As strings são compiladas diretamente; escape as barras invertidas uma vez para JSON e uma vez para regex (`\\b`, `\\s+`)
+- Não há inclusão automática de limites de palavra; os autores dos patterns devem cuidar de `\b`
+- Regex inválida é ignorada silenciosamente em runtime (fica visível em tempo de edição da configuração por meio de falhas nos testes)
 
 ### Filtragem de padrões informativos
 
-A seção `informationalPatterns` de `.agents/hooks/core/triggers.json` define frases que indicam perguntas em vez de comandos. Verificadas em uma janela de 60 caracteres ao redor de cada potencial correspondência de workflow:
+A seção `informationalPatterns` de `.agents/hooks/core/triggers.json` define frases que indicam perguntas, e não comandos. Elas são verificadas em uma janela de 60 caracteres ao redor de cada possível correspondência de workflow:
 
-| Seção | Exemplos de Padrão |
+| Seção | Exemplos de padrões |
 |-------|---------------------|
 | `*` (inglês universal) | "what is", "what are", "how to", "how does", "how do", "should we", "should i", "could we", "would you", "what if", "what about", "why build", "false positive", "trigger when", "auto-trigger" |
 | `ko` | "뭐야", "무엇", "어떻게", "설명해", "알려줘", "트리거", "발동", "메타", "왜 만들", "어떻게 만들", "어떨까", "한다면", "할까요" |
 | `ja` | "とは", "って何", "どうやって", "説明して" |
 | `zh` | "是什么", "什么是", "怎么", "解释" |
 
-Se a entrada corresponde tanto a um gatilho de workflow quanto a um padrão informativo, o padrão informativo tem prioridade e nenhum workflow é acionado. É isso que bloqueia prompts como:
-- `"How do you build a TODO app?"` — `how do` em `*` bloqueia o regex de intenção do orchestrate
-- `"orchestrate 트리거 해주면 되나요?"` (sob `language: ko`) — `트리거` em `ko` bloqueia a palavra-chave do orchestrate
+Se a entrada corresponder tanto a um gatilho de workflow quanto a um padrão informativo, o padrão informativo terá prioridade e nenhum workflow será acionado. É isso que bloqueia prompts como:
+- `"How do you build a TODO app?"`: `how do` em `*` bloqueia a regex de intenção do orchestrate
+- `"orchestrate 트리거 해주면 되나요?"` (com `language: ko`): `트리거` em `ko` bloqueia a palavra-chave do orchestrate
 
 ### Workflows excluídos
 
-Os seguintes workflows são excluídos da auto-detecção e devem ser invocados com `/command` explícito:
-- `/scm`
+Os workflows a seguir não são acionados por palavras-chave e precisam ser invocados com um `/command` explícito. `/tools` e `/stack-set` estão em `excludedWorkflows` (removidos deliberadamente da detecção por palavras-chave); `/convert` simplesmente não declara palavras-chave de gatilho (as skills `oma-pdf` e `oma-hwp` têm sua própria detecção); `/schedule` é um workflow invocado por slash (jobs baseados em tempo `oma schedule <action>`); `/explain` não declara palavras-chave porque "explain" é vocabulário cotidiano e a detecção por palavra-chave geraria falsos positivos constantes:
 - `/tools`
 - `/stack-set`
-- `/exec-plan`
 - `/convert`
+- `/schedule`
+- `/explain`
 
 ---
 
-## Mecânica do modo persistente
+## Mecânica do modo persistente {#persistent-mode-mechanics}
 
 ### Arquivos de estado
 
-Workflows persistentes (orchestrate, ultrawork, work) criam arquivos de estado em `.agents/state/`:
+Workflows persistentes (orchestrate, ultrawork, work, ralph) criam arquivos de estado em `.agents/state/`:
 
 ```
 .agents/state/
 ├── orchestrate-state.json
 ├── ultrawork-state.json
-└── work-state.json
+├── work-state.json
+└── ralph-state.json
 ```
 
 Esses arquivos contêm: nome do workflow, fase/etapa atual, ID de sessão, timestamp e qualquer estado pendente.
 
 ### Reforço
 
-Enquanto um workflow persistente está ativo, o hook `persistent-mode.ts` injeta `[OMA PERSISTENT MODE: {workflow-name}]` em cada mensagem do usuário. Isso garante que o workflow continue executando mesmo entre turnos de conversação.
+Enquanto um workflow persistente está ativo, o hook `persistent-mode.ts` injeta `[OMA PERSISTENT MODE: {workflow-name}]` em cada mensagem do usuário. Isso garante que o workflow continue executando mesmo entre turnos da conversa.
+
+### Contrato de objetivo (portão de parada opcional + orçamento)
+
+`oma goal set` anexa um contrato mecânico de conclusão a um workflow persistente ativo:
+
+- `--gate typecheck|test|lint`: o hook Stop permite que a sessão termine **somente quando o script correspondente de package.json passar** (executado como um array de argv, sem shell; comandos livres são rejeitados por design). Em caso de falha, bloqueia com o final da saída; falhas e timeouts contam para o limite de reforço, para que um portão vermelho não bloqueie indefinidamente.
+- `--budget-minutes <n>`: orçamento de tempo de parede contado a partir da ativação. Ao excedê-lo, o workflow é desativado e permite uma parada parcial honesta, registrada na trilha de eventos da sessão.
+
+Sem um contrato, o modo persistente se comporta como descrito acima; o contrato é opcional. Consulte `goal set` na [referência de comandos da CLI](../cli-interfaces/commands.md#goal-set).
 
 ### Desativação
 
-Para desativar um workflow persistente, o usuário diz "workflow done" (ou equivalente no idioma configurado). Isso:
-1. Deleta o arquivo de estado de `.agents/state/`
-2. Para de injetar o contexto de modo persistente
+Para desativar um workflow persistente, o usuário diz "workflow done" (ou o equivalente no idioma configurado). Isso:
+1. Exclui o arquivo de estado de `.agents/state/`
+2. Para de injetar o contexto do modo persistente
 3. Retorna à operação normal
 
-O workflow também pode terminar naturalmente quando todas as etapas são completadas e o portão final passa.
+O workflow também pode terminar naturalmente quando todas as etapas são concluídas e o portão final passa. Quando um portão de `goal set` está configurado, a passagem por esse portão desativa o workflow automaticamente.
 
 ---
 
@@ -577,17 +663,17 @@ Describe the task → relevant skill → implement → focused verification
 
 ### Entrega de qualidade máxima
 ```
-/ultrawork → PLAN (4 etapas de revisão) → IMPL → VERIFY (3 etapas de revisão) → REFINE (5 etapas de revisão) → SHIP (4 etapas de revisão)
+/ultrawork → PLAN (4 review steps) → IMPL → VERIFY (3 review steps) → REFINE (5 review steps) → SHIP (4 review steps)
 ```
 
 ### Investigação de bug
 ```
-/debug → reproduzir → causa raiz → correção mínima → teste de regressão → varredura de padrões similares
+/debug → reproduce → root cause → minimal fix → regression test → similar pattern scan
 ```
 
 ### Pipeline design-para-implementação
 ```
-/brainstorm → documento de design → /plan → breakdown de tarefas → /orchestrate → implementação paralela → /review → /scm
+/brainstorm → design document → /plan → task breakdown → /orchestrate → parallel implementation → /review → /scm
 ```
 
 ### Setup de novo codebase

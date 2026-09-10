@@ -1,153 +1,271 @@
 ---
 title: "ガイド：単一スキル実行"
-description: oh-my-agentの単一ドメインタスク詳細ガイド。使用条件、プリフライトチェックリスト、プロンプトテンプレート、フロントエンド・バックエンド・モバイル・データベースの実例、実行フロー、品質ゲートチェックリスト、エスカレーションシグナルを解説します。
+sidebar_label: 単一スキル
+description: oh-my-agentで単一ドメインのタスクを実行するための詳細ガイドです。使用するタイミング、プリフライトチェックリスト、説明付きのプロンプトテンプレート、フロントエンド・バックエンド・モバイル・データベースの実例、想定される実行フロー、品質ゲートチェックリスト、エスカレーションシグナルを扱います。
 ---
 
 # ガイド：単一スキル実行
 
-単一スキル実行は最短経路です。1つのエージェント、1つのドメイン、1つの集中したタスク。オーケストレーションのオーバーヘッドもマルチエージェント協調もありません。自然言語プロンプトからスキルが自動アクティベートされます。
+単一スキル実行は、1つのエージェントが1つのドメインに集中して1つのタスクを処理する最短経路です。オーケストレーションのオーバーヘッドや、複数エージェント間の調整はありません。ホストまたは選択したワークフローが自然言語のプロンプトをスキルへルーティングする場合があります。フックシステム自体がワークフローを検出し、ルーティング動作は選択したランタイムによって決まります。
+
+## クイックパス
+
+1. `oma doctor`を1回実行し、選択したホスト統合を確認します。使用しないプロバイダーに関する警告は、そのプロバイダーを使わないタスクを妨げません。
+2. 明確な **Goal**、**Context**、**Constraints**、**Done When** の条件を含む、自己完結した変更を1つ説明します。
+3. 選択したスキルがリポジトリを調査し、アクティブな実行コントラクトで`CHARTER_CHECK`が必要な場合はスコープを示し、実際に実行したチェックを報告します。
+4. タスクがAPI、UI、データベース、モバイルの境界をまたぐようになったら、単一スキルの実行を止めて`/work`または`/orchestrate`に切り替えます。
+
+管理対象の実行が停止した場合は、`oma agent status <session-id> [agent-id]`を使ってから、`.agents/state/agent-runs/`のレシートと注入されたclaimパスを確認して再試行します。プロバイダーと復旧の動作については、[重要なデフォルト設定](../getting-started/important-defaults.md)を参照してください。
 
 ---
 
-## 使うべきタイミング
+## 単一スキルを使うタイミング
 
-タスクが以下のすべての基準を満たす場合に使用します：
+タスクが以下のすべての基準を満たす場合に使用します。
 
-- **1つのドメインが所有**: タスク全体がフロントエンド、バックエンド、モバイル、データベースなど単一ドメインに属する
-- **自己完結**: クロスドメインのAPIコントラクト変更なし
-- **スコープが明確**: 出力が明確（コンポーネント、エンドポイント、スキーマ、修正）
-- **協調不要**: 他のエージェントの事前/事後実行が不要
+- **1つのドメインが担当**：タスク全体がフロントエンド、バックエンド、モバイル、データベース、デザイン、インフラストラクチャ、その他の単一ドメインに属する
+- **自己完結**：ドメインをまたぐAPIコントラクトの変更がなく、フロントエンドのタスクにバックエンドの変更が必要ない
+- **スコープが明確**：出力が明確である（コンポーネント、エンドポイント、スキーマ、修正など）
+- **調整が不要**：他のエージェントが前後に実行する必要がない
+
+**単一スキルタスクの例：**
+- UIコンポーネントを1つ作成する
+- APIエンドポイントを1つ追加する
+- 1つのレイヤーにあるバグを修正する
+- データベーステーブルを1つ設計する
+- Terraformモジュールを1つ作成する
+- i18n文字列を1組翻訳する
+- デザインシステムのセクションを1つ作成する
 
 **マルチエージェント**（`/work`または`/orchestrate`）に切り替えるべき場合：
 - UI作業に新しいAPIコントラクトが必要（フロントエンド + バックエンド）
-- 1つの修正がレイヤーをまたいで波及（デバッグ + 実装エージェント）
+- 1つの修正が複数のレイヤーに波及する（デバッグ + 実装エージェント）
 - 機能がフロントエンド、バックエンド、データベースにまたがる
-- 最初のイテレーション後にスコープが1つのドメインを超えて拡大
+- 最初のイテレーション後にスコープが1つのドメインを超える
 
-テストと受入基準は単一スキルの作業にも含まれます。それだけで`/ralph`が必要になるわけではありません。ドメイン間の調整や、明示的に依頼する品質プロセスについては、[スキルとワークフローの選び方](/docs/core-concepts/workflows#choosing-a-skill-or-workflow)を参照してください。
+テストと受入基準も単一スキルの作業に含まれます。これだけで`/ralph`が必要になるわけではありません。ドメイン間の調整や、明示的に依頼した品質プロセスについては、[スキルとワークフローの選び方](/docs/core-concepts/workflows#choosing-a-skill-or-workflow)を参照してください。
 
 ---
 
 ## プリフライトチェックリスト
 
-プロンプト前に以下の4要素を確認します（[プロンプト構造](/docs/core-concepts/skills)の4要素に対応）：
+プロンプトを作成する前に、以下の4つの質問に答えます。これは[プロンプト構造](/docs/core-concepts/skills)の4要素に対応します。
 
 | 要素 | 質問 | 重要な理由 |
 |---------|----------|----------------|
-| **Goal** | 何を作成または変更するか？ | 曖昧さを排除 |
-| **Context** | どのスタック、フレームワーク、規約が適用されるか？ | エージェントはプロジェクトファイルから検出するが、明示する方が確実 |
-| **Constraints** | どのルールに従うべきか？（スタイル、セキュリティ、パフォーマンス） | 制約なしではプロジェクトに合わないデフォルトが使用される |
-| **Done When** | どの受入基準で確認するか？ | エージェントに目標を、あなたに検証チェックリストを提供 |
+| **Goal** | どの具体的な成果物を作成または変更するか | 曖昧さを防ぐ（「ボタンを追加する」と「バリデーション付きフォームを追加する」は異なります） |
+| **Context** | どのスタック、フレームワーク、規約を適用するか | エージェントはプロジェクトファイルから検出しますが、明示した方が確実です |
+| **Constraints** | どのルールに従うべきか（スタイル、セキュリティ、パフォーマンス、互換性） | 制約がないと、プロジェクトに合わないデフォルトが使われます |
+| **Done When** | どの受入基準で確認するか | エージェントに目標を伝え、利用者には検証チェックリストを示します |
+
+プロンプトにいずれかの要素がない場合、エージェントは次のように処理します。
+
+- **不確実性がLOW**：デフォルトを適用し、仮定を列挙する
+- **不確実性がMEDIUM**：2〜3個の選択肢を示し、最も可能性の高いものを使って進める
+- **不確実性がHIGH**：質問して停止する（コードは書かない）
+
+---
 
 ## プロンプトテンプレート
 
 ```text
-<スタック>を使って<具体的な成果物>を構築してください。
-制約: <スタイル/パフォーマンス/セキュリティの制約>。
-受入基準:
-1) ...
-2) ...
-以下のテストを追加: <重要なケース>。
+Build <specific artifact> using <stack/framework>.
+Constraints: <style, performance, security, or compatibility constraints>.
+Acceptance criteria:
+1) <testable criterion>
+2) <testable criterion>
+3) <testable criterion>
+Add tests for: <critical test cases>.
 ```
 
 ### テンプレートの分解
 
-- **スタック宣言**: エージェントがプロジェクトを解析する手間を省きます。
-- **明示的な制約**: 既定のフォームライブラリやアーキテクチャパターンを禁止します。
-- **番号付き受入基準**: エージェントの検証チェックリストになります。
-- **テスト要件**: 適切な振る舞いを保証するエッジケースを規定します。
+| 部分 | 目的 | 例 |
+|------|---------|---------|
+| `Build <specific artifact>` | Goal（作成するもの） | 「ユーザー登録フォームのコンポーネントを作成する」 |
+| `using <stack/framework>` | Context（技術スタック） | 「React + TypeScript + Tailwind CSS を使う」 |
+| `Constraints:` | エージェントが従うルール | 「アクセシブルなラベル、外部フォームライブラリなし、クライアント側だけでバリデーション」 |
+| `Acceptance criteria:` | Done When（検証可能な完了条件） | 「1) メール形式のバリデーション 2) パスワード強度インジケーター 3) 無効な間は送信を無効にする」 |
+| `Add tests for:` | テスト要件 | 「有効または無効な送信経路、メールバリデーションの境界ケース」 |
+
+---
 
 ## 実例
 
-### Frontend：ログインフォーム
+### フロントエンド：ログインフォーム
 
 ```text
-React + TypeScript + Tailwind CSSでログインフォームコンポーネントを作成してください。
-制約：アクセシブルなラベル、Zodによるクライアントサイドバリデーション、@tanstack/react-form以外の外部フォームライブラリ不使用、shadcn/uiのButtonとInputコンポーネントを使用。
-受入基準：
-1) 意味のあるエラーメッセージ付きのメールバリデーション
-2) フィードバック付きで最低8文字のパスワード
-3) フォームが無効な間はサブミットボタンを無効化
-4) キーボードとスクリーンリーダーに対応（ARIAラベル、フォーカス管理）
-5) 送信中のローディング状態
-有効な送信パス、無効なメール、短いパスワード、ローディング状態のユニットテストを追加。
+Create a login form component in React + TypeScript + Tailwind CSS.
+Constraints: accessible labels, client-side validation with Zod, no external form library beyond @tanstack/react-form, shadcn/ui Button and Input components.
+Acceptance criteria:
+1) Email validation with meaningful error messages
+2) Password minimum 8 characters with feedback
+3) Disabled submit button while form is invalid
+4) Keyboard and screen-reader friendly (ARIA labels, focus management)
+5) Loading state while submitting
+Add unit tests for: valid submission path, invalid email, short password, loading state.
 ```
 
 **想定される実行フロー：**
 
-1. **スキルアクティベーション：** `oma-frontend`がアクティベート（キーワード：「form」「component」「Tailwind CSS」「React」）
-2. **難易度評価：** Medium（2〜3ファイル、バリデーションUXまわりの設計判断）
-3. **ロードされるリソース：** `execution-protocol.md`、`snippets.md`（フォーム + Zodパターン）、`component-template.tsx`
-4. **CHARTER_CHECK出力：** clarification LOW、ドメインfrontend、Must NOT doはバックエンドAPI/データベース/モバイル
-5. **実装：** `src/features/auth/components/login-form.tsx`（`"use client"`付きClient Component）、Zodスキーマ、Skeleton、`@tanstack/react-form`、shadcn/ui、絶対インポート`@/`
-6. **検証：** ARIAラベル、キーボードナビゲーション、320pxビューポート、CLSなし、Vitestテスト
+1. **スキルルーティング：** ホストまたはワークフローが`oma-frontend`を選択します（「form」「component」「Tailwind CSS」「React」などのキーワードがルーティングの手がかりです）。
+2. **難易度評価：** Medium（2〜3ファイル。バリデーションUXについていくつか設計判断があります）。
+3. **ロードされるリソース：**
+   - `execution-protocol.md`（常にロード）
+   - `snippets.md`（フォーム + Zodパターン）
+   - スキルから提供される場合は既存コンポーネントのパターンと`snippets.md`
+4. **実行コントラクト：** 有効な場合は`CHARTER_CHECK`を出力することがあります。
+   ```
+   CHARTER_CHECK:
+   - Clarification level: LOW
+   - Task domain: frontend
+   - Must NOT do: backend API, database, mobile screens
+   - Success criteria: form validation, accessibility, loading state, tests
+   - Assumptions: Next.js App Router, @tanstack/react-form + Zod, shadcn/ui, FSD-lite architecture
+   ```
+<!-- oma-docs:ignore-start -->
+5. **実装：**
+   - `src/features/auth/components/login-form.tsx`を作成（`"use client"`付きのClient Component）
+   - `src/features/auth/utils/login-schema.ts`を作成（Zodスキーマ）
+   - `src/features/auth/components/skeleton/login-form-skeleton.tsx`を作成
+   - shadcn/uiの`<Button>`、`<Input>`、`<Label>`を使用（読み取り専用、変更なし）
+   - `@tanstack/react-form`とZodでフォームを処理
+   - `@/`による絶対インポートを使用
+   - 1ファイルにつき1コンポーネント
+6. **検証：**
+   - チェックリスト：ARIAラベル、セマンティックな見出し、キーボード操作を確認
+   - モバイル：320pxのビューポートで正しく表示
+   - パフォーマンス：CLSなし
+   - テスト：`src/features/auth/utils/__tests__/login-schema.test.ts`にVitestテストファイル
+<!-- oma-docs:ignore-end -->
 
-### Backend：REST APIエンドポイント
+---
+
+### バックエンド：REST APIエンドポイント
 
 ```text
-認証済みユーザーのタスクを返すページネーション付きGET /api/tasksエンドポイントを追加してください。
-制約：Repository-Service-Routerパターン、パラメータ化クエリ、JWT認証必須、カーソルベースのページネーション。
-受入基準：
-1) 認証済みユーザーが所有するタスクのみ返す
-2) next/prevカーソル付きカーソルベースページネーション
-3) ステータス（todo、in_progress、done）でフィルタ可能
-4) レスポンスにtotal countを含む
-認証必須、ページネーション、ステータスフィルタ、空結果のテストを追加。
+Add a paginated GET /api/tasks endpoint that returns tasks for the authenticated user.
+Constraints: Repository-Service-Router pattern, parameterized queries, JWT auth required, cursor-based pagination.
+Acceptance criteria:
+1) Returns only tasks owned by the authenticated user
+2) Cursor-based pagination with next/prev cursors
+3) Filterable by status (todo, in_progress, done)
+4) Response includes total count
+Add tests for: auth required, pagination, status filter, empty results.
 ```
 
 **想定される実行フロー：**
 
-1. **スキルアクティベーション：** `oma-backend`がアクティベート（キーワード：「API」「endpoint」「REST」）
-2. **スタック検出：** `pyproject.toml`または`package.json`を読んで言語/フレームワークを判定。`stack/`が存在すればそこから規約をロード
-3. **難易度評価：** Medium（route、service、repository、テストの2〜3ファイル）
-4. **CHARTER_CHECK：** ドメインbackend、Must NOT doはフロントエンドUI/モバイル/スキーマ変更
-5. **実装：** Repository（`TaskRepository.find_by_user`、パラメータ化クエリ）、Service（ビジネスロジックラッパー）、Router（JWT認証ミドルウェア、入力バリデーション）
-6. **テスト：** 認証なしは401、ページネーションのカーソル、フィルタ動作、空配列の200
+1. **スキルルーティング：** ホストまたはワークフローが`oma-backend`を選択します（「API」「endpoint」「REST」などのキーワードがルーティングの手がかりです）。
+2. **スタック検出：** `pyproject.toml`または`package.json`を読み、言語とフレームワークを判定します。生成された`stack/`参照または同梱された`variants/`があれば、そこから規約をロードします。
+3. **難易度評価：** Medium（2〜3ファイル。route、service、repository、テスト）。
+4. **ロードされるリソース：**
+   - `execution-protocol.md`（常にロード）
+<!-- oma-docs:ignore-start -->
+   - 利用可能な場合は対応する`stack/snippets.md`または`variants/{node,python,rust}/snippets.md`
+   - 対応する`stack/tech-stack.md`またはvariantのtech-stack参照
+<!-- oma-docs:ignore-end -->
+5. **実行コントラクト：** 有効な場合は`CHARTER_CHECK`を出力することがあります。
+   ```
+   CHARTER_CHECK:
+   - Clarification level: LOW
+   - Task domain: backend
+   - Must NOT do: frontend UI, mobile screens, database schema changes
+   - Success criteria: authenticated endpoint, cursor pagination, status filter, tests
+   - Assumptions: existing JWT auth middleware, PostgreSQL, existing Task model
+   ```
+6. **実装：**
+   - Repository：パラメータ化クエリを使う`TaskRepository.find_by_user(user_id, cursor, status, limit)`
+   - Service：`TaskService.get_user_tasks(user_id, cursor, status, limit)`（ビジネスロジックのラッパー）
+   - Router：JWT認証ミドルウェア、入力バリデーション、レスポンス整形を備えた`GET /api/tasks`
+   - Tests：認証必須なら401、ページネーションなら正しいカーソル、フィルターが機能し、空の結果なら空配列を含む200
 
-### Mobile：設定画面
+---
+
+### モバイル：設定画面
 
 ```text
-プロフィール編集（名前、メール、アバター）、通知設定（トグルスイッチ）、ログアウトボタン付きの設定画面をFlutterで構築してください。
-制約：状態管理にRiverpod、ナビゲーションにGoRouter、Material Design 3、オフライン時の優雅な処理。
-受入基準：
-1) ユーザーデータからプロフィールフィールドを事前入力
-2) ローディングインジケーター付きで送信時に保存
-3) 通知トグルをローカルに永続化（SharedPreferences）
-4) ログアウトでトークンストレージをクリアしてログインに遷移
-5) オフライン：「offline」バナー付きでキャッシュデータを表示
-プロフィール保存、ログアウトフロー、オフライン状態のテストを追加。
+Build a settings screen in Flutter with profile editing (name, email, avatar), notification preferences (toggle switches), and a logout button.
+Constraints: Riverpod for state management, GoRouter for navigation, Material Design 3, handle offline gracefully.
+Acceptance criteria:
+1) Profile fields pre-populated from user data
+2) Changes saved on submit with loading indicator
+3) Notification toggles persist locally (SharedPreferences)
+4) Logout clears token storage and navigates to login
+5) Offline: show cached data with "offline" banner
+Add tests for: profile save, logout flow, offline state.
 ```
 
 **想定される実行フロー：**
 
-1. **スキルアクティベーション：** `oma-mobile`がアクティベート（キーワード：「Flutter」「screen」「mobile」）
-2. **難易度評価：** Medium（設定画面 + 状態管理 + オフライン処理）
-3. **ロードされるリソース：** `execution-protocol.md`、`snippets.md`、`screen-template.dart`
-4. **CHARTER_CHECK：** ドメインmobile、Must NOT doはバックエンドAPI変更/Webフロント/スキーマ
-5. **実装：** Screen（Stateless Widget + Riverpod）、Providers、Repository、オフライン処理（DioインターセプターでSocketExceptionを捕捉してキャッシュにフォールバック）、すべてのコントローラーは`dispose()`で破棄
+1. **スキルルーティング：** ホストまたはワークフローが`oma-mobile`を選択します（「Flutter」「screen」「mobile」などのキーワードがルーティングの手がかりです）。
+2. **難易度評価：** Medium（設定画面、状態管理、オフライン処理）。
+3. **ロードされるリソース：**
+   - `execution-protocol.md`
+   - `snippets.md`（画面テンプレート、Riverpodプロバイダーパターン）
+   - `screen-template.dart`
+4. **実行コントラクト：** 有効な場合は`CHARTER_CHECK`を出力することがあります。
+   ```
+   CHARTER_CHECK:
+   - Clarification level: LOW
+   - Task domain: mobile
+   - Must NOT do: backend API changes, web frontend, database schema
+   - Success criteria: profile editing, notification toggles, logout, offline
+   - Assumptions: existing auth service, Dio interceptors, Riverpod, GoRouter
+   ```
+<!-- oma-docs:ignore-start -->
+5. **実装：**
+   - `lib/features/settings/presentation/settings_screen.dart`（Riverpodを使うStateless Widget）
+   - `lib/features/settings/providers/settings_provider.dart`にプロバイダーを作成
+   - `lib/features/settings/data/settings_repository.dart`にリポジトリを作成
+   - オフライン処理：Dioインターセプターで`SocketException`を捕捉し、キャッシュデータにフォールバック
+   - すべてのコントローラーを`dispose()`メソッドで破棄
+<!-- oma-docs:ignore-end -->
 
-### Database：スキーマ設計
+---
+
+### データベース：スキーマ設計
 
 ```text
-マルチテナントSaaSプロジェクト管理ツールのデータベーススキーマを設計してください。エンティティ：Organization、Project、Task、User、TeamMembership。
-制約：PostgreSQL、3NF、deleted_atによるソフト削除、監査フィールド（created_at、updated_at、created_by）、テナント分離のための行レベルセキュリティ。
-受入基準：
-1) すべてのリレーションを文書化したERD
-2) 外部・概念・内部スキーマ層を文書化
-3) 一般的なクエリパターン（プロジェクト別タスク、担当者別タスク）のためのインデックス戦略
-4) 1万org、10万ユーザー、100万タスク向けのキャパシティ見積もり
-5) フル + 増分のバックアップ戦略
-データ標準テーブル、用語集、マイグレーションスクリプトを成果物に追加。
+Design a database schema for a multi-tenant SaaS project management tool. Entities: Organization, Project, Task, User, TeamMembership.
+Constraints: PostgreSQL, 3NF, soft delete with deleted_at, audit fields (created_at, updated_at, created_by), row-level security for tenant isolation.
+Acceptance criteria:
+1) ERD with all relationships documented
+2) External, conceptual, and internal schema layers documented
+3) Index strategy for common query patterns (tasks by project, tasks by assignee)
+4) Capacity estimation for 10K orgs, 100K users, 1M tasks
+5) Backup strategy with full + incremental cadence
+Add deliverables: data standards table, glossary, migration script.
 ```
 
 **想定される実行フロー：**
 
-1. **スキルアクティベーション：** `oma-db`がアクティベート（キーワード：「database」「schema」「ERD」「migration」）
-2. **難易度評価：** Complex（アーキテクチャ判断、複数エンティティ、キャパシティ計画）
-3. **ロードされるリソース：** `execution-protocol.md`、`document-templates.md`、`examples.md`、`anti-patterns.md`
-4. **CHARTER_CHECK：** ドメインdatabase、Must NOT doはAPI実装/フロントUI/インフラ
-5. **ワークフロー：** 探索（エンティティ、リレーション、アクセスパターン、ボリューム）→ 設計（外部/概念/内部スキーマ、制約、ライフサイクル）→ 最適化（インデックス、パーティショニング、バックアップ、アンチパターンレビュー）
-6. **成果物：** 外部スキーマサマリ（ロール別ビュー）、ERD付き概念スキーマ、物理DDLとインデックスの内部スキーマ、データ標準テーブル、用語集、キャパシティ見積もり、バックアップ戦略、マイグレーションスクリプト
+1. **スキルルーティング：** ホストまたはワークフローが`oma-db`を選択します（「database」「schema」「ERD」「migration」などのキーワードがルーティングの手がかりです）。
+2. **難易度評価：** Complex（アーキテクチャ上の判断、複数のエンティティ、キャパシティ計画）。
+3. **ロードされるリソース：**
+   - `execution-protocol.md`
+   - `document-templates.md`（成果物の構成）
+   - `examples.md`
+   - `anti-patterns.md`（最適化時のレビュー）
+4. **実行コントラクト：** 有効な場合は`CHARTER_CHECK`を出力することがあります。
+   ```
+   CHARTER_CHECK:
+   - Clarification level: LOW
+   - Task domain: database
+   - Must NOT do: API implementation, frontend UI, infrastructure
+   - Success criteria: schema, ERD, indexes, capacity estimate, backup strategy
+   - Assumptions: PostgreSQL, 3NF, soft delete, multi-tenant with RLS
+   ```
+5. **ワークフロー：** 探索（エンティティ、リレーション、アクセスパターン、ボリューム見積もり）→設計（外部・概念・内部スキーマ、制約、ライフサイクル項目）→最適化（クエリパターン向けのインデックス、パーティショニング戦略、バックアップ計画、アンチパターンレビュー）
+6. **成果物：**
+   - 外部スキーマの概要（管理者、プロジェクトマネージャー、チームメンバーのロール別ビュー）
+   - ERD付きの概念スキーマ（Organization 1:N Project、Project 1:N Task、Organization 1:N TeamMembershipなど）
+   - 物理DDL、インデックス、パーティショニングを含む内部スキーマ
+   - データ標準テーブル（フィールド命名規則、型の規約）
+   - 用語集（tenant、workspace、assigneeなど）
+   - キャパシティ見積もりシート
+   - バックアップ戦略（日次フル + 毎時増分、30日保持）
+   - マイグレーションスクリプト
 
 ---
 
@@ -169,6 +287,7 @@ React + TypeScript + Tailwind CSSでログインフォームコンポーネン�
 - [ ] パフォーマンス：CLSなし、FCPターゲット達成
 - [ ] Error BoundariesとLoading Skeletons実装
 - [ ] shadcn/uiコンポーネントを直接変更していない（ラッパーを使用）
+- [ ] `@/`による絶対インポートを使用している（相対的な`../../`は使わない）
 
 ### バックエンド固有
 

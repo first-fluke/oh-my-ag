@@ -1,13 +1,17 @@
 ---
-title: Workflow
-description: Tham chiếu đầy đủ cho tất cả 16 workflow oh-my-agent — lệnh slash, chế độ liên tục và không liên tục, từ khóa trigger bằng 11 ngôn ngữ, các giai đoạn và bước, file đọc và ghi, cơ chế phát hiện tự động, lọc mẫu thông tin và quản lý trạng thái chế độ liên tục.
+title: Các workflow
+description: Tham chiếu đầy đủ cho 21 workflow oh-my-agent, gồm lệnh slash, chế độ liên tục và không liên tục, từ khóa trigger bằng 11 ngôn ngữ, các giai đoạn và bước, file đọc và ghi, cơ chế phát hiện tự động qua triggers.json và keyword-detector.ts, lọc mẫu thông tin và quản lý trạng thái chế độ liên tục.
 ---
 
-# Workflow
+# Các workflow
+
+Workflow là quy trình nhiều bước có cấu trúc, được kích hoạt bởi lệnh slash hoặc từ khóa ngôn ngữ tự nhiên. Chúng định nghĩa cách agent cộng tác trong task, từ tiện ích một giai đoạn đến cổng chất lượng năm giai đoạn.
+
+Có 21 workflow, trong đó 4 workflow là liên tục, nghĩa là chúng duy trì trạng thái và không thể bị ngắt do vô tình.
 
 Workflow là quy trình có cấu trúc nhiều bước được kích hoạt bởi lệnh slash hoặc từ khóa ngôn ngữ tự nhiên. Chúng định nghĩa cách agent cộng tác trong task — từ tiện ích đơn giai đoạn đến cổng chất lượng phức tạp 5 giai đoạn.
 
-Có 16 workflow, trong đó 4 là liên tục (duy trì trạng thái và không thể bị gián đoạn ngẫu nhiên).
+Có 21 workflow, trong đó 4 là liên tục (duy trì trạng thái và không thể bị gián đoạn ngẫu nhiên).
 
 ---
 
@@ -33,140 +37,324 @@ Việc đánh giá kế hoạch kế thừa quyền đã được cấp cho task
 
 ---
 
-## Workflow liên tục
+## Các workflow liên tục
 
 Workflow liên tục tiếp tục chạy cho đến khi tất cả task hoàn thành. Chúng duy trì trạng thái trong `.agents/state/` và đưa lại ngữ cảnh `[OMA PERSISTENT MODE: ...]` vào mỗi tin nhắn người dùng cho đến khi được vô hiệu hóa tường minh.
 
 ### /orchestrate
 
-**Mô tả:** Thực thi agent song song tự động qua CLI. Spawn subagent qua CLI, điều phối qua MCP memory, giám sát tiến trình và chạy vòng lặp xác minh.
+**Mô tả:** Thực thi agent song song tự động qua CLI. Workflow spawn subagent bằng CLI, điều phối qua run state và receipt bền vững, giám sát tiến trình và chạy các vòng xác minh.
 
 **Liên tục:** Có. File trạng thái: `.agents/state/orchestrate-state.json`.
 
-**Mẫu regex trigger** (intent + danh sách trắng danh từ, xem [Phát hiện tự động: trường Pattern](#pattern-field-raw-regex)):
-| Section | Pattern | Ví dụ kích hoạt |
-|---------|---------|----------------------|
-| `*` (chung) | `(build\|create\|make\|develop\|implement\|scaffold) + (a\|an\|the) + [modifier]{0,3} + <noun>` | "Build a TODO app with user authentication", "Create an awesome web service", "Develop a backend with PostgreSQL" |
-| `*` (chung) | `i want a/an + <noun>` | "I want a CLI for parsing logs" |
-| `ko` | `<noun> + (을\|를\|이\|가)? + (만들어\|구현해\|개발해 + biến thể)` | "TODO 앱 만들어줘", "REST API 구현해", "백엔드를 개발해주세요" |
+**Từ khóa trigger:**
+| Language | Keywords |
+|----------|----------|
+| Universal | "orchestrate" |
+| English | "parallel", "do everything", "run everything" |
+| Korean | "자동 실행", "병렬 실행", "전부 실행", "전부 해" |
+| Japanese | "オーケストレート", "並列実行", "自動実行" |
+| Chinese | "编排", "并行执行", "自动执行" |
+| Spanish | "orquestar", "paralelo", "ejecutar todo" |
+| French | "orchestrer", "parallèle", "tout exécuter" |
+| German | "orchestrieren", "parallel", "alles ausführen" |
+| Portuguese | "orquestrar", "paralelo", "executar tudo" |
+| Russian | "оркестровать", "параллельно", "выполнить всё" |
+| Dutch | "orkestreren", "parallel", "alles uitvoeren" |
+| Polish | "orkiestrować", "równolegle", "wykonaj wszystko" |
 
+**Mẫu regex trigger** (ý định + danh sách trắng danh từ, xem [Phát hiện tự động: trường Pattern](#pattern-field-raw-regex)):
+| Section | Pattern | Examples that trigger |
+|---------|---------|----------------------|
+| `*` (universal) | `(build\|create\|make\|develop\|implement\|scaffold) + (a\|an\|the) + [modifier]{0,3} + <noun>` | "Build a TODO app with user authentication", "Create an awesome web service", "Develop a backend with PostgreSQL" |
+| `*` (universal) | `i want a/an + <noun>` | "I want a CLI for parsing logs" |
+| `ko` | `<noun> + (을\|를\|이\|가)? + (만들어\|구현해\|개발해 + 변형)` | "TODO 앱 만들어줘", "REST API 구현해", "백엔드를 개발해주세요" |
 Danh sách trắng danh từ (15): app, api, service, server, cli, tool, website, dashboard, system, feature, backend, frontend, prototype, mvp, bot.
 
-**Tải hoặc tạo kế hoạch:** Kiểm tra `.agents/results/plan-{sessionId}.json`, rồi đến `plan-*.json` mới nhất. Nếu không có kế hoạch, hoặc task thiếu agent, tier ưu tiên, phụ thuộc hay tiêu chí chấp nhận, giao cho `/plan` tạo kế hoạch inline với cùng session ID. Trình bày kế hoạch và kế thừa quyền hiện có; trước khi giao task, chỉ hỏi khi thiếu quyết định quan trọng hoặc cần quyền mới.
+**Các bước:**
+1. **Bước 0, Chuẩn bị:** Đọc skill coordination, hướng dẫn context-loading và memory protocol. Phát hiện vendor.
+2. **Bước 1, Tải/tạo plan:** Kiểm tra `.agents/results/plan-{sessionId}.json` rồi đến `plan-*.json` mới nhất. Nếu không có plan, hoặc plan chưa sẵn sàng để thực thi (task thiếu agent, tier ưu tiên, dependency hoặc acceptance criteria), giao `/plan` inline để tạo plan với cùng session ID. Trình bày plan và dùng lại quyền đã cấp; chỉ hỏi khi thiếu quyết định quan trọng hoặc cần quyền mới trước khi giao.
+3. **Bước 2, Khởi tạo session:** Tải `oma-config.yaml`, hiển thị bảng ánh xạ CLI, dùng session ID từ lúc tạo plan hoặc tạo ID mới (`session-YYYYMMDD-HHMMSS`), rồi tạo `orchestrator-session-{sessionId}.md` và `task-board-{sessionId}.md` trong memory store đã cấu hình.
+4. **Bước 3, Spawn agent:** Với từng tier ưu tiên (P0 trước, sau đó P1...), spawn agent bằng phương thức phù hợp vendor (subagent native khi runtime hiện tại và vendor đích trùng nhau; `oma agent spawn` cho vendor ngoài hoặc khác vendor). Không vượt quá MAX_PARALLEL.
+5. **Bước 4, Giám sát:** Poll file `progress-{agentId}-{taskId}-{runId}-{sessionId}.md` theo run và receipt có cấu trúc, sau đó cập nhật task board. Theo dõi hoàn thành, thất bại và crash.
+6. **Bước 5, Xác minh:** Chạy `verify.sh {agent-type} {workspace}` cho mỗi agent hoàn tất. Khi thất bại, spawn lại với ngữ cảnh lỗi (tối đa 2 lần thử). Sau 2 lần thử, bật Exploration Loop: tạo 2-3 giả thuyết, chạy thí nghiệm song song, chấm điểm và giữ phương án tốt nhất.
+7. **Bước 6, Thu thập:** Đọc file result theo run và claim có cấu trúc, rồi biên soạn tóm tắt.
+8. **Bước 7, Báo cáo cuối:** Trình bày tóm tắt session. Nếu đã đo Quality Score, hãy đưa tóm tắt Experiment Ledger và tự tạo bài học.
 
-**Khởi tạo phiên:** Tải `oma-config.yaml`, hiển thị bảng ánh xạ CLI, dùng lại session ID từ lúc tạo kế hoạch hoặc tạo ID mới (`session-YYYYMMDD-HHMMSS`). Tạo `orchestrator-session.md` và `task-board.md` trong bộ nhớ.
+**File đọc:** `.agents/results/plan-{sessionId}.json`, `.agents/oma-config.yaml``, file progress/result theo run và receipt run có cấu trúc.
+**File ghi:** state session/task-board theo run trong memory store đã cấu hình, receipt và claim có cấu trúc, cùng báo cáo cuối.
+
+**Khi sử dụng:** Dự án lớn cần mức song song tối đa cùng điều phối tự động.
+
 
 ### /work
 
-**Mô tả:** Điều phối đa lĩnh vực từng bước. PM lập kế hoạch trước, sau đó agent thực thi trong phạm vi được cho phép, tiếp theo là đánh giá QA và khắc phục vấn đề.
+**Mô tả:** Điều phối đa lĩnh vực từng bước. PM lập plan trước, agent thực thi trong phạm vi được cấp quyền, sau đó QA review và khắc phục vấn đề.
 
 **Liên tục:** Có. File trạng thái: `.agents/state/work-state.json`.
 
-**Đánh giá kế hoạch:** Trình bày kế hoạch và tiếp tục trong phạm vi quyền hiện có. Chỉ hỏi khi thiếu quyết định quan trọng hoặc cần quyền mới.
+**Từ khóa trigger:**
+| Language | Keywords |
+|----------|----------|
+| Universal | "work", "step by step" |
+| Korean | "코디네이트", "단계별" |
+| Japanese | "コーディネート", "ステップバイステップ" |
+| Chinese | "协调", "逐步" |
+| Spanish | "coordinar", "paso a paso" |
+| French | "coordonner", "étape par étape" |
+| German | "koordinieren", "schritt für schritt" |
 
-**Khi dùng:** Tính năng trải nhiều lĩnh vực cần điều phối lập kế hoạch, triển khai và QA từng bước.
+**Các bước:**
+1. **Bước 0, Chuẩn bị:** Đọc skill, context-loading và memory protocol. Ghi thời điểm bắt đầu session.
+2. **Bước 1, Phân tích yêu cầu:** Xác định các lĩnh vực liên quan. Nếu chỉ một lĩnh vực, đề xuất dùng agent trực tiếp.
+3. **Bước 2, PM lập plan:** PM phân rã yêu cầu, định nghĩa API contract, tạo task breakdown có ưu tiên và lưu vào `.agents/results/plan-{sessionId}.json`.
+4. **Bước 3, Review plan:** Trình bày plan và tiếp tục trong phạm vi quyền hiện có. Chỉ hỏi khi thiếu quyết định quan trọng hoặc cần quyền mới.
+5. **Bước 4, Spawn agent:** Spawn theo tier ưu tiên, chạy song song trong cùng tier và dùng workspace riêng.
+6. **Bước 5, Giám sát:** Poll file tiến trình, xác minh các agent khớp API contract.
+7. **Bước 6, QA review:** Spawn QA agent để review bảo mật (OWASP), hiệu suất, accessibility và chất lượng mã.
+8. **Bước 6.1, Quality Score** (tùy điều kiện): Đo và ghi baseline.
+9. **Bước 7, Lặp:** Nếu có vấn đề CRITICAL/HIGH, spawn lại agent chịu trách nhiệm. Nếu cùng vấn đề còn sau 2 lần thử, bật Exploration Loop.
+
+**Khi sử dụng:** Feature trải trên nhiều lĩnh vực khi cần điều phối lập plan, triển khai và QA từng bước.
+
 
 ### /ultrawork
 
-**Mô tả:** Workflow chú trọng chất lượng. 5 giai đoạn, 17 bước tổng, 11 bước đánh giá. Mỗi giai đoạn có cổng phải pass trước khi tiếp tục.
+**Mô tả:** Workflow tập trung vào chất lượng. Có 5 phase, 17 bước tổng cộng và 12 bước review cô lập. Mỗi phase có gate phải đạt trước khi tiếp tục.
 
 **Liên tục:** Có. File trạng thái: `.agents/state/ultrawork-state.json`.
 
-**Giai đoạn:**
+**Từ khóa trigger:**
+| Language | Keywords |
+|----------|----------|
+| Universal | "ultrawork", "ulw" |
+**Phase và bước:**
+| Phase | Bước | Agent | Góc nhìn review |
+|-------|------|-------|-----------------|
+| **PLAN** | 1-4 | PM Agent (inline) | Tính đầy đủ, meta-review, chống over-engineering/đơn giản |
+| **IMPL** | 5 | Dev Agent (spawn) | Triển khai |
+| **VERIFY** | 6-8 | QA Agent (spawn) | Đồng bộ, an toàn (OWASP), ngăn hồi quy |
+| **REFINE** | 9-13 | Refactor Agent (spawn) | Tách file, tái sử dụng, tác động lan truyền, nhất quán, dead code |
+| **SHIP** | 14-17 | QA Agent (spawn) | Chất lượng mã (lint/coverage), UX flow, vấn đề liên quan, sẵn sàng triển khai |
 
-| Giai đoạn | Bước | Agent | Góc nhìn đánh giá |
-|-------|-------|-------|-------------------|
-| **PLAN** | 1-4 | Agent PM (inline) | Hoàn chỉnh, Meta-review, Chống over-engineering/Đơn giản |
-| **IMPL** | 5 | Agent Dev (spawn) | Triển khai |
-| **VERIFY** | 6-8 | Agent QA (spawn) | Đồng bộ, An toàn (OWASP), Ngăn hồi quy |
-| **REFINE** | 9-13 | Agent Debug (spawn) | Tách file, Tái sử dụng, Tác động lan truyền, Nhất quán, Dead code |
-| **SHIP** | 14-17 | Agent QA (spawn) | Chất lượng mã (lint/coverage), UX Flow, Vấn đề liên quan, Sẵn sàng triển khai |
+**Định nghĩa gate:**
+- **PLAN_GATE:** Plan được ghi lại, giả định được liệt kê, phương án thay thế được cân nhắc, review chống over-engineering hoàn tất và phạm vi được cấp quyền.
+- **IMPL_GATE:** Check và test không tạo output áp dụng đều pass, chỉ sửa file đã plan, ghi Quality Score baseline nếu có đo. Chỉ chạy check build khi được yêu cầu rõ.
+- **VERIFY_GATE:** Triển khai khớp yêu cầu, không có CRITICAL/HIGH, không hồi quy, Quality Score >= 75 nếu có đo.
+- **REFINE_GATE:** Không có file/function lớn (> 500 dòng / > 50 dòng), cơ hội tích hợp đã được ghi nhận, side effect đã xác minh, code đã dọn và Quality Score không giảm.
+- **SHIP_GATE:** Check chất lượng pass, UX được xác minh, vấn đề liên quan được xử lý, checklist triển khai hoàn tất, Quality Score cuối >= 75 với delta không âm nếu có đo. Dùng lại quyền đã cấp; publishing hoặc deployment cần quyền riêng cho hành động đó.
 
-**Các cổng về kế hoạch, triển khai và phát hành:**
-- **PLAN_GATE:** Kế hoạch được ghi lại, giả định được liệt kê, các phương án được cân nhắc, đánh giá chống over-engineering hoàn tất và phạm vi công việc được cho phép.
-- **IMPL_GATE:** Các kiểm tra áp dụng không sinh file đầu ra và test đều pass, chỉ sửa file trong kế hoạch, ghi Quality Score ban đầu nếu có đo. Chỉ chạy kiểm tra build khi được yêu cầu rõ ràng.
-- **SHIP_GATE:** Kiểm tra chất lượng và UX đều pass, vấn đề liên quan được giải quyết, checklist triển khai hoàn tất. Nếu có đo, Quality Score cuối phải >= 75 và không giảm. Kế thừa quyền hiện có; xuất bản hoặc triển khai cần quyền cho chính hành động đó.
+**Ứng xử khi gate thất bại:**
+- Lần đầu: quay lại bước liên quan, sửa và thử lại.
+- Lần thứ hai cùng vấn đề: bật Exploration Loop (tạo 2-3 giả thuyết, thử từng giả thuyết, chấm điểm, giữ phương án tốt nhất).
+
+**Tăng cường có điều kiện:** Đo Quality Score, quyết định Keep/Discard, Experiment Ledger, Hypothesis Exploration và Auto-learning (bài học từ thí nghiệm bị loại).
+
+**Điều kiện bỏ qua REFINE:** Task đơn giản dưới 50 dòng.
+
+**Khi sử dụng:** Quy trình review đầy đủ trước khi quyết định kết quả đã sẵn sàng phát hành chưa. Workflow ghi lại check và finding; không tự quyết định mức sẵn sàng production.
+
 
 ### /ralph
 
-**Mô tả:** Vòng lặp thực thi tự tham chiếu liên tục. Bọc ultrawork với verifier độc lập kiểm tra tiêu chí hoàn thành sau mỗi lần lặp. Báo cáo hoàn thành toàn bộ khi mọi tiêu chí đều pass, hoàn thành một phần khi chỉ còn tiêu chí đã pass và tiêu chí bị chặn, hoặc dừng khi cơ chế bảo vệ kích hoạt.
+**Mô tả:** Vòng lặp thực thi tự tham chiếu liên tục. Bọc ultrawork bằng verifier độc lập kiểm tra tiêu chí hoàn thành sau mỗi lần lặp. Báo cáo hoàn thành đầy đủ khi mọi tiêu chí pass, hoàn thành một phần khi chỉ còn tiêu chí đã pass và bị chặn, hoặc dừng khi safeguard kích hoạt.
 
 **Liên tục:** Có. File trạng thái: `.agents/state/ralph-state.json`.
 
-**Khởi tạo và đánh giá:** Tải các tài nguyên cần thiết (context-loading, giao thức bộ nhớ, giao thức judge). Định nghĩa và ghi lại tiêu chí hoàn thành kiểm chứng được bằng máy, chẳng hạn assertion của test, kiểm tra kiểu không sinh file đầu ra, mã thoát hoặc sự tồn tại của file. Chỉ đưa kiểm tra build vào khi được yêu cầu rõ ràng. Trình bày tiêu chí và tiếp tục trong phạm vi được cho phép, với `max_iterations: 5`. Judge độc lập đối chiếu từng tiêu chí với trạng thái thực tế bằng các kiểm tra được cho phép và kiểm tra sự tồn tại của file. Ghi lại bằng chứng cùng trạng thái PASS, FAIL, REGRESSED hoặc BLOCKED.
+**Từ khóa trigger:**
+| Language | Keywords |
+|----------|----------|
+| Universal | "ralph" |
+| English | "don't stop", "until done", "keep going", "finish everything", "run to completion" |
+| Korean | "랄프", "멈추지마", "끝까지", "완료될때까지", "끝장내" |
+| Japanese | "止まるな", "完了まで", "最後まで", "全部終わらせて" |
+| Chinese | "不要停", "直到完成", "全部完成", "做完为止" |
+| Spanish | "no pares", "hasta completar", "termina todo" |
+| French | "n'arrête pas", "jusqu'à complétion", "termine tout" |
+| German | "hör nicht auf", "bis zur fertigstellung", "alles fertigstellen" |
 
-**Quyết định:** Nếu mọi tiêu chí đều PASS, báo cáo hoàn thành toàn bộ. Nếu chỉ còn PASS và BLOCKED, báo cáo hoàn thành một phần. Nếu có FAIL hoặc REGRESSED, chuyển ngữ cảnh thất bại sang lần lặp tiếp theo trong giới hạn bảo vệ. Vòng lặp dừng khi `current_iteration >= max_iterations` (mặc định 5), hoặc cùng một tiêu chí thất bại 3 lần liên tiếp với cùng nguyên nhân gốc.
+**Các phase:**
+1. **Phase 0, INIT:** Tải prerequisite (context-loading, memory protocol, judge protocol). Định nghĩa và ghi tiêu chí hoàn thành có thể kiểm chứng bằng máy, chẳng hạn test assertion, type check không tạo output, exit code hoặc sự tồn tại của file. Chỉ thêm check build khi được yêu cầu rõ. Hiển thị tiêu chí và tiếp tục trong phạm vi quyền đã cấp. Khởi tạo session với `max_iterations: 5`.
+2. **Phase 1, WORK:** Chạy ultrawork (PLAN → IMPL → VERIFY → REFINE → SHIP) trong một lần lặp.
+3. **Phase 2, JUDGE:** Verifier độc lập đối chiếu từng tiêu chí với trạng thái project thực tế (chạy check được phép và xác minh file tồn tại). Ghi bằng chứng cùng trạng thái PASS, FAIL, REGRESSED hoặc BLOCKED.
+4. **Phase 3, DECIDE:** Nếu mọi tiêu chí PASS, báo cáo hoàn thành đầy đủ. Nếu chỉ còn PASS và BLOCKED, báo cáo hoàn thành một phần. Nếu có FAIL hoặc REGRESSED, chuyển ngữ cảnh thất bại vào lần lặp kế tiếp, theo safeguard.
+5. **Safeguard:** Dừng loop khi `current_iteration >= max_iterations` (mặc định 5), hoặc khi cùng tiêu chí fail 3 lần liên tiếp với cùng nguyên nhân gốc (phát hiện bị kẹt).
 
-**Khác biệt chính so với /ultrawork:** Ultrawork chạy quy trình 5 giai đoạn và thử lại khi một cổng không đạt. Ralph bọc ultrawork trong vòng lặp thử lại, với judge độc lập xác minh việc hoàn thành. Vòng lặp kết thúc bằng báo cáo hoàn thành toàn bộ, hoàn thành một phần do công việc bị chặn, hoặc báo cáo dừng theo cơ chế bảo vệ.
+**Khác biệt chính với /ultrawork:** Ultrawork chạy quy trình 5 phase và thử lại khi gate thất bại. Ralph bọc ultrawork trong loop retry với judge độc lập đánh giá khách quan việc hoàn thành. Loop kết thúc bằng báo cáo hoàn thành đầy đủ, báo cáo một phần cho công việc bị chặn hoặc báo cáo safeguard.
 
-**Khi dùng:** Khi bạn yêu cầu rõ ràng việc lặp lại thực thi và xác minh độc lập theo tiêu chí hoàn thành kiểm chứng được bằng máy. Chỉ có test không có nghĩa là cần Ralph; hãy tính đến toàn bộ quy trình ultrawork trong mỗi lần lặp và các cơ chế bảo vệ.
+**File đọc:** `.agents/workflows/ralph/resources/judge-protocol.md`` và toàn bộ file ultrawork.
+**File ghi:** `session-ralph.md` trong memory, log từng lần lặp và báo cáo cuối.
 
----
+**Khi sử dụng:** Khi bạn yêu cầu rõ việc thực thi lặp lại và xác minh độc lập theo tiêu chí hoàn thành có thể kiểm chứng bằng máy. Chỉ có test không bắt buộc Ralph; cần tính toàn bộ quy trình ultrawork và safeguard trong mỗi lần lặp.
+
 
 ## Workflow không liên tục
 
 ### /plan
 
-**Mô tả:** Phân tách task do PM dẫn dắt. Phân tích yêu cầu, chọn tech stack, phân tách thành task có ưu tiên với phụ thuộc, định nghĩa API contract.
+**Mô tả:** Phân tách task do PM dẫn dắt. Phân tích yêu cầu, chọn tech stack, chia thành task có ưu tiên và dependency, định nghĩa API contract.
 
-**Đầu ra:** `.agents/results/plan-{sessionId}.json`, ghi bộ nhớ.
+**Từ khóa trigger:**
+| Language | Keywords |
+|----------|----------|
+| Universal | "task breakdown" |
+| English | "plan" |
+| Korean | "계획", "요구사항 분석", "스펙 분석" |
+| Japanese | "計画", "要件分析", "タスク分解" |
+| Chinese | "计划", "需求分析", "任务分解" |
 
-### /exec-plan
+**Các bước:** Thu thập yêu cầu → phân tích khả thi kỹ thuật (MCP code analysis) → đánh giá độ phức tạp (Simple/Medium/Complex) → định nghĩa API contract nếu vượt ranh giới → phân rã thành task → review với người dùng → lưu artifact plan (JSON machine-readable và tracker Markdown human-readable cho Medium/Complex).
 
-**Mô tả:** Tạo, quản lý và theo dõi kế hoạch thực thi dưới dạng artifact repository trong `docs/exec-plans/`.
+**Đầu ra:** `.agents/results/plan-{sessionId}.json`, ghi memory và với Medium/Complex là `docs/plans/work/{NNN}-{name}.md` có bảng task, decision log, progress notes. Vòng đời theo dõi bằng field `Status` trong header Markdown (`Active` → `Completed`); plan không chuyển giữa thư mục. Design tạo bởi `/brainstorm` nằm tại `docs/plans/designs/{NNN}-{name}.md`.
+
+**Thực thi:** Inline, không spawn subagent. `/orchestrate` hoặc `/work` tiêu thụ plan và cập nhật field task/status trong lúc thực thi.
+
 
 ### /brainstorm
 
-**Mô tả:** Khám phá ý tưởng ưu tiên thiết kế. Khám phá ý định, làm rõ ràng buộc, đề xuất hướng tiếp cận, tạo tài liệu thiết kế được duyệt trước khi lập kế hoạch.
+**Mô tả:** Ideation ưu tiên thiết kế. Khám phá ý định, làm rõ ràng buộc, đề xuất các hướng và tạo tài liệu thiết kế được duyệt trước khi lập plan.
+
+**Từ khóa trigger:**
+| Language | Keywords |
+|----------|----------|
+| Universal | "brainstorm" |
+| English | "ideate", "explore design" |
+| Korean | "브레인스토밍", "아이디어", "설계 탐색" |
+| Japanese | "ブレインストーミング", "アイデア", "設計探索" |
+| Chinese | "头脑风暴", "创意", "设计探索" |
+
+**Các bước:** Khám phá ngữ cảnh dự án (MCP analysis) → hỏi câu làm rõ, mỗi lần một câu → đề xuất 2-3 hướng cùng đánh đổi → trình bày design theo từng phần, mỗi bước có người dùng duyệt → lưu design tại `docs/plans/designs/{NNN}-{name}.md` → chuyển tiếp bằng gợi ý `/plan`.
+
+**Quy tắc:** Không triển khai hoặc lập plan trước khi design được duyệt. Không xuất code. Áp dụng YAGNI.
+
 
 ### /architecture
 
-**Mô tả:** Workflow kiến trúc phần mềm — chẩn đoán vấn đề kiến trúc, chọn phương pháp phân tích phù hợp (định tuyến chẩn đoán / design-twice / ATAM / CBAM / ADR), so sánh tùy chọn, tổng hợp ý kiến bên liên quan, và tạo khuyến nghị, đánh giá hoặc ADR.
+**Mô tả:** Workflow kiến trúc phần mềm chẩn đoán vấn đề, chọn phương pháp phân tích phù hợp (diagnostic routing / design-twice / ATAM / CBAM / ADR), so sánh phương án, tổng hợp ý kiến liên quan và tạo recommendation, review hoặc ADR.
 
 **Từ khóa trigger:**
-| Ngôn ngữ | Từ khóa |
+| Language | Keywords |
 |----------|----------|
-| Chung | "architecture", "ADR", "ATAM", "CBAM" |
-| Tiếng Anh | "architecture review", "architectural tradeoff" |
-| Tiếng Hàn | "아키텍처", "설계 검토" |
-| Tiếng Nhật | "アーキテクチャ" |
-| Tiếng Trung | "架构" |
+| Universal | "architecture", "ADR", "ATAM", "CBAM" |
+| English | "architecture review", "architectural tradeoff" |
+| Korean | "아키텍처", "설계 검토" |
+| Japanese | "アーキテクチャ" |
+| Chinese | "架构" |
 
-**Các bước:** Định khung quyết định (kiến trúc mới / đánh giá / phân tích đánh đổi / ưu tiên đầu tư / viết ADR) -> Chọn phương pháp qua định tuyến chẩn đoán -> Phân tích kiến trúc hiện tại qua MCP code analysis (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`) -> Tổng hợp ý kiến bên liên quan (chỉ khi quyết định đủ cross-cutting để biện minh chi phí) -> Tạo khuyến nghị với giả định, đánh đổi, rủi ro, bước xác minh rõ ràng -> Bàn giao cho `/plan` khi cần triển khai.
+**Các bước:** Định khung quyết định (kiến trúc mới / review / phân tích đánh đổi / ưu tiên đầu tư / viết ADR) → chọn methodology qua diagnostic routing → phân tích kiến trúc hiện tại qua MCP code analysis (`get_symbols_overview`, `find_symbol`, `find_referencing_symbols`) → tổng hợp stakeholder input chỉ khi đủ cross-cutting để biện minh chi phí → tạo recommendation với assumption, tradeoff, risk và bước validation rõ ràng → bàn giao `/plan` khi cần triển khai.
 
-**Quy tắc:** KHÔNG viết code triển khai hoặc kế hoạch task trong workflow này. Bàn giao cho `/plan` sau quyết định kiến trúc. Luôn dùng MCP tools; không thay thế bằng đọc file thô hoặc grep.
+**Quy tắc:** Không viết code triển khai hoặc task plan trong workflow này. Bàn giao `/plan` sau quyết định kiến trúc. Luôn dùng MCP tools; không thay thế bằng đọc file thô hoặc grep.
 
-**Khi dùng:** Lựa chọn kiến trúc hệ thống, quyết định ranh giới module/service/ownership, ưu tiên refactor, viết ADR, điều tra khó khăn kiến trúc (khuếch đại thay đổi, phụ thuộc ẩn, API vụng).
+**Khi sử dụng:** Chọn kiến trúc hệ thống, quyết định ranh giới module/service/ownership, ưu tiên refactor, viết ADR, điều tra vấn đề kiến trúc (change amplification, dependency ẩn, API khó dùng).
 
----
 
 ### /deepinit
 
-**Mô tả:** Khởi tạo dự án đầy đủ. Phân tích codebase hiện có, tạo AGENTS.md, ARCHITECTURE.md và cơ sở kiến thức `docs/` có cấu trúc.
+**Mô tả:** Khởi tạo project đầy đủ. Phân tích codebase hiện có, tạo AGENTS.md, ARCHITECTURE.md và knowledge base `docs/` có cấu trúc.
+
+**Từ khóa trigger:**
+| Language | Keywords |
+|----------|----------|
+| Universal | "deepinit" |
+| Korean | "프로젝트 초기화" |
+| Japanese | "プロジェクト初期化" |
+| Chinese | "项目初始化" |
+
+**Các bước:** Chuẩn bị → phân tích codebase (loại project, kiến trúc, rule ngầm, domain, boundary) → tạo ARCHITECTURE.md (domain map, dưới 200 dòng) → tạo knowledge base `docs/` (design-docs/, plans/, generated/, product-specs/, references/, domain docs) → tạo AGENTS.md gốc (~100 dòng, mục lục) → tạo AGENTS.md boundary cho package monorepo (mỗi file dưới 50 dòng) → cập nhật harness hiện có nếu chạy lại → xác minh không dead link và đúng giới hạn dòng.
+
+**Đầu ra:** AGENTS.md, ARCHITECTURE.md, docs/design-docs/, docs/plans/, docs/PLANS.md, docs/QUALITY-SCORE.md, docs/CODE-REVIEW.md và tài liệu theo domain được phát hiện.
+
 
 ### /review
 
-**Mô tả:** Pipeline đánh giá QA đầy đủ. Kiểm tra bảo mật (OWASP Top 10), phân tích hiệu suất, kiểm tra accessibility (WCAG 2.1 AA) và đánh giá chất lượng mã.
+**Mô tả:** Pipeline QA đầy đủ gồm audit bảo mật (OWASP Top 10), phân tích hiệu suất, kiểm tra accessibility (WCAG 2.1 AA) và review chất lượng mã.
+
+**Từ khóa trigger:**
+| Language | Keywords |
+|----------|----------|
+| Universal | "code review", "security audit", "security review" |
+| English | "review" |
+| Korean | "리뷰", "코드 검토", "보안 검토" |
+| Japanese | "レビュー", "コードレビュー", "セキュリティ監査" |
+| Chinese | "审查", "代码审查", "安全审计" |
+
+**Các bước:** Xác định phạm vi review → check bảo mật tự động (npm audit, bandit) → review bảo mật thủ công (OWASP Top 10) → phân tích hiệu suất → review accessibility (WCAG 2.1 AA) → review chất lượng mã → tạo QA report.
+
+**Vòng lặp sửa-xác minh tùy chọn** (với `--fix`): Sau QA report, spawn agent lĩnh vực để sửa vấn đề CRITICAL/HIGH, chạy lại QA và lặp tối đa 3 lần.
+
+**Ủy quyền:** Với phạm vi lớn, ủy quyền Bước 2-7 cho subagent QA đã spawn.
+
 
 ### /deepsec
 
-**Mô tả:** Điều phối skill `oma-deepsec` từ đầu đến cuối. Cài `.deepsec/`, hiệu chuẩn chi phí, chạy các bước scan/process/triage/revalidate/export, chặn PR bằng `process --diff`, viết matcher tùy chỉnh và định tuyến phát hiện tới các agent chuyên trách. Chạy inline (không spawn subagent).
+**Mô tả:** Điều khiển skill `oma-deepsec` từ đầu đến cuối. Cài `.deepsec/`, hiệu chuẩn chi phí, chạy pass scan/process/triage/revalidate/export, gate PR bằng `process --diff`, viết matcher tùy chỉnh và route finding tới agent chuyên trách. Chạy inline, không spawn subagent.
 
-**Từ khóa kích hoạt:** "/deepsec", "deepsec workflow" (chung); "run deepsec", "deepsec pr review", "deepsec ci gate", "deepsec triage", "deepsec matchers" (tiếng Anh).
+**Từ khóa trigger:**
+| Language | Keywords |
+|----------|----------|
+| Universal | "/deepsec", "deepsec workflow" |
+| English | "run deepsec", "deepsec scan this repo", "scan repo with deepsec", "deepsec pr review", "deepsec ci gate", "deepsec triage", "deepsec matchers" |
+| Korean | "딥섹 워크플로우", "딥섹 실행", "딥섹 스캔", "딥섹으로 검사", "딥섹 PR 리뷰", "딥섹 CI 게이트" |
+| Japanese | "ディープセック実行", "deepsecワークフロー", "deepsecでスキャン", "deepsec PRレビュー" |
+| Chinese | "运行 deepsec", "deepsec 工作流", "用 deepsec 扫描", "deepsec PR 审查" |
 
-**Các bước:** Tải skill và chỉ các file resource khớp intent (`setup.md`, `scanning.md`, `pr-review.md`, `matchers.md`, `triage.md`, `config.md`); nếu `.deepsec/` đã tồn tại thì coi là chạy gia tăng, không `init` lại. Phân loại thành đúng một trong `setup`, `scan`, `pr-review`, `matchers`, `triage`, `config`, `troubleshoot`; chèn `setup` trước nếu thiếu `.deepsec/`. Xác nhận `claude` vs `codex` trước cuộc gọi tính phí. Thực thi: `setup` viết `data/<id>/INFO.md` (cần xác nhận người dùng); `scan` hiệu chuẩn `--limit 50 --concurrency 5`, ngoại suy chi phí, chạy `process` đầy đủ, `triage --severity HIGH` + `revalidate --min-severity HIGH`, `export`; `pr-review` dùng `process --diff origin/${BASE_REF} --comment-out comment.md` theo mẫu CI hai job; `matchers` viết `.deepsec/matchers/<slug>.ts` ở mức nhiễu phù hợp (`precise`/`normal`/`noisy`) rồi kiểm tra `scan --matchers`; `triage` lọc export về `true-positive`/`uncertain`. Tổng kết và định tuyến theo **lớp của file dễ tổn thương** (backend -> `oma-backend`, frontend -> `oma-frontend`, mobile -> `oma-mobile`, IaC -> `oma-tf-infra`, DB -> `oma-db`, CI -> `oma-dev-workflow`, drift docs -> `oma-docs`, thiếu entry-point -> quay lại bước matchers); lớp mơ hồ hoặc `revalidation.verdict === "uncertain"` thì đi qua `oma-debug` trước.
+**Các bước:**
+1. **Bước 1, Tải skill:** Đọc `.agents/skills/oma-deepsec/SKILL.md`, sau đó chỉ tải resource khớp intent đã resolve (`setup.md`, `scanning.md`, `pr-review.md`, `matchers.md`, `triage.md`, `config.md`). Nếu `.deepsec/` đã tồn tại ở root repo, coi là run tăng dần và không `init` lại.
+2. **Bước 2, Phân loại intent:** Resolve thành đúng một trong `setup`, `scan`, `pr-review`, `matchers`, `triage`, `config`, `troubleshoot`. Prompt nhiều intent chạy tuần tự. Nếu thiếu `.deepsec/`, chèn `setup` trước mọi intent có AI call.
+3. **Bước 3, Xác nhận lựa chọn agent:** Trước call có phí, xác nhận `claude` (suy luận mạnh nhất, đắt hơn) hay `codex` (sandbox chỉ đọc, rẻ hơn). Bỏ qua nếu người dùng nêu rõ một lựa chọn, `deepsec.config.ts` pin `defaultAgent`, hoặc người dùng ủy quyền chọn.
+4. **Bước 4, Thực thi intent:**
+   - **4A `setup`:** `bunx deepsec init`, `bun install`, sửa `.env.local`, xác minh bằng `scan --limit 20` + `process --limit 5`, sau đó soạn `data/<id>/INFO.md` (50-100 dòng, riêng dự án). Cần người dùng xác nhận `INFO.md`.
+   - **4B `scan`:** Scan → hiệu chuẩn bằng `--limit 50 --concurrency 5` → báo cáo cost extrapolation (cần người dùng đồng ý rõ) → `process` đầy đủ → `triage --severity HIGH` + `revalidate --min-severity HIGH` → `export --format md-dir` + `metrics`.
+   - **4C `pr-review`:** Direct-mode `process --diff origin/${BASE_REF} --comment-out comment.md`. Emit mẫu CI hai job, job `analyze` không có `pull-requests: write`, job `comment` chỉ dùng artifact đã sanitize. Exit `1` nghĩa là có ít nhất một finding mới ròng.
+   - **4D `matchers`:** Duyệt `data/<id>/files/` để tìm entry-point gap, ghi matcher theo slug vào `.deepsec/matchers/<slug>.ts` với noise tier phù hợp (`precise` / `normal` / `noisy`), nối qua `.deepsec/deepsec.config.ts`, xác minh bằng `scan --matchers`.
+   - **4E `triage`:** `triage --severity HIGH` → `revalidate --min-severity HIGH` → lọc export chỉ còn `true-positive` / `uncertain`. Ghi nhận FP lặp lại cho lần sửa `INFO.md` sau.
+   - **4F `config` / `troubleshoot`:** Áp dụng bảng triệu chứng trong `resources/config.md`.
+5. **Bước 5, Tóm tắt và route:** Tạo run summary (project id, pass type, agent/model, file đã scan, finding, TP sau revalidate, cost, wall time, điều kiện dừng). Route follow-up theo layer của file có lỗ hổng (backend → `oma-backend`, frontend → `oma-frontend`, mobile → `oma-mobile`, IaC → `oma-tf-infra`, DB → `oma-db`, CI → `oma-dev-workflow`, docs drift → `oma-docs`, thiếu entry-point → quay lại Bước 4D). Layer mơ hồ hoặc `revalidation.verdict === "uncertain"` → qua `oma-debug` trước.
+6. **Bước 6, Điều kiện dừng:** Kết thúc khi intent hoàn tất + summary Bước 5, precondition bị chặn (thiếu credential, từ chối `INFO.md`) hoặc quota stop có safe-resume command.
 
-**Quy tắc:** Không sửa mã nguồn sản phẩm trong workflow này. Không in hoặc commit credentials (`vck_…`, `sk-ant-…`, token OIDC). Không cấp `pull-requests: write` cho job CI chạy mã do PR điều khiển. Khi gián đoạn thì chạy lại cùng lệnh; không bao giờ `rm -rf data/<id>/` nếu người dùng không yêu cầu rõ.
+**File đọc:** `.agents/skills/oma-deepsec/SKILL.md`, `.agents/skills/oma-deepsec/resources/*.md` (theo intent), `data/<id>/INFO.md`, `data/<id>/files/`, `deepsec.config.ts`.
+**File ghi:** `.deepsec/` (khi `setup`), `.env.local` (gitignored), `data/<id>/INFO.md`, `.deepsec/matchers/<slug>.ts`, `findings/` (khi `export`), `comment.md` (khi `pr-review`).
 
-**Khi dùng:** Quét lỗ hổng repo bằng agent, gating bảo mật CI/PR qua `process --diff`, viết matcher riêng cho dự án để phủ entry-point, triage phát hiện cũ để giảm FP.
+**Quy tắc:** Không sửa code sản phẩm trong workflow này (bàn giao specialist). Không echo hoặc commit credential (`vck_…`, `sk-ant-…`, token OIDC). Không cấp `pull-requests: write` cho job CI chạy code do PR kiểm soát. Resume, không reset: khi gián đoạn chạy lại cùng lệnh; không `rm -rf data/<id>/` nếu chưa có yêu cầu rõ.
+
+**Khi sử dụng:** Scan lỗ hổng repo bằng agent, gate bảo mật CI/PR qua `process --diff`, viết matcher riêng để phủ entry-point và triage finding cũ nhằm cắt FP.
+
 
 ### /debug
 
-**Mô tả:** Chẩn đoán và sửa lỗi có cấu trúc với viết test hồi quy và quét mẫu tương tự.
+**Mô tả:** Chẩn đoán và sửa bug có cấu trúc, viết regression test và quét pattern tương tự.
+
+**Từ khóa trigger:**
+| Language | Keywords |
+|----------|----------|
+| Universal | "debug" |
+| English | "fix bug", "fix error", "fix crash" |
+| Korean | "디버그", "버그 수정", "에러 수정", "버그 찾아", "버그 고쳐" |
+| Japanese | "デバッグ", "バグ修正", "エラー修正" |
+| Chinese | "调试", "修复 bug", "修复错误" |
+
+**Các bước:** Thu thập thông tin lỗi → tái hiện (MCP `search_for_pattern`, `find_symbol`) → chẩn đoán nguyên nhân gốc (MCP `find_referencing_symbols` để lần theo execution path) → đề xuất sửa tối thiểu (cần người dùng xác nhận) → áp dụng sửa + viết regression test → quét pattern tương tự (có thể spawn subagent debug-investigator nếu phạm vi > 10 file) → ghi bug vào memory.
+
+**Điều kiện spawn subagent:** Lỗi trải trên nhiều domain, phạm vi scan > 10 file hoặc cần trace dependency sâu.
+
 
 ### /design
 
-**Mô tả:** Workflow thiết kế 7 giai đoạn tạo DESIGN.md với token, mẫu component và quy tắc accessibility.
+**Mô tả:** Workflow thiết kế 7 phase tạo DESIGN.md với token, pattern component và rule accessibility.
+
+**Từ khóa trigger:**
+| Language | Keywords |
+|----------|----------|
+| Universal | "design system", "DESIGN.md", "design token" |
+| English | "design", "landing page", "ui design", "color palette", "typography", "dark theme", "responsive design", "glassmorphism" |
+| Korean | "디자인", "랜딩페이지", "디자인 시스템", "UI 디자인" |
+| Japanese | "デザイン", "ランディングページ", "デザインシステム" |
+| Chinese | "设计", "着陆页", "设计系统" |
+
+**Các phase:** SETUP (thu thập context, `.design-context.md`) → EXTRACT (tùy chọn, từ URL tham chiếu/Stitch) → ENHANCE (khuếch đại prompt mơ hồ) → PROPOSE (2-3 hướng design với màu, typography, layout, motion, component) → GENERATE (DESIGN.md + token CSS/Tailwind/shadcn) → AUDIT (responsive, WCAG 2.2, heuristic Nielsen, kiểm tra AI slop) → HANDOFF (lưu và thông báo người dùng).
+
+**Bắt buộc:** Mọi output responsive-first (mobile 320-639px, tablet 768px+, desktop 1024px+).
+
 
 ### /scm
 
@@ -195,6 +383,69 @@ Danh sách trắng danh từ (15): app, api, service, server, cli, tool, website
 **Mô tả:** Tự phát hiện tech stack dự án và tạo tham chiếu theo ngôn ngữ cho skill backend.
 
 ---
+
+### /docs
+
+**Mô tả:** Phát hiện drift tài liệu và đồng bộ qua oma-docs. Verify tìm broken ref trong toàn bộ Markdown; `sync` đề xuất patch cho tài liệu bị ảnh hưởng bởi `git diff`. Chạy inline, không spawn subagent.
+
+**Từ khóa trigger:** Universal: oma-docs, docs `verify`, docs sync; English: verify docs, check docs, docs drift, broken doc links, stale docs, sync docs, patch docs; Korean, Japanese và Chinese có từ khóa tương ứng.
+
+<!-- oma-docs:ignore-start -->
+**Các bước:** Chọn verify hoặc sync, preflight, chạy lệnh docs, tổng hợp theo host-LLM contract, trình bày patch sync để người dùng chọn và tạo lại index khi apply.
+
+**Quy tắc:** Không tự apply patch; không sửa `.agents/`. Nếu thiếu `oma docs`, in gợi ý cài đặt và thoát.
+
+### /recap
+
+**Mô tả:** Tóm tắt công việc theo ngày hoặc giai đoạn qua `oma-recap` và lưu TL;DR.
+
+**Từ khóa trigger:** Universal recap, Korean 리캡, Japanese リキャップ.
+
+**Các bước:** Resolve `daily` hoặc `period`, lọc tool khi được nêu rõ, preflight, chạy recap JSON, lưu theo contract của skill và báo path.
+
+### /video
+
+**Mô tả:** Điều khiển oma-video từ brief đến script, narration, visuals, captions, render-spec và compositor. Chỉ xuất mp4 sau khi compositor và ffprobe pass; lỗi compositor vẫn là run thất bại.
+
+Chọn `shorts` (9:16), `explainer` (16:9) hoặc `demo` (screen/web capture), rồi áp dụng mode mặc định có thể ghi đè bằng flag.
+
+Xem [hướng dẫn tạo video](../guide/video-generation.md).
+
+**Từ khóa trigger:**
+| Language | Keywords |
+|----------|----------|
+| Universal | "/video", "oma-video", "remotion", "shorts", "reels", "screencast" |
+| English | "generate video", "create a video", "make a video", "short-form video", "explainer video", "demo video", "walkthrough video", "video from readme", "video from code" |
+| Korean | "영상 만들어", "영상 생성", "비디오 만들어", "숏폼 만들어", "쇼츠 영상", "릴스 영상", "데모 영상", "설명 영상" |
+| Japanese | "動画を生成", "動画を作成", "ショート動画", "解説動画", "デモ動画" |
+| Chinese | "生成视频", "制作视频", "短视频", "讲解视频", "演示视频" |
+
+### `/schedule`
+
+**Mô tả:** Đăng ký và quản lý job theo thời gian bằng oma schedule action, registry toàn cục và scheduler native của OS.
+
+**Từ khóa trigger:** Không có, chỉ gọi bằng slash.
+
+**Các bước:** Resolve add/list/remove/sync, parse cron hoặc every, tạo job, kiểm tra drift manifest × OS và báo thời gian fire tiếp theo.
+
+### `/explain`
+
+**Mô tả:** Điều khiển `oma-explanation` để biến diff, PR, branch hoặc commit range thành explainer HTML tự chứa gồm Background, Intuition, Code và Quiz.
+
+**Từ khóa trigger:** Không có, chỉ gọi bằng slash vì explain là từ thông dụng.
+
+**Các bước:** Resolve target ref, level `onboarding` hoặc `reviewer`, tải contract, scan secret, tạo và validate HTML với tối đa 3 vòng sửa, rồi deliver.
+
+<!-- oma-docs:ignore-end -->
+
+**Đầu ra:** Artifact explain HTML theo ngày và slug. Xem [hướng dẫn giải thích code](../guide/code-explainer.md).
+
+
+
+
+
+
+**Tham chiếu kỹ thuật giữ nguyên:** Các path, flag, command, placeholder và tên định danh sau đây được giữ nguyên để đối chiếu với CLI: `(build\|create\|make\|develop\|implement\|scaffold) + (a\|an\|the) + [modifier]{0,3} + <noun>`, `**/*.md`, `--budget-minutes <n>`, `--cron`, `--date YYYY-MM-DD`, `--every`, `--gate typecheck|test|lint`, `--temp`, `--tool`, `--window 7d`, `--window Nd`, `.agents/hooks/core/keyword-detector.ts`, `.agents/hooks/core/persistent-mode.ts`, `.agents/results/explain/{YYYY-MM-DD}-{slug}.html`, `.agents/results/recap/{date}.md`, `.agents/results/recap/{start}~{end}.md`, `.agents/results/videos/{timestamp}-{shortid}-{mode}/`, `.agents/skills/oma-backend/stack/`, `.agents/skills/oma-mobile/stack/`, `.agents/workflows/ralph/resources/judge-protocol.md`, `.xcodeproj`, `0`, `30d`, `<hookDir>/oma-hook.sh --vendor <v> --event <e>`, `<noun> + (을\|를\|이\|가)? + (만들어\|구현해\|개발해 + 변형)`, `HEAD~1..HEAD`, `OMA_VIDEO_MOCK=1`, `Package.swift`, `[y]`, `[y] apply [n] skip [d] show diff [s] show full proposal`, `audio/`, `bunx kordoc@latest`, `captions.{srt,vtt}`, `changedFiles`, `command -v oma`, `demo --source web`, `docs/generated/doc-refs.json`, `docs/generated/url-drift.json`, `excludedWorkflows`, `git add -A`, `grok, claude, codex, qwen, cursor, antigravity`, `manifest.json`, `nondeterministic`, `oma`, `oma docs sync --json`, `oma docs verify --json`, `oma goal set`, `oma hook run`, `oma recap`, `oma recap --json`, `oma schedule <action>`, `oma schedule create`, `oma schedule list`, `oma-image`, `oma-slide`, `oma-voice`, `open`, `package.json`, `pubspec.yaml`, `render-spec.json`, `resources/`, `scm.co_author`, `script.json`, `stack/`, `stack/api-template.*`, `stack/snippets.md`, `stack/stack.yaml`, `stack/tech-stack.md`, `timing.json`, `url-drift.json`, `uvx mdformat`, `uvx opendataloader-pdf`, `visuals/`, `{composition}.mp4`, `~/.agents/schedule/`.
 
 ## Skill so với workflow
 
@@ -282,23 +533,35 @@ Nếu đầu vào khớp cả trigger workflow và mẫu thông tin, mẫu thôn
 ### Workflow loại trừ
 
 Các workflow sau bị loại trừ khỏi phát hiện tự động và phải được gọi bằng `/command` tường minh:
-- `/scm`
+- /scm
 - `/tools`
 - `/stack-set`
-- `/exec-plan`
+- /exec-plan
 - `/convert`
 
 ---
 
-## Cơ chế chế độ liên tục
+## Cơ chế chế độ liên tục {#persistent-mode-mechanics}
 
 ### File trạng thái
 
 Workflow liên tục (orchestrate, ultrawork, work, ralph) tạo file trạng thái trong `.agents/state/`.
 
+```
+.agents/state/
+├── orchestrate-state.json
+├── ultrawork-state.json
+├── work-state.json
+└── ralph-state.json
+```
+
 ### Tăng cường
 
 Trong khi workflow liên tục đang hoạt động, hook `persistent-mode.ts` đưa `[OMA PERSISTENT MODE: {workflow-name}]` vào mỗi tin nhắn người dùng. Đảm bảo workflow tiếp tục thực thi xuyên các lượt hội thoại.
+
+### Hợp đồng mục tiêu (cổng dừng tùy chọn + ngân sách)
+
+oma goal set gắn contract hoàn thành cơ học vào workflow liên tục. Gate typecheck, test hoặc lint chỉ cho kết thúc khi script tương ứng pass; budget-minutes vô hiệu hóa workflow khi vượt wall-clock budget. Không có contract, chế độ liên tục hoạt động như mô tả phía trên. Xem `goal set` trong [tham chiếu CLI](../cli-interfaces/commands.md#goal-set).
 
 ### Vô hiệu hóa
 
@@ -325,17 +588,23 @@ Describe the task → relevant skill → implement → focused verification
 
 ### Phân phối chất lượng tối đa
 ```
-/ultrawork → PLAN (4 bước đánh giá) → IMPL → VERIFY (3 bước đánh giá) → REFINE (5 bước đánh giá) → SHIP (4 bước đánh giá)
+/ultrawork → PLAN (4 review steps) → IMPL → VERIFY (3 review steps) → REFINE (5 review steps) → SHIP (4 review steps)
 ```
 
 ### Điều tra lỗi
 ```
-/debug → tái hiện → nguyên nhân gốc → sửa tối thiểu → test hồi quy → quét mẫu tương tự
+/debug → reproduce → root cause → minimal fix → regression test → similar pattern scan
 ```
 
 ### Pipeline từ thiết kế đến triển khai
 ```
-/brainstorm → tài liệu thiết kế → /plan → phân tách task → /orchestrate → triển khai song song → /review → /scm
+/brainstorm → design document → /plan → task breakdown → /orchestrate → parallel implementation → /review → /scm
+```
+
+### Khởi tạo codebase mới
+
+```
+/deepinit → AGENTS.md + ARCHITECTURE.md + docs/
 ```
 
 ### Lặp lại thực thi với xác minh độc lập

@@ -1,11 +1,12 @@
 ---
 title: "Guide: Image Generation"
-description: Complete guide to oh-my-agent image generation, covering multi-vendor dispatch via Codex (gpt-image-2), Pollinations (flux/zimage, free), and Gemini, with reference images, cost guardrails, output layout, troubleshooting, and shared invocation patterns.
+sidebar_label: Image Generation
+description: Complete guide to oh-my-agent image generation, covering multi-vendor dispatch via Codex (gpt-image-2), Pollinations (flux/zimage, free), and Antigravity through Gemini Code Assist, with reference images, cost guardrails, output layout, troubleshooting, and shared invocation patterns.
 ---
 
 # Image Generation
 
-`oma-image` is the multi-vendor image router for oh-my-agent. It generates images from natural-language prompts, dispatches to whichever vendor CLI you are authenticated with, and writes a deterministic manifest next to the output so every run is reproducible.
+`oma-image` is the multi-vendor image router for oh-my-agent. It generates images from natural-language prompts, dispatches to whichever vendor CLI you are authenticated with, and writes a manifest next to the output with the inputs and provider decisions needed to audit or repeat a run. Live provider output can still vary.
 
 The skill auto-activates on keywords like *image*, *illustration*, *visual asset*, *concept art*, or when another skill needs an image as a side-effect (hero shot, thumbnail, product photo).
 
@@ -35,19 +36,32 @@ The skill is CLI-first: when a vendor's native CLI can return raw image bytes, t
 |---|---|---|---|---|
 | `pollinations` | Direct HTTP | Free: `flux`, `zimage`. Credit-gated: `qwen-image`, `wan-image`, `gpt-image-2`, `klein`, `kontext`, `gptimage`, `gptimage-large` | `POLLINATIONS_API_KEY` set (free signup at https://enter.pollinations.ai) | Free for `flux` / `zimage` |
 | `codex` | CLI-first via `codex exec` (ChatGPT OAuth) | `gpt-image-2` | `codex login` (no API key needed) | Charged to your ChatGPT plan |
-| `gemini` | CLI-first → direct API fallback | `gemini-2.5-flash-image`, `gemini-3.1-flash-image-preview` | `gemini auth login` or `GEMINI_API_KEY` + billing | Disabled by default; requires billing |
+| `antigravity` | `agy` CLI over the Gemini Code Assist subscription | Model is selected internally by `agy` | `agy` installed and signed in | No per-image charge through Code Assist |
 
-`pollinations` is the default vendor because `flux` / `zimage` are free, so auto-triggering on keywords is safe.
+The built-in vendor mode is `auto`: it runs the providers that pass their health checks. Pollinations' `flux` and `zimage` models are free per image but still require a `POLLINATIONS_API_KEY`; Codex and Antigravity require their own sign-in. Paid estimates still use the cost confirmation guardrail.
 
 ---
 
 ## Quick start
 
+Before the first generation, check which provider is ready and authenticate one of the supported paths:
+
 ```bash
-# Free, zero-config (uses pollinations/flux)
+oma image doctor
+
+# Pollinations: create a free account and export its key.
+export POLLINATIONS_API_KEY="<pollinations-key>"
+
+# Or authenticate an alternative provider instead.
+codex login
+# Sign in to Gemini Code Assist for `agy` when using --vendor antigravity.
+```
+
+```bash
+# Auto-selects the healthy provider; cost and auth depend on that provider.
 oma image generate "minimalist sunrise over mountains"
 
-# Compare every authenticated vendor in parallel
+# Run all configured vendors; every selected vendor must be healthy or the command stops.
 oma image generate "cat astronaut" --vendor all
 
 # Specific vendor + size + count, skip cost prompt
@@ -59,7 +73,7 @@ oma image generate "test prompt" --dry-run
 # Inspect authentication and install status per vendor
 oma image doctor
 
-# List registered vendors and the models each one supports
+# List registered vendors and supported models
 oma image vendor list
 ```
 
@@ -84,7 +98,7 @@ You don't need to remember CLI flags. Say it in plain language and the skill map
 | "portrait" / "landscape" / "1024×1536" | `--size 1024x1536` / `--size 1536x1024` |
 | "high quality" / "draft" | `--quality high` / `--quality low` |
 | "three variations" / "give me 3" | `-n 3` |
-| "save to ./hero" / "output to docs/assets" | `--out <dir>` |
+| "save to ./hero" / "output to docs/assets" | `--output-dir <dir>` |
 | Attached image + "make it nighttime" | `-r <attached path>` |
 | "just estimate the cost" / "dry run" | `--dry-run` |
 
@@ -101,7 +115,7 @@ The agent runs the [Clarification Protocol](#clarification-protocol), amplifies 
 ```text
 /oma-image a red apple on white background
 /oma-image --vendor all --size 1536x1024 jeju coastline at sunset
-/oma-image -n 3 --quality high --out ./hero "minimalist dashboard hero illustration"
+/oma-image -n 3 --quality high --output-dir ./hero "minimalist dashboard hero illustration"
 ```
 
 Every CLI flag (`--vendor`, `-n`, `--size`, `-r`, `--dry-run`, …) works in the slash command and is forwarded to the same `oma image generate` pipeline.
@@ -122,14 +136,14 @@ The manifest written to stdout includes output paths, vendor, model, and cost, m
 
 ```bash
 oma image generate "<prompt>"
-  [--vendor auto|codex|pollinations|gemini|all]
+  [--vendor auto|codex|pollinations|antigravity|all]
   [-n 1..5]
   [--size 1024x1024|1024x1536|1536x1024|auto]
   [--quality low|medium|high|auto]
-  [--out <dir>] [--allow-external-out]
+  [--output-dir <dir>] [--allow-external-output]
   [-r <path>]...
   [--timeout 180] [-y] [--no-prompt-in-manifest]
-  [--dry-run] [--format text|json]
+  [--dry-run] [--output text|json]
 
 oma image doctor
 oma image vendor list
@@ -139,17 +153,19 @@ oma image vendor list
 
 | Flag | Purpose |
 |---|---|
-| `--vendor <name>` | `auto`, `pollinations`, `codex`, `antigravity`, or `all`. With `all`, every requested vendor must be authenticated (strict). |
+| `--vendor <name>` | `auto`, `pollinations`, `codex`, `antigravity`, or `all`. With `all`, every requested vendor must be healthy (strict). |
 | `-n, --count <n>` | Number of images per vendor, 1–5 (wall-time bound). |
 | `--size <size>` | Aspect: `1024x1024` (square), `1024x1536` (portrait), `1536x1024` (landscape), or `auto`. |
 | `--quality <level>` | `low`, `medium`, `high`, or `auto` (vendor default). |
-| `--out <dir>` | Output directory. Defaults to `.agents/results/images/{timestamp}/`. Paths outside `$PWD` require `--allow-external-out`. |
-| `-r, --reference <path>` | Up to 10 reference images (PNG/JPEG/GIF/WebP, ≤ 5 MB each). Repeatable or comma-separated. Supported on `codex` and `gemini`; rejected on `pollinations`. |
+| `--output-dir <dir>` | Output directory. Defaults to `.agents/results/images/{timestamp}/`. Paths outside `$PWD` require `--allow-external-output`. |
+| `--allow-external-output` | Permit an output directory outside `$PWD`. |
+| `--model <name>` | Override the selected vendor's model for this run. `antigravity` ignores this because `agy` chooses its model. |
+| `-r, --reference <path>` | Up to 10 reference images (PNG/JPEG/GIF/WebP, ≤ 5 MB each). Repeatable or comma-separated. Supported on `codex` and `antigravity`; rejected on `pollinations`. |
 | `-y, --yes` | Skip the cost-confirmation prompt for runs estimated at ≥ `$0.20`. Also via `OMA_IMAGE_YES=1`. |
 | `--no-prompt-in-manifest` | Store the SHA-256 of the prompt instead of the raw text in `manifest.json`. |
 | `--dry-run` | Print the plan and the cost estimate without spending. |
-| `--format text\|json` | CLI output format. JSON is the integration surface for other skills. |
-| `--strategy <list>` | Gemini-only escalation, e.g. `mcp,stream,api`. Overrides `vendors.gemini.strategies`. |
+| `--output text\|json` | CLI output format. JSON is the integration surface for other skills. |
+| `--timeout <duration>` | Per-image timeout. |
 
 ---
 
@@ -159,14 +175,14 @@ Attach up to 10 reference images to guide style, subject identity, or compositio
 
 ```bash
 oma image generate -r ~/Downloads/otter.jpeg "same otter in dramatic lighting" --vendor codex
-oma image generate -r a.png -r b.png "blend these styles" --vendor gemini
-oma image generate -r a.png,b.png "blend these styles" --vendor gemini
+oma image generate -r a.png -r b.png "blend these styles" --vendor antigravity
+oma image generate -r a.png,b.png "blend these styles" --vendor antigravity
 ```
 
 | Vendor | Reference support | How |
 |---|---|---|
 | `codex` (gpt-image-2) | Yes | Passes `-i <path>` to `codex exec` |
-| `gemini` (2.5-flash-image) | Yes | Inlines base64 `inlineData` in the request |
+| `antigravity` | Yes | Copies references into a per-run directory and grants `agy` access to them |
 | `pollinations` | No | Rejected with exit code 4 (requires URL hosting) |
 
 ### Where attached images live
@@ -194,16 +210,16 @@ Every run writes to `.agents/results/images/` with a timestamped, hash-suffixed 
     └── manifest.json
 ```
 
-`manifest.json` records the vendor, model, prompt (or its SHA-256), size, quality, and cost, so every run is reproducible from the manifest alone.
+`manifest.json` records the vendor, model, prompt (or its SHA-256), size, quality, and cost, so the request can be audited and repeated. It does not force identical pixels from a live provider.
 
 ---
 
 ## Cost, safety, and cancellation
 
 1. **Cost guardrail**: runs estimated at ≥ `$0.20` ask for confirmation. Bypass with `-y` or `OMA_IMAGE_YES=1`. Default `pollinations` (flux/zimage) is free, so the prompt is skipped for it automatically.
-2. **Path safety**: output paths outside `$PWD` require `--allow-external-out` to avoid surprising writes.
+2. **Path safety**: output paths outside `$PWD` require `--allow-external-output` to avoid surprising writes.
 3. **Cancellable**: `Ctrl+C` (SIGINT/SIGTERM) aborts every in-flight provider call and the orchestrator together.
-4. **Deterministic outputs**: `manifest.json` is always written next to the images.
+4. **Stable run record**: `manifest.json` is always written next to the images.
 5. **Max `n` = 5**: a wall-time bound, not a quota.
 6. **Exit codes**: aligned with `oma search fetch`: `0` ok, `1` general, `2` safety, `3` not-found, `4` invalid-input, `5` auth-required, `6` timeout.
 
@@ -236,14 +252,12 @@ When the user has authored a complete creative brief (≥ 2 of: subject + style 
 
 ## Configuration
 
-- **Project config:** `config/image-config.yaml`
+- **Project config:** the `image:` section of `.agents/oma-config.yaml`. The legacy `config/image-config.yaml` is no longer read.
 - **Environment variables:**
   - `OMA_IMAGE_DEFAULT_VENDOR`: overrides the default vendor (otherwise `pollinations`)
   - `OMA_IMAGE_DEFAULT_OUT`: overrides the default output directory
   - `OMA_IMAGE_YES`: `1` to bypass cost confirmation
   - `POLLINATIONS_API_KEY`: required for the pollinations vendor (free signup)
-  - `GEMINI_API_KEY`: required when the gemini vendor falls back to the direct API
-  - `OMA_IMAGE_GEMINI_STRATEGIES`: comma-separated escalation order for gemini (`mcp,stream,api`)
 
 ---
 
@@ -251,13 +265,13 @@ When the user has authored a complete creative brief (≥ 2 of: subject + style 
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| Exit code `5` (auth-required) | Selected vendor is not authenticated | Run `oma image doctor` to see which vendor needs login. Then `codex login` / set `POLLINATIONS_API_KEY` / `gemini auth login`. |
-| Exit code `4` on `--reference` | `pollinations` rejects references, or file too large / wrong format | Switch to `--vendor codex` or `--vendor gemini`. Each reference must be ≤ 5 MB and PNG/JPEG/GIF/WebP. |
+| Exit code `5` (auth-required) | Selected vendor is not authenticated | Run `oma image doctor` to see which vendor needs login. Then `codex login`, sign in to `agy`, or set `POLLINATIONS_API_KEY`. |
+| Exit code `4` on `--reference` | `pollinations` rejects references, or file too large / wrong format | Switch to `--vendor codex` or `--vendor antigravity`. Each reference must be ≤ 5 MB and PNG/JPEG/GIF/WebP. |
 | `--reference` not recognized | Local CLI is outdated | Run `oma update` and retry. Do not fall back to prose description. |
 | Cost confirmation blocks automation | Run is estimated at ≥ `$0.20` | Pass `-y` or set `OMA_IMAGE_YES=1`. Better: switch to free `pollinations`. |
-| `--vendor all` aborts immediately | One of the requested vendors is not authenticated (strict mode) | Authenticate the missing vendor, or pick a specific `--vendor`. |
-| Output written to an unexpected directory | Default is `.agents/results/images/{timestamp}/` | Pass `--out <dir>`. Paths outside `$PWD` need `--allow-external-out`. |
-| Gemini returns no image bytes | Gemini CLI's agentic loop does not emit raw `inlineData` on stdout (as of 0.38) | Provider falls back to the direct API automatically. Set `GEMINI_API_KEY` and ensure billing. |
+| `--vendor all` aborts immediately | One of the requested vendors is not healthy (strict mode) | Install/sign in to the missing vendor, or pick a specific `--vendor`. |
+| Output written to an unexpected directory | Default is `.agents/results/images/{timestamp}/` | Pass `--output-dir <dir>`. Paths outside `$PWD` need `--allow-external-output`. |
+| Antigravity fails after health passes | `agy --version` proves installation, not sign-in | Sign in to Gemini Code Assist, then retry with `oma image doctor` and `--vendor antigravity`. |
 
 ---
 

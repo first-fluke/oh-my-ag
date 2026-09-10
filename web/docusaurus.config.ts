@@ -4,7 +4,7 @@ import type { Config } from "@docusaurus/types";
 const config: Config = {
   title: "oh-my-agent",
   tagline:
-    "Multi-agent orchestration with skill routing, parallel execution, and Serena memory-driven coordination.",
+    "Multi-agent orchestration with skill routing, parallel execution, and verified task results.",
   favicon: "icons/android/android-launchericon-48-48.png",
 
   url: "https://first-fluke.github.io",

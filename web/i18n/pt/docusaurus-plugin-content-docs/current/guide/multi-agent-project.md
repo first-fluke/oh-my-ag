@@ -1,91 +1,92 @@
 ---
 title: "Guia: Projetos Multi-Agente"
-description: "Guia completo para coordenar múltiplos agentes de domínio entre frontend, backend, banco de dados, mobile e QA — do planejamento ao merge."
+sidebar_label: Projetos Multi-Agente
+description: Guia completo para coordenar agentes de vários domínios entre frontend, backend, banco de dados, mobile e QA, do planejamento ao merge.
 ---
 
 # Guia: Projetos Multi-Agente
 
 ## Quando usar coordenação multi-agente
 
-Sua funcionalidade abrange múltiplos domínios — API backend + UI frontend + schema de banco de dados + cliente mobile + revisão QA. Um único agente não consegue lidar com o escopo completo, e você precisa que os domínios progridam em paralelo sem pisar nos arquivos uns dos outros.
+Sua funcionalidade abrange vários domínios: API backend + UI frontend + schema de banco de dados + cliente mobile + revisão QA. Um único agente não consegue tratar todo o escopo, e você precisa que os domínios avancem em paralelo sem modificar os arquivos uns dos outros.
 
-A coordenação multi-agente é a escolha correta quando:
+A coordenação multi-agente é a escolha certa quando:
 
 - A tarefa envolve 2 ou mais domínios (frontend, backend, mobile, db, QA, debug, pm).
-- Existem contratos de API entre domínios (ex: um endpoint REST consumido por web e mobile).
-- Você quer execução paralela para reduzir o tempo real.
-- Você precisa de revisão QA após implementação em todos os domínios.
+- Existem contratos de API entre domínios (por exemplo, um endpoint REST consumido pela web e pelo mobile).
+- Você quer execução paralela para reduzir o tempo de parede.
+- Precisa de revisão QA após a implementação em todos os domínios.
 
-Se sua tarefa cabe inteiramente em um domínio, use o agente específico diretamente.
+Se sua tarefa couber inteiramente em um domínio, use diretamente o agente específico.
 
 ---
 
-## A sequência completa: /plan até /review
+## A sequência completa: /plan a /review
 
-O workflow multi-agente recomendado segue um pipeline estrito de quatro etapas.
+O workflow multi-agente recomendado segue um pipeline rígido de quatro etapas.
 
-### Step 1: /plan — requisitos e decomposição de tarefas
+### Etapa 1: /plan para requisitos e decomposição da tarefa
 
-O workflow `/plan` executa inline (sem spawning de subagentes) e produz um plano estruturado.
+O workflow `/plan` executa inline (sem iniciar subagentes) e produz um plano estruturado.
 
 ```
 /plan
 ```
 
-O que acontece:
+**O que acontece:**
 
-1. **Coletar requisitos** — O agente PM pergunta sobre usuários-alvo, funcionalidades principais, restrições e alvos de deploy.
-2. **Analisar viabilidade técnica** — Usa ferramentas de análise de código MCP (`get_symbols_overview`, `find_symbol`, `search_for_pattern`) para escanear o codebase existente em busca de código reutilizável e padrões de arquitetura.
-3. **Definir contratos de API** — Projeta contratos de endpoint (method, path, schemas de request/response, auth, respostas de erro) e os salva em `.agents/skills/_shared/core/api-contracts/`.
-4. **Decompor em tarefas** — Quebra o projeto em tarefas acionáveis, cada uma com: agente atribuído, título, critérios de aceitação, prioridade (P0-P3) e dependências.
-5. **Revisar plano com usuário** — Apresenta o plano completo para confirmação. O workflow não prosseguirá sem aprovação explícita do usuário.
-6. **Salvar plano** — Escreve o plano aprovado em `.agents/results/plan-{sessionId}.json` e registra um resumo na memória.
+1. **Coletar requisitos:** O agente PM pergunta sobre usuários-alvo, funcionalidades principais, restrições e destinos de deploy.
+2. **Analisar viabilidade técnica:** Usa o provedor de inteligência de código configurado e a busca nativa com escopo quando ele não está disponível para examinar o codebase existente em busca de código reutilizável e padrões de arquitetura.
+3. **Definir contratos de API:** Projeta contratos de endpoint (método, caminho, schemas de request/response, auth, respostas de erro) e os salva em `.agents/results/api-contracts/` (artefatos da execução), promovendo especificações duráveis para `docs/plans/contracts/` quando forem commitadas.
+4. **Decompor em tarefas:** Divide o projeto em tarefas acionáveis, cada uma com agente atribuído, título, critérios de aceitação, prioridade (P0-P3) e dependências.
+5. **Revisar o plano com o usuário:** Apresenta o plano completo para confirmação. O workflow não prossegue sem aprovação explícita do usuário.
+6. **Salvar o plano:** Escreve o plano aprovado em `.agents/results/plan-{sessionId}.json` e registra um resumo na memória.
 
-A saída `.agents/results/plan-{sessionId}.json` é a entrada para ambos `/work` e `/orchestrate`.
+A saída `.agents/results/plan-{sessionId}.json` é a entrada de `/work` e `/orchestrate`.
 
-### Step 2: /work ou /orchestrate — execução
+### Etapa 2: /work ou /orchestrate para execução
 
 Você tem dois caminhos de execução:
 
 | Aspecto | /work | /orchestrate |
-|:--------|:-----------|:-------------|
-| **Interação** | Interativo — usuário confirma em cada etapa | Automatizado — executa até conclusão |
-| **Planejamento PM** | Integrado (Step 2 executa agente PM) | Requer plan do /plan |
-| **Checkpoint do usuário** | Após revisão do plano (Step 3) | Antes de iniciar (plano deve existir) |
-| **Modo persistente** | Sim — não pode ser terminado até completar | Sim — não pode ser terminado até completar |
-| **Melhor para** | Primeiro uso, projetos complexos precisando de supervisão | Execuções repetidas, tarefas bem definidas |
+|:-------|:-----------|:-------------|
+| **Interação** | Interativo (usuário confirma em cada etapa) | Automatizado (executa até concluir) |
+| **Planejamento PM** | Integrado (Etapa 2 executa o agente PM) | Carrega um plano quando existe; cria um inline quando não existe |
+| **Ponto de controle do usuário** | Após a revisão do plano (Etapa 3) | O plano inline ainda passa pelo portão de revisão antes da distribuição |
+| **Modo persistente** | Sim (não pode ser encerrado antes da conclusão) | Sim (não pode ser encerrado antes da conclusão) |
+| **Melhor para** | Primeiro uso, projetos complexos que precisam de supervisão | Execuções repetidas, tarefas bem definidas |
 
-#### /work — pipeline multi-agente interativo
+#### /work: pipeline multi-agente interativo
 
 ```
 /work
 ```
 
-1. Analisa a requisição do usuário e identifica domínios envolvidos.
-2. Executa o agente PM para decomposição de tarefas (cria plan-\{sessionId\}.json).
-3. Apresenta plano para confirmação do usuário — **bloqueia até confirmação**.
-4. Spawna agentes por tier de prioridade (P0 primeiro, depois P1, etc.), com cada tarefa de mesma prioridade executando em paralelo.
-5. Monitora progresso dos agentes via arquivos de memória.
-6. Executa revisão do agente QA em todos os entregáveis (OWASP Top 10, performance, acessibilidade, qualidade de código).
-7. Se QA encontrar problemas CRITICAL ou HIGH, re-spawna o agente responsável com achados do QA. Repete até 2 vezes por problema. Se o mesmo problema persiste, ativa o **Exploration Loop** — gera 2-3 abordagens alternativas, spawna o mesmo tipo de agente com diferentes prompts de hipótese em workspaces separados, QA pontua cada um, e o melhor resultado é adotado.
+1. Analisa a solicitação do usuário e identifica os domínios envolvidos.
+2. Executa o agente PM para decomposição da tarefa (cria plan-\{sessionId\}.json).
+3. Apresenta o plano para confirmação do usuário. **Bloqueia até a confirmação.**
+4. Inicia agentes por tier de prioridade (P0 primeiro, depois P1 etc.), com cada tarefa de mesma prioridade executando em paralelo.
+5. Monitora o progresso dos agentes por meio de arquivos de memória.
+6. Executa a revisão do agente QA em todos os entregáveis (OWASP Top 10, performance, acessibilidade e qualidade do código).
+7. Se o QA encontrar problemas CRITICAL ou HIGH, inicia novamente o agente responsável com os achados do QA. Repete até 2 vezes por problema. Se o mesmo problema persistir, ativa o **Exploration Loop**: gera 2-3 abordagens alternativas, inicia o mesmo tipo de agente com prompts de hipóteses diferentes em workspaces separados, faz o QA pontuar cada uma e adota o melhor resultado.
 
-#### /orchestrate — execução paralela automatizada
+#### /orchestrate: execução paralela automatizada
 
 ```
 /orchestrate
 ```
 
-1. Carrega `.agents/results/plan-{sessionId}.json` (não prosseguirá sem um).
-2. Inicializa sessão com formato de ID `session-YYYYMMDD-HHMMSS`.
+1. Carrega `.agents/results/plan-{sessionId}.json`, criando um plano inline por meio de `/plan` quando não existe um plano utilizável.
+2. Inicializa uma sessão com o formato de ID `session-YYYYMMDD-HHMMSS`.
 3. Cria `orchestrator-session.md` e `task-board.md` no diretório de memória.
-4. Spawna agentes por tier de prioridade, cada um recebendo: descrição da tarefa, contratos de API e contexto.
-5. Monitora progresso fazendo poll dos arquivos `progress-{agent}.md`.
-6. Verifica cada agente completado via `verify.sh` — PASS (exit 0) aceita, FAIL (exit 1) re-spawna com contexto do erro (máximo 2 retries), e falha persistente aciona o Exploration Loop.
-7. Coleta todos os arquivos `result-{agent}.md` e compila relatório final.
+4. Inicia agentes por tier de prioridade, cada um recebendo: descrição da tarefa, contratos de API e contexto.
+5. Monitora o progresso consultando os arquivos `progress-{agent}.md`.
+6. Verifica cada agente concluído por meio de `verify.sh`. PASS (exit 0) aceita; FAIL (exit 1) inicia novamente com o contexto do erro (no máximo 2 retries); uma falha persistente ativa o Exploration Loop.
+7. Coleta todos os arquivos `result-{agent}.md` e compila um relatório final.
 
-### Step 3: agent spawn — gerenciamento de agentes via CLI
+### Etapa 3: agent spawn para gerenciamento de agentes no nível da CLI
 
-O comando `agent spawn` é o mecanismo de baixo nível que workflows chamam internamente. Você também pode usá-lo diretamente:
+O comando `agent spawn` é o mecanismo de baixo nível usado internamente pelos workflows. Você também pode usá-lo diretamente:
 
 ```bash
 oma agent spawn backend "Implement user auth API with JWT" session-20260324-143000 -w ./api
@@ -95,20 +96,25 @@ oma agent spawn backend "Implement user auth API with JWT" session-20260324-1430
 
 | Flag | Descrição |
 |:-----|:-----------|
-| `--vendor <vendor>` | Sobrescrita de vendor CLI (antigravity/claude/codex/qwen). Sobrescreve toda config. |
-| `-w, --workspace <path>` | Diretório de trabalho para o agente. Auto-detectado da config monorepo se omitido. |
+| `--vendor <vendor>` | Substituição do vendor da CLI (antigravity/claude/codex/cursor/opencode/qwen/grok/pi). Substitui a resolução do modelo para esta criação. |
+| `-w, --workspace <path>` | Diretório de trabalho do agente. Detectado automaticamente a partir da configuração do monorepo quando omitido. |
+| `--task-id <id>` | Vincula a criação a uma tarefa do plano da sessão; usa o ID do agente por padrão. |
+| `--isolation worktree` | Cria um worktree Git para a criação; o padrão é não adicionar isolamento. |
+| `--read-only` | Restringe o processo filho a ferramentas de inspeção e suprime flags de auto-aprovação. |
 
-**Ordem de resolução de vendor** (primeira correspondência vence):
+**Ordem de resolução do vendor** (a primeira correspondência vence):
 
 1. Flag `--vendor` na linha de comando
-2. `model_preset` em `oma-config.yaml` para este tipo específico de agente
-3. `default_cli` em `oma-config.yaml`
-4. `active_vendor` em `cli-config.yaml`
-5. `gemini` (padrão codificado)
+2. Substituição em `agents:` no `oma-config.yaml` para este agente
+3. Defaults de agente do `model_preset` ativo
 
-**Auto-detecção de workspace** verifica configs de monorepo nesta ordem: pnpm-workspace.yaml, package.json workspaces, lerna.json, nx.json, turbo.json, mise.toml. Cada diretório de workspace é pontuado contra palavras-chave do tipo de agente (ex: "web", "frontend", "client" para o agente frontend). Se nenhuma config de monorepo é encontrada, recorre a candidatos codificados como `apps/web`, `apps/frontend`, `frontend/`, etc.
+Consulte [Modelos por agente](./per-agent-models.md) para detalhes de configuração.
 
-### Step 4: /review — verificação QA
+**A detecção automática do workspace** verifica as configurações de monorepo nesta ordem: pnpm-workspace.yaml, package.json workspaces, lerna.json, nx.json, turbo.json, mise.toml. Cada diretório de workspace recebe uma pontuação conforme as palavras-chave do tipo de agente (por exemplo, "web", "frontend", "client" para o agente frontend). Se nenhuma configuração de monorepo for encontrada, recorre a candidatos fixos como `apps/web`, `apps/frontend`, `frontend/` etc.
+
+**Resolução do prompt:** o argumento `<prompt>` pode ser texto inline ou caminho de arquivo. Se o caminho resolver para um arquivo existente, seu conteúdo será lido e usado como prompt. A CLI também injeta protocolos de execução específicos do vendor de `.agents/skills/_shared/runtime/execution-protocols/{vendor}.md`.
+
+### Etapa 4: /review para verificação QA
 
 ```
 /review
@@ -116,19 +122,19 @@ oma agent spawn backend "Implement user auth API with JWT" session-20260324-1430
 
 O workflow de revisão executa um pipeline QA completo:
 
-1. **Identificar escopo** — Pergunta o que revisar (arquivos específicos, branch de feature ou projeto inteiro).
-2. **Verificações automatizadas de segurança** — Executa `npm audit`, `bandit` ou equivalente.
-3. **Revisão manual OWASP Top 10** — Injection, broken auth, dados sensíveis, controle de acesso, misconfiguration, insecure deserialization, componentes vulneráveis, logging insuficiente.
-4. **Análise de performance** — Queries N+1, índices ausentes, paginação unbounded, memory leaks, re-renders desnecessários, tamanhos de bundle.
-5. **Acessibilidade** — WCAG 2.1 AA: HTML semântico, ARIA, navegação por teclado, contraste de cor, gerenciamento de foco.
-6. **Qualidade de código** — Nomenclatura, tratamento de erros, cobertura de testes, TypeScript strict mode, imports não usados, padrões async/await.
-7. **Relatório** — Achados categorizados como CRITICAL / HIGH / MEDIUM / LOW com `arquivo:linha`, descrição e código de correção.
+1. **Identificar escopo:** Pergunta o que revisar (arquivos específicos, branch de funcionalidade ou projeto inteiro).
+2. **Verificações de segurança automatizadas:** Executa `npm audit`, `bandit` ou equivalente.
+3. **Revisão manual do OWASP Top 10:** Injeção, auth quebrada, dados sensíveis, controle de acesso, configuração incorreta, desserialização insegura, componentes vulneráveis e logging insuficiente.
+4. **Análise de performance:** Queries N+1, índices ausentes, paginação sem limite, vazamentos de memória, re-renders desnecessários e tamanho de bundles.
+5. **Acessibilidade:** WCAG 2.1 AA, incluindo HTML semântico, ARIA, navegação por teclado, contraste de cores e gerenciamento de foco.
+6. **Qualidade do código:** Nomes, tratamento de erros, cobertura de testes, modo estrito do TypeScript, imports não usados e padrões async/await.
+7. **Relatório:** Achados categorizados como CRITICAL / HIGH / MEDIUM / LOW com `file:line`, descrição e código de correção.
 
-Para escopos grandes, o workflow delega para o subagente QA. Com a opção `--fix`, entra em um Loop Fix-Verify: spawna agentes de domínio para corrigir problemas CRITICAL/HIGH, re-executa QA, repete até 3 vezes.
+Para escopos grandes, o workflow delega ao subagente QA. Com a opção `--fix`, entra em um Fix-Verify Loop: inicia agentes de domínio para corrigir problemas CRITICAL/HIGH, revisa novamente e repete até 3 vezes.
 
 ---
 
-## Estratégia de session ID
+## Estratégia de ID de sessão
 
 Cada sessão de orquestração recebe um identificador único no formato:
 
@@ -138,47 +144,49 @@ session-YYYYMMDD-HHMMSS
 
 Exemplo: `session-20260324-143052`
 
-O session ID é usado para:
+O ID da sessão é usado para:
 
 - Nomear arquivos de memória (`orchestrator-session.md`, `task-board.md`)
-- Rastrear processos de agentes via arquivos PID no diretório temp do sistema (`/tmp/subagent-{session-id}-{agent-id}.pid`)
+- Rastrear processos de agente por arquivos PID no diretório temporário do sistema (`/tmp/subagent-{session-id}-{agent-id}.pid`)
 - Correlacionar arquivos de log (`/tmp/subagent-{session-id}-{agent-id}.log`)
 - Agrupar resultados em `.agents/results/parallel-{timestamp}/`
+
+O ID da sessão é gerado na Etapa 2 de `/orchestrate` e passado a todos os agentes iniciados. Isso garante que todos os agentes, logs e arquivos PID de uma execução possam ser rastreados até uma sessão.
 
 ---
 
 ## Atribuição de workspace por domínio
 
-Cada agente é spawnado em um diretório de workspace isolado para prevenir conflitos de arquivo.
+Cada agente é iniciado em um diretório de workspace isolado para evitar conflitos de arquivo. A atribuição segue estas regras:
 
 ### Detecção automática
 
-Quando `-w` é omitido (ou definido como `.`), o CLI detecta o melhor workspace:
+Quando `-w` é omitido (ou definido como `.`), a CLI detecta o melhor workspace:
 
-1. Escaneia arquivos de config de monorepo (pnpm-workspace.yaml, package.json, lerna.json, nx.json, turbo.json, mise.toml).
-2. Expande padrões glob (ex: `apps/*`) em diretórios reais.
-3. Pontua cada diretório contra palavras-chave do tipo de agente:
+1. Examina arquivos de configuração do monorepo (pnpm-workspace.yaml, package.json, lerna.json, nx.json, turbo.json, mise.toml).
+2. Expande padrões glob (por exemplo, `apps/*`) para diretórios reais.
+3. Pontua cada diretório conforme as palavras-chave do tipo de agente:
 
-| Tipo de Agente | Palavras-chave (em ordem de prioridade) |
-|:--------------|:---------------------------------------|
+| Tipo de agente | Palavras-chave (em ordem de prioridade) |
+|:-----------|:-----------|
 | frontend | web, frontend, client, ui, app, dashboard, admin, portal |
 | backend | api, backend, server, service, gateway, core |
 | mobile | mobile, ios, android, native, rn, expo |
 
-4. Correspondência exata de nome de diretório pontua 100, contém-palavra pontua 50, caminho-contém pontua 25.
-5. Diretório com maior pontuação vence.
+4. A correspondência exata do nome do diretório recebe 100, a correspondência por palavra recebe 50 e a presença no caminho recebe 25.
+5. O diretório com a maior pontuação vence.
 
 ### Candidatos de fallback
 
-Se nenhuma config de monorepo existe, o CLI verifica caminhos codificados em ordem:
+Se não houver configuração de monorepo, a CLI verifica os caminhos fixos na ordem:
 
 - **frontend:** `apps/web`, `apps/frontend`, `apps/client`, `packages/web`, `packages/frontend`, `frontend`, `web`, `client`
 - **backend:** `apps/api`, `apps/backend`, `apps/server`, `packages/api`, `packages/backend`, `backend`, `api`, `server`
 - **mobile:** `apps/mobile`, `apps/app`, `packages/mobile`, `mobile`, `app`
 
-Se nada corresponde, o agente executa no diretório atual (`.`).
+Se nada corresponder, o agente executa no diretório atual (`.`).
 
-### Sobrescrita explícita
+### Substituição explícita
 
 Sempre disponível:
 
@@ -188,71 +196,71 @@ oma agent spawn frontend "Build landing page" session-id -w ./packages/web-app
 
 ---
 
-## Regra de contrato primeiro
+## Regra de contratos primeiro
 
-Contratos de API são o mecanismo de sincronização entre agentes. A regra de contrato primeiro significa:
+Os contratos de API são o mecanismo de sincronização entre agentes. A regra de contratos primeiro significa:
 
-1. **Contratos são definidos antes da implementação começar.** O Step 3 do workflow `/plan` produz contratos de API que são salvos em `.agents/skills/_shared/core/api-contracts/`.
+1. **Os contratos são definidos antes do início da implementação.** A Etapa 3 do workflow `/plan` produz contratos de API salvos em `.agents/results/api-contracts/` (ou `docs/plans/contracts/` para especificações duráveis).
 
-2. **Cada agente recebe seus contratos relevantes como contexto.** Quando `/orchestrate` spawna agentes no Step 3, cada agente recebe "descrição da tarefa, contratos de API, contexto relevante."
+2. **Cada agente recebe seus contratos relevantes como contexto.** Quando `/orchestrate` inicia agentes na Etapa 3, cada agente recebe "descrição da tarefa, contratos de API e contexto relevante".
 
-3. **Contratos definem a fronteira de interface.** Um contrato especifica:
-   - Método HTTP e path
-   - Schema do corpo de request (com tipos)
-   - Schema do corpo de response (com tipos)
+3. **Os contratos definem a fronteira da interface.** Um contrato especifica:
+   - Método e caminho HTTP
+   - Schema do corpo da requisição (com tipos)
+   - Schema do corpo da resposta (com tipos)
    - Requisitos de autenticação
-   - Formatos de resposta de erro
+   - Formatos das respostas de erro
 
-4. **Violações de contrato são detectadas durante monitoramento.** Step 5 do `/work` usa ferramentas de análise de código MCP (`find_symbol`, `search_for_pattern`) para verificar alinhamento de contrato de API entre agentes.
+4. **Violações de contrato são detectadas durante o monitoramento.** A Etapa 5 de `/work` usa o provedor de inteligência de código configurado ou busca nativa com escopo para verificar o alinhamento do contrato de API entre agentes.
 
-5. **Revisão QA verifica aderência ao contrato.** A Revisão de Alinhamento do agente QA (Step 6 no ultrawork) compara explicitamente implementação contra o plano, incluindo contratos de API.
+5. **A revisão QA verifica a aderência ao contrato.** A Revisão de Alinhamento do agente QA (Etapa 6 do ultrawork) compara explicitamente a implementação com o plano, incluindo contratos de API.
 
-**Por que isso importa:** Sem contratos, um agente backend pode retornar `{ "user_id": 1 }` enquanto o agente frontend consome `{ "userId": 1 }`. A regra de contrato primeiro elimina esta classe de bugs de integração inteiramente.
+Sem contratos, um agente backend pode retornar `{ "user_id": 1 }` enquanto o frontend consome `{ "userId": 1 }`. A regra de contratos primeiro evita esse tipo de bug de integração.
 
 ---
 
 ## Portões de merge: 4 condições
 
-Antes de qualquer trabalho multi-agente ser considerado completo, quatro condições devem ser atendidas:
+Antes que qualquer trabalho multi-agente seja considerado concluído, quatro condições devem ser atendidas:
 
-### 1. Build tem sucesso
+### 1. As verificações declaradas passam
 
-Todo código compila e builda sem erros. Isso é verificado pelo script de verificação (`verify.sh`), que executa comandos de build apropriados ao tipo de agente.
+Cada critério de aceitação tem uma verificação relevante, e as verificações declaradas pelo plano passam. Um build só é incluído quando o portão do projeto exige isso; o contrato de resultado registra os argv e o exit code reais.
 
-### 2. Testes passam
+### 2. Os testes passam
 
-Todos os testes existentes continuam passando, e novos testes cobrem a funcionalidade implementada. O agente QA revisa cobertura de testes como parte de sua Revisão de Qualidade de Código.
+Todos os testes existentes continuam passando, e os novos testes cobrem a funcionalidade implementada. O agente QA revisa a cobertura como parte da Revisão de Qualidade do Código.
 
-### 3. Apenas arquivos planejados modificados
+### 3. Somente arquivos planejados são modificados
 
-Agentes não devem modificar arquivos fora de seu escopo atribuído. A etapa de verificação verifica que apenas arquivos relacionados à tarefa do agente foram alterados. Isso previne agentes de fazer efeitos colaterais indesejados em código compartilhado.
+Os agentes não devem modificar arquivos fora do escopo atribuído. A etapa de verificação confirma que somente arquivos relacionados à tarefa foram alterados. Isso evita efeitos colaterais não intencionais no código compartilhado.
 
-### 4. Revisão QA aprovada
+### 4. A revisão QA está limpa
 
-Nenhum achado CRITICAL ou HIGH permanece da revisão do agente QA. Achados MEDIUM e LOW podem ser documentados para sprints futuros, mas bloqueadores devem ser resolvidos.
+Não restam achados CRITICAL ou HIGH na revisão do agente QA. Achados MEDIUM e LOW podem ser documentados para sprints futuras, mas os bloqueadores precisam ser resolvidos.
 
-No workflow ultrawork, esses se traduzem em **portões de fase** explícitos (PLAN_GATE, IMPL_GATE, VERIFY_GATE, REFINE_GATE, SHIP_GATE) com critérios estilo checkbox que devem todos passar antes de prosseguir.
+No workflow ultrawork, isso se traduz em **portões de fase** explícitos (PLAN_GATE, IMPL_GATE, VERIFY_GATE, REFINE_GATE, SHIP_GATE) com critérios em formato de checkbox, todos obrigatórios antes de prosseguir.
 
 ---
 
-## Exemplos de spawn
+## Exemplos de criação de agentes
 
-### Spawn de agente único
+### Criação de um agente único
 
 ```bash
-# Spawnar agente backend com Gemini (padrão)
+# Spawn backend agent with Gemini (default)
 oma agent spawn backend "Implement /api/users CRUD endpoint per API contract" session-20260324-143000
 
-# Spawnar agente frontend com Claude, workspace explícito
+# Spawn frontend agent with Claude, explicit workspace
 oma agent spawn frontend "Build user dashboard with React" session-20260324-143000 --vendor claude -w ./apps/web
 
-# Spawnar de arquivo de prompt
+# Spawn from a prompt file
 oma agent spawn backend ./prompts/auth-api.md session-20260324-143000 -w ./api
 ```
 
 ### Execução paralela via agent parallel
 
-Usando arquivo YAML de tarefas:
+Usando um arquivo YAML de tarefas:
 
 ```yaml
 # tasks.yaml
@@ -272,7 +280,7 @@ tasks:
 oma agent parallel tasks.yaml
 ```
 
-Usando modo inline:
+Usando o modo inline:
 
 ```bash
 oma agent parallel --inline \
@@ -281,14 +289,14 @@ oma agent parallel --inline \
   "mobile:Implement auth screens:./mobile"
 ```
 
-Modo background (sem espera):
+Modo em segundo plano (sem espera):
 
 ```bash
 oma agent parallel tasks.yaml --no-wait
-# Retorna imediatamente, resultados escritos em .agents/results/parallel-{timestamp}/
+# Returns immediately, results written to .agents/results/parallel-{timestamp}/
 ```
 
-Com sobrescrita de vendor:
+Com substituição de vendor:
 
 ```bash
 oma agent parallel tasks.yaml --vendor claude
@@ -298,62 +306,62 @@ oma agent parallel tasks.yaml --vendor claude
 
 ## Anti-padrões a evitar
 
-### 1. Pular o plano
+### 1. Aprovar o plano sem revisão
 
-Iniciar `/orchestrate` sem plan file. O workflow recusará prosseguir. Sempre execute `/plan` primeiro, ou use `/work` que tem planejamento integrado.
+`/orchestrate` pode criar um plano por meio de `/plan` inline quando não existe um arquivo de plano utilizável. O plano inline ainda passa pelo portão de revisão de `/plan`, e a distribuição na etapa seguinte segue essa decomposição aprovada. Para trabalhos grandes de vários domínios, execute `/plan` antecipadamente para ter um tracker durável em `docs/plans/work/` e espaço para refinar a decomposição antes de iniciar agentes.
 
 ### 2. Workspaces sobrepostos
 
-Atribuir dois agentes ao mesmo diretório de workspace. Isso causa conflitos de arquivo — as mudanças de um agente sobrescrevem as do outro. Sempre use diretórios de workspace separados.
+Atribuir dois agentes ao mesmo diretório de workspace. Isso causa conflitos de arquivo em que as mudanças de um agente sobrescrevem as de outro. Sempre use diretórios de workspace separados.
 
 ### 3. Contratos de API ausentes
 
-Spawnar agentes backend e frontend sem definir contratos primeiro. Eles farão suposições incompatíveis sobre formatos de dados, nomes de campos e tratamento de erros.
+Iniciar agentes backend e frontend sem definir contratos primeiro. Eles farão suposições incompatíveis sobre formatos de dados, nomes de campos e tratamento de erros.
 
 ### 4. Ignorar achados do QA
 
-Tratar revisão QA como opcional. Achados CRITICAL e HIGH representam bugs reais que aparecerão em produção. O workflow aplica isso fazendo loop até nenhum bloqueador permanecer.
+Tratar a revisão QA como opcional. Achados CRITICAL e HIGH representam bugs reais que aparecerão em produção. O workflow aplica essa regra repetindo o processo até não restarem bloqueadores.
 
-### 5. Coordenação manual de arquivos
+### 5. Coordenar arquivos manualmente
 
-Tentar fazer merge manual das saídas de agentes em vez de deixar o pipeline de verificação e QA tratar a integração. O pipeline automatizado detecta problemas que revisão manual perde.
+Tentar mesclar manualmente as saídas dos agentes em vez de deixar o pipeline de verificação e QA tratar a integração. O pipeline automatizado encontra problemas que a revisão manual deixa passar.
 
-### 6. Over-paralelização
+### 6. Paralelização excessiva
 
-Executar tarefas P1 antes das tarefas P0 completarem. Tiers de prioridade existem porque tarefas P1 frequentemente dependem de saídas P0. Os workflows aplicam ordenação de tiers automaticamente.
+Executar tarefas P1 antes de concluir as tarefas P0. Tiers de prioridade existem porque tarefas P1 frequentemente dependem das saídas de P0. Os workflows impõem a ordem dos tiers automaticamente.
 
-### 7. Pular verificação
+### 7. Pular a verificação
 
-Usar `agent spawn` diretamente sem executar o script de verificação depois. A etapa de verificação detecta falhas de build, regressões de testes e violações de escopo que de outra forma se propagariam.
-
----
-
-## Validação de integração cross-domínio
-
-Após todos os agentes completarem suas tarefas individuais, a integração cross-domínio deve ser validada:
-
-1. **Alinhamento de contrato de API** -- Ferramentas MCP (`find_symbol`, `search_for_pattern`) verificam que implementações backend correspondem aos contratos consumidos por frontend e mobile.
-
-2. **Consistência de tipos** -- Tipos TypeScript, dataclasses Python ou modelos Dart compartilhados entre domínios devem usar nomes de campos e tipos consistentes.
-
-3. **Fluxo de autenticação** -- Se o backend implementa auth JWT, o frontend deve enviar tokens corretamente nos headers, e o app mobile deve armazená-los e renová-los adequadamente.
-
-4. **Tratamento de erros** -- Todos os consumidores de uma API devem tratar as respostas de erro documentadas. Se o backend retorna `{ "error": "unauthorized", "code": 401 }`, todos os clientes devem tratar este formato.
-
-5. **Alinhamento de schema de banco de dados** -- Se o agente de banco de dados cria migrações, os modelos ORM do backend devem corresponder exatamente ao schema.
-
-A Revisão de Alinhamento do agente QA (Step 6 no ultrawork, Step 6 no work) realiza esta validação cross-domínio sistematicamente.
+Usar `agent spawn` diretamente sem registrar depois o contrato de resultado. Execute as verificações fixadas da tarefa e conclua um claim estruturado; consulte [Resultados e retomada de agentes](/docs/guide/agent-results-and-resume). A etapa de verificação do workflow então detecta verificações reprovadas e deriva de escopo antes de os resultados serem reutilizados.
 
 ---
 
-## Quando está pronto
+## Validação de integração entre domínios
 
-Um projeto multi-agente está completo quando:
+Depois que todos os agentes concluírem suas tarefas individuais, a integração entre domínios deve ser validada:
 
-- Todos os agentes em todos os tiers de prioridade completaram com sucesso.
-- Scripts de verificação passam para cada agente (exit code 0).
-- Relatório QA reporta zero CRITICAL e zero HIGH achados.
-- Alinhamento de contrato de API cross-domínio está confirmado.
-- Build tem sucesso e todos os testes passam.
-- O relatório final está escrito na memória e apresentado ao usuário.
-- Usuário dá aprovação final (no `/work` e SHIP_GATE do ultrawork).
+1. **Alinhamento do contrato de API:** O provedor de inteligência de código configurado ou a busca nativa com escopo verifica se as implementações do backend correspondem aos contratos consumidos pelo frontend e mobile.
+
+2. **Consistência de tipos:** Tipos TypeScript, dataclasses Python ou modelos Dart compartilhados entre domínios devem usar nomes e tipos de campo consistentes.
+
+3. **Fluxo de autenticação:** Se o backend implementar auth JWT, o frontend deve enviar corretamente os tokens nos headers e o app mobile deve armazená-los e atualizá-los adequadamente.
+
+4. **Tratamento de erros:** Todos os consumidores de uma API devem tratar as respostas de erro documentadas. Se o backend retornar `{ "error": "unauthorized", "code": 401 }`, todos os clientes devem tratar esse formato.
+
+5. **Alinhamento do schema de banco:** Se o agente de banco criar migrações, os modelos ORM do backend devem corresponder exatamente ao schema.
+
+A Revisão de Alinhamento do agente QA (Etapa 6 do ultrawork, Etapa 6 do work) realiza essa validação entre domínios de modo sistemático.
+
+---
+
+## Quando está concluído
+
+Um projeto multi-agente está concluído quando:
+
+- Todos os agentes de todos os tiers de prioridade terminaram com sucesso.
+- Os scripts de verificação passam para cada agente (exit code 0).
+- A revisão QA relata zero achados CRITICAL e HIGH.
+- O alinhamento dos contratos de API entre domínios foi confirmado.
+- O build é bem-sucedido e todos os testes passam.
+- O relatório final é escrito na memória e apresentado ao usuário.
+- O usuário dá a aprovação final (em `/work` e no SHIP_GATE do ultrawork).

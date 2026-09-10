@@ -1,195 +1,198 @@
 ---
 title: "Guia: Correção de Bugs"
-description: "Guia completo de debugging cobrindo o loop de debug estruturado em 5 etapas, triagem de severidade, sinais de escalação e validação pós-correção."
+sidebar_label: Correção de Bugs
+description: Workflow estruturado de debugging em sete etapas, com triagem de severidade, sinais de escalação, diagnóstico respaldado pela fonte e validação pós-correção.
 ---
 
 # Guia: Correção de Bugs
 
 ## Quando usar o workflow de debug
 
-Use `/debug` (ou diga "fix bug", "fix error", "debug" em linguagem natural) quando você tem um bug específico para diagnosticar e corrigir. O workflow fornece uma abordagem estruturada e reproduzível para debugging que evita a armadilha comum de corrigir sintomas em vez de causas raiz.
+Use `/debug` (ou diga "fix bug", "fix error" ou "debug" em linguagem natural) quando tiver um bug específico para diagnosticar e corrigir. O workflow fornece uma abordagem estruturada e reproduzível para debugging que evita a armadilha comum de corrigir sintomas em vez de causas raiz.
 
-O workflow de debug suporta todos os vendors (Gemini, Claude, Codex, Qwen). Steps 1-5 executam inline. Step 6 (varredura de padrões similares) pode delegar a um subagente `debug-investigator` quando o escopo de varredura é amplo (10+ arquivos ou erros multi-domínio).
+O workflow de debug é compatível com todos os vendors configurados. As etapas 1-5 executam inline. A etapa 6 (varredura de padrões similares) pode delegar a um subagente `debug-investigator` quando o escopo da varredura for amplo (10+ arquivos ou erros de vários domínios), seguida do registro em memória da etapa 7.
 
 ---
 
 ## Template de relatório de bug
 
-Ao reportar um bug, forneça o máximo possível das informações a seguir. Cada campo ajuda o workflow de debug a restringir a busca mais rapidamente.
+Ao relatar um bug, forneça o máximo possível das informações a seguir. Cada campo ajuda o workflow de debug a restringir a busca mais rapidamente.
 
 ### Campos obrigatórios
 
 | Campo | Descrição | Exemplo |
-|:------|:----------|:--------|
+|:------|:-----------|:--------|
 | **Mensagem de erro** | O texto exato do erro ou stack trace | `TypeError: Cannot read properties of undefined (reading 'id')` |
-| **Passos para reproduzir** | Ações ordenadas que acionam o bug | 1. Logar como admin. 2. Navegar para /users. 3. Clicar "Delete" em qualquer usuário. |
-| **Comportamento esperado** | O que deveria acontecer | Usuário é deletado e removido da lista. |
-| **Comportamento atual** | O que realmente acontece | Página crasha com tela branca. |
+| **Passos para reproduzir** | Ações ordenadas que acionam o bug | 1. Faça login como admin. 2. Navegue até /users. 3. Clique em "Delete" em qualquer usuário. |
+| **Comportamento esperado** | O que deveria acontecer | O usuário é excluído e removido da lista. |
+| **Comportamento atual** | O que realmente acontece | A página quebra e mostra uma tela branca. |
 
 ### Campos opcionais (altamente recomendados)
 
+<!-- oma-docs:ignore-start -->
 | Campo | Descrição | Exemplo |
-|:------|:----------|:--------|
-| **Ambiente** | Browser, OS, versão do Node, dispositivo | Chrome 124, macOS 15.3, Node 22.1 |
-| **Frequência** | Sempre, às vezes, apenas primeira vez | Sempre reproduzível |
-| **Mudanças recentes** | O que mudou antes do bug aparecer | Merge do PR #142 (feature de deleção de usuário) |
-| **Código relacionado** | Arquivos ou funções que você suspeita | `src/api/users.ts`, `deleteUser()` |
+|:------|:-----------|:--------|
+| **Ambiente** | Navegador, sistema operacional, versão do Node, dispositivo | Chrome 124, macOS 15.3, Node 22.1 |
+| **Frequência** | Sempre, às vezes, somente na primeira vez | Sempre reproduzível |
+| **Mudanças recentes** | O que mudou antes de o bug aparecer | PR #142 mesclado (funcionalidade de exclusão de usuário) |
+| **Código relacionado** | Arquivos ou funções suspeitos | `src/api/users.ts`, `deleteUser()` |
 | **Logs** | Logs do servidor, saída do console | `[ERROR] UserService.delete: user.organizationId is undefined` |
 | **Screenshots/gravações** | Evidência visual | Screenshot da tela de erro |
+<!-- oma-docs:ignore-end -->
 
-Quanto mais contexto você fornecer antecipadamente, menos perguntas de ida e volta o workflow de debug precisa.
+Quanto mais contexto você fornecer de início, menos perguntas de ida e volta o workflow de debug precisará fazer.
 
 ---
 
 ## Triagem de severidade (P0-P3)
 
-A severidade determina como o bug é tratado e quão rapidamente deve ser corrigido.
+A severidade determina como o bug é tratado e com que rapidez deve ser corrigido.
 
-### P0 — crítico (resposta imediata)
+### P0: crítico (resposta imediata)
 
-**Definição:** Produção está fora do ar, dados estão sendo perdidos ou corrompidos, brecha de segurança está ativa.
+**Definição:** A produção está fora do ar, dados estão sendo perdidos ou corrompidos, ou uma violação de segurança está ativa.
 
-**Expectativa de resposta:** Largue tudo. Esta é a única tarefa até ser resolvida.
-
-**Exemplos:**
-- Sistema de autenticação está sendo contornado — todos os usuários podem acessar endpoints de admin.
-- Migração de banco de dados corrompeu a tabela de usuários — contas estão inacessíveis.
-- Processamento de pagamento está cobrando clientes em dobro.
-- Endpoint de API retorna dados pessoais de outros usuários.
-
-**Abordagem de debug:** Pule o template completo. Forneça a mensagem de erro e qualquer stack trace. O workflow começa imediatamente no Step 2 (Reproduzir).
-
-### P1 — alto (mesma sessão)
-
-**Definição:** Uma funcionalidade central está quebrada para um número significativo de usuários. Workaround pode existir mas não é aceitável a longo prazo.
-
-**Expectativa de resposta:** Corrigir dentro da sessão de trabalho atual. Não iniciar novas funcionalidades até ser resolvido.
+**Expectativa de resposta:** Pare tudo. Esta é a única tarefa até ser resolvida.
 
 **Exemplos:**
-- Busca não retorna resultados para queries contendo caracteres especiais.
-- Upload de arquivo falha para arquivos maiores que 5MB (limite deveria ser 50MB).
-- App mobile crasha ao iniciar em dispositivos Android 14.
-- Emails de reset de senha não estão sendo enviados (integração com serviço de email quebrada).
+- O sistema de autenticação foi contornado; todos os usuários podem acessar endpoints de admin.
+- Uma migração de banco corrompeu a tabela de usuários; as contas estão inacessíveis.
+- O processamento de pagamentos está cobrando clientes em dobro.
+- Um endpoint de API retorna dados pessoais de outros usuários.
 
-**Abordagem de debug:** Loop completo de 5 etapas. Revisão QA recomendada após correção.
+**Abordagem de debug:** Pule o template completo. Forneça a mensagem de erro e qualquer stack trace. O workflow começa imediatamente na Etapa 2 (Reproduzir).
 
-### P2 — médio (este sprint)
+### P1: alto (mesma sessão)
 
-**Definição:** Uma funcionalidade funciona mas com comportamento degradado. Afeta usabilidade mas não funcionalidade.
+**Definição:** Uma funcionalidade central está quebrada para um número significativo de usuários. Pode existir um workaround, mas ele não é aceitável a longo prazo.
 
-**Expectativa de resposta:** Agendar para o sprint atual. Corrigir antes do próximo release.
-
-**Exemplos:**
-- Ordenação de tabela é case-sensitive ("apple" ordena depois de "Zebra").
-- Dark mode tem texto ilegível no painel de configurações.
-- Tempo de resposta da API para endpoint /users é 8 segundos (deveria ser abaixo de 1s).
-- Paginação mostra "Page 1 of 0" quando a lista está vazia.
-
-**Abordagem de debug:** Loop completo de 5 etapas. Incluir na suite de regressão QA.
-
-### P3 — baixo (backlog)
-
-**Definição:** Problema cosmético, caso de borda ou inconveniência menor.
-
-**Expectativa de resposta:** Adicionar ao backlog. Corrigir quando conveniente, ou agrupar com mudanças relacionadas.
+**Expectativa de resposta:** Corrija na sessão de trabalho atual. Não inicie novas funcionalidades até resolver o problema.
 
 **Exemplos:**
-- Texto de tooltip tem um typo: "Delet" em vez de "Delete".
-- Warning no console sobre método de lifecycle React deprecado.
-- Alinhamento do footer está deslocado 2 pixels em viewports entre 768-800px.
-- Loading spinner continua por 200ms após conteúdo ser visível.
+- A busca não retorna resultados para queries que contêm caracteres especiais.
+- O upload de arquivo falha para arquivos maiores que 5MB (o limite deveria ser 50MB).
+- O app mobile quebra ao iniciar em dispositivos Android 14.
+- Emails de redefinição de senha não são enviados (a integração do serviço de email está quebrada).
 
-**Abordagem de debug:** Pode não precisar do loop completo de debug. Correção direta com teste de regressão é suficiente.
+**Abordagem de debug:** Loop completo de sete etapas. Recomenda-se revisão QA após a correção.
+
+### P2: médio (este sprint)
+
+**Definição:** Uma funcionalidade funciona, mas com comportamento degradado. Afeta a usabilidade, mas não a funcionalidade.
+
+**Expectativa de resposta:** Agende para o sprint atual. Corrija antes do próximo release.
+
+**Exemplos:**
+- A ordenação da tabela diferencia maiúsculas de minúsculas ("apple" fica depois de "Zebra").
+- O dark mode tem texto ilegível no painel de configurações.
+- O tempo de resposta da API para o endpoint /users é de 8 segundos (deveria ser inferior a 1s).
+- A paginação mostra "Page 1 of 0" quando a lista está vazia.
+
+**Abordagem de debug:** Loop completo de sete etapas. Inclua na suíte de regressão QA.
+
+### P3: baixo (backlog)
+
+**Definição:** Problema cosmético, caso de borda ou pequena inconveniência.
+
+**Expectativa de resposta:** Adicione ao backlog. Corrija quando conveniente ou agrupe com mudanças relacionadas.
+
+**Exemplos:**
+- O tooltip tem um erro de digitação: "Delet" em vez de "Delete".
+- Há um aviso no console sobre um método de lifecycle do React obsoleto.
+- O alinhamento do footer está deslocado 2 pixels em viewports entre 768-800px.
+- O spinner de carregamento continua por 200ms depois que o conteúdo fica visível.
+
+**Abordagem de debug:** Talvez não seja necessário o loop completo de debug. Uma correção direta com teste de regressão é suficiente.
 
 ---
 
-## O loop de debug em 5 etapas em detalhe
+## O loop de debug de sete etapas em detalhe
 
-O workflow `/debug` executa estas etapas em ordem estrita. Usa ferramentas de análise de código MCP ao longo — nunca leituras brutas de arquivo ou grep.
+O workflow `/debug` executa estas etapas em ordem. Usa o provedor de inteligência de código configurado quando disponível, além de busca nativa e leituras de arquivos com escopo quando esse provedor está indisponível ou sofre timeout.
 
-### Step 1: coletar informações do erro
+### Etapa 1: coletar informações do erro
 
 O workflow pede (ou recebe do usuário):
 - Mensagem de erro e stack trace
 - Passos para reproduzir
-- Comportamento esperado vs atual
+- Comportamento esperado e atual
 - Detalhes do ambiente
 
-Se uma mensagem de erro já foi fornecida no prompt, o workflow prossegue imediatamente para o Step 2.
+Se a mensagem de erro já foi fornecida no prompt, o workflow prossegue imediatamente para a Etapa 2.
 
-### Step 2: reproduzir o bug
+### Etapa 2: reproduzir o bug
 
-**Ferramentas usadas:** `search_for_pattern` com a mensagem de erro ou palavras-chave do stack trace, `find_symbol` para localizar a função e arquivo exatos.
+**Ferramentas usadas:** as ferramentas configuradas de busca e símbolos, ou `rg` nativo e leituras com escopo quando as ferramentas configuradas estão indisponíveis.
 
-O objetivo é localizar o erro no codebase — encontrar a linha exata onde a exceção é lançada, a função exata que produz saída errada, ou a condição exata que causa o comportamento inesperado.
+O objetivo é localizar o erro no codebase: encontrar a linha exata onde a exceção é lançada, a função exata que produz a saída incorreta ou a condição exata que causa o comportamento inesperado.
 
-Esta etapa transforma um sintoma reportado pelo usuário ("a página crasha") em uma localização no codebase (`src/api/users.ts:47, deleteUser() throws TypeError`).
+Esta etapa transforma um sintoma relatado pelo usuário ("a página quebra") em uma localização no codebase (`src/api/users.ts:47, deleteUser() throws TypeError`).
 
-### Step 3: diagnosticar causa raiz
+### Etapa 3: diagnosticar a causa raiz
 
-**Ferramentas usadas:** `find_referencing_symbols` para rastrear o caminho de execução para trás a partir do ponto de erro.
+**Ferramentas usadas:** navegação de referências e símbolos quando disponível, seguida de leituras nativas direcionadas quando não estiver.
 
-O workflow rastreia para trás a partir da localização do erro para encontrar a causa real. Verifica estes padrões comuns de causa raiz:
+O workflow rastreia para trás a partir da localização do erro para encontrar a causa real. Verifica estes padrões comuns:
 
-| Padrão | O Que Procurar |
-|:-------|:--------------|
-| **Acesso null/undefined** | Verificações de null ausentes, optional chaining necessário, variáveis não inicializadas |
-| **Race conditions** | Operações async completando fora de ordem, await ausente, estado mutável compartilhado |
+| Padrão | O que procurar |
+|:--------|:----------------|
+| **Acesso null/undefined** | Checks de null ausentes, optional chaining necessário, variáveis não inicializadas |
+| **Race conditions** | Operações assíncronas concluindo fora de ordem, await ausente, estado mutável compartilhado |
 | **Tratamento de erros ausente** | try/catch ausente, rejeição de promise não tratada, error boundary ausente |
-| **Tipos de dados errados** | String onde número esperado, coerção de tipo ausente, schema incorreto |
-| **Estado stale** | Estado React não atualizando, valores em cache não invalidados, closure capturando valor antigo |
-| **Validação ausente** | Entrada de usuário não sanitizada, corpo de requisição de API não validado, condições de boundary não verificadas |
+| **Tipos de dados incorretos** | String onde se espera número, coerção de tipo ausente, schema incorreto |
+| **Estado obsoleto** | Estado React não atualiza, valores em cache não invalidados, closure capturando valor antigo |
+| **Validação ausente** | Entrada do usuário não sanitizada, corpo da requisição de API não validado, condições de fronteira não verificadas |
 
-A disciplina-chave: diagnosticar a **causa raiz**, não o sintoma. Se `user.id` é undefined, a questão não é "como verifico undefined?" mas "por que user é undefined neste ponto do caminho de execução?"
+Diagnostique a causa raiz, não o sintoma. Se `user.id` estiver undefined, pergunte por que user está undefined nesse ponto do caminho de execução, e não como proteger o acesso contra undefined.
 
-### Step 4: propor correção mínima
+### Etapa 4: propor uma correção mínima
 
 O workflow apresenta:
 1. A causa raiz identificada (com evidência do rastreamento de código).
-2. A correção proposta (alterando apenas o necessário).
-3. Uma explicação de por que isso corrige a causa raiz, não apenas o sintoma.
+2. A correção proposta (alterando somente o necessário).
+3. Uma explicação de por que isso corrige a causa raiz, e não apenas o sintoma.
 
-**O workflow bloqueia aqui até o usuário confirmar.** Isso previne o agente de debug de fazer mudanças sem aprovação.
+O workflow apresenta a proposta antes de editar. Aguarda confirmação quando a mudança ainda não está autorizada pela solicitação ou pela política de execução; uma autorização existente permite continuar sem um segundo prompt.
 
-**Princípio de correção mínima:** Altere o menor número de linhas possível. Não refatore, não melhore estilo de código, não adicione funcionalidades não relacionadas. A correção deve ser revisável em menos de 2 minutos.
+**Princípio da correção mínima:** Altere o menor número de linhas possível. Não refatore, não melhore o estilo do código e não adicione funcionalidades não relacionadas. A correção deve ser revisável em menos de 2 minutos.
 
-### Step 5: aplicar correção e escrever teste de regressão
+### Etapa 5: aplicar a correção e escrever o teste de regressão
 
 Duas ações acontecem nesta etapa:
 
-1. **Implementar a correção** — A mudança mínima aprovada é aplicada.
-2. **Escrever teste de regressão** — Um teste que:
+1. **Implementar a correção:** A mudança mínima aprovada é aplicada.
+2. **Escrever um teste de regressão:** Um teste que:
    - Reproduz o bug original (o teste deve falhar sem a correção)
    - Verifica que a correção funciona (o teste deve passar com a correção)
-   - Previne o mesmo bug de recorrer em mudanças futuras
+   - Impede que o mesmo bug volte em mudanças futuras
 
-O teste de regressão é a saída mais importante do workflow de debug. Sem ele, o mesmo bug pode ser reintroduzido por qualquer mudança futura.
+O teste de regressão é a saída mais importante do workflow de debug. Sem ele, qualquer mudança futura pode reintroduzir o mesmo bug.
 
-### Step 6: varredura de padrões similares
+### Etapa 6: procurar padrões similares
 
-Após a correção ser aplicada, o workflow escaneia todo o codebase pelo mesmo padrão que causou o bug.
+Depois de aplicar a correção, o workflow procura em todo o codebase o mesmo padrão que causou o bug.
 
-**Ferramentas usadas:** `search_for_pattern` com o padrão identificado como causa raiz.
+**Ferramentas usadas:** a busca de padrões configurada ou uma busca nativa com escopo usando o padrão identificado como causa raiz.
 
-Por exemplo, se o bug foi causado por acessar `user.organization.id` sem verificar se `organization` é null, a varredura procura todas as outras instâncias de acesso a `organization.id` sem verificações de null.
+Por exemplo, se o bug foi causado por acessar `user.organization.id` sem verificar se `organization` é null, a busca procura todas as outras instâncias de acesso a `organization.id` sem verificações de null.
 
-**Critérios de delegação para subagente** — O workflow spawna um subagente `debug-investigator` quando:
-- O erro abrange múltiplos domínios (ex: tanto frontend quanto backend afetados).
-- O escopo de varredura de padrões similares cobre 10+ arquivos.
-- Rastreamento profundo de dependências é necessário para diagnosticar completamente o problema.
+**Critérios de delegação de subagente:** O workflow inicia um subagente `debug-investigator` quando:
+- O erro abrange vários domínios (por exemplo, frontend e backend são afetados).
+- O escopo da busca de padrões similares cobre 10+ arquivos.
+- É necessário rastreamento profundo de dependências para diagnosticar o problema por completo.
 
-Métodos de spawn específicos por vendor:
+Métodos de criação específicos do vendor:
 
-| Vendor | Método de Spawn |
-|:-------|:--------------|
-| Claude Code | Agent tool com `.claude/agents/debug-investigator.md` |
-| Codex CLI | Solicitação de subagente mediada por modelo, resultados como JSON |
+| Vendor | Método de criação |
+|:-------|:------------|
+| Claude Code | Ferramenta Agent com `.claude/agents/debug-investigator.md` |
+| Codex CLI | Solicitação de subagente mediada pelo modelo, resultados como JSON |
 | Gemini CLI | `oma agent spawn debug "scan prompt" {session_id} -w {workspace}` |
 | Antigravity / Fallback | `oma agent spawn debug "scan prompt" {session_id} -w {workspace}` |
 
-Todas as localizações vulneráveis similares são reportadas. Instâncias confirmadas são corrigidas como parte da mesma sessão.
+Todas as localizações vulneráveis similares são relatadas. Instâncias confirmadas são corrigidas na mesma sessão.
 
-### Step 7: documentar o bug
+### Etapa 7: documentar o bug
 
 O workflow escreve um arquivo de memória com:
 - Sintoma e causa raiz
@@ -224,7 +227,7 @@ Environment: Node 22.1, PostgreSQL 16
 
 **Por que essa estrutura funciona:**
 
-- **Erro + stack trace** permite que o Step 2 localize o código imediatamente (`search_for_pattern` com "deleteUser" encontra a função; `find_symbol` identifica a localização exata).
+- **Erro + stack trace** permite que a Etapa 2 localize imediatamente o código (`search_for_pattern` com "deleteUser" encontra a função; `find_symbol` aponta a localização exata).
 - **Passos para reproduzir** com a condição de acionamento específica ("user whose organization was deleted") dão uma pista da causa raiz (foreign key nula).
 - **Ambiente** elimina falsos alvos específicos de versão.
 
@@ -240,60 +243,59 @@ O workflow solicitará detalhes adicionais conforme necessário.
 
 ## Sinais de escalação
 
-Estes sinais indicam que o bug requer escalação além do loop padrão de debug:
+Estes sinais indicam que o bug precisa de escalação além do loop padrão de debug:
 
-### Sinal 1: mesma correção tentada duas vezes
+### Sinal 1: a mesma correção foi tentada duas vezes
 
-Se o workflow propõe uma correção, aplica-a, e o mesmo erro recorre, o problema é mais profundo que o diagnóstico inicial. Isso aciona o **Exploration Loop** em workflows que o suportam (ultrawork, orchestrate, work):
+Se o workflow propõe uma correção, aplica-a e o mesmo erro retorna, o problema é mais profundo que o diagnóstico inicial. Isso aciona o **Exploration Loop** nos workflows que o suportam (ultrawork, orchestrate, work):
 
-- Gerar 2-3 hipóteses alternativas para a causa raiz.
-- Testar cada hipótese em workspace separado (git stash por tentativa).
-- Pontuar resultados e adotar a melhor abordagem.
+- Gere 2-3 hipóteses alternativas para a causa raiz.
+- Teste cada hipótese em um workspace separado (git stash por tentativa).
+- Pontue os resultados e adote a melhor abordagem.
 
-### Sinal 2: causa raiz multi-domínio
+### Sinal 2: causa raiz em vários domínios
 
-O erro no frontend é causado por uma mudança no backend que é causada por uma migração de schema de banco de dados. Quando a causa raiz cruza fronteiras de domínio, escale para `/work` ou `/orchestrate` para envolver os agentes de domínio relevantes.
+O erro no frontend é causado por uma mudança no backend, que por sua vez é causada por uma migração de schema do banco. Quando a causa raiz cruza fronteiras de domínio, escale para `/work` ou `/orchestrate` para envolver os agentes de domínio relevantes.
 
-**Exemplo:** Frontend exibe "undefined" para nome do usuário. Backend retorna null para `user.display_name`. Migração de banco de dados adicionou a coluna, mas linhas existentes possuem valores NULL. A correção requer: migração de banco de dados (backfill), tratamento de null no backend e exibição de fallback no frontend.
+**Exemplo:** O frontend exibe "undefined" para o nome do usuário. O backend retorna null para `user.display_name`. Uma migração de banco adicionou a coluna, mas as linhas existentes têm valores NULL. A correção exige: migração de banco (backfill), tratamento de null no backend e fallback de exibição no frontend.
 
 ### Sinal 3: ambiente de reprodução ausente
 
-O bug só ocorre em produção, e você não consegue reproduzi-lo localmente. Os sinais incluem:
+O bug só ocorre em produção e você não consegue reproduzi-lo localmente. Os sinais incluem:
 - Diferenças de configuração específicas do ambiente.
-- Race conditions que só se manifestam sob carga de produção.
+- Race conditions que só aparecem sob carga de produção.
 - Diferenças de comportamento de serviços de terceiros entre staging e produção.
 
-**Ação:** Coletar logs de produção, solicitar acesso a monitoramento de produção e considerar adicionar instrumentação/logging antes de tentar uma correção.
+**Ação:** Colete logs de produção, solicite acesso ao monitoramento de produção e considere adicionar instrumentação/logging antes de tentar uma correção.
 
-### Sinal 4: falha de infraestrutura de testes
+### Sinal 4: falha da infraestrutura de testes
 
 O teste de regressão não pode ser escrito porque a infraestrutura de testes está quebrada, ausente ou inadequada.
 
-**Ação:** Corrigir a infraestrutura de testes primeiro (ou usar `oma install` para configurá-la), depois retornar ao workflow de debug.
+**Ação:** Corrija primeiro a infraestrutura de testes (ou use `oma install` para configurá-la) e depois retorne ao workflow de debug. Se uma verificação executável não for aplicável, registre o motivo no contrato de resultado em vez de inventar uma verificação aprovada.
 
 ---
 
 ## Checklist de validação pós-correção
 
-Após aplicar a correção e teste de regressão, verifique:
+Depois de aplicar a correção e o teste de regressão, verifique:
 
-- [ ] **Teste de regressão falha sem a correção** — Reverta a correção temporariamente e confirme que o teste detecta o bug.
-- [ ] **Teste de regressão passa com a correção** — Aplique a correção e confirme que o teste passa.
-- [ ] **Testes existentes ainda passam** — Execute a suite completa de testes para verificar sem regressões.
-- [ ] **Build tem sucesso** — Compile o projeto para detectar erros de tipo ou problemas de importação.
-- [ ] **Padrões similares escaneados** — Step 6 foi completado e todas as instâncias encontradas estão corrigidas ou documentadas.
-- [ ] **Correção é mínima** — Apenas as linhas necessárias foram alteradas. Nenhuma refatoração não relacionada foi incluída.
-- [ ] **Causa raiz documentada** — O arquivo de memória registra: sintoma, causa raiz, correção aplicada, arquivos alterados, localização do teste de regressão e padrões similares encontrados.
+- [ ] **O teste de regressão falha sem a correção:** reverta temporariamente a correção e confirme que o teste detecta o bug.
+- [ ] **O teste de regressão passa com a correção:** aplique a correção e confirme que o teste passa.
+- [ ] **As verificações existentes relevantes continuam passando:** execute as verificações do projeto que cobrem o comportamento alterado. Execute um build somente quando a tarefa exigir explicitamente.
+- [ ] **Os padrões similares foram procurados:** a Etapa 6 foi concluída e todas as instâncias encontradas foram corrigidas ou documentadas.
+- [ ] **A correção é mínima:** somente as linhas necessárias foram alteradas. Nenhuma refatoração não relacionada foi incluída.
+- [ ] **A causa raiz foi documentada:** o arquivo de memória registra sintoma, causa raiz, correção aplicada, arquivos alterados, localização do teste de regressão e padrões similares encontrados.
 
 ---
 
 ## Critérios de conclusão
 
-O workflow de debug está completo quando:
+O workflow de debug está concluído quando:
 
 1. A causa raiz está identificada e documentada (não apenas o sintoma).
-2. Uma correção mínima é aplicada com aprovação do usuário.
-3. Um teste de regressão existe que falha sem a correção e passa com ela.
-4. O codebase foi escaneado para padrões similares, e todas as instâncias confirmadas foram tratadas.
-5. Um relatório de bug está registrado na memória com: sintoma, causa raiz, correção aplicada, arquivos alterados, localização do teste de regressão e padrões similares encontrados.
+2. Uma correção mínima é aplicada dentro da autorização da tarefa.
+3. Existe um teste de regressão que falha sem a correção e passa com ela.
+4. O codebase foi procurado por padrões similares, e todas as instâncias confirmadas foram tratadas.
+5. Um relatório de bug está registrado na memória com sintoma, causa raiz, correção aplicada, arquivos alterados, localização do teste de regressão e padrões similares encontrados.
 6. Todos os testes existentes continuam passando após a correção.

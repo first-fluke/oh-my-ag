@@ -1,6 +1,6 @@
 ---
 title: Benchmarks
-description: Cinco harnesses de Claude Code construyeron el mismo MVP de plataforma de aprendizaje 3D para niños a partir de un prompt idéntico. oh-my-agent quedó en primer lugar con 80.6/100 a través de los ejes funcional, de especificación, visual, de ingeniería y de eficiencia.
+description: Cinco harnesses de Claude Code construyeron el mismo MVP de plataforma de aprendizaje 3D para niños a partir de un prompt idéntico. oh-my-agent quedó en primer lugar con 80.6/100 en los ejes funcional, de especificación, visual, de ingeniería y de eficiencia.
 ---
 
 # Benchmarks
@@ -69,7 +69,7 @@ Los jueces de especificación y visual se ejecutan 3 veces por harness vía `jud
 
 ---
 
-## Caveats
+## Advertencias
 
 1. **Override del prompt de superpowers** — necesario para que el harness funcione en modo no interactivo (su skill de brainstorming `<HARD-GATE>` bloquea las ejecuciones single-shot). El resultado refleja "lo que superpowers puede hacer una vez que se omite el gate", no una comparación pura entre iguales.
 2. **Promedio multi-juez en spec + visual, journey de una sola ejecución** — la evaluación del journey requiere un dev server activo, por lo que se mantiene en una sola ejecución. Trata las diferencias de journey por debajo de ~2 puntos como ruido. El tamaño de la muestra es 1 build por harness.
@@ -81,10 +81,10 @@ Los jueces de especificación y visual se ejecutan 3 veces por harness vía `jud
 ## Reproducir
 
 ```bash
-# Ejecuta los 5 harnesses (secuencial, ~45 min, ~$15-20 de gasto en API)
+# Run all harnesses (sequential, ~45 min, ~$15-20 in API spend)
 ./benchmarks/run.sh
 
-# Puntuación multiaxis por harness (5 ejes, 100pt) — una sola ronda de juez
+# Multiaxis scoring per harness (5-axis, 100pt) — single judge round
 for h in vanilla oma omc ecc superpowers; do
   ./benchmarks/scoring/multiaxis/score.sh \
     /tmp/oma-benchmark-<timestamp>/projects/$h \
@@ -93,7 +93,7 @@ for h in vanilla oma omc ecc superpowers; do
     /tmp/oma-benchmark-<timestamp>/multiaxis/$h
 done
 
-# Genera el reporte
+# Generate the report
 ./benchmarks/scoring/multiaxis/build-report.sh \
   /tmp/oma-benchmark-<timestamp> \
   $(pwd)

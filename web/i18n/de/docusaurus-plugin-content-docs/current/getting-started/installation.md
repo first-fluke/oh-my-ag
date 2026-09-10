@@ -1,15 +1,18 @@
 ---
 title: Installation
-description: Vollständige Installationsanleitung für oh-my-agent — drei Installationsmethoden, alle Presets mit ihren Skill-Listen, CLI-Tool-Anforderungen pro Anbieter, Konfiguration nach der Installation, Felder der oma-config.yaml und Verifikation mit oma doctor.
+description: oh-my-agent installieren, Skills und Provider auswählen, die erzeugten Projektdateien verstehen, Modell- und Laufzeitstandardwerte konfigurieren und die Einrichtung mit oma doctor prüfen.
 ---
 
 # Installation
 
 ## Voraussetzungen
 
-- **Eine KI-gestützte IDE oder CLI** — mindestens eines der folgenden: Claude Code, Gemini CLI, Codex CLI, Qwen CLI, Antigravity CLI (`agy`), Antigravity IDE, Cursor oder OpenCode
-- **bun** — JavaScript-Laufzeitumgebung und Paketmanager (wird bei Bedarf vom Installationsskript automatisch installiert)
-- **uv** — Python-Paketmanager für Serena MCP (wird bei Bedarf automatisch installiert)
+- **Eine KI-gestützte IDE oder CLI:** mindestens ein unterstützter Host wie Claude Code, Codex CLI, Qwen Code, Antigravity CLI (`agy`), Cursor, OpenCode, Kimi Code CLI, Kiro, CommandCode, pi, GitHub Copilot oder Hermes
+- **bun:** JavaScript-Laufzeit und Paketmanager (wird vom Installationsskript automatisch angeboten, wenn es fehlt)
+- **uv:** Python-Paketmanager (das Bootstrap-Skript bietet die Installation an, wenn es fehlt)
+- **Code-Intelligence-Provider:** Serena ist der Standardprovider. Bei entsprechender Provider-Konfiguration wird auch Gortex unterstützt. Der Installer kann Serena über `uv tool install` einrichten und mit einer Warnung fortfahren, wenn eine optionale Abhängigkeit fehlt.
+
+Der Installer gruppiert Integrationen nach Fähigkeiten. Zu den Hook-Vendors gehören Antigravity, Claude, Codex, CommandCode, Cursor, Grok, Kimi, Kiro und Qwen; OpenCode und pi verwenden Erweiterungsbrücken; GitHub Copilot und Hermes erhalten Skill-Links; ZCode erhält Workflow-Befehle. Sie können mehrere Vendors auswählen, für die erste Aufgabe genügt jedoch der Host, den Sie verwenden möchten.
 
 ---
 
@@ -25,15 +28,15 @@ curl -fsSL https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/in
 irm https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.ps1 | iex
 ```
 
-Beide Bootstrap-Skripte verhalten sich gleich:
-1. Erkennt Ihre Plattform (macOS, Linux oder Windows)
-2. Prüft auf bun, uv und serena und installiert diese bei Bedarf
-3. Führt den interaktiven Installer mit Preset-Auswahl aus
-4. Erstellt `.agents/` mit Ihren ausgewählten Skills
-5. Richtet die `.claude/`-Integrationsschicht ein (Hooks, Symlinks, Einstellungen)
-6. Konfiguriert Serena MCP, falls erkannt
+Beide Bootstrap-Skripte arbeiten gleich:
+1. Sie erkennen die Plattform (macOS, Linux oder Windows).
+2. Sie prüfen bun und uv (sowie Serena, wenn ausgewählt) und installieren Fehlendes.
+3. Sie starten den interaktiven Installer mit der Auswahl von Preset und Provider.
+4. Sie erstellen `.agents/` mit den ausgewählten Skills und der Konfiguration.
+5. Sie richten Laufzeit-Integrationsschichten ein (Hooks, Symlinks und Einstellungen für erkannte Vendors).
+6. Sie konfigurieren Code-Intelligence- und Memory-MCP-Server.
 
-Typische Installationszeit: unter 60 Sekunden.
+Das Bootstrap-Skript läuft auch nach Fehlern bei optionalen Abhängigkeiten weiter und nennt Folgebefehle. Führen Sie nach Abschluss des Installers `oma doctor` aus.
 
 ---
 
@@ -43,24 +46,28 @@ Typische Installationszeit: unter 60 Sekunden.
 bunx oh-my-agent@latest
 ```
 
-Dies startet den interaktiven Installer ohne den Abhängigkeits-Bootstrap. bun muss bereits installiert sein.
+Damit startet der interaktive Installer ohne Dependency-Bootstrap. bun muss bereits installiert sein.
 
-Der Installer fordert Sie auf, ein Preset auszuwählen, das bestimmt, welche Skills installiert werden:
+Der Installer fordert Sie auf, ein Skill-Preset auszuwählen. Die aktuellen Presets sind in `cli/constants/skill-data.ts` definiert:
 
 ### Presets
 
 | Preset | Enthaltene Skills |
-|--------|----------------|
-| **all** | oma-brainstorm, oma-pm, oma-frontend, oma-backend, oma-db, oma-mobile, oma-design, oma-qa, oma-debug, oma-tf-infra, oma-dev-workflow, oma-translation, oma-orchestration, oma-scm, oma-coordination |
-| **fullstack** | oma-frontend, oma-backend, oma-db, oma-pm, oma-qa, oma-debug, oma-brainstorm, oma-scm |
-| **frontend** | oma-frontend, oma-pm, oma-qa, oma-debug, oma-brainstorm, oma-scm |
-| **backend** | oma-backend, oma-db, oma-pm, oma-qa, oma-debug, oma-brainstorm, oma-scm |
-| **mobile** | oma-mobile, oma-pm, oma-qa, oma-debug, oma-brainstorm, oma-scm |
-| **devops** | oma-tf-infra, oma-dev-workflow, oma-pm, oma-qa, oma-debug, oma-brainstorm, oma-scm |
+|--------|-------------------|
+| **all** | Alle 33 aktuellen Skill-Pakete |
+| **fullstack** | Architektur, Brainstorming, Design, Frontend, Backend, Mobile, Datenbank, PM, QA, Debugging, SCM, Terraform und Developer-Workflow |
+| **fullstack-web** | Fullstack-Webimplementierung, Architektur, Design, PM, QA, Debugging, SCM und Developer-Workflow |
+| **fullstack-mobile** | Mobile-orientierte Fullstack-Implementierung, Architektur, Design, PM, QA, Debugging, SCM und Developer-Workflow |
+| **frontend** | Architektur, Brainstorming, Design, Frontend, PM, QA, Debugging und SCM |
+| **backend** | Architektur, Brainstorming, Backend, Datenbank, PM, QA, Debugging, SCM und Developer-Workflow |
+| **mobile** | Architektur, Brainstorming, Mobile, PM, QA, Debugging und SCM |
+| **devops** | Architektur, Brainstorming, Terraform, Developer-Workflow, Observability, PM, QA, Debugging und SCM |
+| **research** | Scholar, Market, PDF, HWP, Academic Writing, Search, Translation und SCM |
+| **content** | Design, Image, Voice, Academic Writing, Translation und SCM |
 
-Jedes Preset enthält oma-pm (Planung), oma-qa (Review), oma-debug (Bugfixing), oma-brainstorm (Ideenfindung) und oma-scm (Git) als Basisagenten. Domänenspezifische Presets fügen die relevanten Implementierungsagenten hinzu.
+Presets sind Skill-Bundles; sie erzeugen keine eigene Subagent-Definition pro Skill. Das Preset `all` wird aus der aktuellen Skill-Registry erweitert, daher kann die Liste mit dem Repository wachsen. Domänen-Presets enthalten nur die dafür erforderlichen Skills.
 
-Die gemeinsamen Ressourcen (`_shared/`) werden unabhängig vom Preset immer installiert. Dies umfasst Kern-Routing, Context-Loading, Prompt-Struktur, Vendor-Erkennung, Ausführungsprotokolle und Memory-Protokoll.
+Die gemeinsamen Ressourcen (`_shared/`) werden unabhängig vom Preset immer installiert. Dazu gehören Core-Routing, Context Loading, Prompt-Struktur, Vendor-Erkennung, Ausführungsprotokolle und Memory-Protokoll.
 
 ### Was erstellt wird
 
@@ -68,43 +75,41 @@ Nach der Installation enthält Ihr Projekt:
 
 ```
 .agents/
-├── config/
-│   └── oma-config.yaml      # Ihre Einstellungen
+├── oma-config.yaml # Your preferences
+├── oma-config.cue # Optional schema-backed configuration
 ├── skills/
-│   ├── _shared/                    # Gemeinsame Ressourcen (immer installiert)
-│   │   ├── core/                   # skill-routing, context-loading usw.
-│   │   ├── runtime/                # memory-protocol, execution-protocols/
-│   │   └── conditional/            # quality-score, experiment-ledger usw.
-│   ├── oma-frontend/               # Je nach Preset
-│   │   ├── SKILL.md
-│   │   └── resources/
-│   └── ...                         # Weitere ausgewählte Skills
-├── workflows/                      # Alle 16 Workflow-Definitionen
-├── agents/                         # Subagenten-Definitionen
-├── mcp.json                        # MCP-Server-Konfiguration
-├── results/plan-{sessionId}.json                       # Leer (befüllt durch /plan)
-├── state/                          # Leer (verwendet von persistenten Workflows)
-└── results/                        # Leer (befüllt durch Agentenläufe)
+│ ├── _shared/ # Shared resources (always installed)
+│ │ ├── core/ # skill-routing, context-loading, etc.
+│ │ ├── runtime/ # memory-protocol, execution-protocols/
+│ │ └── conditional/ # quality-score, experiment-ledger, etc.
+│ ├── oma-frontend/ # Per preset
+│ │ ├── SKILL.md
+│ │ └── resources/
+│ └── ... # Other selected skills
+├── workflows/ # Current workflow definitions (21 in this checkout)
+├── agents/ # Subagent definitions
+├── mcp.json # MCP server configuration
+├── results/ # Plans and agent results (populated by workflows)
+└── state/ # Persistent workflow and coordination state
 
 .claude/
-├── settings.json                   # Hooks und Berechtigungen
-├── hooks/
-│   ├── triggers.json               # Keyword-zu-Workflow-Zuordnung (11 Sprachen)
-│   ├── keyword-detector.ts         # Auto-Erkennungslogik
-│   ├── persistent-mode.ts          # Persistenter-Workflow-Durchsetzung
-│   └── hud.ts                      # [OMA]-Statuszeilen-Indikator
-├── skills/                         # Symlinks -> .agents/skills/
-└── agents/                         # Subagenten-Definitionen für IDE
+├── settings.json # Vendor settings, when Claude Code is selected
+├── hooks/oma-hook.sh # Generated wrapper for the in-process hook chain
+├── hooks/hud.ts # Optional [OMA] statusline indicator
+├── skills/ # Symlinks → .agents/skills/
+└── agents/ # Generated native subagent files, when supported
 
-.serena/
-└── memories/                       # Laufzeitzustand (befüllt während Sitzungen)
+.agents/state/memories/
+└── ... # Runtime coordination state
 ```
+
+Der Installer erstellt Vendor-Verzeichnisse nur für die ausgewählten Hosts. Die Hook-Quelle bleibt in `.agents/hooks/core/`; erzeugte Vendor-Dateien sind Integrationsausgaben. Serena kann in älteren Projekten zusätzlich das Legacy-Verzeichnis `.serena/memories/` verwenden.
 
 ---
 
 ## Methode 3: Globale Installation
 
-Für CLI-Nutzung (Dashboards, Agenten-Spawning, Diagnose) oh-my-agent global installieren:
+Für CLI-Nutzung (Dashboards, Agenten-Spawning und Diagnose) installieren Sie oh-my-agent global:
 
 ### Homebrew (macOS/Linux)
 
@@ -116,69 +121,67 @@ brew install oh-my-agent
 
 ```bash
 bun install --global oh-my-agent
-# oder
+# or
 npm install --global oh-my-agent
 ```
 
-Dies installiert den Befehl `oma` global und gibt Ihnen Zugang zu allen CLI-Befehlen aus jedem Verzeichnis:
+Damit wird der Befehl `oma` global installiert und Sie erhalten aus jedem Verzeichnis Zugriff auf alle CLI-Befehle:
 
 ```bash
-oma doctor              # Gesundheitscheck
-oma dashboard terminal           # Terminal-Überwachung
-oma dashboard web       # Web-Dashboard unter http://localhost:9847
-oma agent spawn         # Agenten vom Terminal starten
-oma agent parallel      # Parallele Agentenausführung
-oma agent status        # Agentenstatus prüfen
-oma stats get               # Sitzungsstatistiken
-oma retro               # Retrospektiven-Analyse
-oma cleanup             # Sitzungsartefakte bereinigen
-oma update              # oh-my-agent aktualisieren
-oma verify              # Agentenausgabe verifizieren
-oma visualize           # Abh��ngigkeitsvisualisierung
-oma describe            # Projektstruktur beschreiben
-oma bridge              # SSE-zu-stdio-Brücke für Antigravity
-oma memory init         # Memory-Provider initialisieren
-oma auth status         # CLI-Authentifizierungsstatus prüfen
-oma star                # Repository mit Stern markieren
+oma doctor # Health check
+oma doctor --profile # Show resolved model/CLI per dispatch role
+oma dashboard terminal # Terminal monitoring
+oma dashboard web # Web dashboard at http://localhost:9847
+oma agent spawn # Spawn agents from terminal
+oma agent parallel # Parallel agent execution
+oma agent status # Check agent status
+oma agent review # Code review via an external CLI
+oma docs verify # Check documentation references
+oma skill audit # Audit skill routing descriptions
+oma stats get # Session statistics
+oma recap # Conversation history recap across AI tools
+oma link # Regenerate vendor-native files from `.agents/` SSOT
+oma update # Update oh-my-agent
+oma verify agent <agent-type> # Verify agent output (build/test/scope/secrets)
+oma describe # Introspect CLI commands as JSON
+oma bridge # MCP stdio ↔ Streamable HTTP bridge
+oma memory init # Initialize coordination memory schema
+oma auth status # Check CLI auth status
+oma search # Mechanical search primitives (alias: `oma s`)
+oma image # Multi-vendor AI image generation (alias: `oma img`)
+oma video # Video generation and capture
+oma slide # Presentation generation and export
+oma export # Export skills for external IDEs (e.g. cursor)
+oma star # Star the repository
 ```
 
-`oma` ist die Kurzform von `oh-my-agent`. Beide funktionieren als CLI-Befehle.
+`oma` ist die Kurzform von `oh-my-agent`; beide funktionieren als CLI-Befehle.
 
 ---
 
 ## Installation der KI-CLI-Tools
 
-Sie benötigen mindestens ein installiertes KI-CLI-Tool. oh-my-agent unterstützt mehrere Anbieter, und Sie können diese mischen — verschiedene CLIs für verschiedene Agenten über die Agenten-CLI-Zuordnung.
-
-### Gemini CLI
-
-```bash
-bun install --global @google/gemini-cli
-# oder
-npm install --global @google/gemini-cli
-```
-
-Die Authentifizierung erfolgt automatisch beim ersten Start. Gemini CLI liest Skills standardmäßig aus `.agents/skills/`.
+Sie benötigen mindestens ein installiertes KI-CLI-Tool. oh-my-agent unterstützt mehrere Vendors, die Sie über unterschiedliche CLIs für unterschiedliche Agenten mischen können.
 
 ### Claude Code
 
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
-# oder
+# or
 npm install --global @anthropic-ai/claude-code
 ```
 
-Die Authentifizierung erfolgt automatisch beim ersten Start. Claude Code verwendet `.claude/` für Hooks und Einstellungen, wobei Skills per Symlink aus `.agents/skills/` verknüpft werden.
+Die Authentifizierung erfolgt beim ersten Start automatisch. Claude Code verwendet `.claude/` für Hooks und Einstellungen; Skills werden aus `.agents/skills/` verlinkt.
 
 ### Codex CLI
 
 ```bash
 bun install --global @openai/codex
-# oder
+# or
 npm install --global @openai/codex
 ```
 
-Nach der Installation `codex login` zur Authentifizierung ausführen.
+Führen Sie nach der Installation `codex login` zur Authentifizierung aus.
 
 ### Qwen CLI
 
@@ -186,7 +189,7 @@ Nach der Installation `codex login` zur Authentifizierung ausführen.
 bun install --global @qwen-code/qwen-code
 ```
 
-Nach der Installation `/auth` innerhalb der CLI zur Authentifizierung ausführen.
+Führen Sie nach der Installation `/auth` innerhalb der CLI zur Authentifizierung aus.
 
 ### Antigravity CLI (`agy`)
 
@@ -194,7 +197,7 @@ Nach der Installation `/auth` innerhalb der CLI zur Authentifizierung ausführen
 curl -fsSL https://antigravity.google/cli/install.sh | bash
 ```
 
-Die Authentifizierung erfolgt beim ersten Start durch `agy`. Das Binary heißt `agy`. In headless-Umgebungen stattdessen die Umgebungsvariable `ANTIGRAVITY_API_KEY` setzen. `oma doctor` meldet den Auth-Status über `~/.gemini/antigravity-cli/cache/onboarding.json`.
+Die Authentifizierung übernimmt `agy` beim ersten Start. Das Binary heißt `agy`. Setzen Sie in headless-Umgebungen stattdessen `ANTIGRAVITY_API_KEY`. `oma doctor` meldet den Authentifizierungsstatus über `~/.gemini/antigravity-cli/cache/onboarding.json`.
 
 ---
 
@@ -203,59 +206,103 @@ Die Authentifizierung erfolgt beim ersten Start durch `agy`. Das Binary heißt `
 Der Befehl `oma install` erstellt `.agents/oma-config.yaml`. Dies ist die zentrale Konfigurationsdatei für das gesamte Verhalten von oh-my-agent:
 
 ```yaml
-# Erforderlich
+# Required
 language: en
-model_preset: antigravity   # eingebaut: antigravity, claude, codex, qwen, cursor, mixed
+model_preset: auto          # follows the current runtime's native model settings
 
-# Optional — Datums-/Uhrzeiteinstellungen
+# Optional — date/time preferences
 date_format: ISO
-timezone: UTC
+timezone: Australia/Sydney  # omit to use the system timezone
 
-# Optional — CLI im Hintergrund automatisch aktualisieren
+# Optional — auto-update the CLI in background
 auto_update_cli: true
+telemetry: false
 
-# Optional — partielle Überschreibung pro Agent (nur Objekt, flaches Merging)
+# Optional — capability providers (defaults are context7/native/serena/agentmemory)
+# providers:
+#   docs: context7
+#   web: native
+#   code_intelligence: serena
+#   semantic_memory: agentmemory
+
+# Optional — browser DevTools MCP. Omit to preserve the current setup.
+# mcp:
+#   devtools_browsers: [aside]
+
+# Optional — partial override per agent (object-only, shallow merge)
 agents:
   backend: { model: openai/gpt-5.5, effort: high }
   qa:      { model: anthropic/claude-sonnet-4-6 }
+
+# Optional — user-defined model slugs
+# models:
+#   my-fast:
+#     cli: antigravity
+#     cli_model: "Gemini 3.6 Flash (Medium)"
+#     supports: { thinking: true }
+
+# Optional — user-defined presets
+# custom_presets:
+#   my-team:
+#     extends: claude
+#     agent_defaults:
+#       backend: { model: openai/gpt-5.5, effort: high }
 ```
 
 ### Feldreferenz
 
 | Feld | Typ | Erforderlich | Beschreibung |
-|-------|------|---------|-------------|
-| `language` | String | Ja | Antwortsprachcode. Unterstützt en, ko, ja, zh, es, fr, de, pt, ru, nl, pl. |
-| `model_preset` | String | Ja | Aktiver Preset-Schlüssel. Einer der eingebauten Schlüssel (`antigravity`, `claude`, `codex`, `qwen`, `cursor`, `mixed`) oder ein `custom_presets`-Schlüssel. Siehe [Modellkonfiguration pro Agent](../guide/per-agent-models.md). |
-| `date_format` | String | Nein | Zeitstempelformat (`ISO`, `US`, `EU`). Standard: `ISO`. |
-| `timezone` | String | Nein | Zeitzonenbezeichner (z. B. `Asia/Seoul`). Standard: `UTC`. |
-| `agents` | Map | Nein | Partielle Überschreibungen pro Agent (nur `AgentSpec`-Objekt). Wird flach über Preset-Standardwerte gemergt. |
-| `models` | Map | Nein | Benutzerdefinierte Modell-Slugs (ehemals in `models.yaml`). |
-| `custom_presets` | Map | Nein | Benutzerdefinierte Presets. Unterstützt `extends:` für partielle Vererbung von einem eingebauten Preset. |
+|------|-----|--------------|--------------|
+| `language` | string | Ja | Antwortsprachcode. Unterstützt en, ko, ja, zh, es, fr, de, pt, ru, nl, pl. |
+| `model_preset` | string | Ja | Aktiver Preset-Schlüssel. `auto` folgt der aktuellen Laufzeit; feste Schlüssel sind `free`, `antigravity`, `claude`, `codex`, `qwen`, `cursor`, `kiro` und `mixed`. Auch benutzerdefinierte Preset-Schlüssel sind gültig. Siehe [Modelle pro Agent](../guide/per-agent-models.md). |
+| `default_cli` | string | Nein | Fallback-CLI für `oma agent spawn`, wenn explizite Agenteneinstellungen und das ausgewählte Preset keinen Vendor auflösen. |
+| `free` | map | Nein | FreeLLMAPI-Gateway-Einstellungen bei `model_preset: free`; API-Schlüssel gehören in Umgebungsvariablen. |
+| `providers` | map | Nein | Fähigkeits-Provider: `code_intelligence` (`serena` oder `gortex`), `docs` (`context7`), `web` (`native` oder `brave`) und `semantic_memory` (`agentmemory`, `honcho` oder `none`). |
+| `date_format` | string | Nein | Zeitstempelformat (`ISO`, `US`, `EU`). Standard: `ISO`. |
+| `timezone` | string | Nein | Zeitzonenkennung (zum Beispiel `Asia/Seoul`). Ohne Wert wird die Zeitzone des Hosts verwendet. |
+| `auto_update_cli` | boolean | Nein | Ob routinemäßige CLI-Prüfungen im Hintergrund aktualisieren dürfen. Standard: `true` (mit `false` deaktivieren). |
+| `telemetry` | boolean | Nein | Opt-in für Vendor-Telemetrie. Standard: `false`. |
+| `agents` | map | Nein | Partielle Überschreibungen pro Agent (nur `AgentSpec`-Objekte). Werden flach über Preset-Standardwerte gemergt. |
+| `models` | map | Nein | Benutzerdefinierte Modell-Slugs, früher in `models.yaml`. |
+| `custom_presets` | map | Nein | Benutzerdefinierte Presets. Unterstützt `extends:` für partielle Vererbung eines eingebauten Presets. |
+| `mcp.devtools_browsers` | list | Nein | Browser für DevTools MCP: `aside`, `chrome` oder `firefox`. Ohne Wert bleibt die vorhandene Einrichtung erhalten; `[]` deaktiviert den Browser-Server ausdrücklich. |
+| `serena.mode` | string | Nein | `bridge` teilt einen projektweiten Serena-Server und ist der Standard; `stdio` aktiviert einen Prozess pro Sitzung. |
+| `serena.auto_update` | boolean | Nein | Ob `oma update` Serena aktualisiert. Standard: `true`. |
+
+> **Konfigurationsformat:** Eine gültige `.agents/oma-config.cue` wird als gemeinsame Konfiguration ausgewertet. Wenn die Auswertung der gemeinsamen CUE-Datei fehlschlägt, kann der Loader auf `.agents/oma-config.yaml` zurückfallen; ein lokales Overlay (`oma-config.local.cue` oder `.yaml`) ist optional, eine ungültige lokale Absicht ist jedoch fatal. `OMA_MODEL_PRESET` überschreibt den Dateiwert für den aktuellen Prozess.
 
 ### Vendor-Auflösung
 
-Beim Starten eines Agenten wird der CLI-Anbieter aus dem aktiven `model_preset` (und etwaigen `agents:`-Überschreibungen) aufgelöst. Weitere Details finden Sie unter [Modellkonfiguration pro Agent](../guide/per-agent-models.md).
+Beim Starten eines Agenten löst die CLI die Einstellungen in dieser Reihenfolge auf: `agents.<id>`, das ausgewählte `model_preset`, der Orchestrator-Fallback des Presets und anschließend `default_cli`. Bei `model_preset: auto` liefert die native Konfiguration der aktuellen Laufzeit das Modell; eine unbekannte Laufzeit fällt auf `default_cli` zurück. Die vollständige Matrix steht unter [Modelle pro Agent](../guide/per-agent-models.md).
 
 ---
 
 ## Verifikation: `oma doctor`
 
-Nach Installation und Einrichtung prüfen, ob alles funktioniert:
+Prüfen Sie nach Installation und Einrichtung, ob alles funktioniert:
 
 ```bash
 oma doctor
 ```
 
 Dieser Befehl prüft:
-- Alle erforderlichen CLI-Tools sind installiert und erreichbar
-- MCP-Server-Konfiguration ist gültig
-- Skill-Dateien existieren mit gültigem SKILL.md-Frontmatter
-- Symlinks in `.claude/skills/` zeigen auf gültige Ziele
-- Hooks sind korrekt in `.claude/settings.json` konfiguriert
-- Memory-Provider ist erreichbar (Serena MCP)
-- `oma-config.yaml` ist gültiges YAML mit erforderlichen Feldern
+- Die ausgewählte Host-CLI ist installiert und erreichbar; optionale Tools werden getrennt gemeldet.
+- Konfigurierte MCP-Servereinträge sind gültig (zum Beispiel Serena, Gortex, Context7 oder DevTools).
+- Skill-Dateien existieren mit gültigem SKILL.md-Frontmatter.
+- Symlinks und Hook-Skripte zeigen auf gültige Ziele.
+- Hooks sind in den Vendor-Einstellungsdateien korrekt konfiguriert.
+- Ausgewählte Code-Intelligence- und Memory-Provider sind erreichbar.
+- `oma-config.cue` / `oma-config.yaml` ist mit den erforderlichen Feldern gültig.
 
-Falls etwas nicht stimmt, sagt `oma doctor` genau, was zu reparieren ist, mit kopierbereiten Befehlen.
+Wenn etwas nicht stimmt, nennt `oma doctor` das fehlende oder ungültige Element und trennt Blocker für die erste Aufgabe von Warnungen zu optionalen Integrationen.
+
+Für das aufgelöste Modell und die CLI jedes Agenten führen Sie aus:
+
+```bash
+oma doctor --profile
+```
+
+Die vollständige Matrix und Migrationsdetails stehen unter [Modelle pro Agent](../guide/per-agent-models.md).
 
 ---
 
@@ -267,23 +314,23 @@ Falls etwas nicht stimmt, sagt `oma doctor` genau, was zu reparieren ist, mit ko
 oma update
 ```
 
-Dies aktualisiert die globale oh-my-agent-CLI auf die neueste Version.
+Damit wird die globale oh-my-agent-CLI auf die neueste Version aktualisiert.
 
-### Projekt-Skills-Aktualisierung
+### Projekt-Skills aktualisieren
 
-Skills und Workflows innerhalb eines Projekts können über die GitHub Action (`action/`) für automatisierte Aktualisierungen oder manuell durch erneutes Ausführen des Installers aktualisiert werden:
+Skills und Workflows innerhalb eines Projekts können über die GitHub Action (`action/`) automatisch oder manuell durch erneutes Ausführen des Installers aktualisiert werden:
 
 ```bash
 bunx oh-my-agent@latest
 ```
 
-Der Installer erkennt vorhandene Installationen und bietet eine Aktualisierung an, wobei Ihre `oma-config.yaml` und benutzerdefinierte Konfigurationen erhalten bleiben.
+Der Installer erkennt vorhandene Installationen und bietet eine Aktualisierung an, wobei `oma-config.yaml` und benutzerdefinierte Konfigurationen erhalten bleiben.
 
 ---
 
 ## Nächste Schritte
 
-Öffnen Sie Ihr Projekt in Ihrer KI-IDE und beginnen Sie mit der Nutzung von oh-my-agent. Skills werden automatisch erkannt. Probieren Sie:
+Öffnen Sie Ihr Projekt in der ausgewählten KI-IDE oder CLI und beginnen Sie, oh-my-agent zu verwenden. Skill-Routing hängt vom Host ab; aktivierte Hooks können Workflows erkennen. Probieren Sie:
 
 ```
 "Build a login form with email validation using Tailwind CSS"
@@ -295,4 +342,4 @@ Oder verwenden Sie einen Workflow-Befehl:
 /plan authentication feature with JWT and refresh tokens
 ```
 
-Weitere Informationen finden Sie im [Nutzungsleitfaden](/docs/guide/usage) für detaillierte Beispiele oder unter [Agenten](/docs/core-concepts/agents), um zu verstehen, was jeder Spezialist tut.
+Weitere Beispiele finden Sie im [Nutzungsleitfaden](/docs/guide/usage). Unter [Agenten](/docs/core-concepts/agents) erfahren Sie, welche Aufgaben die einzelnen Spezialisten übernehmen.

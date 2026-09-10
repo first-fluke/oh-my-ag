@@ -1,28 +1,38 @@
 ---
-title: "Guia: Instalação Global"
-description: Instale o oh-my-agent no HOME do seu usuário (~/.agents/) em vez de por projeto, para que as mesmas skills, workflows e regras se apliquem em todos os projetos. Cobre oma install --global, oma update --global, oma uninstall --global, override via OMA_HOME, detecção de instalação dupla com oma doctor e ressalvas de plataforma (recusa de sudo, CI, WSL, proteção cwd=HOME).
+title: "Guia: Instalação global"
+sidebar_label: Instalação global
+description: "Instale o oh-my-agent no HOME do usuário (~/.agents/) em vez de por projeto, para aplicar as mesmas skills, workflows e regras a todos os projetos. Abrange oma install --global, oma update --global, oma uninstall --global, a substituição OMA_HOME, a detecção de instalações duplicadas por oma doctor e as particularidades de plataforma (recusa de sudo, CI, WSL e proteção de cwd=HOME)."
 ---
 
 ## O que é uma instalação global?
 
-Por padrão, `oma install` limita tudo ao diretório do projeto atual: o SSOT fica em `<cwd>/.agents/` e as configurações de fornecedor são gravadas em `<cwd>/.claude/`, `<cwd>/.codex/`, etc. Uma **instalação global** (`oma install --global`) instala o oh-my-agent no HOME do seu usuário, de modo que as mesmas skills, workflows e regras fiquem disponíveis em todo projeto que você abrir sem repetir o passo de instalação. O SSOT fica em `~/.agents/` e as configurações de fornecedor em `~/.claude/`, `~/.codex/`, etc.
+Por padrão, `oma install` limita tudo ao diretório do projeto atual: o SSOT fica em `<cwd>/.agents/` e as configurações dos vendors são gravadas em `<cwd>/.claude/`, `<cwd>/.codex/` etc. Uma **instalação global** (`oma install --global`) instala o oh-my-agent no HOME do usuário, para que as mesmas skills, workflows e regras estejam disponíveis em cada projeto aberto sem repetir a instalação. O SSOT fica em `~/.agents/` e as configurações dos vendors em `~/.claude/`, `~/.codex/` etc.
 
 ## Comparação entre projeto e global
 
 | Aspecto | Projeto (`oma install`) | Global (`oma install --global`) |
 |--------|------------------------|--------------------------------|
-| Local do SSOT | `<cwd>/.agents/` | `~/.agents/` |
-| Configurações de fornecedor | `<cwd>/.claude/`, `<cwd>/.codex/`, etc. | `~/.claude/`, `~/.codex/`, etc. |
-| Lock file | `<cwd>/.agents/_install.lock` | `~/.agents/_install.lock` |
+| Localização do SSOT | `<cwd>/.agents/` | `~/.agents/` |
+| Configurações dos vendors | `<cwd>/.claude/`, `<cwd>/.codex/` etc. | `~/.claude/`, `~/.codex/` etc. |
+| Arquivo de lock | `<cwd>/.agents/_install.lock` | `~/.agents/_install.lock` |
 | Metadados | `<cwd>/.agents/_version.json (schemaVersion=2)` | `~/.agents/_version.json (schemaVersion=2)` |
-| Caso de uso | Customização por projeto | Default pessoal em todos os projetos |
-| Escopo do oma-config.yaml | Específico do projeto | Baseline em nível de usuário |
+| Caso de uso | Personalização por projeto | Padrão pessoal para todos os projetos |
+| Escopo de oma-config.yaml | Específico do projeto | Base em todo o usuário |
 
-Ambos os modos podem coexistir. `oma doctor` reporta as duas instalações quando presentes e sinaliza divergências entre elas.
+Os dois modos podem coexistir. `oma doctor` informa as duas instalações quando ambas estão presentes e sinaliza divergências entre elas.
 
-## Configuração na primeira execução
+Depois de uma instalação global bem-sucedida, verifique os arquivos no HOME do usuário e o perfil resolvido:
 
-Na primeira vez que você roda `oma install --global` em uma máquina, a instalação mostra uma nota explicativa antes de prosseguir:
+```bash
+oma doctor --json
+oma doctor --profile
+```
+
+O primeiro comando informa a saúde da instalação e dos vendors; o comando de perfil mostra o plano de modelos usado pelos agentes. Execute-os em qualquer projeto quando a instalação global for a que você quer inspecionar.
+
+## Configuração da primeira execução
+
+Na primeira vez que você executa `oma install --global` em uma máquina, a instalação exibe uma nota explicativa antes de continuar:
 
 ```
 This is your first global install of oh-my-agent.
@@ -35,9 +45,9 @@ Existing per-project installs are not affected.
 ? Proceed with the global install? (y/N)
 ```
 
-Confirme para continuar. A instalação então segue o mesmo fluxo interativo de uma instalação de projeto (idioma, preset de modelo, tipo de projeto, seleção de fornecedor).
+Confirme para continuar. A instalação segue então o mesmo fluxo interativo de uma instalação de projeto (idioma, preset de modelo, tipo de projeto e seleção de vendors).
 
-Após uma instalação bem-sucedida, os próximos passos são exibidos:
+Depois de uma instalação bem-sucedida, as próximas etapas exibidas são:
 
 ```
 1. Open your project in your IDE
@@ -45,11 +55,11 @@ Após uma instalação bem-sucedida, os próximos passos são exibidos:
 3. Run `oma doctor` if anything looks off
 ```
 
-## Ressalvas
+## Particularidades
 
 ### Sudo recusado
 
-`oma install` (em qualquer modo) encerra imediatamente quando executado sob `sudo`:
+`oma install` (em qualquer modo) termina imediatamente quando é executado sob `sudo`:
 
 ```
 Refusing to install under sudo. Re-run as the target user (without sudo) — oma writes to your HOME and runs as your user.
@@ -59,15 +69,15 @@ Execute o comando como seu usuário normal, sem `sudo`.
 
 ### Ambientes de CI
 
-Rodar `oma install --global` dentro de um pipeline de CI modifica o diretório HOME do runner de CI. Geralmente isso não é desejável. Se você realmente precisa (ex.: um pipeline de bootstrap), o oma emite um aviso:
+Executar `oma install --global` dentro de um pipeline de CI modifica o diretório HOME do runner de CI. Em geral, isso é indesejável. Se você realmente precisar fazer isso (por exemplo, em um pipeline de bootstrap), o oma emite um aviso:
 
 ```
 Running `oma install --global` in CI. This will modify the CI user's HOME.
 ```
 
-A instalação prossegue se `--yes` / `OMA_YES=1` estiver definido. Sem isso, o aviso é exibido e a instalação continua de forma interativa (o que vai travar na maioria dos setups de CI).
+A instalação prossegue se `--yes` / `OMA_YES=1` estiver definido. Sem isso, o aviso é exibido e a instalação continua de forma interativa (o que fará a maioria das configurações de CI travar).
 
-### WSL: HOME do Linux vs USERPROFILE do Windows
+### WSL: HOME do Linux versus USERPROFILE do Windows
 
 Quando o oma detecta que está rodando dentro do Windows Subsystem for Linux, ele imprime:
 
@@ -77,30 +87,44 @@ from your Windows %USERPROFILE%. oma will install only to the WSL HOME.
 If you want a Windows-side install, re-run this command from PowerShell.
 ```
 
-Uma instalação no WSL e uma no PowerShell são independentes. Se você quer cobertura global nos dois lados, rode `oma install --global` uma vez no WSL e outra no PowerShell.
+Uma instalação no WSL e uma instalação no PowerShell são independentes. Para ter cobertura global nos dois lados, execute `oma install --global` uma vez no WSL e outra no PowerShell.
 
-### Aviso cwd = HOME (modo projeto)
+### Aviso cwd = HOME (modo de projeto)
 
-Se você rodar `oma install` (sem `--global`) com seu diretório atual sendo o HOME, o oma avisa:
+Se você executar `oma install` (sem `--global`) enquanto o diretório atual for o HOME, o oma avisa:
 
 ```
 You're running oma in your HOME directory without --global. This will scatter
 files in ~/. Are you sure?
 ```
 
-Em modo não interativo / CI, isso é abortado automaticamente. Use `--global` se a intenção for uma instalação em nível de usuário.
+No modo não interativo ou de CI, isso aborta automaticamente. Use `--global` se a intenção for uma instalação para todo o usuário.
+
+## Relink de uma instalação global
+
+`oma link` regenera os arquivos nativos dos vendors a partir do SSOT sem reinstalar. Assim como `install` e `update`, ele resolve o alvo a partir do contexto da instalação; passe `--global` para reconciliar `~/.agents/` — funciona em qualquer diretório, não apenas em `$HOME`:
+
+```bash
+# Regenerate every configured vendor in the global install
+oma link --global
+
+# Regenerate only opencode (e.g. after editing per-agent models in ~/.agents/oma-config.yaml)
+oma link opencode --global
+```
+
+Sem `--global`, `oma link` aponta para `<cwd>/.agents/`; portanto, executá-lo dentro de um projeto quando a instalação é global informa que não encontrou o diretório `.agents/` ali.
 
 ## Desinstalação
 
 ```bash
-# Pré-visualiza o que seria removido (nunca apaga nada)
+# Preview what would be removed (never deletes anything)
 oma uninstall --global --dry-run
 
-# Remove a instalação global
+# Remove the global install
 oma uninstall --global
 ```
 
-O comando de desinstalação separa os arquivos gerenciados pelo oma dos arquivos do usuário. Conteúdo do usuário (oma-config.yaml, mcp.json, skills personalizadas sem o marcador `<!-- oma:generated -->`) nunca é apagado.
+O comando de desinstalação separa arquivos pertencentes ao oma de arquivos pertencentes ao usuário. Conteúdo do usuário (oma-config.yaml, mcp.json, skills personalizadas sem o marcador `<!-- oma:generated -->`) nunca é apagado.
 
 Para desinstalar uma instalação de projeto, omita `--global`:
 
@@ -108,12 +132,14 @@ Para desinstalar uma instalação de projeto, omita `--global`:
 oma uninstall [--dry-run]
 ```
 
-## Override via OMA_HOME
+## Substituição OMA_HOME
 
-Para fins de teste ou staging, você pode redirecionar todas as operações do oma para um diretório arbitrário:
+Para testes ou staging, você pode redirecionar todas as operações do oma para um diretório arbitrário:
 
 ```bash
 OMA_HOME=/tmp/oma-test oma install --global
 ```
 
-`OMA_HOME` tem precedência sobre `--global` e `process.cwd()`. Caminhos de sistema proibidos (`/etc`, `/usr`, `/bin`, `/boot`, `/sys`, `/proc`) são rejeitados mesmo via `OMA_HOME`. O caminho precisa ser absoluto e gravável.
+`OMA_HOME` tem precedência sobre `--global` e `process.cwd()`. Caminhos de sistema proibidos (`/etc`, `/usr`, `/bin`, `/boot`, `/sys`, `/proc`) são rejeitados até mesmo via `OMA_HOME`. O caminho deve ser absoluto e gravável.
+
+Para um smoke test seguro, aponte `OMA_HOME` para um diretório vazio e gravável e execute `oma install --global --yes`; o resumo deve indicar esse diretório como raiz da instalação. Remova o diretório depois do teste e então execute a instalação real com o HOME pretendido.

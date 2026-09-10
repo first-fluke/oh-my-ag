@@ -1,6 +1,7 @@
 ---
 title: "Guide: Bug Fixing"
-description: Thorough debugging guide covering the structured 5-step debug loop, severity triage, escalation signals, and post-fix validation.
+sidebar_label: Bug Fixing
+description: Structured seven-stage debugging workflow with severity triage, escalation signals, source-backed diagnosis, and post-fix validation.
 ---
 
 # Guide: Bug Fixing
@@ -9,7 +10,7 @@ description: Thorough debugging guide covering the structured 5-step debug loop,
 
 Use `/debug` (or say "fix bug", "fix error", "debug" in natural language) when you have a specific bug to diagnose and fix. The workflow provides a structured, reproducible approach to debugging that avoids the common trap of fixing symptoms instead of root causes.
 
-The debug workflow supports all vendors (Gemini, Claude, Codex, Qwen). Steps 1-5 run inline. Step 6 (similar pattern scanning) may delegate to a `debug-investigator` subagent when the scan scope is broad (10+ files or multi-domain errors).
+The debug workflow supports all configured vendors. Stages 1-5 run inline. Stage 6 (similar pattern scanning) may delegate to a `debug-investigator` subagent when the scan scope is broad (10+ files or multi-domain errors), followed by stage 7’s memory record.
 
 ---
 
@@ -73,7 +74,7 @@ Severity determines how the bug is handled and how quickly it should be fixed.
 - Mobile app crashes on launch for Android 14 devices.
 - Password reset emails are not sent (email service integration broken).
 
-**Debug approach:** Full 5-step loop. QA review recommended after fix.
+**Debug approach:** Full seven-stage loop. QA review recommended after fix.
 
 ### P2: medium (this sprint)
 
@@ -87,7 +88,7 @@ Severity determines how the bug is handled and how quickly it should be fixed.
 - API response time for /users endpoint is 8 seconds (should be under 1s).
 - Pagination shows "Page 1 of 0" when the list is empty.
 
-**Debug approach:** Full 5-step loop. Include in QA regression suite.
+**Debug approach:** Full seven-stage loop. Include in QA regression suite.
 
 ### P3: low (backlog)
 
@@ -105,9 +106,9 @@ Severity determines how the bug is handled and how quickly it should be fixed.
 
 ---
 
-## The 5-Step debug loop in detail
+## The seven-stage debug loop in detail
 
-The `/debug` workflow executes these steps in strict order. It uses MCP code analysis tools throughout, never raw file reads or grep.
+The `/debug` workflow executes these stages in order. It uses the configured code-intelligence provider when available, plus native search and scoped file reads when that provider is unavailable or times out.
 
 ### Step 1: collect error information
 
@@ -121,7 +122,7 @@ If an error message is already provided in the prompt, the workflow proceeds imm
 
 ### Step 2: reproduce the bug
 
-**Tools used:** `search_for_pattern` with the error message or stack trace keywords, `find_symbol` to locate the exact function and file.
+**Tools used:** the configured search and symbol tools, or native `rg` and scoped reads when configured tools are unavailable.
 
 The goal is to locate the error in the codebase: find the exact line where the exception is thrown, the exact function that produces wrong output, or the exact condition that causes the unexpected behavior.
 
@@ -129,7 +130,7 @@ This step transforms a user-reported symptom ("the page crashes") into a codebas
 
 ### Step 3: diagnose root cause
 
-**Tools used:** `find_referencing_symbols` to trace the execution path backward from the error point.
+**Tools used:** reference and symbol navigation when available, followed by targeted native reads when it is not.
 
 The workflow traces backward from the error location to find the actual cause. It checks for these common root cause patterns:
 
@@ -151,7 +152,7 @@ The workflow presents:
 2. The proposed fix (changing only what is necessary).
 3. An explanation of why this fixes the root cause, not just the symptom.
 
-**The workflow blocks here until the user confirms.** This prevents the debug agent from making changes without approval.
+The workflow presents the proposal before editing. It waits for confirmation when the change is not already authorized by the request or execution policy; an existing authorization lets it continue without a second prompt.
 
 **Minimal fix principle:** Change the fewest lines possible. Do not refactor, do not improve code style, do not add unrelated features. The fix should be reviewable in under 2 minutes.
 
@@ -171,7 +172,7 @@ The regression test is the most important output of the debug workflow. Without 
 
 After the fix is applied, the workflow scans the entire codebase for the same pattern that caused the bug.
 
-**Tools used:** `search_for_pattern` with the pattern that was identified as the root cause.
+**Tools used:** the configured pattern search or a scoped native search with the pattern identified as the root cause.
 
 For example, if the bug was caused by accessing `user.organization.id` without checking if `organization` is null, the scan looks for all other instances of `organization.id` access without null checks.
 
@@ -271,7 +272,7 @@ The bug only occurs in production, and you cannot reproduce it locally. Signals 
 
 The regression test cannot be written because the test infrastructure is broken, missing, or inadequate.
 
-**Action:** Fix the test infrastructure first (or use `oma install` to configure it), then return to the debug workflow.
+**Action:** Fix the test infrastructure first (or use `oma install` to configure it), then return to the debug workflow. If an executable check is not applicable, record the reason in the result contract rather than inventing a passing check.
 
 ---
 
@@ -281,8 +282,7 @@ After applying the fix and regression test, verify:
 
 - [ ] **Regression test fails without the fix**: Revert the fix temporarily and confirm the test catches the bug.
 - [ ] **Regression test passes with the fix**: Apply the fix and confirm the test passes.
-- [ ] **Existing tests still pass**: Run the full test suite to verify no regressions.
-- [ ] **Build succeeds**: Compile/build the project to catch type errors or import issues.
+- [ ] **Relevant existing checks still pass**: Run the project checks that cover the changed behavior. Run a build only when the task explicitly requires one.
 - [ ] **Similar patterns scanned**: Step 6 has been completed and all found instances are either fixed or documented.
 - [ ] **Fix is minimal**: Only the necessary lines were changed. No unrelated refactoring was included.
 - [ ] **Root cause documented**: The memory file records the symptom, root cause, fix applied, files changed, regression test location, and similar patterns found.
@@ -294,7 +294,7 @@ After applying the fix and regression test, verify:
 The debug workflow is complete when:
 
 1. The root cause is identified and documented (not just the symptom).
-2. A minimal fix is applied with user approval.
+2. A minimal fix is applied under the task's authorization.
 3. A regression test exists that fails without the fix and passes with it.
 4. The codebase has been scanned for similar patterns, and all confirmed instances are addressed.
 5. A bug report is recorded in memory with: symptom, root cause, fix applied, files changed, regression test location, and similar patterns found.

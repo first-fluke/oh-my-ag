@@ -1,78 +1,39 @@
 ---
-title: Por que oh-my-agent
-description: Posicionamento do oh-my-agent numa categoria saturada de multi-agent CLI. O custo migrou da implementacao para teste e manutencao; oh-my-agent oferece quality gates, verificacao independente, multi-vendor dispatch e personalizacao repo-native para responder a essa migracao.
+title: Por que escolher o oh-my-agent
+description: "Escolha o oh-my-agent quando precisar de habilidades de agentes mantidas pelo repositório, workflows, despacho entre vários fornecedores e verificação explícita."
 ---
 
-# Por que oh-my-agent
+# Por que escolher o oh-my-agent
 
-A categoria multi-agent CLI esta saturada. So no ultimo trimestre surgiram mais de vinte multi-agent orchestrators: Metateam, OpenSwarm, DevSquad, Praktor, Salacia, Codelegate, agent-of-empires, TTal, Maggy e outros. A maioria otimiza o mesmo eixo: fazer agentes escreverem codigo mais rapido.
+O oh-my-agent adiciona uma camada mantida pelo repositório aos CLIs de agentes que sua equipe já usa. O diretório `.agents/` armazena habilidades, workflows, definições de agentes, regras e configuração de modelos. Os arquivos nativos de cada fornecedor são gerados a partir dessa fonte de verdade, para que o comportamento possa ser revisado e alterado junto com o projeto.
 
-oh-my-agent otimiza outro eixo. A hipotese de partida e que, com modelos suficientemente capazes, o custo de analise, design e implementacao no SDLC tende a zero. A parte cara do desenvolvimento de software sempre foi testar e manter: manter um sistema funcionando, seguro e compreensivel depois do primeiro commit. E sobre esse eixo que oh-my-agent foi desenhado.
+## Escolha-o quando o repositório precisar da camada de coordenação
 
-Esta pagina concretiza esse posicionamento. Para a discussao longa que originou esse enquadramento, ver [issue #155](https://github.com/first-fluke/oh-my-agent/issues/155#issuecomment-4142133589).
+O OMA é adequado quando você precisa de uma ou mais destas capacidades:
 
----
+- **Vários hosts ou fornecedores de agentes.** `model_preset: auto` usa a configuração nativa do runtime atual. Presets fixos e personalizados podem encaminhar funções para outros fornecedores; `oma agent spawn` cuida do despacho não nativo.
+- **Um workflow de equipe repetível.** `/work` cuida de uma tarefa delimitada, `/orchestrate` coordena o trabalho delegado, `/ultrawork` executa trabalho paralelo com etapas de revisão e `/ralph` repete uma tarefa com uma fase explícita de avaliação.
+- **Instruções mantidas pelo repositório.** Habilidades, workflows, regras e definições de agentes ficam ao lado do código. `oma link` projeta os arquivos selecionados nos formatos compatíveis com cada fornecedor.
+- **Verificações mecânicas e resultados duráveis.** As execuções dos agentes podem gravar status estruturado e recibos de resultado, enquanto `oma verify agent <agent-type>` e `oma docs verify` fornecem verificações explícitas.
 
-## O custo migrou
+Se um projeto usa um único host e não precisa compartilhar habilidades, workflows ou roteamento entre fornecedores, os arquivos `.agents/` e os comandos da CLI podem não justificar a configuração. O OMA é uma camada de coordenação; ele não substitui o modelo, o editor ou os critérios de aceitação específicos do projeto.
 
-Quando um unico modelo capaz produz uma feature funcionando em minutos, o gargalo deixa de ser throughput de implementacao. O gargalo passa a ser verificar se o codigo produzido faz mesmo o que afirma, capturar regressoes silenciosas entre iteracoes, manter segredos fora de prompts e logs, e expor o gasto de tokens antes de surpreender o time.
+## A verificação é um comando que você escolhe
 
-Um harness que apenas spawna agentes mais rapido nao resolve nada disso. Um harness desenhado para a fase pos-implementacao, sim.
+Execute `oma verify agent <agent-type> --workspace <path>` quando quiser as verificações de uma função de backend, frontend, mobile, QA, depuração ou planejamento. O verificador combina inspeções estáticas com comandos configurados, como testes, verificações de tipos, verificações SQL ou `flutter analyze`; consulte [`cli/commands/verify/report.ts`](https://github.com/first-fluke/oh-my-agent/blob/main/cli/commands/verify/report.ts). O relatório mostra o resultado de cada verificação. A aprovação dessas verificações não demonstra que uma funcionalidade atende aos requisitos de produto ou de domínio; os critérios de aceitação da tarefa ainda precisam ser revisados.
 
----
+`/ralph` adiciona uma fase de avaliação separada quando você escolhe esse workflow. Ele verifica novamente os critérios declarados entre iterações e registra os artefatos do workflow; não é um gate executado em todos os prompts comuns. O carregamento de habilidades também não inicia todos os workflows ou comandos de verificação.
 
-## O que oh-my-agent entrega no centro de custo real
+## O despacho continua visível
 
-Cada capacidade abaixo responde a um modo de falha especifico reportado na categoria multi-agent CLI.
+`oma doctor --profile` mostra o fornecedor e o modelo resolvidos para cada função de despacho. `oma agent spawn <agent-id> <prompt> <session-id>` é o caminho explícito da CLI quando uma função não é tratada pelo host atual. As regras de resolução do modelo e o comportamento específico de cada provedor estão documentados em [Padrões importantes](./important-defaults.md) e [Modelos por agente](../guide/per-agent-models.md).
 
-### Verificacao independente, nao autoavaliacao por LLM
+Os hooks podem ativar um workflow somente quando a integração do host correspondente está habilitada. O host faz o roteamento nativo de habilidades, enquanto o roteamento de workflows segue o workflow ou hook selecionado; um prompt comum não garante que uma habilidade ou gate específico seja executado.
 
-`oma verify <agent>` executa quatorze checagens deterministicas por tipo de agente. Sao checagens mecanicas: exit code do comando de testes, TypeScript strict passa, deteccao de padroes raw SQL, varredura de segredos hardcoded, Flutter analyze, varredura de inline styles, violacao de scope contra o charter do agente. Nenhum LLM julga se o trabalho "parece correto". Uma checagem passa se e somente se o comando subjacente reportar sucesso.
+Os controles de coordenação opcionais estão documentados no [limite de cota da sessão](../guide/configuration-reference.md#session-quota-caps), no [loop de retry e exploração de `/orchestrate`](../core-concepts/workflows.md#orchestrate) e na [atribuição de workspace](../core-concepts/parallel-execution.md#workspace-aware-pattern).
 
-Isso responde a queixa mais comum da categoria, resumida num post comunitario como "agents lie - they say tests pass when tests do not". Ver `cli/commands/verify/verify.ts` para a lista de checagens.
+## O compromisso prático
 
-### Re-verificacao entre iteracoes
+O OMA dá à equipe um lugar compartilhado para definir roteamento, etapas de execução, verificações e arquivos de saída. Em troca, a equipe precisa manter essa configuração do repositório atualizada e decidir quais workflows ou comandos de verificação fazem parte do seu contrato de aceitação. Esse compromisso é útil quando a consistência entre colaboradores importa mais do que a instalação mínima.
 
-O workflow `ralph` envolve `ultrawork` com uma fase JUDGE independente. Apos cada iteracao, JUDGE re-verifica cada criterion, inclusive os que ja passaram em iteracoes anteriores. Isso captura o caso em que consertar C2 silenciosamente quebra C1, que e o mecanismo real por tras da maioria das regressoes em sessoes longas de agentes.
-
-Verificacoes pesadas (mais de trinta segundos) sao cacheadas contra os caminhos de arquivo afetados, mantendo o custo de re-verificacao baixo. Ver `.agents/workflows/ralph/resources/judge-protocol.md` para o protocolo completo.
-
-### Quota caps que bloqueiam antes do dano
-
-Cada chamada de `oma agent spawn` registra a estimativa de tokens daquele spawn em `.serena/memories/session-cost-{sessionId}.md`. Antes do proximo spawn, `checkCap` consulta o quota cap configurado e recusa o lancamento se qualquer dimensao for excedida. Tres dimensoes sao impostas: total de tokens, total de spawns, orcamento de tokens por vendor.
-
-Essa e a diferenca entre descobrir depois que gastou quarenta mil dolares e ser avisado no spawn quinze de que sobra um spawn no orcamento. Ver `cli/io/session-cost.ts` e configurar sob `session.quota_cap` em `.agents/oma-config.yaml`.
-
-### Retry e depois explorar, nao retry para sempre
-
-Quando `orchestrate` Step 5 detecta falha de verificacao, repete o agente ate duas vezes com contexto do erro. Se a segunda tentativa ainda falhar e o cap de custo nao foi excedido, o workflow troca para o Exploration Loop: spawna em paralelo duas ou tres variantes alternativas de hipotese em workspaces separados e mantem apenas o resultado de maior pontuacao. As abordagens falhas sao descartadas com o custo registrado.
-
-E uma resposta estruturada ao caso em que uma abordagem e fundamentalmente errada. Tentar de novo a mesma nunca converge; tentar abordagens diferentes em paralelo converge.
-
-### Roteamento de workspace consciente de monorepo
-
-`detectWorkspace` le configuracoes de pnpm, nx, turbo e lerna e roteia cada agente para seu sub-workspace correspondente automaticamente. O backend agent roda contra `apps/api/`, o frontend agent contra `apps/web/`, sem o orchestrator ter que compor caminhos manualmente. Ver `cli/io/workspaces.ts`.
-
----
-
-## Multi-vendor nao e opcional
-
-A segunda hipotese de design e que qualquer time fazendo desenvolvimento assistido por IA de verdade usa mais de um provider. Hoje isso significa Claude, Codex, Gemini, Copilot, Qwen, Kimi e o que vier no proximo trimestre. Trocar de vendor e fato, nao edge case: Anthropic moveu funcoes de agente para um plano pago separado, OpenAI lancou Codex CLI na mesma semana em que os modelos da Anthropic degradaram, GitHub Copilot passou a cobrar por consumo.
-
-oh-my-agent trata a selecao de vendor como configuracao per-agent via `model_preset` e `agents.<id>.model` em `.agents/oma-config.yaml`. O diretorio portatil `.agents/` e a single source of truth; cada runtime suportado projeta a partir dele. Nao e necessario lock-in de vendor para usar oh-my-agent, nem migracao quando se troca de vendor.
-
----
-
-## Personalizacao repo-native
-
-A terceira hipotese e que nao existem dois times com a mesma definicao de "done". Um time exige scans OWASP Top 10 em cada mudanca de backend. Outro exige relatorio de QA em coreano. Um terceiro exige que toda migration seja revista por um database agent antes do merge.
-
-Como `.agents/` sao apenas arquivos no seu repositorio, cada time pode adicionar ou modificar agentes, skills, workflows e quality gates para se ajustar ao proprio codigo de conduta e postura de compliance. Personalizar e um `git commit`, nao um ticket de suporte ao vendor.
-
----
-
-## O que isso significa na pratica
-
-Se sua prioridade e "spawnar agentes em paralelo rapido", varias ferramentas cobrem essa superficie. Se sua prioridade e "entregar codigo que continua funcionando depois que os agentes saem da sala", oh-my-agent foi feito para esse objetivo especifico. `oma verify`, JUDGE, Exploration Loop, quota cap e o roteamento de monorepo nao sao extras opcionais: sao a razao de o projeto existir.
-
-Para detalhes de cada capacidade, ver a secao Core Concepts (Agents, Parallel Execution) na barra lateral.
+Para a discussão de posicionamento original, consulte a [issue #155](https://github.com/first-fluke/oh-my-agent/issues/155#issuecomment-4142133589).

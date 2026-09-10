@@ -1,5 +1,6 @@
 ---
 title: "스킬 유용성 평가"
+sidebar_label: 스킬 평가
 description: oma skill eval용 평가 태스크 픽스처를 작성하는 방법, .agents/eval/ 디렉토리 규칙, 체커 종류, mock과 live 실행 모드를 다룹니다.
 ---
 
@@ -158,6 +159,15 @@ oma skill eval --skill oma-scholar
 
 디스패치 전에 태스크 수, 갈래 디스패치 수, judge 디스패치 수, 해석된 벤더를 나열한 비용 미리보기를 출력합니다. `y`로 확인하거나 `--yes`로 건너뛰세요.
 
+다른 제어 옵션은 CI와 커버리지 조사에 유용합니다.
+
+| 옵션 | 효과 |
+| --- | --- |
+| `--task-dir <path>` | `.agents/eval/<skill>`이 아닌 지정한 디렉토리의 픽스처를 평가합니다. |
+| `--max-tasks <n>` | 제한된 live 실행에서 평가할 픽스처 수의 상한을 둡니다. |
+| `--neg-transfer` | 동일 도메인의 이웃 태스크를 샘플링하여 negative transfer를 찾습니다. 기본값은 꺼짐입니다. |
+| `--require-coverage` | scoreable paired task가 5개 미만으로 남으면 non-zero로 종료합니다. |
+
 ```bash
 # Preview and confirm
 oma skill eval --skill oma-scholar --live
@@ -205,6 +215,8 @@ baseline 갈래는 스킬을 빼고 돌리므로 SKILL.md를 고쳐도 무효화
 ```bash
 oma skill eval --skill oma-scholar --live --record --yes
 ```
+
+성공한 live 실행의 보고서에는 baseline 및 treatment 수, `utilityLift`, `coverage: "ok"`, 격리 상태, pass/warn/fail 판정이 포함됩니다. 이후 mock 실행은 태스크 프롬프트와 treatment skill 본문이 여전히 일치하는 기록만 재사용합니다.
 
 ---
 
@@ -312,6 +324,8 @@ oma skill eval --skill oma-scholar --json --require-coverage
 mock의 결정성은 `--live --record` 도중 judge의 이진 판정(PASS/FAIL)을 롤아웃 항목에 기록해 두고, 이후 `--mock` 실행에서 그 점수를 재생하는 방식으로 유지합니다. LLM을 다시 호출하지 않습니다.
 
 **데이터 유출 관련:** `--live` 중에는 judge가 후보 갈래의 출력을 채점을 위해 설정된 벤더로 보냅니다. 라이브 실행을 시작할 때마다 한 번씩 경고를 출력합니다.
+
+mock 실행이 커버리지 부족을 보고하면 폐기되었거나 누락된 `_rollouts` 항목에 관한 경고를 확인한 뒤 픽스처 또는 스킬을 수정하고 live 기록을 다시 실행하세요. 격리가 `best-effort` 또는 `unavailable`이면 lift를 강한 신호로 보기 전에 Claude, Codex, Qwen처럼 cwd 기준으로 동작하는 벤더를 선택하세요.
 
 ---
 

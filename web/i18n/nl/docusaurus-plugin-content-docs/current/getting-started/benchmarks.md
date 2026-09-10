@@ -1,13 +1,13 @@
 ---
 title: Benchmarks
-description: Vijf Claude Code-harnessen bouwden hetzelfde MVP voor een 3D-leerplatform voor kinderen vanuit een identieke prompt. oh-my-agent eindigde als eerste met 80.6/100 over functionele, spec-, visuele, engineering- en efficientie-assen.
+description: Vijf Claude Code-harnessen bouwden hetzelfde MVP voor een creatief 3D-leerplatform voor kinderen vanuit een identieke prompt. oh-my-agent eindigde als eerste met 80.6/100 op de assen functionaliteit, specificatie, visualisatie, engineering en efficiëntie.
 ---
 
 # Benchmarks
 
-Vijf Claude Code-harnessen bouwden hetzelfde MVP voor een creatief 3D-leerplatform voor kinderen vanuit een identieke ruwe prompt. **oh-my-agent eindigde als eerste met 80.6/100** op een 5-assen rubric (functioneel, spec, visueel, engineering, efficientie).
+Vijf Claude Code-harnessen bouwden vanuit dezelfde ruwe prompt hetzelfde MVP voor een creatief 3D-leerplatform voor kinderen. **oh-my-agent eindigde als eerste met 80.6/100** volgens een rubric met vijf assen (functionaliteit, specificatie, visualisatie, engineering en efficiëntie).
 
-> Uitvoeringscondities: `claude-opus-4-6`, effort `max`, `--max-budget-usd 20`, `--no-session-persistence`, `--setting-sources project,local`. OAuth via de ingelogde `claude` CLI van de gebruiker (geen `ANTHROPIC_API_KEY`).
+> Uitvoeringscondities: `claude-opus-4-6`, effort `max`, `--max-budget-usd 20`, `--no-session-persistence`, `--setting-sources project,local`. OAuth via de ingelogde `claude` CLI van de gebruiker (zonder `ANTHROPIC_API_KEY`).
 
 ---
 
@@ -15,10 +15,10 @@ Vijf Claude Code-harnessen bouwden hetzelfde MVP voor een creatief 3D-leerplatfo
 
 | Harness | Mechanisme |
 |---|---|
-| `vanilla` | kale Claude Code, geen plugin/skill (baseline) |
+| `vanilla` | Kale Claude Code, zonder plugin of skill (baseline) |
 | `oma` | `oh-my-agent` source-seeded (`.agents/` + `.claude/`) |
 | `omc` | `oh-my-claudecode` via `--plugin-dir` |
-| `ecc` | `everything-claude-code` geinstalleerd in `~/.claude/` |
+| `ecc` | `everything-claude-code` geïnstalleerd in `~/.claude/` |
 | `superpowers` | `superpowers` via `--plugin-dir` |
 
 ---
@@ -59,29 +59,29 @@ Volledige vergelijkingen per scherm (world builder, AI-paneel, gallery, save→r
 
 | As | Gewicht | Belangrijkste signalen | Tooling |
 |---|---|---|---|
-| **Functioneel** | 35 | build exit, dev-server boot (HTTP 200 ≤45s), 5 user-journey checks, lint, ts-clean | `pm install/build/lint`, curl, chrome-devtools MCP, `tsc --noEmit` |
+| **Functioneel** | 35 | build-exitcode, opstartende dev-server (HTTP 200 ≤45s), 5 user-journey-checks, lint, ts-clean | `pm install/build/lint`, curl, chrome-devtools MCP, `tsc --noEmit` |
 | **Spec** | 15 | 13 expliciete prompt-deliverables, real-API bonus | LLM-judge met brace-balanced JSON-extractor |
 | **Visueel** | 20 | anti-patronen, kindvriendelijke UX, consistentie van designsysteem, toegankelijkheid | LLM-judge over screenshots |
 | **Engineering** | 20 | codebreedte, TS strict, max bestandsgrootte + folderdiepte, deferred-stub markers, geen hardcoded keys | statische analyse (jq + grep + find) |
-| **Efficientie** | 10 | beurten tot voltooiing, wall-clock duur, kosten-per-bestand | `claude -p` resultaat-JSON |
+| **Efficiëntie** | 10 | beurten tot voltooiing, wall-clockduur, kosten per bestand | `claude -p` resultaat-JSON |
 
 Spec- en visuele judges draaien 3 keer per harness via `judge-multi.sh` en de scores per item worden gemiddeld over de rondes. De implementatie staat in [`benchmarks/scoring/multiaxis/`](https://github.com/first-fluke/oh-my-agent/tree/main/benchmarks/scoring/multiaxis).
 
 ---
 
-## Caveats
+## Kanttekeningen
 
-1. **superpowers prompt-override** — noodzakelijk om de harness in non-interactieve modus te laten functioneren (de `<HARD-GATE>` brainstorming-skill blokkeert single-shot runs). Het resultaat weerspiegelt "wat superpowers kan zodra de gate is omzeild", niet een zuivere appels-met-appels-vergelijking.
+1. **superpowers prompt-override** — noodzakelijk om de harness in niet-interactieve modus te laten functioneren (de `<HARD-GATE>` brainstorming-skill blokkeert single-shot-runs). Het resultaat weerspiegelt "wat superpowers kan zodra de gate is omzeild", en is dus geen zuivere appels-met-appels-vergelijking.
 2. **Multi-judge averaging op spec + visueel, single-run journey** — journey-judging vereist een live dev-server en blijft daarom single-run. Behandel journey-verschillen onder ~2 punten als ruis. De steekproefomvang is 1 build per harness.
-3. **Kostennormalisatie** — de efficientie-as gebruikt kosten-per-bestand; de absolute kosten ($1.28–$8.19 over de 5) zijn niet in de score verwerkt.
-4. **De `lint-clean`-aftrek van oma is opzettelijk** — oma laat lint-/typecheck-handhaving bewust over aan git hooks (husky + lint-staged) en CI in plaats van ESLint-specifieke regels in agent-skills te bakken. De single-run benchmark bestraft dit met -5 in `lint-clean`, maar in een echte workflow zouden dezelfde issues door pre-push worden geblokkeerd voordat ze de remote bereiken.
+3. **Kostennormalisatie** — de efficiëntie-as gebruikt kosten per bestand; de absolute kosten ($1.28–$8.19 over de 5) zijn niet in de score verwerkt.
+4. **De `lint-clean`-aftrek van oma is opzettelijk** — oma laat lint- en typecheckhandhaving bewust over aan git hooks (husky + lint-staged) en CI, in plaats van ESLint-specifieke regels in agent-skills op te nemen. De single-run-benchmark bestraft dit met -5 in `lint-clean`, maar in een echte workflow zouden dezelfde problemen door pre-push worden geblokkeerd voordat ze de remote bereiken.
 
 ---
 
 ## Reproduceren
 
 ```bash
-# Run all 5 harnesses (sequential, ~45 min, ~$15-20 in API spend)
+# Run all harnesses (sequential, ~45 min, ~$15-20 in API spend)
 ./benchmarks/run.sh
 
 # Multiaxis scoring per harness (5-axis, 100pt) — single judge round
@@ -99,4 +99,4 @@ done
   $(pwd)
 ```
 
-De volledige narrative per harness, ruwe scores en screenshots worden bijgehouden in [`benchmarks/README.md`](https://github.com/first-fluke/oh-my-agent/blob/main/benchmarks/README.md) — dat bestand wordt gegenereerd door `build-report.sh` op basis van de `multiaxis/*.json` van elke run, dus het is altijd in sync met de meest recente scoring-artefacten.
+De volledige beschrijving per harness, ruwe scores en screenshots staan in [`benchmarks/README.md`](https://github.com/first-fluke/oh-my-agent/blob/main/benchmarks/README.md). Dat bestand wordt door `build-report.sh` gegenereerd op basis van de `multiaxis/*.json` van elke run en blijft daardoor afgestemd op de nieuwste score-artefacten.

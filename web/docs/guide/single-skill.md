@@ -1,11 +1,21 @@
 ---
 title: "Guide: Single Skill Execution"
+sidebar_label: Single Skill
 description: Detailed guide for single-domain tasks in oh-my-agent, covering when to use, preflight checklist, prompt template with explanation, real examples for frontend, backend, mobile, and database tasks, expected execution flow, quality gate checklist, and escalation signals.
 ---
 
 # Single Skill Execution
 
-Single skill execution is the fast path: one agent, one domain, one focused task. No orchestration overhead, no multi-agent coordination. The skill auto-activates from your natural language prompt.
+Single skill execution is the fast path: one agent, one domain, one focused task. No orchestration overhead, no multi-agent coordination. A host or selected workflow may route a natural-language prompt to the skill; the hook system itself detects workflows, and routing behavior depends on the selected runtime.
+
+## Quick path
+
+1. Run `oma doctor` once to confirm the selected host integration. Optional provider warnings do not block a task that does not use those providers.
+2. Describe one self-contained change with a clear **Goal**, **Context**, **Constraints**, and **Done When** condition.
+3. Expect the selected skill to inspect the repository, state its scope when the active execution contract requires a `CHARTER_CHECK`, and report which checks actually ran.
+4. If the task grows across API, UI, database, or mobile boundaries, stop the single-skill run and switch to `/work` or `/orchestrate`.
+
+For stalled managed runs, use `oma agent status <session-id> [agent-id]`, then inspect receipts in `.agents/state/agent-runs/` and the injected claim path before retrying. See [Important Defaults](../getting-started/important-defaults.md) for provider and recovery behavior.
 
 ---
 
@@ -97,13 +107,13 @@ Add unit tests for: valid submission path, invalid email, short password, loadin
 
 **Expected execution flow:**
 
-1. **Skill activation:** `oma-frontend` activates (keywords: "form", "component", "Tailwind CSS", "React")
+1. **Skill routing:** The host or workflow selects `oma-frontend` (keywords such as "form", "component", "Tailwind CSS", and "React" are routing signals)
 2. **Difficulty assessment:** Medium (2-3 files, some design decisions around validation UX)
 3. **Resources loaded:**
    - `execution-protocol.md` (always)
    - `snippets.md` (form + Zod patterns)
-   - `component-template.tsx` (React structure)
-4. **CHARTER_CHECK output:**
+   - existing component patterns and `snippets.md` when supplied by the skill
+4. **Execution contract (when enabled) may emit `CHARTER_CHECK`:**
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -145,16 +155,16 @@ Add tests for: auth required, pagination, status filter, empty results.
 
 **Expected execution flow:**
 
-1. **Skill activation:** `oma-backend` activates (keywords: "API", "endpoint", "REST")
-2. **Stack detection:** Reads `pyproject.toml` or `package.json` to determine language/framework. If `stack/` exists, loads conventions from there.
+1. **Skill routing:** The host or workflow selects `oma-backend` (keywords such as "API", "endpoint", and "REST" are routing signals)
+2. **Stack detection:** Reads `pyproject.toml` or `package.json` to determine language/framework. If generated `stack/` references or shipped `variants/` exist, loads conventions from there.
 3. **Difficulty assessment:** Medium (2-3 files: route, service, repository, plus test)
 4. **Resources loaded:**
    - `execution-protocol.md` (always)
 <!-- oma-docs:ignore-start -->
-   - `stack/snippets.md` if available (route, paginated query patterns)
-   - `stack/tech-stack.md` if available (framework-specific API)
+   - matching `stack/snippets.md` or `variants/{node,python,rust}/snippets.md` if available
+   - matching `stack/tech-stack.md` or variant tech-stack references if available
 <!-- oma-docs:ignore-end -->
-5. **CHARTER_CHECK:**
+5. **Execution contract (when enabled) may emit `CHARTER_CHECK`:**
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -187,13 +197,13 @@ Add tests for: profile save, logout flow, offline state.
 
 **Expected execution flow:**
 
-1. **Skill activation:** `oma-mobile` activates (keywords: "Flutter", "screen", "mobile")
+1. **Skill routing:** The host or workflow selects `oma-mobile` (keywords such as "Flutter", "screen", and "mobile" are routing signals)
 2. **Difficulty assessment:** Medium (settings screen + state management + offline handling)
 3. **Resources loaded:**
    - `execution-protocol.md`
    - `snippets.md` (screen template, Riverpod provider pattern)
    - `screen-template.dart`
-4. **CHARTER_CHECK:**
+4. **Execution contract (when enabled) may emit `CHARTER_CHECK`:**
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -229,14 +239,14 @@ Add deliverables: data standards table, glossary, migration script.
 
 **Expected execution flow:**
 
-1. **Skill activation:** `oma-db` activates (keywords: "database", "schema", "ERD", "migration")
+1. **Skill routing:** The host or workflow selects `oma-db` (keywords such as "database", "schema", "ERD", and "migration" are routing signals)
 2. **Difficulty assessment:** Complex (architecture decisions, multiple entities, capacity planning)
 3. **Resources loaded:**
    - `execution-protocol.md`
    - `document-templates.md` (deliverable structure)
    - `examples.md`
    - `anti-patterns.md` (review during optimization)
-4. **CHARTER_CHECK:**
+4. **Execution contract (when enabled) may emit `CHARTER_CHECK`:**
    ```
    CHARTER_CHECK:
    - Clarification level: LOW

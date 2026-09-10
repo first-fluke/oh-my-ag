@@ -1,53 +1,67 @@
 ---
 title: "ガイド：画像生成"
-description: oh-my-agent画像生成の完全ガイド。Codex（gpt-image-2）、Pollinations（flux/zimage、無料）、Geminiへのマルチベンダーディスパッチ、リファレンス画像、コストガードレール、出力レイアウト、トラブルシューティング、共有呼び出しパターンを解説します。
+sidebar_label: 画像生成
+description: oh-my-agentで画像を生成するための完全ガイドです。Codex（gpt-image-2）、Pollinations（flux/zimage、無料）、Gemini Code Assist経由のAntigravityによるマルチベンダーディスパッチ、リファレンス画像、コストガードレール、出力レイアウト、トラブルシューティング、共有呼び出しパターンを扱います。
 ---
 
 # 画像生成
 
-`oma-image`はoh-my-agentのマルチベンダー画像ルーターです。自然言語プロンプトから画像を生成し、認証済みのベンダーCLIへディスパッチして、すべての実行が再現可能になるよう出力の隣に決定論的なマニフェストを書き出します。
+`oma-image`はoh-my-agentのマルチベンダー画像ルーターです。自然言語のプロンプトから画像を生成し、認証済みのベンダーCLIへディスパッチして、実行の監査や再実行に必要な入力とプロバイダーの選択を出力の隣にマニフェストとして書き出します。ライブプロバイダーの出力は変わる場合があります。
 
-このスキルは*image*、*illustration*、*visual asset*、*concept art*などのキーワードや、別のスキルが副次的に画像を必要とする場合（ヒーローショット、サムネイル、商品写真）に自動アクティベートされます。
-
----
-
-## 使うべきタイミング
-
-- 画像、イラスト、商品写真、コンセプトアート、ヒーロー/ランディング向けビジュアルの生成
-- 同じプロンプトを複数モデルで横並び比較（`--vendor all`）
-- エディタワークフロー（Claude Code、Codex、Gemini CLI）内からのアセット生成
-- 他のスキル（design、marketing、docs）が画像パイプラインを共有インフラとして呼び出す
-
-## 使うべきでないタイミング
-
-- 既存画像の編集・レタッチ。スコープ外（専用ツールを使用）
-- 動画や音声の生成。スコープ外
-- 構造化データからのインラインSVG/ベクター合成。テンプレート系スキルを使用
-- 単純なリサイズ/フォーマット変換。生成パイプラインではなく画像ライブラリを使用
+このスキルは、*image*、*illustration*、*visual asset*、*concept art*などのキーワードや、別のスキルが副作用として画像を必要とする場合（ヒーローショット、サムネイル、商品写真）に自動アクティベートされます。
 
 ---
 
-## ベンダー一覧
+## 使うタイミング
 
-このスキルはCLIファーストです。ベンダーのネイティブCLIが画像のrawバイトを返せる場合、直接APIキーよりサブプロセス経路が優先されます。
+- 画像、イラスト、商品写真、コンセプトアート、ヒーローまたはランディング向けビジュアルを生成する
+- 同じプロンプトを複数モデルで横並びに比較する（`--vendor all`）
+- エディターワークフロー（Claude Code、Codex、Gemini CLI）の中でアセットを作成する
+- 別のスキル（design、marketing、docs）から共有インフラとして画像パイプラインを呼び出す
+
+## 使わないタイミング
+
+- 既存画像を編集またはレタッチする（スコープ外のため、専用ツールを使う）
+- 動画や音声を生成する（スコープ外）
+- 構造化データからインラインSVGまたはベクターを合成する（テンプレートスキルを使う）
+- 単純なリサイズまたは形式変換を行う（生成パイプラインではなく画像ライブラリを使う）
+
+---
+
+## ベンダーの概要
+
+このスキルはCLIファーストです。ベンダーのネイティブCLIが画像のrawバイトを返せる場合は、直接APIキーを使うよりサブプロセス経路を優先します。
 
 | ベンダー | 戦略 | モデル | トリガー | コスト |
 |---|---|---|---|---|
-| `pollinations` | Direct HTTP | 無料: `flux`、`zimage`。クレジット制: `qwen-image`、`wan-image`、`gpt-image-2`、`klein`、`kontext`、`gptimage`、`gptimage-large` | `POLLINATIONS_API_KEY`設定済み（無料登録: https://enter.pollinations.ai） | `flux` / `zimage`は無料 |
-| `codex` | CLIファースト（ChatGPT OAuth経由の`codex exec`） | `gpt-image-2` | `codex login`（APIキー不要） | ChatGPTプランへ課金 |
-| `gemini` | CLIファースト → 直接APIフォールバック | `gemini-2.5-flash-image`、`gemini-3.1-flash-image-preview` | `gemini auth login`または`GEMINI_API_KEY` + 課金有効 | デフォルト無効。課金が必要 |
+| `pollinations` | Direct HTTP | 無料：`flux`、`zimage`。クレジット制：`qwen-image`、`wan-image`、`gpt-image-2`、`klein`、`kontext`、`gptimage`、`gptimage-large` | `POLLINATIONS_API_KEY`を設定（無料登録：https://enter.pollinations.ai） | `flux` / `zimage`は無料 |
+| `codex` | `codex exec`経由のCLIファースト（ChatGPT OAuth） | `gpt-image-2` | `codex login`（APIキー不要） | ChatGPTプランに課金 |
+| `antigravity` | Gemini Code Assistサブスクリプション上の`agy` CLI | モデルは`agy`が内部で選択 | `agy`をインストールしてサインイン | Code Assist経由の画像ごとの追加料金なし |
 
-`pollinations`がデフォルトベンダーです。`flux` / `zimage`は無料のため、キーワードでの自動トリガーが安全だからです。
+組み込みのベンダーモードは`auto`です。ヘルスチェックに合格したプロバイダーを実行します。Pollinationsの`flux`と`zimage`は画像ごとに無料ですが、`POLLINATIONS_API_KEY`が必要です。CodexとAntigravityにはそれぞれのサインインが必要です。有料の見積もりにはコスト確認ガードレールが適用されます。
 
 ---
 
 ## クイックスタート
 
+最初に生成する前に、どのプロバイダーを利用できるか確認し、対応する方法のいずれかで認証します。
+
 ```bash
-# Free, zero-config — uses pollinations/flux
+oma image doctor
+
+# Pollinations: create a free account and export its key.
+export POLLINATIONS_API_KEY="<pollinations-key>"
+
+# Or authenticate an alternative provider instead.
+codex login
+# Sign in to Gemini Code Assist for `agy` when using --vendor antigravity.
+```
+
+```bash
+# Auto-selects the healthy provider; cost and auth depend on that provider.
 oma image generate "minimalist sunrise over mountains"
 
-# Compare every authenticated vendor in parallel
+# Run all configured vendors; every selected vendor must be healthy or the command stops.
 oma image generate "cat astronaut" --vendor all
 
 # Specific vendor + size + count, skip cost prompt
@@ -59,7 +73,7 @@ oma image generate "test prompt" --dry-run
 # Inspect authentication and install status per vendor
 oma image doctor
 
-# List registered vendors and the models each one supports
+# List registered vendors and supported models
 oma image vendor list
 ```
 
@@ -69,52 +83,52 @@ oma image vendor list
 
 ## スキルとして使う
 
-`oma-image`はスキルです。自然言語で自動アクティベートし、明示的に呼び出すこともできます。エントリーポイントは3つあります。
+`oma-image`は自然言語で自動アクティベートされるスキルですが、明示的に呼び出すこともできます。エントリーポイントは3つあります。
 
 ### 1. 自然言語（自動アクティベーション）
 
-Claude Code、Codex CLI、Gemini CLIの中で、画像をそのまま説明するだけで構いません。*image*、*illustration*、*visual asset*、*concept art*、*hero shot*、*thumbnail*、*product photo*などのキーワードにマッチします。
+Claude Code、Codex CLI、Gemini CLIの中で画像を説明するだけで構いません。*image*、*illustration*、*visual asset*、*concept art*、*hero shot*、*thumbnail*、*product photo*などのキーワードにマッチします。
 
-CLIフラグを覚える必要はありません。普通の言葉で伝えれば、スキルが適切なオプションへマッピングします：
+CLIフラグを覚える必要はありません。自然な言葉で伝えると、スキルが適切なオプションへ変換します。
 
-| ユーザーの発話 | スキルが推論するフラグ |
+| ユーザーの発話 | スキルが推測するフラグ |
 |---|---|
-| 「codexで」/「gpt-image-2で」/「無料のflux」 | `--vendor codex` / `--vendor pollinations` |
-| 「ベンダー比較」/「横並びで」 | `--vendor all` |
-| 「縦長」/「横長」/「1024×1536」 | `--size 1024x1536` / `--size 1536x1024` |
-| 「高品質」/「ドラフト」 | `--quality high` / `--quality low` |
-| 「3バリエーション」/「3枚ちょうだい」 | `-n 3` |
-| 「./heroに保存」/「docs/assetsへ出力」 | `--out <dir>` |
-| 添付画像 + 「夜のシーンにして」 | `-r <添付パス>` |
-| 「コストだけ見積もって」/「ドライラン」 | `--dry-run` |
+| 「Codex を使う」 / 「gpt-image-2 を使う」 / 「無料の flux」 | `--vendor codex` / `--vendor pollinations` |
+| 「ベンダー間で比較」 / 「並べて比較」 | `--vendor all` |
+| 「縦長」 / 「横長」 / 「1024×1536」 | `--size 1024x1536` / `--size 1536x1024` |
+| 「高品質」 / 「下書き」 | `--quality high` / `--quality low` |
+| 「3 種類のバリエーション」 / 「3 つ」 | `-n 3` |
+| 「./hero に保存」 / 「docs/assets に出力」 | `--output-dir <dir>` |
+| 添付画像 + 「夜にして」 | `-r <attached path>` |
+| 「コストだけ見積もる」 / 「dry run」 | `--dry-run` |
 
 例：
 
-> 「ランディングのヒーロー用に、山々に昇るミニマルな朝日を、横長・高品質で生成して。」
-> 「セラミックマグの商品写真をすべてのベンダーで比較、各3バリエーションで。」
-> 「このカワウソの写真をcodexでドラマチックな夜のシーンに。」（リファレンス画像を添付して）
+> 「ランディングページのヒーロー用に、山々の上に昇るミニマルな朝日を、横長・高品質で生成して。」
+> 「セラミックマグの商品写真をすべてのベンダーで比較して。各3バリエーション。」
+> 「このカワウソの写真を、Codexでドラマチックな夜の雰囲気にして。」（リファレンス画像を添付）
 
-エージェントは[Clarification Protocol](#clarification-protocol)を実行し、必要に応じてプロンプトを増幅した上で、推論したフラグで`oma image generate`を呼び出します。フラグの値を厳密にコントロールしたいときだけスラッシュコマンドを使ってください。
+エージェントは[クラリフィケーションプロトコル](#clarification-protocol)を実行し、必要に応じてプロンプトを増幅してから、推測したフラグで`oma image generate`を呼び出します。正確なフラグ値を指定したい場合はスラッシュコマンドを使います。
 
 ### 2. 明示的なスラッシュコマンド
 
 ```text
 /oma-image a red apple on white background
 /oma-image --vendor all --size 1536x1024 jeju coastline at sunset
-/oma-image -n 3 --quality high --out ./hero "minimalist dashboard hero illustration"
+/oma-image -n 3 --quality high --output-dir ./hero "minimalist dashboard hero illustration"
 ```
 
-スラッシュコマンドではすべてのCLIフラグ（`--vendor`、`-n`、`--size`、`-r`、`--dry-run`、…）がそのまま機能します。同じ`oma image generate`パイプラインへ転送されるためです。
+`--vendor`、`-n`、`--size`、`-r`、`--dry-run`、`…`を含むすべてのCLIフラグがスラッシュコマンドで機能し、同じ`oma image generate`パイプラインへ転送されます。
 
 ### 3. 別のスキルから（共有インフラ）
 
-他のスキル（design、marketing、docs）はこのパイプラインを共有インフラとして、JSON出力で呼び出します：
+別のスキル（design、marketing、docs）は、JSON出力で共有インフラとしてパイプラインを呼び出します。
 
 ```bash
 oma image generate "<prompt>" --output json
 ```
 
-stdoutに書き出されるマニフェストには出力パス、ベンダー、モデル、コストが含まれており、パースとチェーンが容易です。
+標準出力に書き出されるマニフェストには出力パス、ベンダー、モデル、コストが含まれるため、解析して次の処理へ渡せます。
 
 ---
 
@@ -122,66 +136,68 @@ stdoutに書き出されるマニフェストには出力パス、ベンダー�
 
 ```bash
 oma image generate "<prompt>"
-  [--vendor auto|codex|pollinations|gemini|all]
+  [--vendor auto|codex|pollinations|antigravity|all]
   [-n 1..5]
   [--size 1024x1024|1024x1536|1536x1024|auto]
   [--quality low|medium|high|auto]
-  [--out <dir>] [--allow-external-out]
+  [--output-dir <dir>] [--allow-external-output]
   [-r <path>]...
   [--timeout 180] [-y] [--no-prompt-in-manifest]
-  [--dry-run] [--format text|json]
+  [--dry-run] [--output text|json]
 
 oma image doctor
 oma image vendor list
 ```
 
-### 主要フラグ
+### 主なフラグ
 
 | フラグ | 用途 |
 |---|---|
-| `--vendor <name>` | `auto`、`pollinations`、`codex`、`antigravity`、`all`のいずれか。`all`では要求されたすべてのベンダーが認証済みである必要があります（strict）。 |
-| `-n, --count <n>` | ベンダーごとの画像枚数、1〜5（実時間制約）。 |
-| `--size <size>` | アスペクト比: `1024x1024`（正方形）、`1024x1536`（縦長）、`1536x1024`（横長）、`auto`。 |
-| `--quality <level>` | `low`、`medium`、`high`、`auto`（ベンダーデフォルト）。 |
-| `--out <dir>` | 出力ディレクトリ。デフォルトは`.agents/results/images/{timestamp}/`。`$PWD`外のパスには`--allow-external-out`が必要。 |
-| `-r, --reference <path>` | 最大10枚のリファレンス画像（PNG/JPEG/GIF/WebP、各5MB以下）。複数指定またはカンマ区切り。`codex`と`gemini`でサポート、`pollinations`では拒否。 |
-| `-y, --yes` | 推定`$0.20`以上の実行に対するコスト確認プロンプトをスキップ。`OMA_IMAGE_YES=1`でも可。 |
-| `--no-prompt-in-manifest` | `manifest.json`にプロンプトの生テキストではなくSHA-256を保存。 |
-| `--dry-run` | 計画とコスト見積もりを表示するのみで実費は発生しない。 |
-| `--format text\|json` | CLI出力フォーマット。JSONは他スキルとの統合インターフェース。 |
-| `--strategy <list>` | Gemini専用のエスカレーション、例: `mcp,stream,api`。`vendors.gemini.strategies`を上書き。 |
+| `--vendor <name>` | `auto`、`pollinations`、`codex`、`antigravity`、`all`のいずれか。`all`では、要求したすべてのベンダーが正常である必要があります（strict）。 |
+| `-n, --count <n>` | ベンダーごとの画像枚数。1〜5（実時間の上限）。 |
+| `--size <size>` | アスペクト比：`1024x1024`（正方形）、`1024x1536`（縦長）、`1536x1024`（横長）、`auto`。 |
+| `--quality <level>` | `low`、`medium`、`high`、`auto`（ベンダーのデフォルト）のいずれか。 |
+| `--output-dir <dir>` | 出力ディレクトリ。デフォルトは`.agents/results/images/{timestamp}/`です。`$PWD`外のパスには`--allow-external-output`が必要です。 |
+| `--allow-external-output` | `$PWD`外の出力ディレクトリを許可します。 |
+| `--model <name>` | この実行で選択したベンダーのモデルを上書きします。`antigravity`は`agy`がモデルを選ぶため無視します。 |
+| `-r, --reference <path>` | 最大10枚のリファレンス画像（PNG/JPEG/GIF/WebP、各5MB以下）。繰り返し指定またはカンマ区切りで指定できます。`codex`と`antigravity`で対応し、`pollinations`では拒否されます。 |
+| `-y, --yes` | `$0.20`以上と見積もられる実行で、コスト確認プロンプトをスキップします。`OMA_IMAGE_YES=1`でも指定できます。 |
+| `--no-prompt-in-manifest` | `manifest.json`にプロンプトの生テキストではなくSHA-256を保存します。 |
+| `--dry-run` | 実費を発生させず、計画とコスト見積もりを表示します。 |
+| `--output text\|json` | CLIの出力形式。JSONは他のスキルとの統合インターフェースです。 |
+| `--timeout <duration>` | 画像ごとのタイムアウトです。 |
 
 ---
 
 ## リファレンス画像
 
-スタイル、被写体のアイデンティティ、構図を導くため、最大10枚のリファレンス画像を添付できます。
+スタイル、被写体の同一性、構図を指定するために、最大10枚のリファレンス画像を添付できます。
 
 ```bash
 oma image generate -r ~/Downloads/otter.jpeg "same otter in dramatic lighting" --vendor codex
-oma image generate -r a.png -r b.png "blend these styles" --vendor gemini
-oma image generate -r a.png,b.png "blend these styles" --vendor gemini
+oma image generate -r a.png -r b.png "blend these styles" --vendor antigravity
+oma image generate -r a.png,b.png "blend these styles" --vendor antigravity
 ```
 
 | ベンダー | リファレンス対応 | 方法 |
 |---|---|---|
 | `codex` (gpt-image-2) | 対応 | `codex exec`に`-i <path>`を渡す |
-| `gemini` (2.5-flash-image) | 対応 | リクエストにbase64の`inlineData`をインライン化 |
-| `pollinations` | 非対応 | exit code 4で拒否（URLホスティングが必要） |
+| `antigravity` | 対応 | リファレンスを実行ごとのディレクトリにコピーし、`agy`にアクセス権を付与する |
+| `pollinations` | 非対応 | 終了コード4で拒否（URLホスティングが必要） |
 
-### 添付画像の所在
+### 添付画像の保存場所
 
-- **Claude Code**: `~/.claude/image-cache/<session>/N.png`、システムメッセージで`[Image: source: <path>]`として提示。セッションスコープのため、後で再利用したい場合は永続的な場所へコピーすること。
-- **Antigravity**: ワークスペースのアップロードディレクトリ（IDEが正確なパスを表示）
-- **ホストとしてのCodex CLI**: 明示的に渡す必要があり、会話内の添付ファイルは転送されない
+- **Claude Code**：`~/.claude/image-cache/<session>/N.png`。システムメッセージに`[Image: source: <path>]`として表示されます。セッション単位の場所なので、後で再利用する場合は永続的な場所へコピーします。
+- **Antigravity**：ワークスペースのアップロードディレクトリ（IDEに正確なパスが表示されます）
+- **ホストとしてのCodex CLI**：明示的に渡す必要があります。会話内の添付ファイルは転送されません。
 
-ユーザーが画像を添付し、それを基に生成や編集を求めた場合、呼び出しエージェントは散文で説明するのではなく**必ず**`--reference <path>`で転送しなければなりません。ローカルCLIが古くて`--reference`をサポートしていない場合は、`oma update`を実行してリトライしてください。
+ユーザーが画像を添付し、それを基に生成または編集するよう依頼した場合、呼び出し元のエージェントは散文で説明せず、`--reference <path>`で転送しなければなりません。ローカルCLIが`--reference`に対応していない場合は、`oma update`を実行して再試行します。
 
 ---
 
 ## 出力レイアウト
 
-すべての実行は、タイムスタンプとハッシュ接尾辞付きのディレクトリで`.agents/results/images/`に書き込まれます：
+すべての実行は、タイムスタンプとハッシュの接尾辞を付けたディレクトリとして`.agents/results/images/`に書き出されます。
 
 ```
 .agents/results/images/
@@ -194,56 +210,54 @@ oma image generate -r a.png,b.png "blend these styles" --vendor gemini
     └── manifest.json
 ```
 
-`manifest.json`はベンダー、モデル、プロンプト（またはそのSHA-256）、サイズ、品質、コストを記録します。マニフェスト単体からすべての実行が再現可能です。
+`manifest.json`にはベンダー、モデル、プロンプト（またはそのSHA-256）、サイズ、品質、コストが記録されるため、リクエストを監査して再実行できます。ライブプロバイダーが返すピクセルを同一にするものではありません。
 
 ---
 
 ## コスト、安全性、キャンセル
 
-1. **コストガードレール**: 推定`$0.20`以上の実行は確認を求めます。`-y`または`OMA_IMAGE_YES=1`で回避可能。デフォルトの`pollinations`（flux/zimage）は無料のため、自動的にプロンプトはスキップされます。
-2. **パス安全性**: `$PWD`外への出力パスは予期しない書き込みを防ぐため`--allow-external-out`が必要。
-3. **キャンセル可能**: `Ctrl+C`（SIGINT/SIGTERM）で進行中のすべてのプロバイダ呼び出しとオーケストレーターが中止されます。
-4. **決定論的な出力**: `manifest.json`は常に画像の隣に書き込まれます。
-5. **最大`n` = 5**: クォータではなく実時間制約。
-6. **Exit code**: `oma search fetch`と整合。`0` ok、`1` general、`2` safety、`3` not-found、`4` invalid-input、`5` auth-required、`6` timeout。
+1. **コストガードレール：** `$0.20`以上と見積もられる実行では確認を求めます。`-y`または`OMA_IMAGE_YES=1`で省略できます。デフォルトの`pollinations`（flux/zimage）は無料なので、自動的に確認を省略します。
+2. **パスの安全性：** `$PWD`外の出力パスには、予期しない書き込みを防ぐため`--allow-external-output`が必要です。
+3. **キャンセル可能：** `Ctrl+C`（SIGINT/SIGTERM）で、実行中のすべてのプロバイダー呼び出しとオーケストレーターを中止します。
+4. **安定した実行記録：** `manifest.json`は常に画像の隣に書き込まれます。
+5. **最大`n` = 5：** クォータではなく、経過時間の上限です。
+6. **終了コード：** `oma search fetch`と同じです。`0`はok、`1`はgeneral、`2`はsafety、`3`はnot-found、`4`はinvalid-input、`5`はauth-required、`6`はtimeoutです。
 
 ---
 
 ## クラリフィケーションプロトコル {#clarification-protocol}
 
-`oma image generate`を呼び出す前に、呼び出しエージェントは以下のチェックリストを実行します。何かが欠けていて推論不能な場合は、まず質問するか、プロンプトを増幅して拡張案を提示し承認を得ます。
+`oma image generate`を呼び出す前に、呼び出し元のエージェントはこのチェックリストを実行します。欠落していて推測できない項目があれば、先に質問するか、プロンプトを増幅して拡張案を示し、承認を得ます。
 
-**必須:**
-- **被写体**: 画像の主要対象は何か？（オブジェクト、人物、シーン）
-- **設定／背景**: どこにあるか？
+**必須：**
+- **被写体：** 画像の主な対象は何か（物体、人物、シーン）
+- **設定または背景：** どこにあるか
 
-**強く推奨（欠落かつ推論不能なら質問）:**
-- **スタイル**: フォトリアル、イラスト、3Dレンダー、油絵、コンセプトアート、フラットベクター？
-- **ムード／ライティング**: 明るいかムーディーか、暖色か寒色か、ドラマチックかミニマルか
-- **使用コンテキスト**: ヒーロー画像、アイコン、サムネイル、商品ショット、ポスター？
-- **アスペクト比**: 正方形、縦長、横長
+**強く推奨（欠落していて推測できない場合は質問）：**
+- **スタイル：** フォトリアル、イラスト、3Dレンダー、油絵、コンセプトアート、フラットベクターのどれか
+- **ムードまたはライティング：** 明るいかムーディーか、暖色か寒色か、ドラマチックかミニマルか
+- **利用コンテキスト：** ヒーロー画像、アイコン、サムネイル、商品ショット、ポスターのどれか
+- **アスペクト比：** 正方形、縦長、横長のどれか
 
-*"a red apple"*のような短いプロンプトの場合、エージェントは追加質問を**しません**。代わりにインラインで増幅し、ユーザーへ提示します：
+*"赤いリンゴ"*のような短いプロンプトでは、エージェントは追加質問を**しません**。代わりにインラインで増幅し、次のようにユーザーへ示します。
 
-> ユーザー: "a red apple"
-> エージェント: "次のように生成します： *a single glossy red apple centered on a clean white background, soft studio lighting, photorealistic, shallow depth of field, 1024×1024*。このまま進めますか、それとも別のスタイル/構図にしますか？"
+> ユーザー："赤いリンゴ"
+> エージェント：「次のように生成します： *a single glossy red apple centered on a clean white background, soft studio lighting, photorealistic, shallow depth of field, 1024×1024*. このまま進めますか。それとも別のスタイルや構図にしますか。」
 
-ユーザーが完成したクリエイティブブリーフを書いている場合（被写体 + スタイル + ライティング + 構図のうち2つ以上）、そのプロンプトはそのまま尊重されます。クラリフィケーションも増幅もしません。
+ユーザーが完全なクリエイティブブリーフ（被写体、スタイル、ライティング、構図のうち2つ以上）を作成している場合は、プロンプトをそのまま尊重し、明確化も増幅もしません。
 
-**出力言語。** 生成プロンプトは英語でプロバイダへ送信されます（画像モデルは主に英語キャプションで学習されているため）。ユーザーが他言語で書いた場合、エージェントは翻訳し、増幅時に翻訳結果を提示することで、誤読をユーザーが訂正できるようにします。
+**出力言語：** 生成プロンプトは英語でプロバイダーへ送信します（画像モデルは主に英語のキャプションで学習されているため）。ユーザーが別の言語で書いた場合は、エージェントが翻訳し、増幅時に翻訳結果を示してユーザーが誤読を訂正できるようにします。
 
 ---
 
 ## 設定
 
-- **プロジェクト設定:** `config/image-config.yaml`
-- **環境変数:**
-  - `OMA_IMAGE_DEFAULT_VENDOR`: デフォルトベンダーを上書き（指定なしなら`pollinations`）
-  - `OMA_IMAGE_DEFAULT_OUT`: デフォルト出力ディレクトリを上書き
-  - `OMA_IMAGE_YES`: `1`でコスト確認をバイパス
-  - `POLLINATIONS_API_KEY`: pollinationsベンダーで必須（無料登録）
-  - `GEMINI_API_KEY`: geminiベンダーが直接APIへフォールバックする際に必要
-  - `OMA_IMAGE_GEMINI_STRATEGIES`: geminiのカンマ区切りエスカレーション順（`mcp,stream,api`）
+- **プロジェクト設定：** `.agents/oma-config.yaml`の`image:`セクション。従来の`config/image-config.yaml`はもう読み込まれません。
+- **環境変数：**
+  - `OMA_IMAGE_DEFAULT_VENDOR`：デフォルトベンダーを上書きします（指定がなければ`pollinations`）
+  - `OMA_IMAGE_DEFAULT_OUT`：デフォルト出力ディレクトリを上書きします
+  - `OMA_IMAGE_YES`：`1`でコスト確認をバイパスします
+  - `POLLINATIONS_API_KEY`：pollinationsベンダーで必須です（無料登録）
 
 ---
 
@@ -251,18 +265,18 @@ oma image generate -r a.png,b.png "blend these styles" --vendor gemini
 
 | 症状 | 想定原因 | 対処 |
 |---|---|---|
-| Exit code `5`（auth-required） | 選択したベンダーが未認証 | `oma image doctor`でログインが必要なベンダーを確認。続いて`codex login` / `POLLINATIONS_API_KEY`設定 / `gemini auth login`。 |
-| `--reference`使用時のExit code `4` | `pollinations`はリファレンスを拒否、またはファイルサイズ過大／フォーマット不正 | `--vendor codex`または`--vendor gemini`へ切り替え。各リファレンスは5MB以下、PNG/JPEG/GIF/WebPであること。 |
-| `--reference`が認識されない | ローカルCLIが古い | `oma update`を実行してリトライ。散文での説明にフォールバックしないこと。 |
-| コスト確認が自動化を妨げる | 推定`$0.20`以上の実行 | `-y`を渡すか`OMA_IMAGE_YES=1`を設定。より良い方法: 無料の`pollinations`へ切り替え。 |
-| `--vendor all`が即座に中止 | 要求ベンダーのいずれかが未認証（strictモード） | 不足ベンダーを認証するか、特定の`--vendor`を選択。 |
-| 出力が想定外のディレクトリに書き込まれる | デフォルトは`.agents/results/images/{timestamp}/` | `--out <dir>`を渡す。`$PWD`外のパスには`--allow-external-out`が必要。 |
-| Geminiが画像バイトを返さない | Gemini CLIのagentic loopがstdoutへrawな`inlineData`を出さない（0.38時点） | プロバイダは自動で直接APIへフォールバック。`GEMINI_API_KEY`を設定し課金が有効であることを確認。 |
+| 終了コード`5`（auth-required） | 選択したベンダーが認証されていない | `oma image doctor`でログインが必要なベンダーを確認します。その後、`codex login`、`agy`へのサインイン、または`POLLINATIONS_API_KEY`の設定を行います。 |
+| `--reference`で終了コード`4` | `pollinations`がリファレンスを拒否した、またはファイルが大きすぎるか形式が正しくない | `--vendor codex`または`--vendor antigravity`に切り替えます。各リファレンスは5MB以下で、PNG/JPEG/GIF/WebPである必要があります。 |
+| `--reference`が認識されない | ローカルCLIが古い | `oma update`を実行して再試行します。散文による説明にフォールバックしないでください。 |
+| コスト確認が自動化を止める | 実行見積もりが`$0.20`以上 | `-y`を渡すか`OMA_IMAGE_YES=1`を設定します。無料の`pollinations`に切り替える方法もあります。 |
+| `--vendor all`がすぐに中止される | 要求したベンダーの1つが正常でない（strictモード） | 不足しているベンダーをインストールまたはサインインするか、特定の`--vendor`を選択します。 |
+| 出力が予期しないディレクトリに書き込まれる | デフォルトが`.agents/results/images/{timestamp}/`である | `--output-dir <dir>`を渡します。`$PWD`外のパスには`--allow-external-output`が必要です。 |
+| Antigravityがヘルスチェック後に失敗する | `agy --version`はインストールを証明するだけで、サインインは確認しない | Gemini Code Assistにサインインしてから、`oma image doctor`と`--vendor antigravity`で再試行します。 |
 
 ---
 
 ## 関連
 
-- [スキル](/docs/core-concepts/skills): `oma-image`を支える2層スキルアーキテクチャ
-- [CLIコマンド](/docs/cli-interfaces/commands): `oma image`コマンドの完全リファレンス
-- [CLIオプション](/docs/cli-interfaces/options): グローバルオプション一覧
+- [スキル](/docs/core-concepts/skills)：`oma-image`を動かす2層スキルアーキテクチャ
+- [CLIコマンド](/docs/cli-interfaces/commands)：`oma image`コマンドの完全なリファレンス
+- [CLIオプション](/docs/cli-interfaces/options)：グローバルオプションの一覧

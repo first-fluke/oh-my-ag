@@ -81,7 +81,7 @@ Spec과 visual judge는 `judge-multi.sh`를 통해 harness당 3회 실행되며,
 ## 재현 방법
 
 ```bash
-# Run all 5 harnesses (sequential, ~45 min, ~$15-20 in API spend)
+# Run all harnesses (sequential, ~45 min, ~$15-20 in API spend)
 ./benchmarks/run.sh
 
 # Multiaxis scoring per harness (5-axis, 100pt) — single judge round

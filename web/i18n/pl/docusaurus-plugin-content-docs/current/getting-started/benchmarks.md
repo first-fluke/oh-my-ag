@@ -3,7 +3,7 @@ title: Benchmarki
 description: Pięć harnessów Claude Code zbudowało ten sam MVP platformy edukacyjnej 3D dla dzieci na podstawie identycznego promptu. oh-my-agent zajął pierwsze miejsce z wynikiem 80.6/100 w osiach funkcjonalnej, zgodności ze specyfikacją, wizualnej, inżynierskiej i wydajnościowej.
 ---
 
-# Benchmarki
+# Benchmarki {#benchmarks}
 
 Pięć harnessów Claude Code zbudowało ten sam MVP kreatywnej platformy edukacyjnej 3D dla dzieci na podstawie identycznego surowego promptu. **oh-my-agent zajął pierwsze miejsce z wynikiem 80.6/100** w 5-osiowej rubryce (funkcjonalność, zgodność ze specyfikacją, warstwa wizualna, inżynieria, wydajność).
 
@@ -11,7 +11,7 @@ Pięć harnessów Claude Code zbudowało ten sam MVP kreatywnej platformy edukac
 
 ---
 
-## Porównywane harnessy
+## Porównywane harnessy {#harnesses-compared}
 
 | Harness | Mechanizm |
 |---|---|
@@ -23,7 +23,7 @@ Pięć harnessów Claude Code zbudowało ten sam MVP kreatywnej platformy edukac
 
 ---
 
-## Końcowa tablica wyników
+## Końcowa tablica wyników {#final-scoreboard}
 
 | Pozycja | Harness | **Suma** | Func/35 | Spec/15 | Visual/20 | Eng/20 | Eff/10 |
 |---|---|---|---|---|---|---|---|
@@ -33,7 +33,7 @@ Pięć harnessów Claude Code zbudowało ten sam MVP kreatywnej platformy edukac
 | 4 | vanilla | 70.7 | 28.5 | 11.7 | 12 | 12.5 | 6 |
 | 5 | ecc | 70.2 | 28.5 | 9.7 | 13 | 15 | 4 |
 
-### Ekonomia uruchomienia
+### Ekonomia uruchomienia {#run-economics}
 
 | Harness | Tury | Czas trwania | Koszt | Pliki (src) |
 |---|---|---|---|---|
@@ -45,7 +45,7 @@ Pięć harnessów Claude Code zbudowało ten sam MVP kreatywnej platformy edukac
 
 ---
 
-## Porównanie strony startowej
+## Porównanie strony startowej {#landing-page-comparison}
 
 | vanilla | oma | omc | ecc | superpowers |
 |---|---|---|---|---|
@@ -55,7 +55,7 @@ Pełne porównania ekran-po-ekranie (kreator światów, panel AI, galeria, stan 
 
 ---
 
-## Jak liczone są poszczególne osie
+## Jak liczone są poszczególne osie {#how-the-axes-are-computed}
 
 | Oś | Waga | Kluczowe sygnały | Narzędzia |
 |---|---|---|---|
@@ -69,7 +69,7 @@ Sędziowie spec i visual uruchamiani są 3 razy na każdy harness przez `judge-m
 
 ---
 
-## Zastrzeżenia
+## Zastrzeżenia {#caveats}
 
 1. **Nadpisanie promptu superpowers** — niezbędne, by harness zadziałał w trybie nieinteraktywnym (jego umiejętność brainstormingu z `<HARD-GATE>` blokuje pojedyncze uruchomienia). Wynik odzwierciedla "co potrafi superpowers po obejściu bramki", a nie czyste porównanie jeden do jednego.
 2. **Uśrednianie wielu sędziów dla spec + visual, pojedynczy przebieg journey** — sędziowanie ścieżek użytkownika wymaga działającego dev-servera, więc pozostaje jednoprzebiegowe. Różnice w journey poniżej ~2 punktów traktuj jako szum. Liczba próbek to 1 build na harness.
@@ -78,13 +78,13 @@ Sędziowie spec i visual uruchamiani są 3 razy na każdy harness przez `judge-m
 
 ---
 
-## Reprodukcja
+## Reprodukcja {#reproduce}
 
 ```bash
-# Uruchom wszystkie 5 harnessów (sekwencyjnie, ~45 min, ~$15-20 wydatków na API)
+# Run all harnesses (sequential, ~45 min, ~$15-20 in API spend)
 ./benchmarks/run.sh
 
-# Punktacja multiaxis dla każdego harnessu (5 osi, 100pkt) — pojedyncza runda sędziowska
+# Multiaxis scoring per harness (5-axis, 100pt) — single judge round
 for h in vanilla oma omc ecc superpowers; do
   ./benchmarks/scoring/multiaxis/score.sh \
     /tmp/oma-benchmark-<timestamp>/projects/$h \
@@ -93,7 +93,7 @@ for h in vanilla oma omc ecc superpowers; do
     /tmp/oma-benchmark-<timestamp>/multiaxis/$h
 done
 
-# Wygeneruj raport
+# Generate the report
 ./benchmarks/scoring/multiaxis/build-report.sh \
   /tmp/oma-benchmark-<timestamp> \
   $(pwd)

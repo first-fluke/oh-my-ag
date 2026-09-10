@@ -1,11 +1,11 @@
 ---
 title: Parallel Execution
-description: Complete guide to running multiple oh-my-agent agents simultaneously, covering agent spawn syntax with all options, agent parallel inline mode, workspace-aware patterns, multi-CLI configuration, vendor resolution priority, monitoring with dashboards, session ID strategy, and anti-patterns to avoid.
+description: Run multiple OMA dispatch roles in parallel with the current CLI syntax, task files, inline mode, workspace isolation, model and vendor resolution, monitoring, session IDs, and recovery patterns.
 ---
 
 # Parallel Execution
 
-The core advantage of oh-my-agent is running multiple specialized agents simultaneously. While the backend agent implements your API, the frontend agent creates the UI, and the mobile agent builds the app screens, all coordinated through shared memory.
+The core advantage of oh-my-agent is running multiple specialized agents simultaneously. While the backend agent implements an API, the frontend agent creates the UI, and the mobile agent builds app screens, the orchestrator coordinates them through durable run state and receipts.
 
 ---
 
@@ -21,7 +21,7 @@ oma agent spawn <agent-id> <prompt> <session-id> [options]
 
 | Parameter | Required | Description |
 |-----------|----------|-------------|
-| `agent-id` | Yes | Agent identifier: `backend`, `frontend`, `mobile`, `db`, `pm`, `qa`, `debug`, `design`, `tf-infra`, `dev-workflow`, `translator`, `orchestrator`, `commit` |
+| `agent-id` | Yes | Canonical dispatch role: `orchestrator`, `architecture`, `qa`, `pm`, `backend`, `frontend`, `mobile`, `db`, `debug`, `refactor`, `docs`, `tf-infra`, or `explore` |
 | `prompt` | Yes | Task description (quoted string or path to a prompt file) |
 | `session-id` | Yes | Groups agents working on the same feature. Format: `session-YYYYMMDD-HHMMSS` or any unique string. |
 | `options` | No | See options table below |
@@ -31,11 +31,12 @@ oma agent spawn <agent-id> <prompt> <session-id> [options]
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--workspace <path>` | `-w` | Working directory for the agent. Agents only modify files within this directory. |
-| `--vendor <name>` | — | Override CLI vendor for this specific spawn. Options: `antigravity`, `claude`, `codex`, `qwen`. |
-| `--isolation <mode>` | | Per-spawn isolation. `worktree` creates a fresh git worktree at `${tmpdir}/oma-worktrees/{sessionId}/{agentId}` on branch `oma/{sessionId}/{agentId}` and runs the agent there. Useful for hypothesis spawns or when parallel agents touch shared files. Worktree is retained after exit; merge / discard commands are printed for manual review. |
-| `--max-turns <n>` | `-t` | Override default turn limit for this agent. |
-| `--json` | | Output result as JSON (useful for scripting). |
-| `--no-wait` | | Fire and forget; return immediately without waiting for completion. |
+| `--model <vendor>` | `-m` | Override the CLI vendor for this spawn (`antigravity`, `claude`, `codex`, `cursor`, `opencode`, `qwen`, `grok`, or `pi`). |
+| `--resumed-from <run-id>` | | Link a retry to the preceding evidence-backed run. |
+| `--fallback-vendors <vendors>` | | Ordered comma-separated vendor fallbacks when the primary cannot run. |
+| `--task-id <id>` | | Bind the spawn to a task ID from the session plan. |
+| `--isolation <mode>` | | `worktree` creates a fresh git worktree under the temporary OMA worktree directory. The worktree remains for review and merge/discard. |
+| `--read-only` | | Restrict the spawned agent to non-destructive tools. |
 
 ### Examples
 
@@ -46,11 +47,11 @@ oma agent spawn backend "Implement JWT authentication API with refresh tokens" s
 # Spawn with workspace isolation
 oma agent spawn backend "Auth API + DB migration" session-01 -w ./apps/api
 
-# Override vendor for this specific agent
-oma agent spawn frontend "Build login form" session-01 --vendor claude -w ./apps/web
+# Override the CLI vendor for this specific spawn
+oma agent spawn frontend "Build login form" session-01 --model claude -w ./apps/web
 
-# Set a higher turn limit for a complex task
-oma agent spawn backend "Implement payment gateway integration" session-01 -t 30
+# Retry a run while preserving its evidence chain
+oma agent spawn backend "Fix the payment gateway issue" session-01 --resumed-from run-123
 
 # Use a prompt file instead of inline text
 oma agent spawn backend ./prompts/auth-api.md session-01 -w ./apps/api
@@ -99,26 +100,30 @@ For a cleaner syntax that handles background process management automatically:
 ### Syntax
 
 ```bash
-oma agent parallel -i <agent1>:<prompt1> <agent2>:<prompt2> [options]
+oma agent parallel --inline "<agent1>:<prompt1>" "<agent2>:<prompt2>" [options]
 ```
 
 ### Examples
 
 ```bash
 # Basic parallel execution
-oma agent parallel -i backend:"Implement auth API" frontend:"Build login form" mobile:"Auth screens"
+oma agent parallel --inline \
+  "backend:Implement auth API" \
+  "frontend:Build login form" \
+  "mobile:Auth screens"
 
 # With no-wait (fire and forget)
-oma agent parallel -i backend:"Auth API" frontend:"Login form" --no-wait
+oma agent parallel --inline "backend:Auth API" "frontend:Login form" --no-wait
 
 # All agents share the same session automatically
-oma agent parallel -i \
-  backend:"JWT auth with refresh tokens" \
-  frontend:"Login form with email validation" \
-  db:"User schema with soft delete and audit trail"
+oma agent parallel --inline \
+  "backend:JWT auth with refresh tokens" \
+  "frontend:Login form with email validation" \
+  "db:User schema with soft delete and audit trail" \
+  --session session-auth-01
 ```
 
-The `-i` (inline) flag allows specifying agent-prompt pairs directly in the command.
+The `--inline` flag parses each `agent:task` argument. Add a third colon-delimited path (`agent:task:workspace`) when the task needs a specific workspace. Without `--inline`, pass a YAML task file with `{tasks: [{id?, agent, task, workspace?}]}`. `--session` associates parallel results with an existing session.
 
 ---
 
@@ -131,7 +136,7 @@ oh-my-agent routes each agent to the appropriate CLI via `model_preset` in `.age
 ```yaml
 # .agents/oma-config.yaml
 language: en
-model_preset: mixed   # mixed: Claude for QA/PM, Codex for impl, Gemini for explore
+model_preset: mixed   # mixed: Claude for coordination, Codex for implementation/explore
 
 # Override specific agents on top of the preset
 agents:
@@ -139,7 +144,7 @@ agents:
   backend:  { model: openai/gpt-5.5, effort: high }
 ```
 
-Built-in presets: `antigravity`, `claude`, `codex`, `qwen`, `cursor`, `mixed`. See [Per-Agent Models](../guide/per-agent-models.md) for details.
+Built-in presets: `auto`, `free`, `antigravity`, `claude`, `codex`, `qwen`, `cursor`, `kiro`, and `mixed`. See [Per-Agent Models](../guide/per-agent-models.md) for details.
 
 ### Vendor resolution
 
@@ -147,11 +152,11 @@ When `oma agent spawn` determines which CLI to use:
 
 | Priority | Source | Example |
 |----------|--------|---------|
-| 1 (highest) | `--vendor` flag | `oma agent spawn backend "task" session-01 --vendor claude` |
+| 1 (highest) | `--model` flag | `oma agent spawn backend "task" session-01 --model claude` |
 | 2 | `agents:` override in `oma-config.yaml` | `agents: { backend: { model: openai/gpt-5.5 } }` |
 | 3 | Active `model_preset` agent defaults | preset lookup for the agent role |
 
-The `--vendor` flag always wins. If no flag is provided, the system checks `agents:` overrides, then the preset defaults.
+The `--model` flag always wins. If no flag is provided, the system checks `agents:` overrides, then the preset defaults, then the configured fallback CLI. With `model_preset: auto`, the current runtime's native settings supply the model.
 
 ---
 
@@ -163,9 +168,10 @@ The spawn mechanism varies by IDE/CLI:
 |--------|----------------------|-----------------|
 | **Claude Code** | Same-vendor tasks use the Agent tool with `.claude/agents/{name}.md`; cross-vendor tasks fall back to `oma agent spawn`. | Synchronous return |
 | **Codex CLI** | Same-vendor tasks use native custom agents from `.codex/agents/{name}.toml`; cross-vendor tasks fall back to `oma agent spawn`. | JSON output |
-| **Gemini CLI** | Same-vendor tasks use `.gemini/agents/{name}.md` when available; cross-vendor tasks fall back to `oma agent spawn`. | MCP memory poll |
-| **Antigravity IDE** | `oma agent spawn` only (custom subagents not available) | MCP memory poll |
-| **CLI Fallback** | `oma agent spawn {agent} {prompt} {session} -w {workspace}` | Result file poll |
+| **Antigravity CLI/IDE** | `oma agent spawn` through the `agy` runtime; custom native subagents are not required | Durable receipt and result-file poll |
+| **Cursor** | Uses generated Cursor integration where available; otherwise `oma agent spawn` | Result file poll |
+| **OpenCode / pi** | Uses the in-process extension bridge when selected; cross-vendor work uses `oma agent spawn` | Result file poll |
+| **CLI Fallback** | `oma agent spawn {agent} {prompt} {session} -w {workspace}` | Evidence-backed result poll |
 
 When running inside Claude Code, the workflow uses the `Agent` tool directly:
 ```
@@ -253,7 +259,7 @@ Session IDs group agents working on the same feature. Best practices:
 - **Reusable for iteration:** Use the same session ID when re-spawning agents with refinements
 
 Session IDs determine:
-- Which memory files agents read and write (`progress-{agent}.md`, `result-{agent}.md`)
+- Which run-scoped memory files agents read and write (`progress-{agentId}-{taskId}-{runId}-{sessionId}.md`, `result-{agentId}-{taskId}-{runId}-{sessionId}.md`)
 - What the dashboard monitors
 - How results are grouped in the final report
 
@@ -295,7 +301,7 @@ Session IDs determine:
 
 3. **Do not skip the plan step.** Spawning agents without a plan leads to misaligned implementations, where the frontend builds against one API shape while the backend builds another.
 
-4. **Do not ignore failed agents.** A failed agent's work is incomplete. Check `result-{agent}.md` for the failure reason, fix the prompt, and re-spawn.
+4. **Do not ignore failed agents.** A failed agent's work is incomplete. Check its structured claim or run-scoped result file for the failure reason, fix the prompt, and re-spawn.
 
 5. **Do not mix session IDs for related work.** If backend and frontend agents are working on the same feature, they must share a session ID so the orchestrator can coordinate them.
 

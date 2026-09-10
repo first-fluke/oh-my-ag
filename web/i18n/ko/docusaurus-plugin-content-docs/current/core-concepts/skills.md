@@ -1,17 +1,17 @@
 ---
 title: 스킬
-description: oh-my-agent 2계층 스킬 아키텍처 완전 가이드입니다. SKILL.md 설계, 필요 시 리소스 로딩, 모든 공유 리소스 설명, 조건부 프로토콜, 스킬별 리소스 유형, 벤더 실행 프로토콜, 토큰 절약 계산, 스킬 라우팅 메커니즘을 다룹니다.
+description: OMA의 33개 스킬 2계층 아키텍처를 설명하는 완전 가이드입니다. SKILL.md 라우팅, 온디맨드 리소스, 공유·조건부 프로토콜, 벤더 실행, 토큰 측정, 라우팅 메커니즘을 다룹니다.
 ---
 
 # 스킬
 
-스킬은 각 에이전트에 도메인 전문성을 부여하는 구조화된 지식 패키지입니다. 단순한 프롬프트가 아니라 실행 프로토콜, 기술 스택 레퍼런스, 코드 템플릿, 에러 플레이북, 품질 체크리스트, few-shot 예제를 담고 있으며, 토큰 효율성을 위해 설계된 2계층 아키텍처로 구성되어 있습니다.
+스킬은 디스패치 역할에 도메인 지침을 제공하는 구조화된 지식 패키지입니다. 실행 프로토콜, 기술 스택 레퍼런스, 코드 템플릿, 에러 플레이북, 품질 체크리스트, 스킬이 제공하는 예제를 담으며, 토큰 효율성을 위해 설계된 2계층 아키텍처로 구성됩니다.
 
 ---
 
 ## 2계층 설계
 
-### Layer 1: SKILL.md (중앙값 약 3,100토큰, 스킬이 라우팅될 때 로딩됨)
+### Layer 1: SKILL.md (중앙값 약 2,631토큰, 스킬이 라우팅될 때 로딩됨)
 
 모든 스킬의 루트에는 `SKILL.md` 파일이 있습니다. 스킬로 라우팅될 때 컨텍스트 윈도우에 들어옵니다. 주입 훅은 본문이 아니라 **경로 참조**만 전달하므로, 라우팅되지 않은 스킬은 `description` 말고는 비용이 들지 않습니다. 포함 내용:
 
@@ -36,7 +36,7 @@ description 필드는 매우 중요합니다. 스킬 라우팅 시스템이 태�
 ### Layer 2: resources/ (필요 시 로딩)
 
 `resources/` 디렉토리에는 심층적인 실행 지식이 포함됩니다. 다음 조건에서만 로딩됩니다:
-1. 에이전트가 명시적으로 호출될 때 (`/command` 또는 에이전트 skills 필드를 통해)
+1. 호스트 또는 워크플로우가 스킬을 선택했을 때 (예: 네이티브 스킬 매칭 또는 명시적 명령)
 2. 특정 리소스가 현재 태스크 유형과 난이도에 필요할 때
 
 이 필요 시 로딩은 컨텍스트 로딩 가이드(`.agents/skills/_shared/core/context-loading.md`)가 관리하며, 에이전트별로 태스크 유형을 필수 리소스에 매핑합니다.
@@ -47,31 +47,40 @@ description 필드는 매우 중요합니다. 스킬 라우팅 시스템이 태�
 
 ```
 .agents/skills/oma-frontend/
-├── SKILL.md                          ← Layer 1: 항상 로딩됨 (~800바이트)
+├── SKILL.md                          ← Layer 1: loaded when routed
 └── resources/
-    ├── execution-protocol.md         ← Layer 2: 단계별 워크플로우
-    ├── tech-stack.md                 ← Layer 2: 상세 기술 사양
-    ├── tailwind-rules.md             ← Layer 2: Tailwind 전용 규칙
-    ├── component-template.tsx        ← Layer 2: React 컴포넌트 템플릿
-    ├── snippets.md                   ← Layer 2: 복사-붙여넣기 코드 패턴
-    ├── error-playbook.md             ← Layer 2: 에러 복구 절차
-    ├── checklist.md                  ← Layer 2: 품질 검증 체크리스트
-    └── examples/                     ← Layer 2: few-shot 입출력 예제
-        └── examples.md
+    ├── execution-protocol.md         ← Layer 2: step-by-step workflow
+    ├── tech-stack.md                 ← Layer 2: detailed technology specs
+    ├── angular-rules.md              ← Layer 2: Angular-specific conventions
+    ├── snippets.md                   ← Layer 2: copy-paste code patterns
+    ├── error-playbook.md             ← Layer 2: error recovery procedures
+    └── checklist.md                  ← Layer 2: quality verification checklist
 
 .agents/skills/oma-backend/
 ├── SKILL.md
 ├── resources/
 │   ├── execution-protocol.md
-│   ├── examples.md
-│   ├── orm-reference.md              ← 도메인별 (ORM 쿼리, N+1, 트랜잭션)
+│   ├── orm-reference.md              ← Domain-specific (ORM queries, N+1, transactions)
 │   ├── checklist.md
 │   └── error-playbook.md
-└── stack/                             ← /stack-set으로 생성 (언어별)
-    ├── stack.yaml
-    ├── tech-stack.md
-    ├── snippets.md
-    └── api-template.*
+└── variants/                          ← Shipped language seeds / generated references
+    ├── node/
+    ├── python/
+    └── rust/
+
+.agents/skills/oma-mobile/
+├── SKILL.md
+├── resources/
+│   ├── execution-protocol.md
+│   ├── tech-stack.md
+│   ├── screen-template.dart
+│   ├── screen-template.swift         ← Swift native iOS screen template
+│   ├── screen-template.tsx            ← React Native screen template
+│   ├── checklist.md
+│   └── error-playbook.md
+└── variants/                          ← Stack schema and generated platform references
+    ├── README.md
+    └── stack.schema.json
 
 .agents/skills/oma-design/
 ├── SKILL.md
@@ -84,7 +93,7 @@ description 필드는 매우 중요합니다. 스킬 라우팅 시스템이 태�
 │   ├── prompt-enhancement.md
 │   ├── stitch-integration.md
 │   └── error-playbook.md
-└── reference/                         ← 심층 참조 자료
+└── reference/                         ← Deep reference material
     ├── typography.md
     ├── color-and-contrast.md
     ├── spatial-design.md
@@ -107,7 +116,7 @@ description 필드는 매우 중요합니다. 스킬 라우팅 시스템이 태�
 | **체크리스트** | `checklist.md` | 도메인별 품질 검증 | Verify 단계에서 |
 | **스니펫** | `snippets.md` | 복사-붙여넣기 가능한 코드 패턴 | Medium/Complex 태스크 |
 | **예제** | `examples.md` 또는 `examples/` | LLM용 few-shot 입출력 예제 | Medium/Complex 태스크 |
-| **변형** | `stack/` 디렉토리 | 언어/프레임워크별 레퍼런스 (`/stack-set`으로 생성) | 스택이 있을 때 |
+| **변형** | `variants/` 디렉토리 | 언어/프레임워크별 레퍼런스. backend는 `node`, `python`, `rust` 시드를 제공하고 mobile은 스키마를 제공하며 생성된 플랫폼 레퍼런스를 받을 수 있습니다. | 일치하는 스택이 있을 때 |
 | **템플릿** | `component-template.tsx`, `screen-template.dart` | 보일러플레이트 파일 템플릿 | 컴포넌트 생성 시 |
 | **도메인 레퍼런스** | `orm-reference.md`, `anti-patterns.md` 등 | 특정 서브태스크를 위한 심층 도메인 지식 | 태스크 유형별 |
 
@@ -128,7 +137,7 @@ description 필드는 매우 중요합니다. 스킬 라우팅 시스템이 태�
 | **`context-budget.md`** | 토큰 예산 관리. 파일 읽기 전략(`read_file`이 아닌 `find_symbol` 사용), 모델 티어별 리소스 로딩 예산(Flash: ~3,100 토큰 / Pro: ~5,000 토큰), 대용량 파일 처리, 컨텍스트 오버플로 증상을 정의합니다. | 워크플로우 시작 시 |
 | **`difficulty-guide.md`** | Simple/Medium/Complex 태스크 분류 기준. 예상 턴 수, 프로토콜 분기(Fast Track / Standard / Extended), 오판 복구를 정의합니다. | 태스크 시작 시 (Step 0) |
 | **`quality-principles.md`** | 모든 에이전트에 적용되는 4가지 보편적 품질 원칙. | 품질 중심 워크플로우(ultrawork) 시작 시 |
-| **`vendor-detection.md`** | 현재 런타임 환경(Claude Code, Codex CLI, Gemini CLI, Antigravity, CLI Fallback) 감지 프로토콜. 마커 확인 사용: Agent 도구 = Claude Code, apply_patch = Codex, @-syntax = Gemini. | 워크플로우 시작 시 |
+| **`vendor-detection.md`** | 현재 런타임 환경(Claude Code, Codex CLI, Antigravity, Cursor, Kiro, Qwen, CLI 폴백) 감지 프로토콜. 호스트 마커와 설정된 벤더 상태를 사용합니다. | 워크플로우 시작 시 |
 | **`session-metrics.md`** | Clarification Debt (CD) 점수 및 세션 메트릭 추적. 이벤트 유형(clarify +10, correct +25, redo +40), 임계값(CD >= 50 = RCA, CD >= 80 = 일시 중지), 통합 포인트를 정의합니다. | 오케스트레이션 세션 중 |
 | **`common-checklist.md`** | Complex 태스크의 최종 검증 시 적용되는 범용 품질 체크리스트(에이전트별 체크리스트에 추가). | Complex 태스크의 Verify 단계 |
 | **`lessons-learned.md`** | 과거 세션 학습 저장소, Clarification Debt 위반과 폐기된 실험에서 자동 생성됩니다. 도메인 섹션별로 구성됩니다. QA Evaluation Lessons로 평가자 사각지대를 추적합니다. | 에러 후 및 세션 종료 시 참조 |
@@ -140,11 +149,17 @@ description 필드는 매우 중요합니다. 스킬 라우팅 시스템이 태�
 |----------|---------|
 | **`memory-protocol.md`** | CLI 서브에이전트용 메모리 파일 형식과 연산. On Start, During Execution, On Completion 프로토콜을 설정 가능한 메모리 도구(read/write/edit)로 정의합니다. 실험 추적 확장 포함. |
 | **`execution-protocols/claude.md`** | Claude Code 전용 실행 패턴. 벤더가 claude일 때 `oma agent spawn`이 주입합니다. |
-| **`execution-protocols/gemini.md`** | Gemini CLI 전용 실행 패턴. |
+| **`execution-protocols/antigravity.md`** | Antigravity CLI(`agy`) 전용 실행 패턴. |
 | **`execution-protocols/codex.md`** | Codex CLI 전용 실행 패턴. |
+| **`execution-protocols/commandcode.md`** | CommandCode 실행 패턴. |
+| **`execution-protocols/grok.md`** | Grok 실행 패턴. |
+| **`execution-protocols/kimi.md`** | Kimi Code 실행 패턴. |
+| **`execution-protocols/kiro.md`** | Kiro 실행 패턴. |
+| **`execution-protocols/opencode.md`** | OpenCode 확장 실행 패턴. |
+| **`execution-protocols/pi.md`** | pi 확장 실행 패턴. |
 | **`execution-protocols/qwen.md`** | Qwen CLI 전용 실행 패턴. |
 
-벤더별 실행 프로토콜은 `oma agent spawn`이 자동으로 주입하므로, 에이전트가 수동으로 로딩할 필요가 없습니다.
+벤더별 실행 프로토콜은 CLI로 스폰된 에이전트에 `oma agent spawn`이 자동으로 주입합니다. 네이티브 서브에이전트는 선택된 벤더의 통합 규칙을 사용합니다.
 
 ### 조건부 리소스 (`.agents/skills/_shared/conditional/`)
 
@@ -156,7 +171,7 @@ description 필드는 매우 중요합니다. 스킬 라우팅 시스템이 태�
 | **`experiment-ledger.md`** | IMPL 기준선 수립 후 첫 실험 기록 | 오케스트레이터 (인라인, 기준선 측정 후) | ~250 |
 | **`exploration-loop.md`** | 동일 이슈에서 같은 게이트가 두 번 실패 | 오케스트레이터 (인라인, 가설 에이전트 스폰 전) | ~250 |
 
-예산 영향: 3개 모두 로딩 시 약 750 토큰. 조건부 로딩이므로 일반적인 세션에서는 1-2개만 로딩됩니다. Flash 티어 예산은 약 3,100 토큰 할당 내에 유지됩니다.
+예산 영향: 3개 모두 로딩 시 약 750 토큰입니다. 조건부 로딩이므로 일반적인 세션에서는 1~2개만 로딩되며, Simple 태스크가 `SKILL.md`와 `execution-protocol.md`에 사용하는 약 4,000토큰에 비하면 작습니다.
 
 ---
 
@@ -198,7 +213,7 @@ description 필드는 매우 중요합니다. 스킬 라우팅 시스템이 태�
 
 ---
 
-## 토큰 절약 계산
+## 토큰 절약 계산 {#token-savings-math}
 
 아래 수치는 손으로 추정한 값이 아니라 스킬 트리에서 측정한 값입니다. 언제든 다시
 계산할 수 있습니다.
@@ -220,30 +235,30 @@ bun scripts/measure-skill-context.ts --skills oma-pm,oma-backend,oma-frontend,om
 |------|--------------------|
 | `routed` | `SKILL.md`만 |
 | `simple` | + `execution-protocol.md` |
-| `medium` | + `examples.md` |
-| `complex` | + `tech-stack.md`, `snippets.md` |
+| `medium` | + 태스크에 매핑된 리소스(해당 파일이 있을 때) |
+| `complex` | + 매핑된 리소스와 프로젝트가 제공하는 스택 참조 |
 | `all` | `SKILL.md` + 모든 리소스 파일. 선택할 수 있는 모드가 아니라 **상한**입니다 |
 
-backend와 mobile 스킬에서 이 스택 참조는 `stack/`에 있으며, `/stack-set`이
-프로젝트마다 생성합니다. 새로 받은 체크아웃에는 없으므로, 아래 `complex` 행은
-생성이 참고하는 배포판 `variants/` 시드를 기준으로 측정했습니다. 크기를 가늠하는
-대리 지표일 뿐, 에이전트가 아직 로딩하는 파일은 아닙니다.
+backend와 mobile 스킬에서 `/stack-set`은 프로젝트별 참조를 `stack/` 아래에
+생성할 수 있습니다. 새로 받은 체크아웃에는 생성된 `stack/` 디렉토리가 없으므로,
+아래 `complex` 행은 생성이 참고하는 배포판 `variants/` 시드를 기준으로 측정했습니다.
+크기를 가늠하는 대리 지표일 뿐, 에이전트가 아직 로딩하는 파일은 아닙니다.
 
 ### 5개 에이전트 세션 (pm, backend, frontend, mobile, qa)
 
 | 티어 | 토큰 | 상한 대비 비중 | 절약분 |
 |------|-------:|-----------------:|--------:|
-| `routed` | 11,724 | 16.3% | 83.7% |
-| `simple` | 17,350 | 24.1% | 75.9% |
-| `medium` | 18,552 | 25.7% | 74.3% |
-| `complex` | 38,417 | 53.3% | 46.7% |
-| `all` | 72,127 | 100% | 없음 |
+| `routed` | 11,497 | 15.7% | 84.3% |
+| `simple` | 17,923 | 24.4% | 75.6% |
+| `medium` | 19,125 | 26.1% | 73.9% |
+| `complex` | 39,156 | 53.4% | 46.6% |
+| `all` | 73,355 | 100% | 없음 |
 
-즉 다섯 에이전트에 걸친 Simple이나 Medium 태스크는 상한인 72K가 아니라 대략
+즉 다섯 에이전트에 걸친 Simple이나 Medium 태스크는 상한인 73K가 아니라 대략
 **17~19K 토큰**의 스킬 컨텍스트만 유지하고, Complex 태스크는 약 **38K**를
 유지합니다. 일반적인 작업에서는 약 74~76%를 절약하고, 태스크가 스택 참조를 끌어
 쓰면 약 47%까지 내려갑니다. 128K 컨텍스트 모델이라면 Simple과 Medium 작업에서는
-약 110K, Complex에서는 약 90K가 남습니다.
+약 109K, Complex에서는 약 89K가 남습니다.
 
 :::note `all`은 대안이 아니라 상한으로 읽으세요
 어떤 런타임도 모든 리소스를 미리 로딩하지 않습니다. 스킬은 `description`으로
@@ -253,9 +268,9 @@ backend와 mobile 스킬에서 이 스택 참조는 `stack/`에 있으며, `/sta
 :::
 
 Layer 1은 바닥값이고, 결코 작지 않습니다. 설치된 33개 스킬에서 `SKILL.md`는
-1,542~7,580토큰(중앙값 약 3,100)입니다. 이 바닥값이 점진적 공개로 절약할 수 있는
+약 1,275~5,489토큰(중앙값 약 2,631)입니다. 이 바닥값이 점진적 공개로 절약할 수 있는
 한계를 정합니다. 다섯 에이전트를 모두 라우팅하면 `routed` 티어만으로도 이미 상한의
-16%를 씁니다.
+15%를 씁니다.
 
 ---
 
@@ -273,13 +288,13 @@ Layer 1은 바닥값이고, 결코 작지 않습니다. 설치된 33개 스킬�
 
 2-3개 파일 변경, 일부 설계 결정 필요, 새로운 도메인에 패턴 적용.
 
-로딩: `execution-protocol.md` + `examples.md`. 간략한 분석과 전체 검증이 포함된 표준 프로토콜.
+로딩: `execution-protocol.md`와 파일이 있을 때 태스크에 매핑된 Medium 리소스. 간략한 분석과 전체 검증이 포함된 표준 프로토콜.
 
 ### Complex (예상 15-25턴)
 
 4개 이상 파일 변경, 아키텍처 결정 필요, 새로운 패턴 도입, 다른 에이전트와의 의존성.
 
-로딩: `execution-protocol.md` + `examples.md` + `tech-stack.md` + `snippets.md`. 체크포인트, 중간 실행 진행 기록, `common-checklist.md`를 포함한 전체 검증이 있는 확장 프로토콜.
+로딩: `execution-protocol.md`와 매핑된 리소스, 사용 가능한 `tech-stack.md` 및 `snippets.md` 참조. 체크포인트, 중간 실행 진행 기록, `common-checklist.md`를 포함한 전체 검증이 있는 확장 프로토콜.
 
 ---
 
@@ -291,21 +306,21 @@ Layer 1은 바닥값이고, 결코 작지 않습니다. 설치된 33개 스킬�
 
 | 태스크 유형 | 필수 리소스 |
 |-----------|-------------------|
-| CRUD API 생성 | stack/snippets.md (route, schema, model, test) |
-| 인증 | stack/snippets.md (JWT, password) + stack/tech-stack.md |
-| DB 마이그레이션 | stack/snippets.md (migration) |
-| 성능 최적화 | examples.md (N+1 예제) |
-| 기존 코드 수정 | examples.md + Serena MCP |
+| CRUD API 생성 | 있을 때 일치하는 `variants/{node,python,rust}/snippets.md` |
+| 인증 | 있을 때 일치하는 variant `snippets.md` + `tech-stack.md` |
+| DB 마이그레이션 | 있을 때 일치하는 variant `snippets.md` |
+| 성능 최적화 | `orm-reference.md`와 스킬이 제공하는 일치하는 예제 |
+| 기존 코드 수정 | 프로젝트 코드 인텔리전스 프로바이더와 관련 실행 리소스 |
 
 ### Frontend 에이전트
 
 | 태스크 유형 | 필수 리소스 |
 |-----------|-------------------|
-| 컴포넌트 생성 | snippets.md + component-template.tsx |
+| 컴포넌트 생성 | snippets.md + 프로젝트의 기존 컴포넌트 패턴 |
 | 폼 구현 | snippets.md (form + Zod) |
 | API 통합 | snippets.md (TanStack Query) |
 | 스타일링 | tailwind-rules.md |
-| 페이지 레이아웃 | snippets.md (grid) + examples.md |
+| 페이지 레이아웃 | snippets.md (grid) |
 
 ### Design 에이전트
 
@@ -363,7 +378,7 @@ Clarification Debt (CD)는 세션 중 불명확한 요구사항의 비용을 측
 - **`redo` >= 2** → 오케스트레이터 일시 중지, 명시적 스코프 확인 요청
 - **동일 에이전트에서 3회 연속 세션 CD >= 30** → 에이전트 프롬프트 템플릿 검토
 
-세션 로그는 `.serena/memories/session-metrics.md`에 이벤트별 행(턴, 에이전트, 이벤트 유형, 점수, 상세)과 요약 섹션으로 유지됩니다.
+세션 로그는 `.agents/state/memories/session-metrics.md`에 이벤트별 행(턴, 에이전트, 이벤트 유형, 점수, 상세)과 요약 섹션으로 유지됩니다.
 
 ---
 

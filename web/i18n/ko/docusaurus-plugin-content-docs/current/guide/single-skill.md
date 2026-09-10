@@ -1,11 +1,21 @@
 ---
 title: "가이드: 단일 스킬 실행"
+sidebar_label: 단일 스킬 실행
 description: oh-my-agent의 단일 도메인 태스크에 대한 상세 가이드입니다. 사용 시점, 사전검증 체크리스트, 설명이 포함된 프롬프트 템플릿, 프론트엔드/백엔드/모바일/데이터베이스 태스크의 실제 예제, 예상 실행 흐름, 품질 게이트 체크리스트, 에스컬레이션 신호를 다룹니다.
 ---
 
 # 단일 스킬 실행
 
-단일 스킬 실행은 가장 빠른 방법입니다. 에이전트 하나가 도메인 하나에서 집중된 태스크 하나를 처리합니다. 오케스트레이션 오버헤드도, 멀티 에이전트 조율도 없습니다. 자연어 프롬프트를 입력하면 스킬이 자동으로 활성화됩니다.
+단일 스킬 실행은 빠른 경로입니다. 에이전트 하나가 도메인 하나에서 집중된 태스크 하나를 처리합니다. 오케스트레이션 오버헤드나 멀티 에이전트 조율이 없습니다. 호스트 또는 선택한 워크플로우가 자연어 프롬프트를 스킬로 라우팅할 수 있으며, 훅 시스템 자체는 워크플로우를 감지하고 실제 라우팅은 선택한 런타임에 따라 달라집니다.
+
+## 빠른 경로
+
+1. `oma doctor`를 한 번 실행해 선택한 호스트 통합을 확인합니다. 사용하지 않는 프로바이더의 선택적 경고는 태스크를 막지 않습니다.
+2. **목표**, **컨텍스트**, **제약 조건**, **완료 기준**이 분명한 독립적인 변경을 설명합니다.
+3. 선택한 스킬이 저장소를 검사하고, 활성 실행 계약이 요구할 때 범위를 `CHARTER_CHECK`로 밝히며, 실제로 실행한 검사를 보고할 것으로 예상합니다.
+4. 태스크가 API, UI, 데이터베이스 또는 모바일 경계를 넘으면 단일 스킬 실행을 멈추고 `/work` 또는 `/orchestrate`로 전환합니다.
+
+관리되는 실행이 멈추면 `oma agent status <session-id> [agent-id]`를 실행한 뒤 `.agents/state/agent-runs/`의 실행 기록과 주입된 클레임 경로를 확인하고 재시도합니다. 프로바이더와 복구 동작은 [중요한 기본값](../getting-started/important-defaults.md)을 참고하세요.
 
 ---
 
@@ -97,13 +107,13 @@ Add unit tests for: valid submission path, invalid email, short password, loadin
 
 **예상 실행 흐름:**
 
-1. **스킬 활성화:** `oma-frontend` 활성화 (키워드: "form", "component", "Tailwind CSS", "React")
+1. **스킬 라우팅:** `oma-frontend` 활성화 (키워드: "form", "component", "Tailwind CSS", "React")
 2. **난이도 평가:** 중간 (2-3개 파일, 유효성 검사 UX에 대한 일부 설계 결정)
 3. **로드된 리소스:**
    - `execution-protocol.md` (항상)
    - `snippets.md` (폼 + Zod 패턴)
-   - `component-template.tsx` (React 구조)
-4. **CHARTER_CHECK 출력:**
+   - 스킬이 제공하는 기존 컴포넌트 패턴과 `snippets.md`
+4. **실행 계약(활성화된 경우)이 `CHARTER_CHECK`를 출력:**
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -112,6 +122,7 @@ Add unit tests for: valid submission path, invalid email, short password, loadin
    - Success criteria: form validation, accessibility, loading state, tests
    - Assumptions: Next.js App Router, @tanstack/react-form + Zod, shadcn/ui, FSD-lite architecture
    ```
+<!-- oma-docs:ignore-start -->
 5. **구현:**
    - `src/features/auth/components/login-form.tsx` 생성 (`"use client"`를 포함한 Client Component)
    - `src/features/auth/utils/login-schema.ts` 생성 (Zod 스키마)
@@ -125,6 +136,7 @@ Add unit tests for: valid submission path, invalid email, short password, loadin
    - 모바일: 320px 뷰포트에서 올바르게 렌더링
    - 성능: CLS 없음
    - 테스트: `src/features/auth/utils/__tests__/login-schema.test.ts`에 Vitest 테스트 파일
+<!-- oma-docs:ignore-end -->
 
 ---
 
@@ -143,14 +155,16 @@ Add tests for: auth required, pagination, status filter, empty results.
 
 **예상 실행 흐름:**
 
-1. **스킬 활성화:** `oma-backend` 활성화 (키워드: "API", "endpoint", "REST")
-2. **스택 감지:** `pyproject.toml`이나 `package.json`을 읽어 언어와 프레임워크를 판단하고, `stack/`이 있으면 거기서 규칙을 불러옵니다.
+1. **스킬 라우팅:** `oma-backend` 활성화 (키워드: "API", "endpoint", "REST")
+2. **스택 감지:** `pyproject.toml`이나 `package.json`을 읽어 언어와 프레임워크를 판단합니다. 생성된 `stack/` 레퍼런스 또는 제공된 `variants/`가 있으면 해당 규칙을 불러옵니다.
 3. **난이도 평가:** 중간 (2-3개 파일: 라우트, 서비스, 리포지토리, 테스트 포함)
 4. **로드된 리소스:**
    - `execution-protocol.md` (항상)
-   - `stack/snippets.md` 가용 시 (라우트, 페이지네이션 쿼리 패턴)
-   - `stack/tech-stack.md` 가용 시 (프레임워크별 API)
-5. **CHARTER_CHECK:**
+<!-- oma-docs:ignore-start -->
+   - 가용할 때 `stack/snippets.md` 또는 `variants/{node,python,rust}/snippets.md`
+   - 가용할 때 `stack/tech-stack.md` 또는 변형별 tech-stack 레퍼런스
+<!-- oma-docs:ignore-end -->
+5. **실행 계약(활성화된 경우)이 `CHARTER_CHECK`를 출력:**
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -183,13 +197,13 @@ Add tests for: profile save, logout flow, offline state.
 
 **예상 실행 흐름:**
 
-1. **스킬 활성화:** `oma-mobile` 활성화 (키워드: "Flutter", "screen", "mobile")
+1. **스킬 라우팅:** `oma-mobile` 활성화 (키워드: "Flutter", "screen", "mobile")
 2. **난이도 평가:** 중간 (설정 화면 + 상태 관리 + 오프라인 처리)
 3. **로드된 리소스:**
    - `execution-protocol.md`
    - `snippets.md` (화면 템플릿, Riverpod 프로바이더 패턴)
    - `screen-template.dart`
-4. **CHARTER_CHECK:**
+4. **실행 계약(활성화된 경우)이 `CHARTER_CHECK`를 출력:**
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -198,12 +212,14 @@ Add tests for: profile save, logout flow, offline state.
    - Success criteria: profile editing, notification toggles, logout, offline
    - Assumptions: existing auth service, Dio interceptors, Riverpod, GoRouter
    ```
+<!-- oma-docs:ignore-start -->
 5. **구현:**
    - 화면: `lib/features/settings/presentation/settings_screen.dart` (Riverpod을 사용한 Stateless Widget)
    - 프로바이더: `lib/features/settings/providers/settings_provider.dart`
    - 리포지토리: `lib/features/settings/data/settings_repository.dart`
    - 오프라인 처리: Dio 인터셉터가 `SocketException`을 캐치하고 캐시된 데이터로 폴백
    - 모든 컨트롤러는 `dispose()` 메서드에서 해제
+<!-- oma-docs:ignore-end -->
 
 ---
 
@@ -223,14 +239,14 @@ Add deliverables: data standards table, glossary, migration script.
 
 **예상 실행 흐름:**
 
-1. **스킬 활성화:** `oma-db` 활성화 (키워드: "database", "schema", "ERD", "migration")
+1. **스킬 라우팅:** `oma-db` 활성화 (키워드: "database", "schema", "ERD", "migration")
 2. **난이도 평가:** 복잡 (아키텍처 결정, 여러 엔터티, 용량 계획)
 3. **로드된 리소스:**
    - `execution-protocol.md`
    - `document-templates.md` (산출물 구조)
    - `examples.md`
    - `anti-patterns.md` (최적화 시 검토)
-4. **CHARTER_CHECK:**
+4. **실행 계약(활성화된 경우)이 `CHARTER_CHECK`를 출력:**
    ```
    CHARTER_CHECK:
    - Clarification level: LOW

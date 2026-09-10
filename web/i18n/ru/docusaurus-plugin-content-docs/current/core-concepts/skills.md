@@ -1,28 +1,28 @@
 ---
 title: Навыки
-description: Полное руководство по двухуровневой архитектуре навыков oh-my-agent — дизайн SKILL.md, загрузка ресурсов по требованию, все общие ресурсы, условные протоколы, типы ресурсов для каждого навыка, вендорные протоколы выполнения, расчёт экономии токенов и механика маршрутизации навыков.
+description: "Полное руководство по двухслойной архитектуре OMA из 33 навыков: маршрутизация SKILL.md, ресурсы по требованию, общие и условные протоколы, выполнение для поставщиков, измерение токенов и механика маршрутизации."
 ---
 
 # Навыки
 
-Навыки — это структурированные пакеты знаний, которые дают каждому агенту его доменную экспертизу. Это не просто промпты — они содержат протоколы выполнения, справочники по технологическому стеку, шаблоны кода, справочники по ошибкам, чек-листы качества и примеры для обучения, организованные в двухуровневой архитектуре, разработанной для эффективности использования токенов.
+Навыки — это структурированные пакеты знаний, которые дают роли диспетчеризации предметные указания. Они содержат протоколы выполнения, ссылки на технологический стек, шаблоны кода, playbook ошибок, чек-листы качества и примеры, если навык их предоставляет; всё организовано в двухслойной архитектуре для экономии токенов.
 
 ---
 
-## Двухуровневый дизайн
+## Двухслойный дизайн
 
-### Уровень 1: SKILL.md (~800 байт, всегда загружен)
+### Слой 1: SKILL.md (медиана около 2 631 токена, загружается при маршрутизации навыка)
 
-Каждый навык имеет файл `SKILL.md` в корне. Он всегда загружается в контекстное окно при обращении к навыку. Содержит:
+У каждого навыка в корне есть файл `SKILL.md`. Он попадает в окно контекста, когда навык выбран маршрутизацией; injector hook передаёт **ссылку на путь**, а не содержимое, поэтому ненаправленный навык ничего не стоит сверх своего `description`. Файл содержит:
 
-- **YAML-фронтматтер** с `name` и `description` (используется для маршрутизации и отображения)
-- **Когда использовать / Когда НЕ использовать** — явные условия активации
-- **Основные правила** — 5-15 наиболее критичных ограничений для домена
-- **Обзор архитектуры** — как должен быть структурирован код
-- **Список библиотек** — утверждённые зависимости и их назначение
-- **Ссылки** — указатели на ресурсы Уровня 2 (никогда не загружаются автоматически)
+- **YAML frontmatter** с `name` и `description` (используются для маршрутизации и отображения)
+- **When to use / When NOT to use**: явные условия активации
+- **Core rules**: 5–15 самых важных ограничений предметной области
+- **Architecture overview**: как следует структурировать код
+- **Library list**: одобренные зависимости и их назначение
+- **References**: указатели на ресурсы слоя 2 (автоматически не загружаются)
 
-Пример фронтматтера:
+Example frontmatter:
 
 ```yaml
 ---
@@ -31,47 +31,56 @@ description: Frontend specialist for React, Next.js, TypeScript with FSD-lite ar
 ---
 ```
 
-Поле description критично — оно содержит ключевые слова маршрутизации, которые система использует для сопоставления задач с агентами.
+Поле description критично: оно содержит ключевые слова маршрутизации, по которым система маршрутизации навыков сопоставляет задачи и агентов.
 
-### Уровень 2: resources/ (загружается по требованию)
+### Слой 2: resources/ (загружается по требованию)
 
-Директория `resources/` содержит глубокие знания о выполнении. Эти файлы загружаются только когда:
-1. Агент явно вызван (через `/command` или поле skills агента)
-2. Конкретный ресурс нужен для текущего типа и сложности задачи
+Каталог `resources/` содержит подробные знания о выполнении. Эти файлы загружаются только когда:
+1. хост или рабочий процесс выбрал навык (например, через нативное совпадение навыка или явную команду)
+2. конкретный ресурс нужен для текущего типа и сложности задачи
 
-Загрузка по требованию управляется руководством по загрузке контекста (`.agents/skills/_shared/core/context-loading.md`), которое сопоставляет типы задач с необходимыми ресурсами для каждого агента.
+Загрузкой по требованию управляет руководство по загрузке контекста (`.agents/skills/_shared/core/context-loading.md`), сопоставляющее типы задач с обязательными ресурсами каждого агента.
 
 ---
 
-## Пример файловой структуры
+## Пример структуры файлов
 
 ```
 .agents/skills/oma-frontend/
-├── SKILL.md                          <- Уровень 1: всегда загружен (~800 байт)
+├── SKILL.md                          ← Layer 1: loaded when routed
 └── resources/
-    ├── execution-protocol.md         <- Уровень 2: пошаговый рабочий процесс
-    ├── tech-stack.md                 <- Уровень 2: детальные спецификации технологий
-    ├── tailwind-rules.md             <- Уровень 2: соглашения Tailwind
-    ├── component-template.tsx        <- Уровень 2: шаблон React-компонента
-    ├── snippets.md                   <- Уровень 2: готовые паттерны кода
-    ├── error-playbook.md             <- Уровень 2: процедуры восстановления
-    ├── checklist.md                  <- Уровень 2: чек-лист верификации качества
-    └── examples/                     <- Уровень 2: примеры для обучения
-        └── examples.md
+    ├── execution-protocol.md         ← Layer 2: step-by-step workflow
+    ├── tech-stack.md                 ← Layer 2: detailed technology specs
+    ├── angular-rules.md              ← Layer 2: Angular-specific conventions
+    ├── snippets.md                   ← Layer 2: copy-paste code patterns
+    ├── error-playbook.md             ← Layer 2: error recovery procedures
+    └── checklist.md                  ← Layer 2: quality verification checklist
 
 .agents/skills/oma-backend/
 ├── SKILL.md
 ├── resources/
 │   ├── execution-protocol.md
-│   ├── examples.md
-│   ├── orm-reference.md              <- Доменный (ORM-запросы, N+1, транзакции)
+│   ├── orm-reference.md              ← Domain-specific (ORM queries, N+1, transactions)
 │   ├── checklist.md
 │   └── error-playbook.md
-└── stack/                             <- Генерируется через /stack-set
-    ├── stack.yaml
-    ├── tech-stack.md
-    ├── snippets.md
-    └── api-template.*
+└── variants/                          ← Shipped language seeds / generated references
+    ├── node/
+    ├── python/
+    └── rust/
+
+.agents/skills/oma-mobile/
+├── SKILL.md
+├── resources/
+│   ├── execution-protocol.md
+│   ├── tech-stack.md
+│   ├── screen-template.dart
+│   ├── screen-template.swift         ← Swift native iOS screen template
+│   ├── screen-template.tsx            ← React Native screen template
+│   ├── checklist.md
+│   └── error-playbook.md
+└── variants/                          ← Stack schema and generated platform references
+    ├── README.md
+    └── stack.schema.json
 
 .agents/skills/oma-design/
 ├── SKILL.md
@@ -84,7 +93,7 @@ description: Frontend specialist for React, Next.js, TypeScript with FSD-lite ar
 │   ├── prompt-enhancement.md
 │   ├── stitch-integration.md
 │   └── error-playbook.md
-└── reference/                         <- Глубокие справочные материалы
+└── reference/                         ← Deep reference material
     ├── typography.md
     ├── color-and-contrast.md
     ├── spatial-design.md
@@ -97,196 +106,341 @@ description: Frontend specialist for React, Next.js, TypeScript with FSD-lite ar
 
 ---
 
-## Типы ресурсов для каждого навыка
+## Типы ресурсов навыка
 
-| Тип ресурса | Паттерн имени | Назначение | Когда загружается |
-|------------|--------------|-----------|------------------|
-| **Протокол выполнения** | `execution-protocol.md` | Пошаговый рабочий процесс: Анализ -> План -> Реализация -> Верификация | Всегда (вместе с SKILL.md) |
-| **Технологический стек** | `tech-stack.md` | Детальные спецификации технологий, версии, конфигурация | Сложные задачи |
-| **Справочник по ошибкам** | `error-playbook.md` | Процедуры восстановления с эскалацией «3 попытки» | Только при ошибках |
-| **Чек-лист** | `checklist.md` | Доменный чек-лист верификации качества | На этапе верификации |
-| **Сниппеты** | `snippets.md` | Готовые паттерны кода для копирования | Средние/Сложные задачи |
-| **Примеры** | `examples.md` или `examples/` | Примеры вход/выход для обучения LLM | Средние/Сложные задачи |
-| **Варианты** | Директория `stack/` | Языко/фреймворко-специфичные справочники | При наличии stack |
-| **Шаблоны** | `component-template.tsx`, `screen-template.dart` | Шаблоны файлов | При создании компонентов |
-| **Доменные справочники** | `orm-reference.md`, `anti-patterns.md` и т.д. | Глубокие доменные знания | По типу задачи |
-
----
-
-## Общие ресурсы (_shared/)
-
-Все агенты разделяют общие основы из `.agents/skills/_shared/`. Они организованы в три категории:
-
-### Основные ресурсы (`.agents/skills/_shared/core/`)
-
-| Ресурс | Назначение | Когда загружается |
-|--------|-----------|------------------|
-| **`skill-routing.md`** | Сопоставляет ключевые слова задач с правильным агентом. Содержит таблицу маппинга навык-агент, паттерны маршрутизации сложных запросов, правила межагентных зависимостей, правила эскалации и руководство по лимитам ходов. | Ссылается оркестратором и навыками координации |
-| **`context-loading.md`** | Определяет, какие ресурсы загружать для какого типа задачи и сложности. Содержит таблицы маппинга тип задачи-ресурс для каждого агента и триггеры загрузки условных протоколов. | В начале рабочего процесса (Шаг 0 / Фаза 0) |
-| **`prompt-structure.md`** | Определяет четыре элемента каждого промпта задачи: Цель, Контекст, Ограничения, Готово когда. Включает шаблоны для PM, агентов реализации и QA. Перечисляет анти-паттерны. | Ссылается PM-агентом и всеми рабочими процессами |
-| **`clarification-protocol.md`** | Определяет уровни неопределённости (LOW/MEDIUM/HIGH) с действиями для каждого. Содержит триггеры неопределённости, шаблоны эскалации и поведение в режиме субагента. | При неоднозначных требованиях |
-| **`context-budget.md`** | Управление бюджетом токенов. Определяет стратегию чтения файлов (использовать `find_symbol`, а не `read_file`), бюджеты загрузки ресурсов по уровню модели (Flash: ~3100 / Pro: ~5000 токенов). | В начале рабочего процесса |
-| **`difficulty-guide.md`** | Критерии классификации задач как Простая/Средняя/Сложная. Определяет ожидаемое количество ходов и ветвление протокола. | В начале задачи (Шаг 0) |
-| **`reasoning-templates.md`** | Структурированные шаблоны рассуждений для типовых паттернов принятия решений. | Во время сложных решений |
-| **`quality-principles.md`** | 4 универсальных принципа качества, применяемых всеми агентами. | В начале рабочих процессов, ориентированных на качество |
-| **`vendor-detection.md`** | Протокол определения текущей среды выполнения (Claude Code, Codex CLI, Gemini CLI, Antigravity, CLI Fallback). | В начале рабочего процесса |
-| **`session-metrics.md`** | Оценка Clarification Debt (CD) и отслеживание метрик сессий. Определяет типы событий, пороги и точки интеграции. | Во время сессий оркестрации |
-| **`common-checklist.md`** | Универсальный чек-лист качества для финальной верификации сложных задач. | Этап верификации сложных задач |
-| **`lessons-learned.md`** | Репозиторий знаний из прошлых сессий, автогенерируемый из нарушений CD и отброшенных экспериментов. | После ошибок и в конце сессии |
-| **`api-contracts/`** | Директория с шаблоном API-контракта и сгенерированными контрактами. | При планировании кросс-доменной работы |
-
-### Рантайм-ресурсы (`.agents/skills/_shared/runtime/`)
-
-| Ресурс | Назначение |
-|--------|-----------|
-| **`memory-protocol.md`** | Формат файлов памяти и операции для CLI-субагентов. Определяет протоколы При старте, Во время выполнения и При завершении. |
-| **`execution-protocols/claude.md`** | Паттерны выполнения для Claude Code. |
-| **`execution-protocols/gemini.md`** | Паттерны выполнения для Gemini CLI. |
-| **`execution-protocols/codex.md`** | Паттерны выполнения для Codex CLI. |
-| **`execution-protocols/qwen.md`** | Паттерны выполнения для Qwen CLI. |
-
-Вендор-специфичные протоколы внедряются автоматически через `oma agent spawn`.
-
-### Условные ресурсы (`.agents/skills/_shared/conditional/`)
-
-| Ресурс | Условие срабатывания | Примерный объём |
-|--------|---------------------|----------------|
-| **`quality-score.md`** | Начинается фаза VERIFY или SHIP | ~250 токенов |
-| **`experiment-ledger.md`** | Записан первый эксперимент после базовой линии IMPL | ~250 токенов |
-| **`exploration-loop.md`** | Один и тот же шлюз дважды проваливается | ~250 токенов |
-
-Суммарное влияние на бюджет: ~750 токенов при загрузке всех 3. Типичные сессии загружают 1-2.
+| Тип ресурса | Шаблон имени файла | Назначение | Когда загружается |
+|--------------|-----------------|---------|-------------|
+| **Протокол выполнения** | `execution-protocol.md` | Рабочий процесс по шагам: Analyze -> Plan -> Implement -> Verify | Всегда (вместе с SKILL.md) |
+| **Технологический стек** | `tech-stack.md` | Подробные спецификации технологий, версии и конфигурация | Сложные задачи |
+| **Playbook ошибок** | `error-playbook.md` | Процедуры восстановления с эскалацией «3 strikes» | Только при ошибке |
+| **Чек-лист** | `checklist.md` | Проверка качества для предметной области | На шаге Verify |
+| **Фрагменты** | `snippets.md` | Готовые для копирования паттерны кода | Средние и сложные задачи |
+| **Примеры** | `examples.md` или `examples/` | Few-shot-примеры ввода и вывода для LLM | Средние и сложные задачи |
+| **Варианты** | каталог `variants/` | Ссылки для конкретного языка или фреймворка. Backend поставляет заготовки `node`, `python` и `rust`; mobile поставляет схему и может получать созданные ссылки для платформ. | Когда найден соответствующий стек |
+| **Шаблоны** | `component-template.tsx`, `screen-template.dart` | Шаблоны файлов с заготовленным кодом | При создании компонента |
+| **Ссылка на предметную область** | `orm-reference.md`, `anti-patterns.md` и т. п. | Глубокие знания предметной области для конкретных подзадач | Зависит от типа задачи |
 
 ---
 
-## Маршрутизация навыков через skill-routing.md
+## Shared resources (_shared/)
+
+Все агенты используют общую основу из `.agents/skills/_shared/`. Она организована в три категории:
+
+### Core resources (`.agents/skills/_shared/core/`)
+
+| Resource | Purpose | When Loaded |
+|----------|---------|-------------|
+| **`skill-routing.md`** | Сопоставляет ключевые слова задачи с агентом. Содержит Skill-Agent Mapping, шаблоны Complex Request Routing, Inter-Agent Dependency Rules, Escalation Rules и Turn Limit Guide. | Используется orchestrator и coordination skills |
+| **`context-loading.md`** | Определяет ресурсы для каждого типа и сложности задачи. Содержит таблицы task-type-to-resource по агентам и условные triggers загрузки протоколов. | В начале workflow (Step 0 / Phase 0) |
+| **`prompt-structure.md`** | Определяет четыре элемента каждого task prompt: Goal, Context, Constraints, Done When. Содержит шаблоны для PM, implementation и QA agents и перечисляет anti-patterns (начинать только с Goal). | Используется PM agent и всеми workflows |
+| **`clarification-protocol.md`** | Определяет уровни неопределённости (LOW/MEDIUM/HIGH) и действия для каждого. Содержит triggers неопределённости, шаблоны эскалации, обязательные проверки по типу агента и поведение subagent mode. | При неоднозначных требованиях |
+| **`context-budget.md`** | Управляет token budget. Определяет стратегию чтения файлов (используйте `find_symbol`, а не `read_file`), измеренную стоимость ресурсов и загрузок Simple (~4 000 токенов) и Complex (~9 000), лимит `SKILL.md` (25 000 символов, проверяется `oma skill audit`), обработку больших файлов и симптомы переполнения контекста. | В начале workflow |
+| **`difficulty-guide.md`** | Критерии классификации Simple/Medium/Complex. Определяет ожидаемые ходы, ветви протокола (Fast Track / Standard / Extended) и восстановление после неверной оценки. | В начале задачи (Step 0) |
+| **`quality-principles.md`** | Четыре универсальных принципа качества, применяемых всеми агентами. | В начале quality-focused workflows (ultrawork) |
+| **`vendor-detection.md`** | Протокол определения текущего runtime (Claude Code, Codex CLI, Antigravity, Cursor, Kiro, Qwen и CLI fallback). Использует host markers и состояние настроенного вендора. | В начале workflow |
+| **`session-metrics.md`** | Подсчёт Clarification Debt (CD) и отслеживание метрик сессии. Определяет типы событий (clarify +10, correct +25, redo +40), пороги (CD >= 50 = RCA, CD >= 80 = pause) и точки интеграции. | Во время orchestration sessions |
+| **`common-checklist.md`** | Универсальный quality checklist для финальной проверки Complex-задач (в дополнение к checklist агента). | Verify-шаг Complex-задач |
+| **`lessons-learned.md`** | Репозиторий уроков прошлых сессий, автоматически создаваемых после нарушений Clarification Debt и отброшенных экспериментов. Организован по доменам и включает QA Evaluation Lessons для отслеживания blind spots оценивателя. | После ошибок и в конце сессии |
+| **`api-contracts/`** | Каталог с шаблоном API-контрактов и сгенерированными контрактами. `template.md` задаёт формат каждого endpoint (method, path, request/response schemas, auth, errors). | Когда планируется работа через границы |
+
+### Runtime resources (`.agents/skills/_shared/runtime/`)
+
+| Resource | Purpose |
+|----------|---------|
+| **`memory-protocol.md`** | Формат файлов памяти и операции для CLI-субагентов. Определяет протоколы On Start, During Execution и On Completion с настраиваемыми memory tools (read/write/edit), включая расширение для tracking экспериментов. |
+| **`execution-protocols/claude.md`** | Claude Code-specific execution patterns. Injected by `oma agent spawn` when vendor is claude. |
+| **`execution-protocols/antigravity.md`** | Antigravity CLI (`agy`) execution patterns. |
+| **`execution-protocols/codex.md`** | Codex CLI-specific execution patterns. |
+| **`execution-protocols/commandcode.md`** | CommandCode execution patterns. |
+| **`execution-protocols/grok.md`** | Grok execution patterns. |
+| **`execution-protocols/kimi.md`** | Kimi Code execution patterns. |
+| **`execution-protocols/kiro.md`** | Kiro execution patterns. |
+| **`execution-protocols/opencode.md`** | OpenCode extension execution patterns. |
+| **`execution-protocols/pi.md`** | pi extension execution patterns. |
+| **`execution-protocols/qwen.md`** | Qwen CLI-specific execution patterns. |
+
+Для агентов, запущенных через CLI, протоколы выполнения конкретного вендора автоматически внедряет `oma agent spawn`. Нативные субагенты используют правила интеграции выбранного вендора.
+
+### Conditional resources (`.agents/skills/_shared/conditional/`)
+
+These are loaded only when specific conditions are met during execution:
+
+| Resource | Trigger Condition | Loaded By | Approx. Tokens |
+|----------|-------------------|-----------|----------------|
+| **`quality-score.md`** | Начинается фаза VERIFY или SHIP в workflow, поддерживающем измерение качества | Orchestrator (передаёт в prompt QA agent) | ~250 |
+| **`experiment-ledger.md`** | Первый эксперимент записывается после установления baseline IMPL | Orchestrator (inline, после baseline measurement) | ~250 |
+| **`exploration-loop.md`** | Один gate дважды не проходит по одной проблеме | Orchestrator (inline, перед запуском hypothesis agents) | ~250 |
+
+Влияние на бюджет: около 750 токенов всего, если загружены все 3 ресурса. Загрузка условная, поэтому обычная сессия загружает 1–2 из них — это мало по сравнению с примерно 4 000 токенов, которые простая задача уже тратит на `SKILL.md` и `execution-protocol.md`.
+
+---
+
+## Как навыки маршрутизируются через skill-routing.md
+
+Карта маршрутизации навыков определяет сопоставление задач с агентами:
 
 ### Простая маршрутизация (один домен)
 
-Промпт «Build a login form with Tailwind CSS» совпадает с ключевыми словами `UI`, `component`, `form`, `Tailwind` и маршрутизируется на **oma-frontend**.
+Prompt с текстом "Build a login form with Tailwind CSS" совпадает с ключевыми словами `UI`, `component`, `form`, `Tailwind` и направляется в **oma-frontend**.
 
 ### Маршрутизация сложных запросов
 
-| Паттерн запроса | Порядок выполнения |
-|----------------|-------------------|
-| «Create a fullstack app» | oma-pm -> (oma-backend + oma-frontend) параллельно -> oma-qa |
-| «Create a mobile app» | oma-pm -> (oma-backend + oma-mobile) параллельно -> oma-qa |
-| «Fix bug and review» | oma-debug -> oma-qa |
-| «Design and build a landing page» | oma-design -> oma-frontend |
-| «I have an idea for a feature» | oma-brainstorm -> oma-pm -> агенты -> oma-qa |
-| «Do everything automatically» | oma-orchestration (внутри: oma-pm -> агенты -> oma-qa) |
+Запросы из нескольких доменов выполняются в установленном порядке:
 
-### Правила межагентных зависимостей
+| Request Pattern | Execution Order |
+|----------------|----------------|
+| "Создай fullstack-приложение" | oma-pm -> (oma-backend + oma-frontend) parallel -> oma-qa |
+| "Создай мобильное приложение" | oma-pm -> (oma-backend + oma-mobile) parallel -> oma-qa |
+| "Fix bug and review" | oma-debug -> oma-qa |
+| "Design and build a landing page" | oma-design -> oma-frontend |
+| "У меня есть идея для feature" | oma-brainstorm -> oma-pm -> relevant agents -> oma-qa |
+| "Do everything automatically" | oma-orchestration (internally: oma-pm -> agents -> oma-qa) |
 
-**Могут работать параллельно (без зависимостей):**
-- oma-backend + oma-frontend (когда API-контракт предопределён)
-- oma-backend + oma-mobile (когда API-контракт предопределён)
-- oma-frontend + oma-mobile (независимы)
+### Inter-agent dependency rules
 
-**Должны работать последовательно:**
-- oma-brainstorm -> oma-pm (дизайн перед планированием)
-- oma-pm -> все остальные агенты (планирование в первую очередь)
-- агент реализации -> oma-qa (ревью после реализации)
-- oma-backend -> oma-frontend/oma-mobile (без предопределённого API-контракта)
+**Can run in parallel (no dependencies):**
+- oma-backend + oma-frontend (when API contract is pre-defined)
+- oma-backend + oma-mobile (when API contract is pre-defined)
+- oma-frontend + oma-mobile (independent of each other)
 
-**QA всегда последний**, кроме ревью конкретных файлов.
+**Must run sequentially:**
+- oma-brainstorm -> oma-pm (design comes before planning)
+- oma-pm -> all other agents (planning comes first)
+- implementation agent -> oma-qa (review after implementation)
+- oma-backend -> oma-frontend/oma-mobile (если заранее не задан API-контракт)
+
+**QA всегда выполняется последним**, кроме случая, когда пользователь просит проверить только определённые файлы.
 
 ---
 
-## Расчёт экономии токенов
+## Token savings math
 
-Сессия оркестрации с 5 агентами (pm, backend, frontend, mobile, qa):
+Эти значения измерены по дереву навыков, а не оценены вручную. При необходимости их можно пересчитать:
 
-**Без прогрессивного раскрытия:**
-- Каждый агент загружает все ресурсы: ~4000 токенов на агента
-- Итого: 5 x 4000 = 20 000 токенов до начала работы
+```bash
+bun scripts/measure-skill-context.ts --skills oma-pm,oma-backend,oma-frontend,oma-mobile,oma-qa
+```
 
-**С прогрессивным раскрытием:**
-- Только Уровень 1 для всех агентов: 5 x 800 = 4000 токенов
-- Уровень 2 для активных агентов (1-2 одновременно): +1500 токенов
-- Итого: ~5500 токенов
+Количество токенов — **приблизительное** (байты ÷ 4, грубое соотношение для английского
+Markdown). Таблицы и fenced code токенизируются немного хуже, поэтому оценки слегка занижены; для точных
+значений используйте настоящий tokenizer для целевой модели.
 
-**Экономия: примерно 72-75%**
+### Уровни загрузки
 
-На моделях flash-уровня (128K) это разница между 108K и 125K доступных токенов.
+Каждый уровень — состояние, которого агент действительно достигает, согласно
+[`context-loading.md`](https://github.com/first-fluke/oh-my-agent/blob/main/.agents/skills/_shared/core/context-loading.md):
+
+| Уровень | Что находится в контексте |
+|------|--------------------|
+| `routed` | `SKILL.md` alone |
+| `simple` | + `execution-protocol.md` |
+| `medium` | + the mapped resource for the task, when that file exists |
+| `complex` | + the mapped resource and stack references when the project provides them |
+| `all` | `SKILL.md` + every resource file — the **ceiling**, not a selectable mode |
+
+Для навыков backend и mobile `/stack-set` может создать project-specific
+references в `stack/`. В свежем checkout нет сгенерированного каталога stack,
+поэтому приведённая ниже строка `complex` измерена по поставленным seed в `variants/`,
+на основе которых выполняется генерация — это proxy размера, а не файл, который агент уже загружает.
+
+### Сессия из 5 агентов (pm, backend, frontend, mobile, qa)
+
+| Tier | Tokens | Share of ceiling | Avoided |
+|------|-------:|-----------------:|--------:|
+| `routed` | 11,497 | 15.7% | 84.3% |
+| `simple` | 17,923 | 24.4% | 75.6% |
+| `medium` | 19,125 | 26.1% | 73.9% |
+| `complex` | 39,156 | 53.4% | 46.6% |
+| `all` | 73,355 | 100% | — |
+
+Таким образом, простая или средняя задача у пяти агентов содержит примерно **17–19K токенов**
+контекста навыков вместо потолка 73K, а сложная — около **38K**; экономия составляет ~74–76% для
+обычной работы и снижается примерно до ~47%, когда задача подтягивает stack references. В модели с
+контекстом 128K это оставляет около 110K свободными для Simple/Medium и 90K для Complex.
+
+:::note Считайте `all` границей, а не альтернативой
+Ни один runtime не загружает все ресурсы заранее: навыки показываются через `description`,
+их тело читается при маршрутизации, а ресурсы — по мере необходимости задачи.
+`all` — верхняя граница потенциальной стоимости навыка, поэтому проценты выше указаны как
+«избегаемая» стоимость, а не как сравнение с реальной конфигурацией.
+:::
+
+Слой 1 — нижняя граница, и она немалая: для 33 установленных навыков
+`SKILL.md` занимает примерно 1 275–5 489 токенов (медиана ~2 631). Эта граница ограничивает экономию
+от progressive disclosure: если маршрутизированы все пять агентов, один уровень `routed` уже занимает
+15% потолка.
 
 ---
 
 ## Загрузка ресурсов по сложности задачи
 
-### Простая (3-5 ходов)
+Руководство по сложности делит задачи на три уровня и определяет, какой объём Слоя 2 загружается:
 
-Изменение одного файла, чёткие требования, повторение существующих паттернов.
+### Simple (ожидается 3–5 ходов)
 
-Загружается: только `execution-protocol.md`. Пропустить анализ, сразу к реализации.
+Изменение одного файла, ясные требования, повторение существующих паттернов.
 
-### Средняя (8-15 ходов)
+Загружает только `execution-protocol.md`. Пропустите анализ и сразу переходите к реализации с коротким checklist.
 
-2-3 изменения файлов, некоторые дизайн-решения.
+### Medium (ожидается 8–15 ходов)
 
-Загружается: `execution-protocol.md` + `examples.md`. Стандартный протокол с кратким анализом.
+Изменение 2–3 файлов, требуются отдельные решения дизайна, применение паттернов в новых доменах.
 
-### Сложная (15-25 ходов)
+Загружает `execution-protocol.md` и сопоставленный Medium-ресурс, если он существует. Применяется стандартный протокол с кратким анализом и полной проверкой.
 
-4+ изменений файлов, архитектурные решения, зависимости от других агентов.
+### Complex (ожидается 15–25 ходов)
 
-Загружается: `execution-protocol.md` + `examples.md` + `tech-stack.md` + `snippets.md`. Расширенный протокол с контрольными точками.
+Изменение 4+ файлов, требуются архитектурные решения, вводятся новые паттерны и зависимости от других агентов.
+
+Загружает `execution-protocol.md`, сопоставленный ресурс и доступные ссылки `tech-stack.md` / `snippets.md`. Расширенный протокол добавляет checkpoints, запись прогресса в середине выполнения и полную проверку с `common-checklist.md`.
 
 ---
 
-## Карты загрузки контекста (по агентам)
+## Context-loading task maps (per agent)
 
-### Бэкенд-агент
+Руководство по загрузке контекста содержит подробные сопоставления типа задачи и ресурса. Ниже — ключевые mappings:
 
-| Тип задачи | Необходимые ресурсы |
+### Backend agent
+
+| Task Type | Required Resources |
 |-----------|-------------------|
-| Создание CRUD API | stack/snippets.md (route, schema, model, test) |
-| Аутентификация | stack/snippets.md (JWT, password) + stack/tech-stack.md |
-| Миграция БД | stack/snippets.md (migration) |
-| Оптимизация производительности | examples.md (пример N+1) |
-| Модификация существующего кода | examples.md + Serena MCP |
+| CRUD API creation | matching `variants/{node,python,rust}/snippets.md` when present |
+| Authentication | matching variant `snippets.md` + `tech-stack.md` when present |
+| DB migration | matching variant `snippets.md` when present |
+| Performance optimization | `orm-reference.md` and any matching examples supplied by the skill |
+| Existing code modification | project code-intelligence provider and relevant execution resources |
 
-### Фронтенд-агент
+### Frontend agent
 
-| Тип задачи | Необходимые ресурсы |
+| Task Type | Required Resources |
 |-----------|-------------------|
-| Создание компонента | snippets.md + component-template.tsx |
-| Реализация формы | snippets.md (form + Zod) |
-| Интеграция с API | snippets.md (TanStack Query) |
-| Стилизация | tailwind-rules.md |
-| Макет страницы | snippets.md (grid) + examples.md |
+| Component creation | snippets.md + the project’s existing component patterns |
+| Form implementation | snippets.md (form + Zod) |
+| API integration | snippets.md (TanStack Query) |
+| Styling | tailwind-rules.md |
+| Page layout | snippets.md (grid) |
 
-### Дизайн-агент
+### Design agent
 
-| Тип задачи | Необходимые ресурсы |
+| Task Type | Required Resources |
 |-----------|-------------------|
 | Создание дизайн-системы | reference/typography.md + reference/color-and-contrast.md + reference/spatial-design.md + design-md-spec.md |
-| Дизайн лендинга | reference/component-patterns.md + reference/motion-design.md + prompt-enhancement.md |
-| Аудит дизайна | checklist.md + anti-patterns.md |
-| Экспорт дизайн-токенов | design-tokens.md |
-| 3D / шейдерные эффекты | reference/shader-and-3d.md + reference/motion-design.md |
-| Обзор доступности | reference/accessibility.md + checklist.md |
+| Дизайн landing page | reference/component-patterns.md + reference/motion-design.md + prompt-enhancement.md |
+| Design audit | checklist.md + anti-patterns.md |
+| Design token export | design-tokens.md |
+| 3D / shader effects | reference/shader-and-3d.md + reference/motion-design.md |
+| Accessibility review | reference/accessibility.md + checklist.md |
 
-### QA-агент
+### QA agent
 
-| Тип задачи | Необходимые ресурсы |
+| Task Type | Required Resources |
 |-----------|-------------------|
-| Обзор безопасности | checklist.md (раздел Security) |
-| Обзор производительности | checklist.md (раздел Performance) |
-| Обзор доступности | checklist.md (раздел Accessibility) |
-| Полный аудит | checklist.md (полный) + self-check.md |
-| Оценка качества | quality-score.md (условный) |
+| Security review | checklist.md (Security section) |
+| Performance review | checklist.md (Performance section) |
+| Accessibility review | checklist.md (Accessibility section) |
+| Full audit | checklist.md (full) + self-check.md |
+| Quality scoring | quality-score.md (conditional) |
 
 ---
 
-## Компоновка промпта оркестратором
+## Orchestrator prompt composition
 
-Когда оркестратор составляет промпты для субагентов, он включает только релевантные ресурсы:
+Когда orchestrator составляет prompt для субагентов, он включает только ресурсы, относящиеся к задаче:
 
-1. Раздел основных правил из SKILL.md агента
+1. Agent SKILL.md's Core Rules section
 2. `execution-protocol.md`
-3. Ресурсы, соответствующие типу задачи (из карт выше)
-4. `error-playbook.md` (всегда включён)
-5. Serena Memory Protocol (режим CLI)
+3. Resources matching the specific task type (from the maps above)
+4. `error-playbook.md` (always included; recovery is essential)
+5. Memory Protocol (CLI mode)
 
-Такая целевая компоновка максимизирует доступный контекст субагента для реальной работы.
+Такой целевой состав не загружает ненужные ресурсы и оставляет субагенту максимум контекста для реальной работы.
+
+---
+
+## Clarification debt & session metrics (deep dive)
+
+Clarification Debt (CD) измеряет стоимость неясных требований во время сессии. Orchestrator отслеживает каждую пользовательскую корректировку и начисляет баллы:
+
+| Event Type | Points | Description |
+|------------|--------|-------------|
+| `clarify` | +10 | Simple clarification question (expected for MEDIUM uncertainty) |
+| `correct` | +25 | Intent misunderstanding requiring direction change |
+| `redo` | +40 | Scope/charter violation requiring rollback and restart |
+| `blocked` | +0 | Agent correctly stopped and asked (good behavior, not penalized) |
+
+**Modifiers:** Charter not read (+15), allowlist violation (+20), same error repeated (x1.5).
+
+**Thresholds and enforcement:**
+- **CD >= 50** → Mandatory RCA entry added to `lessons-learned.md`
+- **CD >= 80** → Session halted, user must re-specify requirements
+- **`redo` >= 2** → Orchestrator pauses and requests explicit scope confirmation
+- **CD >= 30 в 3 последовательных сессиях одного агента** → ревью шаблона prompt агента
+
+Журнал сессии ведётся в `.agents/state/memories/session-metrics.md`: для каждого события есть строки (turn, agent, event type, points, detail) и сводный раздел.
+
+---
+
+## Точность оценивания и настройка QA
+
+QA-агенты улучшаются по отслеживаемым ошибкам суждения. В отличие от CD (real-time), Evaluator Accuracy (EA) ретроспективна: большинство ошибок обнаруживается после завершения сессии.
+
+**Типы событий EA:**
+
+| Событие | Баллы | Когда обнаружено |
+|-------|--------|-----------------|
+| `false_negative` | +30 | Следующая сессия или production (баг, который QA пропустил) |
+| `false_positive` | +15 | Во время сессии (impl agent успешно оспорил находку QA) |
+| `severity_mismatch` | +10 | Во время сессии или ревью следующей сессии (назначена неверная серьёзность) |
+| `missed_stub` | +20 | Runtime-проверка обнаружила feature только для отображения |
+| `good_catch` | -10 | QA поймал неочевидный баг (положительный сигнал) |
+
+**EA вычисляется по скользящему окну из 3 сессий.** Пороги:
+- **EA >= 30** → рекомендуется tuning: просмотрите накопленные EA events на повторяющиеся ошибки QA-суждения
+- **EA >= 50** → tuning обязателен: обновите QA execution-protocol.md
+- **`false_negative` >= 3** в окне → добавьте pattern обнаружения в QA checklist.md
+- **`good_catch` >= 5** в окне → обобщите успешный pattern в `common-checklist.md`
+
+При нарушении порога просмотрите накопленные EA events, классифицируйте ошибки, обновите QA checklist или execution protocol и проверьте результат в следующих 3 сессиях.
+
+---
+
+## Sprint decomposition for complex tasks
+
+Для Complex-задач (4+ файлов, архитектурные решения) используется выполнение по sprint, а не один длинный запуск:
+
+1. **Декомпозируйте** работу на 2–4 feature-focused sprint, каждый из которых проверяется отдельно
+2. **Цель:** 5–8 ходов на sprint
+3. **Sprint Gate** после каждого sprint:
+   - deliverable sprint завершён?
+   - lint/test проходят?
+   - если sprint занял в 2 раза больше ожидаемых ходов → запишите checkpoint и сообщите пользователю
+4. **Продолжайте** следующий sprint после прохождения gate
+
+**Пример:** задача "JWT auth + CRUD API + tests" делится на:
+- Sprint 1: User model + auth endpoints (register/login)
+- Sprint 2: CRUD endpoints + validation
+- Sprint 3: Tests + error handling
+
+**Восстановление после неверной оценки сложности:** если задача началась как Simple, но оказалась сложнее, агент во время выполнения переходит на протокол Medium или Complex и записывает изменение в progress.
+
+---
+
+## Context reset protocol
+
+Качество долго работающих агентов снижается по мере заполнения контекста. Orchestrator (а не сам агент) отслеживает это и запускает resets.
+
+**Условия trigger (Orchestrator проверяет при мониторинге):**
+
+| Условие | Обнаружение | Действие |
+|-----------|-----------|--------|
+| Исчерпан turn budget | Агент использовал >= 80% ожидаемых ходов, а acceptance criteria выполнены менее чем на 50% | Context Reset |
+| Застой прогресса | В течение 3+ последовательных циклов мониторинга нет обновления progress file | Context Reset |
+| Поверхностный вывод | Result file содержит stub markers или TODO placeholders | Re-spawn с явной инструкцией |
+
+**Процедура reset:**
+1. **Checkpoint:** сохраните текущее состояние агента (готовые и оставшиеся пункты, ключевые решения)
+2. **Terminate:** остановите текущий запуск агента
+3. **Re-spawn:** запустите нового агента с checkpoint в контексте
+4. **Resume:** новый агент читает checkpoint и продолжает только оставшиеся пункты
+
+Для автономных агентов (без Orchestrator) Sprint Gate из `difficulty-guide.md` служит safety net. Если sprint занимает в 2 раза больше ожидаемых ходов, агент записывает checkpoint и сообщает пользователю.

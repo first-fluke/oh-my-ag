@@ -1,53 +1,66 @@
 ---
 title: "Hướng dẫn: Ngữ nghĩa oma-config.yaml"
-description: Quy tắc ưu tiên theo từng key cho oma-config.yaml khi cài đặt dự án và toàn cục cùng tồn tại. Bao gồm auto_update_cli (dự án thắng toàn cục), serena.mode, telemetry, language, model_preset, translation_voice, timezone, và các dotfile mà agy / claude / codex / gemini / qwen sẽ đọc.
+sidebar_label: Tải cấu hình
+description: Cách OMA chọn lớp cấu hình CUE và YAML, áp dụng overlay local và xử lý các fallback trong ngữ cảnh cài đặt. Xem configuration reference để biết key và giá trị mặc định được hỗ trợ.
 ---
 
 ## Tổng quan
 
-`oma-config.yaml` có thể nằm ở hai vị trí:
+Cấu hình được chọn từ thư mục `.agents/` gần nhất khi đi ngược từ thư mục làm việc hiện tại:
 
-- **Dự án**: `<cwd>/.agents/oma-config.yaml`
-- **Toàn cục**: `~/.agents/oma-config.yaml`
+- **Shared:** `.agents/oma-config.cue`, hoặc `.agents/oma-config.yaml` nếu CUE không có hoặc không evaluate được.
+- **Local:** `.agents/oma-config.local.cue` hoặc `.agents/oma-config.local.yaml`, chỉ một file và overlay lên file shared; hãy giữ file này riêng tư.
 
-Khi cả hai file đều tồn tại, file dự án sẽ thắng cho mọi key. Đây là chủ ý: tùy biến theo dự án là tín hiệu cụ thể hơn và không nên bị ghi đè bởi mặc định ở phạm vi người dùng.
+OMA không merge file project với `~/.agents/oma-config.*` khi runtime lookup thông thường. Global install đọc file home vì install root của nó là HOME; command trong project đọc layer project gần nhất. `auto_update_cli` là ngoại lệ có chủ ý: update check đọc config project, rồi config home, rồi mặc định bật. Xem [Configuration reference](/docs/guide/configuration-reference) để biết đầy đủ model.
 
 ## Bảng ưu tiên
 
-| Key | Dự án thắng? | Ghi chú |
+| Key | Quy tắc hiệu lực | Ghi chú |
 |-----|:---:|-------|
-| `auto_update_cli` | Có | Giá trị dự án ghi đè toàn cục. Cài đặt trong `resolveAutoUpdateCli` (`cli/commands/update/update.ts`). |
-| `serena.mode` | Có | Điều khiển chế độ transport của Serena MCP (ví dụ `stdio`, `sse`). |
-| `serena.auto_update` | Có | Nâng cấp `serena-agent` trong khi chạy `oma update` (`uv tool upgrade serena-agent --prerelease=allow`). |
-| `telemetry` | Có | Tùy chọn telemetry của vendor (`true` / `false`). |
-| `language` | Có | Ngôn ngữ phản hồi của agent (ví dụ `en`, `ko`, `ja`). |
-| `model_preset` | Có | Preset chọn model (ví dụ `claude`, `mixed`, `codex`). |
-| `translation_voice` | Có | Tông giọng dịch: `formal`, `balanced`, `interpreter`. |
-| `timezone` | Có | Định danh múi giờ (ví dụ `Asia/Seoul`, `America/New_York`). |
+| `OMA_MODEL_PRESET` | Cao nhất | Giá trị environment không rỗng thay thế `model_preset` cho process đó. |
+| File local | Overlay shared | Map thường merge đệ quy; array, scalar và `null` thay thế giá trị shared. Không được tồn tại đồng thời hai format local. |
+| Shared CUE | Ưu tiên | Nếu CUE vắng hoặc lỗi, loader thử YAML shared. Lỗi CUE local là fatal. |
+| Shared YAML | Fallback | Dùng khi không chọn được shared CUE usable. |
+| `auto_update_cli` | Project, rồi home, rồi `true` | Fallback riêng cho update được implement trong `resolveAutoUpdateCli`, không phải global layer chung. |
 
-"Dự án thắng" nghĩa là: nếu key có trong file dự án, giá trị đó được dùng bất kể file toàn cục nói gì. Nếu key vắng mặt ở file dự án, giá trị từ file toàn cục được dùng. Nếu cả hai cùng vắng mặt, giá trị mặc định sẽ áp dụng.
+Với override local của project, chỉ đặt leaf đã thay đổi trong file local. Ví dụ, giữ lựa chọn model local ngoài file shared:
+
+```yaml
+# .agents/oma-config.local.yaml
+model_preset: claude
+agents:
+  backend:
+    model: anthropic/claude-sonnet-4-6
+```
+
+
+Chạy command từ project để chọn thư mục `.agents/` gần nhất. File local malformed sẽ fail rõ ràng; sửa hoặc xóa trước khi retry.
 
 ## Giá trị mặc định
 
-| Key | Mặc định | Khi nào áp dụng |
+| Key | Mặc định | Khi áp dụng |
 |-----|---------|--------------|
-| `auto_update_cli` | `true` | Cả hai file vắng mặt hoặc thiếu key |
-| `serena.mode` | `stdio` | Cả hai file vắng mặt hoặc thiếu key |
-| `serena.auto_update` | `true` | Cả hai file vắng mặt hoặc thiếu key |
-| `telemetry` | `false` | Cả hai file vắng mặt hoặc thiếu key |
-| `language` | `en` | Cả hai file vắng mặt hoặc thiếu key |
-| `model_preset` | `claude` | Cả hai file vắng mặt hoặc thiếu key |
-| `translation_voice` | `balanced` | Cả hai file vắng mặt hoặc thiếu key |
-| `timezone` | Múi giờ hệ thống | Cả hai file vắng mặt hoặc thiếu key |
+| `auto_update_cli` | `true` | Cả hai file vắng hoặc thiếu key |
+| `serena.mode` | `bridge` | Cả hai file vắng hoặc thiếu key |
+| `serena.auto_update` | `true` | Cả hai file vắng hoặc thiếu key |
+| `telemetry` | `false` | Cả hai file vắng hoặc thiếu key |
+| `language` | `en` | Cả hai file vắng hoặc thiếu key |
+| `model_preset` | Bắt buộc | Template project đã ship dùng `auto`; schema yêu cầu giá trị không rỗng. |
+| `translation_voice` | `balanced` | Cả hai file vắng hoặc thiếu key |
+| `timezone` | Múi giờ hệ thống | Cả hai file vắng hoặc thiếu key |
 
-## Lý do của thứ tự đọc
+## Lý do thứ tự đọc
 
-Cấu hình dự án được đọc trước vì đại diện cho ngữ cảnh cụ thể hơn — repository mà lập trình viên đang làm việc trực tiếp. Một nhóm có thể yêu cầu `language: ko` hoặc `model_preset: mixed` cho dự án của họ, và những lựa chọn đó không nên bị `oma-config.yaml` toàn cục của cá nhân ghi đè ngầm.
-
-File toàn cục cung cấp baseline cho phạm vi người dùng. Những key mà dự án không đặt sẽ rơi xuống giá trị toàn cục, rồi tiếp tục rơi xuống giá trị mặc định trong code.
+Quy tắc layer gần nhất giữ cấu hình project khép kín. Nếu cần baseline cấp user, hãy cài global và sửa `~/.agents/oma-config.yaml`; project install vẫn có thể định nghĩa layer gần nhất của nó.
 
 ## Ghi chú
 
-- `language` trong `oma-config.yaml` điều khiển ngôn ngữ phản hồi của agent. Nó **không** được dùng để quyết định ngôn ngữ của thông báo cảnh báo lúc install/update — phần đó dùng locale hệ thống (`$LANG`) vì `oma-config.yaml` chưa được nạp tại thời điểm cài đặt.
-- Ưu tiên của `auto_update_cli` được cài đặt rõ ràng trong lệnh update. Khi cả cài đặt dự án và cài đặt toàn cục đều tồn tại, `oma-config.yaml` của dự án sẽ được tra cứu trước.
-- Việc chỉnh sửa trực tiếp `oma-config.yaml` là an toàn. `oma install` và `oma update` dùng cơ chế thay thế trường ở cấp regex và giữ nguyên các key do người dùng sửa mà chúng không quản lý (ví dụ override `agents:` tùy biến, `session.quota_cap`).
+- `language` trong `oma-config.yaml` điều khiển ngôn ngữ phản hồi của agent. Nó **không** quyết định ngôn ngữ warning lúc install/update; phần đó dùng locale hệ thống (`$LANG`) vì `oma-config.yaml` chưa được load lúc install.
+- Ưu tiên của `auto_update_cli` được implement rõ trong update command. Khi project install và global install cùng tồn tại, giá trị project được tra trước rồi mới đến home.
+- `telemetry` (mặc định `false`) ánh xạ tới opt-out riêng của từng vendor, được `oma install` / `oma update` / `oma link` ghi ra: Claude dùng `DISABLE_TELEMETRY` và `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY`; Gemini/Qwen dùng `privacy.usageStatisticsEnabled`; Codex dùng `analytics.enabled` và `feedback.enabled`; Grok dùng `[features] telemetry`; Antigravity (agy) dùng `enableTelemetry` trong `~/.gemini/antigravity-cli/settings.json`. Đặt `telemetry: true` để opt in lại bằng cách bỏ opt-out của oma cho vendor đó.
+- `diagram`, gồm engine `auto` / `archify` / `mermaid`, `explain_sidecar` và `archify.managed|channel|check_interval_min|path|quality|open`, là sparse skill-override section giống `video` / `image`; xem [Diagram Engine](/docs/guide/diagram-engine).
+- `video.remotion.check_interval_min` giới hạn tần suất check latest-version cho Remotion toolchain và remotion-dev/skills theo từng run (`oma video compose`, `oma update`).
+- `market`, gồm `managed|channel|check_interval_min|path|python|save_dir`, cấu hình engine `last30days` luôn mới phía sau `oma market`; xem [Market Research](/docs/guide/market-research).
+- Typed runtime schema bao phủ `providers`, `free`, `agents`, `models`, `custom_presets`, `vendors`, `session`, `docs` và các sparse skill section. Template đã ship cũng có block thuộc consumer như `scm`, `memory`, `serena_reaper` và `mcp`; consumer của block đó sở hữu nested key. Không suy ra key chỉ từ danh sách này; dùng [Configuration reference](/docs/guide/configuration-reference) và feature guide tương ứng.
+- Sửa trực tiếp `oma-config.yaml` là an toàn. `oma install` và `oma update` dùng thay thế field ở mức regex, giữ các key user đã sửa mà chúng không quản lý, như override `agents:` tùy biến và `session.quota_cap`.
+- `oma update` còn thêm top-level key mà template đã ship có nhưng file của bạn thiếu, dùng template default và marker `# Added by oma update`. Key đã có không bao giờ bị sửa, nội dung hiện tại vẫn byte-identical. Key bạn cố ý xóa sẽ xuất hiện lại với default; hãy đặt giá trị rõ ràng thay vì xóa để opt out.

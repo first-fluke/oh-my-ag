@@ -1,205 +1,210 @@
 ---
-title: "Przewodnik: Naprawianie błędów"
-description: Kompleksowy przewodnik debugowania obejmujący ustrukturyzowaną 5-krokową pętlę debugowania, triage ważności, sygnały eskalacji i walidację po naprawie.
+title: "Przewodnik: naprawianie błędów"
+sidebar_label: Naprawianie błędów
+description: "Ustrukturyzowany, siedmioetapowy workflow debugowania z triage ważności, sygnałami eskalacji, diagnozą opartą na źródłach i walidacją po poprawce."
 ---
 
-# Przewodnik: Naprawianie błędów
+# Przewodnik: naprawianie błędów
 
-## Kiedy używać workflow debugowania
+## Kiedy używać workflowu debugowania
 
-Użyj `/debug` (lub powiedz "fix bug", "fix error", "debug" w języku naturalnym) gdy masz konkretny błąd do zdiagnozowania i naprawy. Workflow zapewnia ustrukturyzowane, odtwarzalne podejście do debugowania, które unika typowej pułapki naprawiania symptomów zamiast przyczyn źródłowych.
+Użyj `/debug` (albo powiedz w języku naturalnym „fix bug”, „fix error” lub „debug”), gdy masz konkretny błąd do zdiagnozowania i naprawienia. Workflow daje uporządkowane, odtwarzalne podejście do debugowania, które pomaga uniknąć typowej pułapki naprawiania objawów zamiast przyczyn źródłowych.
 
-Workflow debugowania obsługuje wszystkich dostawców (Gemini, Claude, Codex, Qwen). Kroki 1-5 wykonywane są inline. Krok 6 (skanowanie podobnych wzorców) może delegować do subagenta `debug-investigator` gdy zakres skanowania jest szeroki (10+ plików lub błędy wielodomenowe).
+Workflow debugowania obsługuje wszystkich skonfigurowanych dostawców. Etapy 1–5 działają inline. Etap 6 (wyszukiwanie podobnych wzorców) może delegować zadanie do subagenta `debug-investigator`, gdy zakres skanu jest szeroki (co najmniej 10 plików albo błędy obejmują wiele domen), a następnie etap 7 zapisuje wynik w pamięci.
 
 ---
 
-## Szablon zgłoszenia błędu
+## Szablon raportu błędu
+
+Przy zgłaszaniu błędu podaj jak najwięcej poniższych informacji. Każde pole pomaga workflowowi debugowania szybciej zawęzić wyszukiwanie.
 
 ### Pola wymagane
 
 | Pole | Opis | Przykład |
 |:------|:-----------|:--------|
-| **Komunikat błędu** | Dokładny tekst błędu lub stack trace | `TypeError: Cannot read properties of undefined (reading 'id')` |
-| **Kroki reprodukcji** | Uporządkowane akcje wyzwalające błąd | 1. Zaloguj się jako admin. 2. Przejdź do /users. 3. Kliknij "Delete". |
-| **Oczekiwane zachowanie** | Co powinno się stać | Użytkownik usunięty z listy. |
-| **Rzeczywiste zachowanie** | Co faktycznie się dzieje | Strona zawiesza się z białym ekranem. |
+| **Komunikat błędu** | Dokładny tekst błędu albo stack trace | `TypeError: Cannot read properties of undefined (reading 'id')` |
+| **Kroki odtworzenia** | Uporządkowane działania wywołujące błąd | 1. Zaloguj się jako administrator. 2. Przejdź do /users. 3. Kliknij „Delete” przy dowolnym użytkowniku. |
+| **Oczekiwane zachowanie** | Co powinno się stać | Użytkownik zostaje usunięty i znika z listy. |
+| **Rzeczywiste zachowanie** | Co faktycznie się dzieje | Strona kończy się białym ekranem. |
 
 ### Pola opcjonalne (bardzo zalecane)
 
+<!-- oma-docs:ignore-start -->
 | Pole | Opis | Przykład |
 |:------|:-----------|:--------|
 | **Środowisko** | Przeglądarka, system operacyjny, wersja Node, urządzenie | Chrome 124, macOS 15.3, Node 22.1 |
-| **Częstotliwość** | Zawsze, czasami, tylko za pierwszym razem | Zawsze odtwarzalny |
-| **Ostatnie zmiany** | Co zmieniło się przed pojawieniem błędu | Zmergowano PR #142 (funkcja usuwania użytkownika) |
-| **Powiązany kod** | Pliki lub funkcje, które podejrzewasz | `src/api/users.ts`, `deleteUser()` |
+| **Częstotliwość** | Zawsze, czasami, tylko za pierwszym razem | Zawsze możliwe do odtworzenia |
+| **Ostatnie zmiany** | Co zmieniło się przed pojawieniem się błędu | Scalony PR #142 (funkcja usuwania użytkowników) |
+| **Powiązany kod** | Podejrzane pliki albo funkcje | `src/api/users.ts`, `deleteUser()` |
 | **Logi** | Logi serwera, wyjście konsoli | `[ERROR] UserService.delete: user.organizationId is undefined` |
-| **Zrzuty ekranu/nagrania** | Dowód wizualny | Zrzut ekranu ekranu błędu |
+| **Zrzuty ekranu/nagrania** | Dowody wizualne | Zrzut ekranu z widokiem błędu |
+<!-- oma-docs:ignore-end -->
 
-Im więcej kontekstu dostarczysz z góry, tym mniej pytań zwrotnych workflow debugowania będzie potrzebować.
+Im więcej kontekstu podasz na początku, tym mniej dodatkowych pytań będzie potrzebował workflow debugowania.
 
 ---
 
-## Triage ważności (P0-P3)
+## Triage ważności (P0–P3)
 
-Ważność determinuje sposób obsługi błędu i szybkość, z jaką powinien zostać naprawiony.
+Ważność określa sposób obsługi błędu i szybkość naprawy.
 
-### P0 — Krytyczny (natychmiastowa reakcja)
+### P0: krytyczny (natychmiastowa reakcja)
 
-**Definicja:** Produkcja nie działa, dane są tracone lub uszkadzane, aktywne naruszenie bezpieczeństwa.
+**Definicja:** Produkcja nie działa, dane są tracone lub uszkadzane albo trwa naruszenie bezpieczeństwa.
 
-**Oczekiwana reakcja:** Porzuć wszystko inne. To jedyne zadanie do rozwiązania.
+**Oczekiwana reakcja:** Odłóż wszystko. To jedyne zadanie do czasu rozwiązania.
 
 **Przykłady:**
-- Obejście systemu uwierzytelniania — wszyscy użytkownicy mają dostęp do endpointów admina.
-- Migracja bazy danych uszkodziła tabelę użytkowników — konta niedostępne.
-- Przetwarzanie płatności podwójnie obciąża klientów.
+- Ominięto system uwierzytelniania; wszyscy użytkownicy mogą wejść do endpointów administracyjnych.
+- Migracja bazy uszkodziła tabelę użytkowników; konta są niedostępne.
+- Przetwarzanie płatności pobiera od klientów podwójną opłatę.
 - Endpoint API zwraca dane osobowe innych użytkowników.
 
-**Podejście do debugowania:** Pomiń pełny szablon. Podaj komunikat błędu i stack trace. Workflow zaczyna natychmiast od Kroku 2 (Reprodukcja).
+**Podejście debugowania:** Pomiń pełny szablon. Podaj komunikat błędu i ewentualny stack trace. Workflow od razu zaczyna od kroku 2 (odtworzenie).
 
-### P1 — Wysoki (ta sama sesja)
+### P1: wysoki (ta sama sesja)
 
-**Definicja:** Podstawowa funkcjonalność zepsuta dla znacznej liczby użytkowników. Obejście może istnieć, ale nie jest akceptowalne długoterminowo.
+**Definicja:** Kluczowa funkcja jest zepsuta dla znacznej liczby użytkowników. Może istnieć obejście, ale długoterminowo jest nieakceptowalne.
 
-**Oczekiwana reakcja:** Napraw w bieżącej sesji roboczej. Nie rozpoczynaj nowych funkcjonalności do czasu rozwiązania.
+**Oczekiwana reakcja:** Napraw w bieżącej sesji pracy. Nie rozpoczynaj nowych funkcji, dopóki problem nie zostanie rozwiązany.
 
 **Przykłady:**
 - Wyszukiwanie nie zwraca wyników dla zapytań zawierających znaki specjalne.
-- Przesyłanie plików nie działa dla plików powyżej 5MB (limit powinien wynosić 50MB).
-- Aplikacja mobilna zawiesza się przy uruchomieniu na urządzeniach Android 14.
-- E-maile resetu hasła nie są wysyłane (integracja z usługą e-mail uszkodzona).
+- Przesyłanie pliku nie działa dla plików większych niż 5 MB (limit powinien wynosić 50 MB).
+- Aplikacja mobilna wyłącza się podczas uruchamiania na urządzeniach z Androidem 14.
+- E-maile resetowania hasła nie są wysyłane (integracja usługi e-mail jest zepsuta).
 
-**Podejście do debugowania:** Pełna 5-krokowa pętla. Przegląd QA zalecany po naprawie.
+**Podejście debugowania:** Pełna pętla siedmiu etapów. Po poprawce zalecany jest przegląd QA.
 
-### P2 — Średni (ten sprint)
+### P2: średni (w tym sprincie)
 
-**Definicja:** Funkcjonalność działa, ale z pogorszoną jakością. Wpływa na użyteczność, ale nie na funkcjonalność.
+**Definicja:** Funkcja działa, ale z gorszym zachowaniem. Wpływa na użyteczność, nie na działanie.
 
-**Oczekiwana reakcja:** Zaplanuj na bieżący sprint. Napraw przed następnym wydaniem.
-
-**Przykłady:**
-- Sortowanie tabeli uwzględnia wielkość liter ("apple" sortuje się po "Zebra").
-- Tryb ciemny ma nieczytelny tekst w panelu ustawień.
-- Czas odpowiedzi API dla endpointu /users wynosi 8 sekund (powinien być poniżej 1s).
-- Paginacja pokazuje "Strona 1 z 0" gdy lista jest pusta.
-
-**Podejście do debugowania:** Pełna 5-krokowa pętla. Włącz do zestawu testów regresji QA.
-
-### P3 — Niski (backlog)
-
-**Definicja:** Problem kosmetyczny, przypadek brzegowy lub drobna niedogodność.
-
-**Oczekiwana reakcja:** Dodaj do backlogu. Napraw gdy będzie okazja lub zgrupuj z powiązanymi zmianami.
+**Oczekiwana reakcja:** Zaplanuj pracę w bieżącym sprincie. Napraw przed kolejnym wydaniem.
 
 **Przykłady:**
-- Tekst tooltipa ma literówkę: "Delet" zamiast "Delete".
-- Ostrzeżenie konsoli o przestarzałej metodzie cyklu życia React.
-- Wyrównanie stopki jest przesunięte o 2 piksele przy szerokościach viewportu 768-800px.
-- Spinner ładowania kontynuuje przez 200ms po wyświetleniu treści.
+- Sortowanie tabeli rozróżnia wielkość liter („apple” jest po „Zebra”).
+- Tryb ciemny pokazuje nieczytelny tekst w panelu ustawień.
+- Czas odpowiedzi endpointu /users wynosi 8 sekund (powinien być krótszy niż 1 s).
+- Paginacja pokazuje „Page 1 of 0”, gdy lista jest pusta.
 
-**Podejście do debugowania:** Może nie wymagać pełnej pętli debugowania. Bezpośrednia naprawa z testem regresji jest wystarczająca.
+**Podejście debugowania:** Pełna pętla siedmiu etapów. Dodaj wynik do zestawu regresji QA.
+
+### P3: niski (backlog)
+
+**Definicja:** Problem kosmetyczny, przypadek brzegowy albo drobna niedogodność.
+
+**Oczekiwana reakcja:** Dodaj do backlogu. Napraw przy okazji albo połącz z powiązanymi zmianami.
+
+**Przykłady:**
+- Tekst tooltipu zawiera literówkę: „Delet” zamiast „Delete”.
+- Ostrzeżenie konsoli o przestarzałej metodzie cyklu życia Reacta.
+- Wyrównanie stopki jest przesunięte o 2 piksele dla szerokości viewportu 768–800 px.
+- Spinner ładowania działa jeszcze 200 ms po wyświetleniu treści.
+
+**Podejście debugowania:** Pełna pętla debugowania może nie być potrzebna. Wystarczy bezpośrednia poprawka z testem regresji.
 
 ---
 
-## 5-krokowa pętla debugowania w szczegółach
+## Szczegółowa siedmioetapowa pętla debugowania
 
-Workflow `/debug` wykonuje te kroki w ścisłej kolejności. Używa narzędzi MCP do analizy kodu przez cały proces — nigdy surowego odczytu plików ani grep.
+Workflow `/debug` wykonuje poniższe etapy w kolejności. Gdy jest dostępny, korzysta ze skonfigurowanego dostawcy code intelligence, a gdy dostawca jest niedostępny lub przekracza limit czasu, z natywnego wyszukiwania i odczytów plików w ograniczonym zakresie.
 
-### Krok 1: Zbieranie informacji o błędzie
+### Krok 1: zbierz informacje o błędzie
 
-Workflow pyta o (lub otrzymuje od użytkownika):
-- Komunikat błędu i stack trace
-- Kroki reprodukcji
-- Oczekiwane vs rzeczywiste zachowanie
-- Szczegóły środowiska
+Workflow prosi użytkownika o (albo otrzymuje od niego):
+- komunikat błędu i stack trace
+- kroki odtworzenia
+- oczekiwane i rzeczywiste zachowanie
+- szczegóły środowiska
 
-Jeśli komunikat błędu został już podany w prompcie, workflow przechodzi natychmiast do Kroku 2.
+Jeśli komunikat błędu jest już w promptcie, workflow od razu przechodzi do kroku 2.
 
-### Krok 2: Reprodukcja błędu
+### Krok 2: odtwórz błąd
 
-**Narzędzia:** `search_for_pattern` z komunikatem błędu lub słowami kluczowymi stack trace, `find_symbol` do lokalizacji dokładnej funkcji i pliku.
+**Używane narzędzia:** skonfigurowane narzędzia wyszukiwania i symboli albo natywne `rg` i odczyty w ograniczonym zakresie, gdy skonfigurowane narzędzia są niedostępne.
 
-Celem jest zlokalizowanie błędu w bazie kodu — znalezienie dokładnej linii, w której rzucany jest wyjątek, dokładnej funkcji produkującej błędne wyjście lub dokładnego warunku powodującego nieoczekiwane zachowanie.
+Celem jest znalezienie błędu w bazie kodu: dokładnej linii, w której rzucany jest wyjątek, dokładnej funkcji tworzącej zły wynik albo dokładnego warunku powodującego nieoczekiwane zachowanie.
 
-Ten krok przekształca symptom zgłoszony przez użytkownika ("strona się zawiesza") w lokalizację na poziomie bazy kodu (`src/api/users.ts:47, deleteUser() rzuca TypeError`).
+Ten krok zamienia objaw zgłoszony przez użytkownika („strona się wyłącza”) na lokalizację w bazie kodu (`src/api/users.ts:47, deleteUser() throws TypeError`).
 
-### Krok 3: Diagnoza przyczyny źródłowej
+### Krok 3: zdiagnozuj przyczynę źródłową
 
-**Narzędzia:** `find_referencing_symbols` do śledzenia ścieżki wykonania wstecz od punktu błędu.
+**Używane narzędzia:** nawigacja po referencjach i symbolach, gdy jest dostępna, a potem celowane natywne odczyty, gdy nie jest.
 
-Workflow śledzi wstecz od lokalizacji błędu, aby znaleźć rzeczywistą przyczynę. Sprawdza typowe wzorce przyczyn źródłowych:
+Workflow cofa się od miejsca błędu, aby znaleźć prawdziwą przyczynę. Sprawdza następujące typowe wzorce przyczyn źródłowych:
 
-| Wzorzec | Na co zwracać uwagę |
+| Wzorzec | Czego szukać |
 |:--------|:----------------|
-| **Dostęp do null/undefined** | Brak sprawdzeń null, potrzebne optional chaining, niezainicjalizowane zmienne |
-| **Warunki wyścigu** | Operacje asynchroniczne kończące się w złej kolejności, brakujący await, współdzielony mutowalny stan |
+| **Dostęp do null/undefined** | Brakujące sprawdzenia wartości null, potrzebne optional chaining, niezainicjalizowane zmienne |
+| **Race conditions** | Operacje async kończące się w złej kolejności, brak await, współdzielony zmienny stan |
 | **Brak obsługi błędów** | Brak try/catch, nieobsłużone odrzucenie promise, brak error boundary |
-| **Złe typy danych** | String zamiast oczekiwanej liczby, brak konwersji typów, nieprawidłowy schemat |
-| **Nieaktualny stan** | Stan React nie aktualizuje się, niewymienione wartości z cache, closure przechwytujące starą wartość |
-| **Brak walidacji** | Dane wejściowe użytkownika nie oczyszczone, body żądania API nie zwalidowane, warunki brzegowe niesprawdzone |
+| **Błędne typy danych** | Ciąg znaków zamiast liczby, brak konwersji typu, niepoprawny schemat |
+| **Nieaktualny stan** | Stan Reacta się nie aktualizuje, cache nie został unieważniony, closure przechwytuje starą wartość |
+| **Brak walidacji** | Dane użytkownika nie są oczyszczone, body żądania API nie jest walidowane, nie sprawdzono warunków brzegowych |
 
-Kluczowa dyscyplina: diagnozuj **przyczynę źródłową**, nie symptom. Jeśli `user.id` jest undefined, pytanie nie brzmi "jak sprawdzić undefined?" lecz "dlaczego user jest undefined w tym punkcie ścieżki wykonania?"
+Diagnozuj przyczynę źródłową, nie objaw. Jeśli `user.id` jest niezdefiniowane, ustal, dlaczego user jest niezdefiniowane w tym miejscu ścieżki wykonania, zamiast tylko zabezpieczać dostęp do undefined.
 
-### Krok 4: Propozycja minimalnej poprawki
+### Krok 4: zaproponuj minimalną poprawkę
 
-Workflow prezentuje:
-1. Zidentyfikowaną przyczynę źródłową (z dowodem ze śledzenia kodu).
-2. Proponowaną poprawkę (zmieniającą tylko minimum konieczne).
-3. Wyjaśnienie dlaczego to naprawia przyczynę źródłową, a nie tylko symptom.
+Workflow przedstawia:
+1. Ustaloną przyczynę źródłową (z dowodami ze śledzenia kodu).
+2. Proponowaną poprawkę (zmieniającą tylko to, co konieczne).
+3. Wyjaśnienie, dlaczego poprawka usuwa przyczynę źródłową, a nie tylko objaw.
 
-**Workflow blokuje tutaj do potwierdzenia użytkownika.** Zapobiega to wprowadzaniu zmian przez agenta debugującego bez zatwierdzenia.
+Workflow przedstawia propozycję przed edycją. Czeka na potwierdzenie, gdy zmiana nie została wcześniej autoryzowana przez żądanie albo politykę wykonania; istniejąca autoryzacja pozwala kontynuować bez drugiego pytania.
 
-**Zasada minimalnej poprawki:** Zmień jak najmniej linii. Nie refaktoryzuj, nie poprawiaj stylu kodu, nie dodawaj niezwiązanych funkcjonalności. Poprawka powinna dać się przejrzeć w mniej niż 2 minuty.
+**Zasada minimalnej poprawki:** Zmieniaj jak najmniej linii. Nie refaktoryzuj, nie poprawiaj stylu kodu i nie dodawaj niepowiązanych funkcji. Poprawka powinna dać się przejrzeć w mniej niż 2 minuty.
 
-### Krok 5: Zastosowanie poprawki i napisanie testu regresji
+### Krok 5: zastosuj poprawkę i napisz test regresji
 
-Dwie akcje w tym kroku:
+W tym kroku dzieją się dwie rzeczy:
 
-1. **Implementacja poprawki** — Zatwierdzona minimalna zmiana jest zastosowana.
-2. **Napisanie testu regresji** — Test, który:
-   - Reprodukuje oryginalny błąd (test musi nie przechodzić bez poprawki)
-   - Weryfikuje działanie poprawki (test musi przechodzić z poprawką)
-   - Zapobiega ponownemu wprowadzeniu tego samego błędu w przyszłych zmianach
+1. **Zaimplementuj poprawkę:** Zastosuj zatwierdzoną minimalną zmianę.
+2. **Napisz test regresji:** Test, który:
+   - odtwarza pierwotny błąd (bez poprawki test musi się nie udać)
+   - sprawdza działanie poprawki (z poprawką test musi przejść)
+   - zapobiega powrotowi tego samego błędu w przyszłych zmianach
 
-Test regresji jest najważniejszym produktem workflow debugowania. Bez niego ten sam błąd może zostać ponownie wprowadzony przez każdą przyszłą zmianę.
+Test regresji jest najważniejszym wynikiem workflowu debugowania. Bez niego każda przyszła zmiana może ponownie wprowadzić ten sam błąd.
 
-### Krok 6: Skan podobnych wzorców
+### Krok 6: wyszukaj podobne wzorce
 
-Po zastosowaniu poprawki workflow skanuje całą bazę kodu w poszukiwaniu tego samego wzorca, który spowodował błąd.
+Po zastosowaniu poprawki workflow przeszukuje całą bazę kodu pod kątem wzorca, który spowodował błąd.
 
-**Narzędzia:** `search_for_pattern` z wzorcem zidentyfikowanym jako przyczyna źródłowa.
+**Używane narzędzia:** skonfigurowane wyszukiwanie wzorca albo ograniczone natywne wyszukiwanie z wzorcem rozpoznanym jako przyczyna źródłowa.
 
-Na przykład, jeśli błąd był spowodowany dostępem do `user.organization.id` bez sprawdzenia czy `organization` jest null, skan szuka wszystkich innych instancji dostępu do `organization.id` bez sprawdzenia null.
+Na przykład jeśli błąd wynikał z dostępu do `user.organization.id` bez sprawdzenia, czy `organization` jest nullem, skan szuka wszystkich innych użyć `organization.id` bez sprawdzeń null.
 
-**Kryteria delegacji do subagenta** — Workflow uruchamia subagenta `debug-investigator` gdy:
-- Błąd obejmuje wiele domen (np. zarówno frontend jak i backend dotknięte).
-- Zakres skanu podobnych wzorców obejmuje 10+ plików.
-- Potrzebne głębokie śledzenie zależności do pełnej diagnozy problemu.
+**Kryteria delegowania do subagenta:** Workflow uruchamia subagenta `debug-investigator`, gdy:
+- błąd obejmuje wiele domen (np. dotyczy frontendu i backendu)
+- zakres skanu podobnych wzorców obejmuje co najmniej 10 plików
+- do pełnej diagnozy potrzebne jest głębokie śledzenie zależności
 
-Metody uruchamiania specyficzne dla dostawcy:
+Metody uruchamiania zależne od dostawcy:
 
-| Dostawca | Metoda uruchamiania |
+| Dostawca | Sposób uruchomienia |
 |:-------|:------------|
-| Claude Code | Narzędzie Agent z `.claude/agents/debug-investigator.md` |
-| Codex CLI | Żądanie subagenta mediowane przez model, wyniki jako JSON |
-| Gemini CLI | `oma agent spawn debug "prompt skanu" {session_id} -w {workspace}` |
-| Antigravity / Fallback | `oma agent spawn debug "prompt skanu" {session_id} -w {workspace}` |
+| Claude Code | Narzędzie agenta z `.claude/agents/debug-investigator.md` |
+| Codex CLI | Prośba o subagenta pośredniczona przez model, wyniki jako JSON |
+| Gemini CLI | `oma agent spawn debug "scan prompt" {session_id} -w {workspace}` |
+| Antigravity / fallback | `oma agent spawn debug "scan prompt" {session_id} -w {workspace}` |
 
-Wszystkie znalezione podatne lokalizacje są raportowane. Potwierdzone instancje są naprawiane w ramach tej samej sesji.
+Raportowane są wszystkie podatne lokalizacje podobnych wzorców. Potwierdzone przypadki naprawia się w tej samej sesji.
 
-### Krok 7: Dokumentacja błędu
+### Krok 7: udokumentuj błąd
 
-Workflow zapisuje plik pamięci zawierający:
-- Symptom i przyczynę źródłową
-- Zastosowaną poprawkę i zmienione pliki
-- Lokalizację testu regresji
-- Podobne wzorce znalezione w bazie kodu
+Workflow zapisuje w pamięci plik zawierający:
+- objaw i przyczynę źródłową
+- zastosowaną poprawkę i zmienione pliki
+- lokalizację testu regresji
+- podobne wzorce znalezione w bazie kodu
 
 ---
 
 ## Szablon promptu dla /debug
 
-Przy wyzwalaniu workflow debugowania możesz podać ustrukturyzowany prompt:
+Przy wywoływaniu workflowu debugowania możesz podać prompt w uporządkowanej formie:
 
 ```
 /debug
@@ -222,74 +227,75 @@ Environment: Node 22.1, PostgreSQL 16
 
 **Dlaczego ta struktura działa:**
 
-- **Błąd + stack trace** pozwala Krokowi 2 natychmiast zlokalizować kod (`search_for_pattern` z "deleteUser" znajduje funkcję; `find_symbol` wskazuje dokładną lokalizację).
-- **Kroki reprodukcji** ze specyficznym warunkiem wyzwalającym ("użytkownik, którego organizacja została usunięta") sugerują przyczynę źródłową (null foreign key).
-- **Środowisko** eliminuje fałszywe tropy specyficzne dla wersji.
+- **Błąd + stack trace** pozwalają w kroku 2 od razu zlokalizować kod (`search_for_pattern` z „deleteUser” znajduje funkcję; `find_symbol` wskazuje dokładną lokalizację).
+- **Kroki odtworzenia** z konkretnym warunkiem wyzwalającym („użytkownik, którego organizacja została usunięta”) wskazują przyczynę źródłową (null foreign key).
+- **Środowisko** eliminuje fałszywe tropy zależne od wersji.
 
-Dla prostszych błędów krótszy prompt wystarczy:
+Dla prostszych błędów wystarczy krótszy prompt:
 
 ```
 /debug The login page shows "Invalid credentials" even with correct password
 ```
 
-Workflow zapyta o dodatkowe szczegóły w razie potrzeby.
+Workflow poprosi o dodatkowe szczegóły, jeśli będą potrzebne.
 
 ---
 
 ## Sygnały eskalacji
 
-Te sygnały wskazują, że błąd wymaga eskalacji poza standardową pętlę debugowania:
+Poniższe sygnały oznaczają, że błąd wymaga eskalacji poza standardową pętlę debugowania:
 
-### Sygnał 1: Ta sama poprawka próbowana dwukrotnie
+### Sygnał 1: ta sama poprawka została podjęta dwa razy
 
-Jeśli workflow proponuje poprawkę, zastosuje ją, a ten sam błąd powraca, problem jest głębszy niż początkowa diagnoza. Aktywuje to **Pętlę eksploracji** w workflow, które ją obsługują (ultrawork, orchestrate, work):
+Jeśli workflow proponuje i stosuje poprawkę, a ten sam błąd wraca, problem jest głębszy niż początkowa diagnoza. Uruchamia to **Exploration Loop** w workflowach, które go obsługują (ultrawork, orchestrate, work):
 
-- Wygeneruj 2-3 alternatywne hipotezy dotyczące przyczyny źródłowej.
-- Przetestuj każdą hipotezę w oddzielnej przestrzeni roboczej (git stash na próbę).
+- Wygeneruj 2–3 alternatywne hipotezy przyczyny źródłowej.
+- Przetestuj każdą hipotezę w osobnej przestrzeni roboczej (git stash dla każdej próby).
 - Oceń wyniki i przyjmij najlepsze podejście.
 
-### Sygnał 2: Wielodomenowa przyczyna źródłowa
+### Sygnał 2: przyczyna źródłowa obejmuje wiele domen
 
-Błąd na frontendzie jest spowodowany zmianą w backendzie, która jest spowodowana migracją schematu bazy danych. Gdy przyczyna źródłowa przekracza granice domen, eskaluj do `/work` lub `/orchestrate` aby zaangażować odpowiednich agentów domenowych.
+Błąd frontendu wynika ze zmiany backendu, którą spowodowała migracja schematu bazy danych. Gdy przyczyna źródłowa przekracza granice domen, eskaluj do `/work` albo `/orchestrate`, aby włączyć właściwych agentów domenowych.
 
-**Przykład:** Frontend wyświetla "undefined" jako nazwę użytkownika. Backend zwraca null dla `user.display_name`. Migracja bazy danych dodała kolumnę, ale istniejące wiersze mają wartości NULL. Naprawa wymaga: migracji bazy danych (uzupełnienie danych), obsługi null w backendzie i fallback wyświetlania na frontendzie.
+**Przykład:** Frontend wyświetla „undefined” jako nazwę użytkownika. Backend zwraca null dla `user.display_name`. Migracja bazy dodała kolumnę, ale istniejące wiersze mają wartości NULL. Poprawka wymaga: migracji bazy (backfill), obsługi wartości null w backendzie i zapasowego wyświetlania we frontendzie.
 
-### Sygnał 3: Brak środowiska reprodukcji
+### Sygnał 3: brak środowiska do odtworzenia
 
-Błąd występuje tylko w produkcji i nie można go odtworzyć lokalnie. Sygnały obejmują:
-- Różnice konfiguracji specyficzne dla środowiska.
-- Warunki wyścigu, które manifestują się tylko pod obciążeniem produkcyjnym.
-- Różnice zachowania usług zewnętrznych między stagingiem a produkcją.
+Błąd występuje tylko na produkcji i nie da się go odtworzyć lokalnie. Sygnały obejmują:
+- Różnice w konfiguracji zależne od środowiska.
+- Race conditions występujące tylko przy obciążeniu produkcyjnym.
+- Różnice w działaniu usługi zewnętrznej między stagingiem a produkcją.
 
-**Akcja:** Zbierz logi produkcyjne, poproś o dostęp do monitoringu produkcji i rozważ dodanie instrumentacji/logowania przed próbą naprawy.
+**Działanie:** Zbierz logi produkcyjne, poproś o dostęp do monitoringu produkcji i rozważ dodanie instrumentacji/logowania przed próbą poprawki.
 
-### Sygnał 4: Awaria infrastruktury testowej
+### Sygnał 4: awaria infrastruktury testowej
 
-Testu regresji nie można napisać, ponieważ infrastruktura testowa jest uszkodzona, brakuje jej lub jest niewystarczająca.
+Nie można napisać testu regresji, ponieważ infrastruktura testowa jest zepsuta, nieobecna albo niewystarczająca.
 
-**Akcja:** Najpierw napraw infrastrukturę testową (lub użyj `oma install` do jej skonfigurowania), a potem wróć do workflow debugowania.
-
----
-
-## Lista kontrolna walidacji po naprawie
-
-- [ ] **Test regresji nie przechodzi bez poprawki**
-- [ ] **Test regresji przechodzi z poprawką**
-- [ ] **Istniejące testy nadal przechodzą**
-- [ ] **Build przechodzi**
-- [ ] **Podobne wzorce zeskanowane** i naprawione lub udokumentowane
-- [ ] **Poprawka jest minimalna** — tylko konieczne linie zmienione
-- [ ] **Przyczyna źródłowa udokumentowana** — Plik pamięci zapisuje: symptom, przyczynę źródłową, zastosowaną poprawkę, zmienione pliki, lokalizację testu regresji i znalezione podobne wzorce.
+**Działanie:** Najpierw napraw infrastrukturę testową (albo użyj `oma install`, aby ją skonfigurować), potem wróć do workflowu debugowania. Jeśli wykonywalna kontrola nie ma zastosowania, zapisz przyczynę w kontrakcie wyniku zamiast wymyślać zaliczoną kontrolę.
 
 ---
 
-## Kryteria zakończenia
+## Checklista weryfikacji po poprawce
 
-Workflow debugowania jest ukończony gdy:
+Po zastosowaniu poprawki i testu regresji sprawdź:
 
-1. Przyczyna źródłowa jest zidentyfikowana i udokumentowana (nie tylko symptom).
-2. Minimalna poprawka jest zastosowana z zatwierdzeniem użytkownika.
+- [ ] **Test regresji nie przechodzi bez poprawki:** tymczasowo cofnij poprawkę i potwierdź, że test wykrywa błąd.
+- [ ] **Test regresji przechodzi z poprawką:** zastosuj poprawkę i potwierdź, że test przechodzi.
+- [ ] **Odpowiednie istniejące kontrole nadal przechodzą:** uruchom kontrole projektu obejmujące zmienione zachowanie. Build uruchamiaj tylko, gdy zadanie wyraźnie tego wymaga.
+- [ ] **Przeskanowano podobne wzorce:** ukończono krok 6, a wszystkie znalezione przypadki naprawiono albo udokumentowano.
+- [ ] **Poprawka jest minimalna:** zmieniono tylko konieczne linie, bez niepowiązanej refaktoryzacji.
+- [ ] **Udokumentowano przyczynę źródłową:** plik pamięci zawiera objaw, przyczynę źródłową, zastosowaną poprawkę, zmienione pliki, lokalizację testu regresji i znalezione podobne wzorce.
+
+---
+
+## Kryteria ukończenia
+
+Workflow debugowania jest ukończony, gdy:
+
+1. Przyczyna źródłowa została rozpoznana i udokumentowana, a nie tylko objaw.
+2. Zastosowano minimalną poprawkę zgodnie z autoryzacją zadania.
 3. Istnieje test regresji, który nie przechodzi bez poprawki i przechodzi z poprawką.
-4. Baza kodu została przeskanowana w poszukiwaniu podobnych wzorców, a wszystkie potwierdzone instancje są zaadresowane.
-5. Raport o błędzie jest zapisany w pamięci zawierając: symptom, przyczynę źródłową, zastosowaną poprawkę, zmienione pliki, lokalizację testu regresji i znalezione podobne wzorce.
-6. Wszystkie istniejące testy nadal przechodzą po naprawie.
+4. Bazę kodu przeskanowano pod kątem podobnych wzorców, a wszystkie potwierdzone przypadki obsłużono.
+5. W pamięci zapisano raport błędu z: objawem, przyczyną źródłową, zastosowaną poprawką, zmienionymi plikami, lokalizacją testu regresji i znalezionymi podobnymi wzorcami.
+6. Po poprawce wszystkie istniejące testy nadal przechodzą.

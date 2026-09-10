@@ -1,5 +1,6 @@
 ---
 title: "Guide: Per-Agent Model Configuration"
+sidebar_label: Agent Models
 description: Configure which AI model each agent uses via model_preset in oma-config.yaml. Covers built-in presets, per-agent overrides, inline model definitions, custom presets with extends, oma doctor --profile, and migration from legacy agent_cli_mapping.
 ---
 
@@ -10,6 +11,8 @@ description: Configure which AI model each agent uses via model_preset in oma-co
 `model_preset: auto` is the default for new installs. Unconfigured agents use the current vendor's native agent definitions and model settings. Choose a fixed preset to pin models, or override individual agents when you need a different model or vendor. Existing explicit presets are preserved on reinstall and update.
 
 Shared configuration lives in `.agents/oma-config.cue` or `.agents/oma-config.yaml`. An optional Git-ignored local file overrides settings for your machine.
+
+For the full top-level key and precedence reference, see [Configuration reference](/docs/guide/configuration-reference).
 
 This page covers:
 
@@ -35,16 +38,16 @@ model_preset: auto
 | Key | Description | Best for |
 |:----|:-----------|:---------|
 | `auto` | Follow the current runtime's agent/model settings without injecting a model or effort flag | Default for new installs |
-| `free` | Route OMA-spawned Codex, Claude or Qwen processes through FreeLLMAPI | Local free-provider gateway |
-| `antigravity` | All agents use Antigravity CLI (`agy`): Gemini 3.1 Pro for impl/architecture, Gemini 3.5 Flash for orchestration and explore. Model selection is config-driven inside `agy` — no `--model` or `--thinking-budget` flags are exposed. | Antigravity CLI users |
+| `free` | Special gateway mode for OMA-spawned Codex, Claude, or Qwen processes; it is resolved separately from the built-in preset registry. | Local FreeLLMAPI gateway |
+| `antigravity` | All agents use Antigravity CLI (`agy`): Gemini 3.1 Pro for implementation/architecture and Gemini 3.6 Flash for orchestration, documentation, and explore. Model selection is config-driven inside `agy` — no `--model` or `--thinking-budget` flags are exposed. | Antigravity CLI users |
 | `claude` | All agents use Claude (Sonnet/Opus) | Claude Max subscription holders |
-| `codex` | All agents use OpenAI Codex (GPT-5.x) with effort levels | ChatGPT Plus/Pro users |
-| `gemini` | All agents use Gemini CLI, thinking enabled for implementation roles | Google AI Pro users |
+| `codex` | All agents use OpenAI Codex (GPT-5.5 for most roles, GPT-5.4-mini for explore) with effort levels | ChatGPT Plus/Pro users |
 | `qwen` | All agents routed external via Qwen Code; binary thinking (no effort levels) | Local / self-hosted inference |
+| `kiro` | All agents use Kiro CLI; Sonnet handles implementation/architecture and Haiku handles orchestration/explore | Kiro users |
 | `cursor` | All agents use Cursor `composer-2.5` (`composer-2.5-fast` for orchestrator/qa/pm/docs/explore) | Cursor Pro / Pro Student users |
 | `mixed` | Mixed: impl roles use Codex, architecture/qa/pm use Claude, explore uses Gemini | Cross-vendor strengths without managing per-agent config |
 
-Built-in presets ship inside the CLI package and update automatically when you upgrade `oh-my-agent`. No local file to maintain.
+Built-in presets ship inside the CLI package and update automatically when you upgrade `oh-my-agent`. `gemini` is a compatibility alias that redirects to `antigravity`; it is not a separate current preset. No local preset file is required.
 
 ---
 
@@ -135,7 +138,7 @@ Each entry is an `AgentSpec` object:
 | Field | Type | Required | Description |
 |:------|:-----|:---------|:-----------|
 | `model` | string | Yes | Model slug (built-in or user-defined) |
-| `effort` | `low` \| `medium` \| `high` | No | Reasoning effort (ignored on models that do not support it) |
+| `effort` | `none` \| `low` \| `medium` \| `high` \| `xhigh` | No | Reasoning effort (ignored on models that do not support it) |
 | `thinking` | boolean | No | Enable extended thinking (model-specific) |
 | `memory` | `user` \| `project` \| `local` | No | Memory scope for the agent |
 
@@ -200,7 +203,7 @@ custom_presets:
       # all other agents inherited from claude
 ```
 
-Without `extends:`, you must provide `agent_defaults` for all 11 agent roles. With `extends:`, only the entries you list are overridden; the rest are inherited from the base preset.
+Without `extends:`, provide defaults for the canonical agent roles used by the preset. With `extends:`, only the entries you list are overridden; the rest are inherited from the base preset.
 
 ---
 
@@ -321,7 +324,7 @@ runtime rather than a model owner — it can run any real-provider model
 overlay**: your `model_preset` and `agents:` overrides stay exactly as they are,
 and pi becomes the executing CLI for a given agent.
 
-Dispatch any agent through pi with the `-m pi` override:
+Dispatch any agent through pi with the `--vendor pi` override:
 
 ```bash
 oma agent spawn backend "Implement the export endpoint" <session> --vendor pi
@@ -400,7 +403,7 @@ files.
 
 ### Explicit dispatch
 
-Route any agent through opencode with the `-m opencode` override:
+Route any agent through opencode with the `--vendor opencode` override:
 
 ```bash
 oma agent spawn pm "Draft the rollout plan" <session> --vendor opencode
@@ -504,7 +507,7 @@ project-scoped — written mode-aware to `<cwd>/.kimi-code/mcp.json` (project) o
 
 ### Explicit dispatch
 
-Route any agent through Kimi with the `-m kimi` override:
+Route any agent through Kimi with the `--vendor kimi` override:
 
 ```bash
 oma agent spawn pm "Draft the rollout plan" <session> --vendor kimi

@@ -1,5 +1,6 @@
 ---
 title: "Guide: Diagram Engine (archify)"
+sidebar_label: Diagrams
 description: How oh-my-agent chooses between Mermaid and the optional tt-a1i/archify agent skill for architecture, sequence, and data-flow diagrams — the diagram config section, oma diagram resolve / oma diagram archify, how /architecture and /explain use it, and the unbounded validate-repair-deliver loop.
 ---
 
@@ -20,6 +21,7 @@ archify is an MIT-licensed agent skill (Node ≥ 18, zero runtime dependencies).
 - Network failures are never fatal: the cached copy is used and reported as `stale` with the reason. Only a first run with no network and no cache falls back to a user-installed skill copy, and after that to Mermaid.
 
 ```bash
+# Illustrative output; the release tag, cache path, and quality can vary.
 oma diagram update          # force a check / download now
 oma diagram resolve
 # engine:   archify  (requested: auto)
@@ -36,7 +38,9 @@ Resolution order (first hit wins, identical on every vendor runtime):
 3. **Managed latest** (`~/.cache/oma-diagram/archify`)
 4. User-installed skill dirs: project `.agents` / `.claude` / `.codex` / `.cursor` / `.qwen` / `.kiro` `/skills/archify`, then the same under `~`, plus `~/.raven/workspace/skills/archify`
 
-A hit requires `bin/archify.mjs` to exist.
+<!-- oma-docs:ignore-start -->
+A hit requires the managed or pinned archify installation to contain `bin/archify.mjs`.
+<!-- oma-docs:ignore-end -->
 
 ---
 
@@ -75,7 +79,7 @@ oma diagram update  [--json]
 oma diagram archify <archify args…>
 ```
 
-`oma diagram archify` runs the resolved `bin/archify.mjs` with `ARCHIFY_UPDATE_CHECK_DISABLED=1` (no network) and propagates the exit code, so `validate` / `deliver` / `visual-check` behave exactly as archify documents them:
+`oma diagram archify` runs the resolved archify executable with `ARCHIFY_UPDATE_CHECK_DISABLED=1` (no network) and propagates the exit code, so `validate` / `deliver` / `visual-check` behave exactly as archify documents them:
 
 ```bash
 oma diagram archify guide "show the auth request lifecycle" --json

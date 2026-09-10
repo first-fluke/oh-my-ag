@@ -1,85 +1,98 @@
 ---
-title: "Cas d'Usage : Compétence Unique"
-description: Quand vous avez juste besoin d'un agent pour une tâche ciblée — la voie rapide.
+title: "Guide : exécution d'une compétence unique"
+sidebar_label: Compétence unique
+description: Guide détaillé des tâches limitées à un seul domaine dans oh-my-agent.
 ---
 
 # Exécution d'une compétence unique
 
-L'exécution d'une compétence unique est la voie rapide -- un agent, un domaine, une tâche ciblée. Pas de surcoût d'orchestration, pas de coordination multi-agents. La compétence s'active automatiquement depuis votre prompt en langage naturel.
+L'exécution d'une compétence unique est le chemin rapide : un agent, un domaine et une tâche ciblée. Elle évite la surcharge d'orchestration et de coordination entre agents. L'hôte ou le workflow sélectionné peut router un prompt en langage naturel vers la compétence ; le système de hooks détecte lui-même les workflows et le comportement de routage dépend du runtime sélectionné.
+
+## Parcours rapide
+
+1. Exécutez `oma doctor` une fois pour vérifier l'intégration de l'hôte sélectionné. Les avertissements facultatifs concernant les fournisseurs ne bloquent pas une tâche qui ne les utilise pas.
+2. Décrivez une modification autonome avec un **Objectif**, un **Contexte**, des **Contraintes** et une condition **Terminé quand** explicites.
+3. La compétence sélectionnée doit inspecter le dépôt, indiquer son périmètre lorsque le contrat d'exécution actif exige un `CHARTER_CHECK`, puis signaler les vérifications réellement exécutées.
+4. Si la tâche s'étend aux frontières de l'API, de l'UI, de la base de données ou du mobile, arrêtez l'exécution de la compétence unique et passez à `/work` ou `/orchestrate`.
+
+Pour une exécution gérée qui semble bloquée, utilisez `oma agent status <session-id> [agent-id]`, puis consultez les reçus dans `.agents/state/agent-runs/` et le chemin de claim injecté avant de réessayer. Consultez les [valeurs par défaut importantes](../getting-started/important-defaults.md) pour le routage des fournisseurs et la récupération.
 
 ---
 
 ## Quand utiliser une compétence unique
 
-Utilisez cela lorsque votre tâche remplit TOUS ces critères :
+Utilisez cette approche si votre tâche satisfait **tous** les critères suivants :
 
-- **Appartient à un seul domaine** -- la tâche entière relève du frontend, backend, mobile, base de données, design, infrastructure ou d'un autre domaine unique
-- **Autonome** -- pas de changements de contrats d'API inter-domaines, pas de modifications backend nécessaires pour une tâche frontend
-- **Périmètre clair** -- vous savez ce que le résultat devrait être (un composant, un endpoint, un schéma, une correction)
-- **Pas de coordination** -- aucun autre agent n'a besoin de s'exécuter avant ou après
+- **Appartenance à un seul domaine** : toute la tâche relève du frontend, du backend, du mobile, de la base de données, du design, de l'infrastructure ou d'un autre domaine unique.
+- **Autonomie** : aucun changement de contrat d'API entre domaines et aucune modification backend nécessaire pour une tâche frontend.
+- **Périmètre clair** : vous savez quel résultat produire (un composant, un endpoint, un schéma ou une correction).
+- **Aucune coordination** : aucun autre agent ne doit intervenir avant ou après.
 
-**Exemples de tâches à compétence unique :**
+**Exemples de tâches pour une compétence unique :**
+
 - Construire un composant UI
 - Ajouter un endpoint d'API
-- Corriger un bug dans une seule couche
+- Corriger un bug dans une couche
 - Concevoir une table de base de données
 - Écrire un module Terraform
 - Traduire un ensemble de chaînes i18n
-- Créer une section de design system
+- Créer une section d'un design system
 
-**Passer en multi-agents** (`/work` ou `/orchestrate`) lorsque :
-- Un travail UI nécessite un nouveau contrat d'API (frontend + backend)
-- Une correction se propage à plusieurs couches (agents debug + implémentation)
-- La fonctionnalité couvre frontend, backend et base de données
-- Le périmètre dépasse un seul domaine après la première itération
+**Passez au multi-agent** (`/work` ou `/orchestrate`) lorsque :
 
-Les tests et les critères d'acceptation font aussi partie du travail avec une compétence unique ; ils ne nécessitent pas à eux seuls `/ralph`. Pour coordonner plusieurs domaines ou demander explicitement un processus qualité, consultez le [guide de sélection des compétences et workflows](/docs/core-concepts/workflows#choosing-a-skill-or-workflow).
+- le travail UI nécessite un nouveau contrat d'API (frontend + backend) ;
+- une correction se propage entre plusieurs couches (agents de débogage et d'implémentation) ;
+- la fonctionnalité couvre le frontend, le backend et la base de données ;
+- le périmètre dépasse un domaine après la première itération.
+
+Les tests et les critères d'acceptation font aussi partie d'une tâche à compétence unique ; ils n'imposent pas à eux seuls `/ralph`. Pour une coordination entre domaines ou un processus qualité demandé explicitement, consultez le [guide de sélection des compétences et workflows](/docs/core-concepts/workflows#choosing-a-skill-or-workflow).
 
 ---
 
-## Checklist préalable
+## Liste de vérification avant lancement
 
-Avant de rédiger le prompt, répondez à ces quatre questions (elles correspondent aux quatre éléments de la [Structure de prompt](/docs/core-concepts/skills)) :
+Avant de rédiger le prompt, répondez à ces quatre questions (elles correspondent aux quatre éléments de la [structure d'un prompt](/docs/core-concepts/skills)) :
 
 | Élément | Question | Pourquoi c'est important |
 |---------|----------|--------------------------|
-| **Goal** | Quel artefact spécifique doit être créé ou modifié ? | Évite l'ambiguïté, « ajouter un bouton » vs « ajouter un formulaire avec validation » |
-| **Context** | Quel stack, framework et conventions s'appliquent ? | L'agent détecte depuis les fichiers du projet, mais l'explicite est préférable |
-| **Constraints** | Quelles règles doivent être respectées ? (style, sécurité, performance, compatibilité) | Sans contraintes, les agents appliquent des valeurs par défaut qui peuvent ne pas correspondre à votre projet |
-| **Done When** | Quels critères d'acceptation allez-vous vérifier ? | Donne à l'agent une cible et à vous une checklist de vérification |
+| **Objectif** | Quel artefact précis doit être créé ou modifié ? | Évite l'ambiguïté (par exemple, « ajouter un bouton » ou « ajouter un formulaire avec validation »). |
+| **Contexte** | Quelle stack, quel framework et quelles conventions s'appliquent ? | L'agent les détecte dans les fichiers du projet, mais les préciser est préférable. |
+| **Contraintes** | Quelles règles faut-il respecter ? (style, sécurité, performances, compatibilité) | Sans contraintes, les agents utilisent des valeurs par défaut qui peuvent ne pas correspondre au projet. |
+| **Terminé quand** | Quels critères d'acceptation allez-vous vérifier ? | Donne une cible à l'agent et une liste de vérification à l'auteur de la demande. |
 
-Si l'un de ces éléments manque dans votre prompt, l'agent va, selon le cas :
-- **Incertitude LOW :** appliquer les valeurs par défaut et lister les hypothèses
-- **Incertitude MEDIUM :** présenter 2 à 3 options et continuer avec la plus probable
-- **Incertitude HIGH :** bloquer et poser des questions (ne produira pas de code)
+Si un élément manque dans votre prompt, l'agent va :
+
+- **Incertitude faible** : appliquer des valeurs par défaut et lister ses hypothèses ;
+- **Incertitude moyenne** : présenter 2 ou 3 options et avancer avec la plus probable ;
+- **Incertitude élevée** : bloquer et poser des questions (il n'écrira pas de code).
 
 ---
 
 ## Modèle de prompt
 
 ```text
-Construis <artefact spécifique> avec <stack/framework>.
-Contraintes : <contraintes de style, performance, sécurité ou compatibilité>.
-Critères d'acceptation :
-1) <critère testable>
-2) <critère testable>
-3) <critère testable>
-Ajoute des tests pour : <cas de test critiques>.
+Build <specific artifact> using <stack/framework>.
+Constraints: <style, performance, security, or compatibility constraints>.
+Acceptance criteria:
+1) <testable criterion>
+2) <testable criterion>
+3) <testable criterion>
+Add tests for: <critical test cases>.
 ```
 
 ### Décomposition du modèle
 
-| Élément | Objet | Exemple |
-|---------|-------|---------|
-| `Construis <artefact spécifique>` | Le Goal, ce qui doit être créé | « Construis un composant de formulaire d'inscription utilisateur » |
-| `avec <stack/framework>` | Le Context, le stack technique | « avec React + TypeScript + Tailwind CSS » |
-| `Contraintes :` | Règles que l'agent doit respecter | « labels accessibles, aucune bibliothèque de formulaire externe, validation côté client uniquement » |
-| `Critères d'acceptation :` | Done When, résultats vérifiables | « 1) validation du format d'email 2) indicateur de force du mot de passe 3) submit désactivé tant que invalide » |
-| `Ajoute des tests pour :` | Exigences de tests | « chemins submit valide/invalide, cas limites de validation d'email » |
+| Partie | Fonction | Exemple |
+|------|---------|---------|
+| `Build <specific artifact>` | L'objectif (ce qu'il faut créer) | « Construire un composant de formulaire d'inscription utilisateur » |
+| `using <stack/framework>` | Le contexte (stack technique) | « avec React + TypeScript + Tailwind CSS » |
+| `Constraints:` | Les règles à respecter | « labels accessibles, aucune bibliothèque de formulaires externe, validation côté client uniquement » |
+| `Acceptance criteria:` | La condition Terminé quand (résultats vérifiables) | « 1) validation du format de l'e-mail 2) indicateur de robustesse du mot de passe 3) envoi désactivé tant que le formulaire est invalide » |
+| `Add tests for:` | Les exigences de test | « chemins d'envoi valide et invalide, cas limites de validation de l'e-mail » |
 
 ---
 
-## Exemples concrets
+## Exemples réels
 
 ### Frontend : formulaire de connexion
 
@@ -95,15 +108,15 @@ Acceptance criteria:
 Add unit tests for: valid submission path, invalid email, short password, loading state.
 ```
 
-**Flux d'exécution attendu :**
+**Déroulement attendu :**
 
-1. **Activation de la compétence :** `oma-frontend` s'active (mots-clés : « form », « component », « Tailwind CSS », « React »)
-2. **Évaluation de la difficulté :** Moyenne (2-3 fichiers, quelques décisions de conception autour de l'UX de validation)
+1. **Routage de la compétence :** l'hôte ou le workflow sélectionne `oma-frontend` (des mots-clés comme « form », « component », « Tailwind CSS » et « React » servent de signaux de routage).
+2. **Évaluation de la difficulté :** moyenne (2 ou 3 fichiers, avec quelques décisions de conception sur l'expérience de validation).
 3. **Ressources chargées :**
-   - `execution-protocol.md` (toujours)
-   - `snippets.md` (patterns formulaire + Zod)
-   - `component-template.tsx` (structure React)
-4. **Sortie CHARTER_CHECK :**
+   - `execution-protocol.md` (toujours) ;
+   - `snippets.md` (motifs de formulaire et Zod) ;
+   - les motifs de composants existants et `snippets.md` lorsque la compétence les fournit.
+4. **Contrat d'exécution (lorsqu'il est activé) :** il peut émettre un `CHARTER_CHECK` :
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -112,19 +125,21 @@ Add unit tests for: valid submission path, invalid email, short password, loadin
    - Success criteria: form validation, accessibility, loading state, tests
    - Assumptions: Next.js App Router, @tanstack/react-form + Zod, shadcn/ui, FSD-lite architecture
    ```
+<!-- oma-docs:ignore-start -->
 5. **Implémentation :**
-   - Crée `src/features/auth/components/login-form.tsx` (Client Component avec `"use client"`)
-   - Crée `src/features/auth/utils/login-schema.ts` (schéma Zod)
-   - Crée `src/features/auth/components/skeleton/login-form-skeleton.tsx`
-   - Utilise shadcn/ui `<Button>`, `<Input>`, `<Label>` (lecture seule, sans modification)
-   - Formulaire géré par `@tanstack/react-form` avec validation Zod
-   - Imports absolus avec `@/`
-   - Un composant par fichier
+   - crée `src/features/auth/components/login-form.tsx` (composant client avec `"use client"`) ;
+   - crée `src/features/auth/utils/login-schema.ts` (schéma Zod) ;
+   - crée `src/features/auth/components/skeleton/login-form-skeleton.tsx` ;
+   - utilise les composants shadcn/ui `<Button>`, `<Input>`, `<Label>` (en lecture seule, sans modification) ;
+   - gère le formulaire avec `@tanstack/react-form` et la validation Zod ;
+   - utilise les imports absolus avec `@/` ;
+   - conserve un composant par fichier.
 6. **Vérification :**
-   - Checklist : labels ARIA présents, titres sémantiques, navigation clavier fonctionnelle
-   - Mobile : s'affiche correctement à 320 px de viewport
-   - Performance : pas de CLS
-   - Tests : fichier de test Vitest à `src/features/auth/utils/__tests__/login-schema.test.ts`
+   - liste de contrôle : labels ARIA présents, titres sémantiques, navigation au clavier fonctionnelle ;
+   - mobile : rendu correct dans une fenêtre de 320px ;
+   - performances : aucun CLS ;
+   - tests : fichier Vitest dans `src/features/auth/utils/__tests__/login-schema.test.ts`.
+<!-- oma-docs:ignore-end -->
 
 ---
 
@@ -141,16 +156,18 @@ Acceptance criteria:
 Add tests for: auth required, pagination, status filter, empty results.
 ```
 
-**Flux d'exécution attendu :**
+**Déroulement attendu :**
 
-1. **Activation de la compétence :** `oma-backend` s'active (mots-clés : « API », « endpoint », « REST »)
-2. **Détection du stack :** lit `pyproject.toml` ou `package.json` pour déterminer le langage/framework. Si `stack/` existe, charge les conventions depuis ce répertoire.
-3. **Évaluation de la difficulté :** Moyenne (2-3 fichiers : route, service, repository, plus tests)
+1. **Routage de la compétence :** l'hôte ou le workflow sélectionne `oma-backend` (des mots-clés comme « API », « endpoint » et « REST » servent de signaux de routage).
+2. **Détection de la stack :** lit `pyproject.toml` ou `package.json` pour déterminer le langage et le framework. Si des références générées `stack/` ou des `variants/` livrées existent, il charge les conventions correspondantes.
+3. **Évaluation de la difficulté :** moyenne (2 ou 3 fichiers : route, service, dépôt, plus un test).
 4. **Ressources chargées :**
    - `execution-protocol.md` (toujours)
-   - `stack/snippets.md` si disponible (patterns de route, de requête paginée)
-   - `stack/tech-stack.md` si disponible (API spécifique au framework)
-5. **CHARTER_CHECK :**
+<!-- oma-docs:ignore-start -->
+   - `stack/snippets.md` correspondant ou `variants/{node,python,rust}/snippets.md` s'il est disponible ;
+   - `stack/tech-stack.md` correspondant ou les références tech-stack de la variante s'il en existe.
+<!-- oma-docs:ignore-end -->
+5. **Contrat d'exécution (lorsqu'il est activé) :** il peut émettre un `CHARTER_CHECK` :
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -160,14 +177,14 @@ Add tests for: auth required, pagination, status filter, empty results.
    - Assumptions: existing JWT auth middleware, PostgreSQL, existing Task model
    ```
 6. **Implémentation :**
-   - Repository : `TaskRepository.find_by_user(user_id, cursor, status, limit)` avec requête paramétrée
-   - Service : `TaskService.get_user_tasks(user_id, cursor, status, limit)`, wrapper de logique métier
-   - Router : `GET /api/tasks` avec middleware d'authentification JWT, validation d'entrée, formatage de réponse
-   - Tests : auth requise renvoie 401, la pagination renvoie le bon curseur, le filtre fonctionne, le cas vide renvoie 200 avec un tableau vide
+   - dépôt : `TaskRepository.find_by_user(user_id, cursor, status, limit)` avec une requête paramétrée ;
+   - service : `TaskService.get_user_tasks(user_id, cursor, status, limit)` (wrapper de logique métier) ;
+   - routeur : `GET /api/tasks` avec middleware d'authentification JWT, validation des entrées et formatage de la réponse ;
+   - tests : l'authentification requise renvoie 401, la pagination renvoie le bon curseur, le filtre fonctionne et un résultat vide renvoie 200 avec un tableau vide.
 
 ---
 
-### Mobile : écran de paramètres
+### Mobile : écran des réglages
 
 ```text
 Build a settings screen in Flutter with profile editing (name, email, avatar), notification preferences (toggle switches), and a logout button.
@@ -181,15 +198,15 @@ Acceptance criteria:
 Add tests for: profile save, logout flow, offline state.
 ```
 
-**Flux d'exécution attendu :**
+**Déroulement attendu :**
 
-1. **Activation de la compétence :** `oma-mobile` s'active (mots-clés : « Flutter », « screen », « mobile »)
-2. **Évaluation de la difficulté :** Moyenne (écran de paramètres + gestion d'état + gestion hors-ligne)
+1. **Routage de la compétence :** l'hôte ou le workflow sélectionne `oma-mobile` (des mots-clés comme « Flutter », « screen » et « mobile » servent de signaux de routage).
+2. **Évaluation de la difficulté :** moyenne (écran de réglages, gestion d'état et fonctionnement hors ligne).
 3. **Ressources chargées :**
-   - `execution-protocol.md`
-   - `snippets.md` (modèle d'écran, pattern de provider Riverpod)
-   - `screen-template.dart`
-4. **CHARTER_CHECK :**
+   - `execution-protocol.md` ;
+   - `snippets.md` (modèle d'écran et motif de provider Riverpod) ;
+   - `screen-template.dart`.
+4. **Contrat d'exécution (lorsqu'il est activé) :** il peut émettre un `CHARTER_CHECK` :
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -198,16 +215,18 @@ Add tests for: profile save, logout flow, offline state.
    - Success criteria: profile editing, notification toggles, logout, offline
    - Assumptions: existing auth service, Dio interceptors, Riverpod, GoRouter
    ```
+<!-- oma-docs:ignore-start -->
 5. **Implémentation :**
-   - Écran : `lib/features/settings/presentation/settings_screen.dart` (Stateless Widget avec Riverpod)
-   - Providers : `lib/features/settings/providers/settings_provider.dart`
-   - Repository : `lib/features/settings/data/settings_repository.dart`
-   - Gestion hors-ligne : un intercepteur Dio attrape `SocketException` et bascule sur les données en cache
-   - Tous les contrôleurs libérés dans la méthode `dispose()`
+   - écran : `lib/features/settings/presentation/settings_screen.dart` (widget Stateless avec Riverpod) ;
+   - providers : `lib/features/settings/providers/settings_provider.dart` ;
+   - dépôt : `lib/features/settings/data/settings_repository.dart` ;
+   - fonctionnement hors ligne : l'intercepteur Dio intercepte `SocketException` et utilise les données en cache ;
+   - tous les contrôleurs sont libérés dans la méthode `dispose()`.
+<!-- oma-docs:ignore-end -->
 
 ---
 
-### Base de données : conception de schéma
+### Base de données : conception du schéma
 
 ```text
 Design a database schema for a multi-tenant SaaS project management tool. Entities: Organization, Project, Task, User, TeamMembership.
@@ -221,16 +240,16 @@ Acceptance criteria:
 Add deliverables: data standards table, glossary, migration script.
 ```
 
-**Flux d'exécution attendu :**
+**Déroulement attendu :**
 
-1. **Activation de la compétence :** `oma-db` s'active (mots-clés : « database », « schema », « ERD », « migration »)
-2. **Évaluation de la difficulté :** Complexe (décisions d'architecture, plusieurs entités, planification de capacité)
+1. **Routage de la compétence :** l'hôte ou le workflow sélectionne `oma-db` (des mots-clés comme « database », « schema », « ERD » et « migration » servent de signaux de routage).
+2. **Évaluation de la difficulté :** complexe (décisions d'architecture, plusieurs entités et planification de capacité).
 3. **Ressources chargées :**
-   - `execution-protocol.md`
-   - `document-templates.md` (structure des livrables)
-   - `examples.md`
-   - `anti-patterns.md` (revue durant l'optimisation)
-4. **CHARTER_CHECK :**
+   - `execution-protocol.md` ;
+   - `document-templates.md` (structure des livrables) ;
+   - `examples.md` ;
+   - `anti-patterns.md` (à consulter pendant l'optimisation).
+4. **Contrat d'exécution (lorsqu'il est activé) :** il peut émettre un `CHARTER_CHECK` :
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -239,79 +258,79 @@ Add deliverables: data standards table, glossary, migration script.
    - Success criteria: schema, ERD, indexes, capacity estimate, backup strategy
    - Assumptions: PostgreSQL, 3NF, soft delete, multi-tenant with RLS
    ```
-5. **Workflow :** Explorer (entités, relations, patterns d'accès, estimations de volume) -> Concevoir (schémas externe/conceptuel/interne, contraintes, champs de cycle de vie) -> Optimiser (index pour les patterns de requête, stratégie de partitionnement, plan de sauvegarde, revue d'anti-patterns)
+5. **Workflow :** explorer (entités, relations, modes d'accès et estimations de volume) → concevoir (schémas externe, conceptuel et interne, contraintes et champs de cycle de vie) → optimiser (index pour les requêtes, stratégie de partitionnement, plan de sauvegarde et revue des anti-patterns).
 6. **Livrables :**
-   - Résumé du schéma externe (vues par rôle : admin, chef de projet, membre d'équipe)
-   - Schéma conceptuel avec ERD (Organization 1:N Project, Project 1:N Task, Organization 1:N TeamMembership, etc.)
-   - Schéma interne avec DDL physique, index, partitionnement
-   - Tableau des standards de données (règles de nommage des champs, conventions de types)
-   - Glossaire (tenant, workspace, assignee, etc.)
-   - Feuille d'estimation de capacité
-   - Stratégie de sauvegarde (full quotidienne + incrémentale horaire, rétention 30 jours)
-   - Script de migration
+   - résumé du schéma externe (vues par rôle : administrateur, responsable de projet, membre de l'équipe) ;
+   - schéma conceptuel avec ERD (Organization 1:N Project, Project 1:N Task, Organization 1:N TeamMembership, etc.) ;
+   - schéma interne avec DDL physique, index et partitionnement ;
+   - tableau des standards de données (règles de nommage des champs et conventions de types) ;
+   - glossaire (tenant, workspace, assignee, etc.) ;
+   - feuille d'estimation de capacité ;
+   - stratégie de sauvegarde (complète quotidienne + incrémentielle horaire, conservation de 30 jours) ;
+   - script de migration.
 
 ---
 
-## Checklist des portes de qualité
+## Liste de contrôle du quality gate
 
-Une fois la sortie de l'agent livrée, vérifiez ces éléments avant de l'accepter :
+Après la livraison de l'agent, vérifiez ces éléments avant de l'accepter :
 
 ### Vérifications universelles (tous les agents)
 
-- [ ] **Le comportement correspond aux critères d'acceptation** — chaque critère de votre prompt est satisfait
-- [ ] **Les tests couvrent le chemin nominal et les cas limites clés** — pas seulement le chemin nominal
-- [ ] **Aucune modification de fichier non liée** — seuls les fichiers pertinents pour la tâche ont été modifiés
-- [ ] **Les modules partagés ne sont pas cassés** — imports, types et interfaces utilisés par d'autre code fonctionnent encore
-- [ ] **Le charter a été respecté** — les contraintes « Must NOT do » ont été tenues
-- [ ] **Lint, typecheck, build passent** — exécutez les vérifications standard de votre projet
+- [ ] **Le comportement correspond aux critères d'acceptation :** chaque critère du prompt est satisfait.
+- [ ] **Les tests couvrent le chemin nominal et les principaux cas limites :** pas seulement le cas nominal.
+- [ ] **Aucun fichier sans rapport :** seuls les fichiers pertinents pour la tâche ont été modifiés.
+- [ ] **Les modules partagés restent fonctionnels :** les imports, types et interfaces utilisés ailleurs fonctionnent toujours.
+- [ ] **La charte a été respectée :** les contraintes « Must NOT do » ont été suivies.
+- [ ] **Le lint, le typecheck et le build passent :** exécutez les vérifications standard du projet.
 
 ### Spécifique au frontend
 
-- [ ] Accessibilité : les éléments interactifs ont `aria-label`, titres sémantiques, navigation clavier fonctionnelle
-- [ ] Mobile : s'affiche correctement aux breakpoints 320 px, 768 px, 1024 px, 1440 px
-- [ ] Performance : pas de CLS, objectif FCP atteint
-- [ ] Error boundaries et loading skeletons implémentés
-- [ ] Composants shadcn/ui non modifiés directement (utilisation de wrappers à la place)
-- [ ] Imports absolus avec `@/` (pas de chemin relatif `../../`)
+- [ ] Accessibilité : les éléments interactifs ont un `aria-label`, les titres sont sémantiques et la navigation au clavier fonctionne.
+- [ ] Mobile : le rendu est correct aux points de rupture 320px, 768px, 1024px et 1440px.
+- [ ] Performances : aucun CLS et objectif FCP atteint.
+- [ ] Les error boundaries et les skeletons de chargement sont implémentés.
+- [ ] Les composants shadcn/ui ne sont pas modifiés directement (utilisez des wrappers).
+- [ ] Imports absolus avec `@/` (aucun `../../` relatif).
 
 ### Spécifique au backend
 
-- [ ] Architecture propre maintenue : pas de logique métier dans les handlers de route
-- [ ] Toutes les entrées validées (aucune confiance dans l'entrée utilisateur)
-- [ ] Requêtes paramétrées uniquement (pas d'interpolation de chaînes dans le SQL)
-- [ ] Exceptions personnalisées via un module d'erreur centralisé (pas d'exceptions HTTP brutes)
-- [ ] Endpoints d'authentification rate-limited
+- [ ] Architecture propre respectée : aucune logique métier dans les gestionnaires de routes.
+- [ ] Toutes les entrées sont validées (aucune confiance aveugle envers les entrées utilisateur).
+- [ ] Requêtes paramétrées uniquement (aucune interpolation de chaîne dans SQL).
+- [ ] Exceptions personnalisées via le module d'erreurs centralisé (aucune exception HTTP brute).
+- [ ] Les endpoints d'authentification sont limités en débit.
 
 ### Spécifique au mobile
 
-- [ ] Tous les contrôleurs libérés dans la méthode `dispose()`
-- [ ] Hors-ligne géré avec élégance
-- [ ] Objectif 60 fps maintenu (pas de jank)
-- [ ] Testé sur iOS et Android
+- [ ] Tous les contrôleurs sont libérés dans la méthode `dispose()`.
+- [ ] Le mode hors ligne est géré correctement.
+- [ ] L'objectif de 60 fps est respecté (aucune saccade).
+- [ ] Tests exécutés sur iOS et Android.
 
 ### Spécifique à la base de données
 
-- [ ] Au moins 3NF (ou justification documentée pour la dénormalisation)
-- [ ] Les trois couches de schéma documentées (externe, conceptuelle, interne)
-- [ ] Contraintes d'intégrité explicites (entité, domaine, référentielle, règle métier)
-- [ ] Revue d'anti-patterns effectuée
+- [ ] Au moins la 3NF (ou justification documentée de la dénormalisation).
+- [ ] Les trois couches du schéma sont documentées (externe, conceptuelle et interne).
+- [ ] Les contraintes d'intégrité sont explicites (entité, domaine, référentielle et règle métier).
+- [ ] La revue des anti-patterns est terminée.
 
 ---
 
 ## Signaux d'escalade
 
-Surveillez ces signaux qui indiquent qu'il faut passer du mode compétence unique au mode multi-agents :
+Surveillez ces signaux : ils indiquent qu'il faut passer d'une exécution à compétence unique au mode multi-agent :
 
-| Signal | Ce que ça signifie | Action |
-|--------|--------------------|--------|
-| L'agent dit « this requires a backend change » | La tâche a des dépendances inter-domaines | Passer à `/work`, ajouter l'agent backend |
-| Le CHARTER_CHECK de l'agent fait apparaître des éléments « Must NOT do » qui sont en réalité nécessaires | Le périmètre dépasse un seul domaine | Planifier la fonctionnalité complète avec `/plan` d'abord |
-| Une correction se propage à 3 fichiers ou plus à travers différentes couches | Une seule correction affecte plusieurs domaines | Utiliser `/debug` avec un périmètre plus large, ou `/work` |
-| L'agent découvre une incohérence de contrat d'API | Désaccord frontend/backend | Exécuter `/plan` pour définir les contrats, puis relancer les deux agents |
-| La porte de qualité échoue sur les points d'intégration | Les composants ne se connectent pas correctement | Ajouter une étape de revue QA : `oma agent spawn qa "Review integration"` |
-| La tâche passe de « un composant » à « trois composants + nouvelle route + API » | Glissement de périmètre en cours d'exécution | Arrêter, exécuter `/plan` pour décomposer, puis `/orchestrate` |
-| L'agent bloque avec une clarification HIGH | Exigences fondamentalement ambiguës | Répondre aux questions de l'agent ou exécuter `/brainstorm` pour clarifier l'approche |
+| Signal | Ce que cela signifie | Action |
+|--------|----------------------|--------|
+| L'agent dit « cette tâche nécessite une modification backend » | La tâche comporte des dépendances entre domaines. | Passez à `/work` et ajoutez un agent backend. |
+| Le CHARTER_CHECK de l'agent contient des éléments « Must NOT do » qui sont en fait nécessaires | Le périmètre dépasse un seul domaine. | Planifiez toute la fonctionnalité avec `/plan` d'abord. |
+| Une correction se propage à 3 fichiers ou plus entre plusieurs couches | Une correction touche plusieurs domaines. | Utilisez `/debug` avec un périmètre plus large, ou `/work`. |
+| L'agent découvre un désaccord sur le contrat d'API | Le frontend et le backend ne sont pas alignés. | Exécutez `/plan` pour définir les contrats, puis relancez les deux agents. |
+| Le quality gate échoue sur les points d'intégration | Les composants ne se connectent pas correctement. | Ajoutez une étape de revue QA : `oma agent spawn qa "Review integration"`. |
+| La tâche passe de « un composant » à « trois composants + nouvelle route + API » | Le périmètre dérive pendant l'exécution. | Arrêtez, exécutez `/plan` pour décomposer, puis `/orchestrate`. |
+| L'agent bloque pour une clarification HIGH | Les exigences sont fondamentalement ambiguës. | Répondez aux questions de l'agent ou lancez `/brainstorm` pour clarifier l'approche. |
 
-### La règle générale
+### Règle pratique
 
-Si vous vous retrouvez à relancer le même agent plus de deux fois avec des ajustements, la tâche est probablement multi-domaine et nécessite `/work` ou au minimum une étape `/plan` pour la décomposer correctement.
+Si vous relancez le même agent plus de deux fois avec des précisions, la tâche couvre probablement plusieurs domaines. Exécutez `/work`, ou au moins `/plan`, pour la décomposer.

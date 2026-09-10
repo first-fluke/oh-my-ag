@@ -1,6 +1,7 @@
 ---
 title: "가이드: Codex 훅 신뢰"
-description: Codex 훅이 한 번 검토하기 전까지 실행되지 않는 이유, 업데이트할 때 벌어지는 일, 그리고 oh-my-agent가 스폰한 Codex 서브프로세스를 위해 자동으로 처리하는 것을 다룹니다.
+sidebar_label: Codex 훅 신뢰 설정
+description: Codex 훅을 한 번 검토하기 전까지 실행하지 않는 이유, 업데이트 동작, oh-my-agent가 생성한 Codex 서브프로세스에 자동으로 적용하는 처리를 설명합니다.
 ---
 
 # 가이드: Codex 훅 신뢰
@@ -25,6 +26,15 @@ oh-my-agent를 프로젝트에 설치하면 벤더 네이티브 훅 설정을 �
 Codex hooks installed/updated — run codex and use /hooks to trust them (untrusted hooks do not run)
 ```
 
+Codex를 열기 전에 생성된 파일을 확인합니다.
+
+```bash
+test -s .codex/hooks.json && echo "Codex hooks are installed"
+oma link codex
+```
+
+예상 결과는 설치·업데이트 안내가 출력된 뒤 Codex의 `/hooks` 브라우저에 훅이 나타나는 것입니다. `oma link codex`는 생성된 파일을 다시 맞추지만, 최초 신뢰 결정 자체를 대신하지는 않습니다.
+
 **참고:** 여기서 `--dangerously-bypass-hook-trust`는 도움이 되지 않습니다. 이 플래그의 경고("Enabled hooks may run without review")가 뜻하는 바는 이미 활성화된 훅에 한해 검토를 건너뛴다는 것이며, 한 번도 검토하지 않은 훅은 실행하지 않습니다. 훅을 처음 활성화하는 방법은 `/hooks` 브라우저뿐입니다.
 
 내부적으로 Codex는 사용자의 결정을 `~/.codex/config.toml`의 `[hooks.state]` 항목에 저장합니다. 키는 훅 파일 경로, 이벤트, 블록, 훅으로 구성되며, `enabled` 플래그와 명령 문자열의 `trusted_hash`가 함께 기록됩니다.
@@ -44,7 +54,7 @@ Codex hooks installed/updated — run codex and use /hooks to trust them (untrus
 
 ## oh-my-agent가 자동으로 처리하는 것
 
-oh-my-agent가 직접 Codex 서브프로세스를 스폰할 때는, 예를 들어 `oma agent spawn`으로 다른 벤더 에이전트를 디스패치할 때는 `--dangerously-bypass-hook-trust`를 자동으로 붙입니다. 덕분에 자체 검증한 훅이 업데이트를 건너면서도 수동 재신뢰 없이 동작합니다.
+oh-my-agent가 직접 Codex 서브프로세스를 스폰할 때, 예를 들어 `oma agent spawn`으로 다른 벤더 에이전트를 디스패치할 때는 `--dangerously-bypass-hook-trust`를 자동으로 붙입니다. 덕분에 자체 검증한 훅이 업데이트 후에도 수동 재신뢰 없이 동작합니다.
 
 이 플래그는 oh-my-agent가 스폰하는 Codex 프로세스에**만** 적용됩니다. `~/.codex/config.toml`이나 프로젝트 설정에는 절대 기록되지 않으므로, 사용자가 직접 시작한 Codex 세션에는 영향을 주지 않습니다.
 

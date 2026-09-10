@@ -1,162 +1,216 @@
 ---
 title: Giới thiệu
-description: Tổng quan toàn diện về oh-my-agent — framework điều phối đa agent biến trợ lý lập trình AI thành đội ngũ kỹ sư chuyên biệt với 21 agent theo lĩnh vực, tải skill lũy tiến, và khả năng tương thích đa IDE.
+description: Tổng quan toàn diện về oh-my-agent, framework điều phối đa agent biến trợ lý lập trình AI thành đội ngũ kỹ thuật chuyên biệt với 33 gói skill, 12 định nghĩa subagent, cơ chế tải skill lũy tiến và khả năng di chuyển giữa các IDE.
 ---
 
 # Giới thiệu
 
-oh-my-agent là một framework điều phối đa agent dành cho các IDE và công cụ CLI hỗ trợ AI. Thay vì dựa vào một trợ lý AI duy nhất cho mọi thứ, oh-my-agent phân phối công việc cho 21 agent chuyên biệt — mỗi agent được mô phỏng theo một vai trò thực tế trong đội ngũ kỹ sư, có kiến thức tech stack riêng, quy trình thực thi, playbook xử lý lỗi và checklist chất lượng.
+oh-my-agent là framework điều phối đa agent dành cho IDE và công cụ CLI có AI. Thay vì dựa vào một trợ lý AI duy nhất cho mọi việc, oh-my-agent phân phối công việc qua 33 gói skill và 13 vai trò dispatch chuẩn. Mười hai tệp định nghĩa subagent được kiểm soát trong repository cung cấp các persona có thể tái sử dụng cho triển khai, review, lập kế hoạch, gỡ lỗi, tài liệu, nghiên cứu và hạ tầng. `research-explorer.md` ánh xạ tới vai trò chuẩn `explore`; `orchestrator` là vai trò điều phối ở runtime và không có tệp định nghĩa riêng.
 
-Toàn bộ hệ thống nằm trong thư mục `.agents/` di động bên trong dự án của bạn. Chuyển đổi giữa Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, Cursor hoặc bất kỳ công cụ được hỗ trợ nào — cấu hình agent di chuyển cùng mã nguồn.
+OMA cung cấp các kiểm tra cơ học khi bạn gọi chúng hoặc chọn workflow có chứa chúng. `oma verify agent <agent-type>` chạy các kiểm tra cho loại agent đã chọn; `/ralph` thêm xác minh dựa trên artifact và vòng judge; Stop hook của vendor đang bật có thể giữ workflow mở trong khi các kiểm tra đã cấu hình chạy. Chỉ tải skill không tạo thành điều kiện chấp nhận, và prompt thông thường không tự động chạy mọi cổng kiểm tra của workflow. Hãy dùng tiêu chí chấp nhận của workflow và các tệp kết quả để quyết định việc gì đã hoàn tất.
+
+Toàn bộ hệ thống nằm trong thư mục di động `.agents/` bên trong dự án. Bạn có thể chuyển giữa Claude Code, Codex CLI, Antigravity CLI hoặc IDE, Cursor, OpenCode và các công cụ được hỗ trợ khác, còn cấu hình agent đi cùng mã nguồn.
+
+Nếu mới dùng OMA, hãy bắt đầu với [Quick Start](./quick-start.md), rồi đọc [Important Defaults](./important-defaults.md). Việc cài đặt tạo SSOT và các tích hợp vendor; kiểm tra hữu ích đầu tiên là `oma doctor`, còn tác vụ hữu ích đầu tiên là một thay đổi nhỏ trong một domain. Chỉ chuyển sang `/work` hoặc `/orchestrate` khi tác vụ cần điều phối.
 
 ---
 
 ## Mô hình đa agent
 
-Các trợ lý lập trình AI truyền thống hoạt động theo kiểu đa năng. Chúng xử lý frontend, backend, database, bảo mật và hạ tầng với cùng ngữ cảnh prompt và cùng mức độ chuyên môn. Điều này dẫn đến:
+Các trợ lý lập trình AI truyền thống thường xử lý frontend, backend, database, bảo mật và hạ tầng từ cùng một ngữ cảnh prompt. Điều đó có thể dẫn đến:
 
-- **Loãng ngữ cảnh** — tải kiến thức cho mọi lĩnh vực làm lãng phí cửa sổ ngữ cảnh
-- **Chất lượng không đồng đều** — trợ lý đa năng không thể sánh với chuyên gia trong bất kỳ lĩnh vực nào
-- **Thiếu phối hợp** — các tính năng phức tạp trải rộng nhiều lĩnh vực được xử lý tuần tự
+- **Pha loãng ngữ cảnh**: nạp kiến thức cho mọi domain làm lãng phí cửa sổ ngữ cảnh
+- **Không rõ quyền sở hữu**: tác vụ liên domain không có ranh giới rõ ràng cho từng phần
+- **Điều phối thủ công**: các tính năng phức tạp trải rộng nhiều domain cần host hoặc người dùng tự chọn các lần bàn giao
 
-oh-my-agent giải quyết vấn đề này bằng chuyên biệt hóa:
+oh-my-agent giải quyết bằng chuyên môn hóa:
 
-1. **Mỗi agent hiểu sâu một lĩnh vực.** Agent frontend biết React/Next.js, shadcn/ui, TailwindCSS v4, kiến trúc FSD-lite. Agent backend biết mẫu Repository-Service-Router, truy vấn tham số hóa, xác thực JWT. Chúng không chồng chéo nhau.
+1. **Mỗi skill có một domain chính.** Skill frontend biết React/Next.js, shadcn/ui, TailwindCSS v4 và kiến trúc FSD-lite. Skill backend biết mẫu Repository-Service-Router, truy vấn tham số hóa và xác thực JWT. Các domain có thể giao nhau ở ranh giới, vì vậy hãy dùng tiêu chí chấp nhận của tác vụ để quyết định khi nào cần skill thứ hai hoặc workflow điều phối.
 
-2. **Các agent chạy song song.** Trong khi agent backend xây dựng API, agent frontend đã bắt đầu tạo giao diện. Orchestrator điều phối thông qua bộ nhớ chia sẻ.
+2. **Các agent có thể chạy song song.** Trong khi agent backend xây dựng API, agent frontend có thể làm việc trong workspace riêng. Orchestrator điều phối thông qua các tệp và receipt bền vững, gắn với từng lần chạy.
 
-3. **Chất lượng được tích hợp sẵn.** Mọi agent đều có checklist và playbook xử lý lỗi theo lĩnh vực riêng. Charter Preflight phát hiện lệch phạm vi trước khi viết mã. Đánh giá QA là bước cốt lõi, không phải bước bổ sung sau cùng.
+3. **Hướng dẫn chất lượng có sẵn.** Skill chứa checklist domain, playbook lỗi và quy tắc charter. Charter preflight thu hẹp phạm vi trước khi viết mã; QA review chạy khi workflow đã chọn có bước đó hoặc khi bạn yêu cầu.
 
 ---
 
-## Toàn bộ 21 agent
+## Danh mục hiện tại: 33 skill, 12 định nghĩa, 21 workflow
+
+Danh mục tách riêng ba khái niệm dễ nhầm:
+
+- **Skill** là 33 gói kiến thức domain dưới `.agents/skills/*/SKILL.md`. Chúng định tuyến từ ý định trong ngôn ngữ tự nhiên và tải tài nguyên theo từng lớp.
+- **Định nghĩa agent** là 12 tệp dưới `.agents/agents/`. Chúng cung cấp persona subagent theo vendor và tham chiếu tới một hoặc nhiều skill.
+- **Workflow** là 21 định nghĩa quy trình dưới `.agents/workflows/`. Bốn workflow là persistent (`orchestrate`, `work`, `ultrawork` và `ralph`); các workflow còn lại chạy tới báo cáo rồi không giữ chế độ persistent.
+
+Các phần dưới đây giữ lại danh mục skill chi tiết. Khi tên hoặc mô tả thay đổi, frontmatter của `SKILL.md` đang chạy là nguồn có thẩm quyền.
+
+Mười hai tệp định nghĩa được kiểm soát bao phủ 13 vai trò runtime thông qua alias: `research-explorer.md` ánh xạ tới `explore`, còn `orchestrator` chỉ tồn tại ở runtime. Các tệp định nghĩa còn lại ánh xạ tới những vai trò được nêu trong [Agents](../core-concepts/agents.md).
 
 ### Ý tưởng, kiến trúc và lập kế hoạch
 
 | Agent | Vai trò | Khả năng chính |
 |-------|------|-----------------|
-| **oma-brainstorm** | Khám phá ý tưởng ưu tiên thiết kế | Khám phá ý định người dùng, đề xuất 2-3 hướng tiếp cận với phân tích đánh đổi, tạo tài liệu thiết kế trước khi viết mã. Quy trình 6 giai đoạn: Context, Questions, Approaches, Design, Documentation, Chuyển sang `/plan`. |
-| **oma-architecture** | Chuyên gia kiến trúc hệ thống | Ranh giới module/dịch vụ/sở hữu, phân tích đánh đổi, tổng hợp bên liên quan. Phương pháp luận: định tuyến chẩn đoán, so sánh design-twice, phân tích rủi ro kiểu ATAM, ưu tiên kiểu CBAM, ghi chép quyết định kiểu ADR. Mặc định ý thức chi phí. |
-| **oma-pm** | Quản lý sản phẩm | Phân tách yêu cầu thành các task được ưu tiên với phụ thuộc. Định nghĩa API contract. Xuất `.agents/results/plan-{sessionId}.json` và `task-board.md`. Hỗ trợ khái niệm ISO 21500, khung rủi ro ISO 31000, quản trị ISO 38500. |
+| **oma-brainstorm** | Khơi gợi ý tưởng theo thiết kế trước | Khám phá ý định người dùng, đề xuất 2-3 hướng với phân tích đánh đổi, tạo tài liệu thiết kế trước khi viết mã. Workflow 6 giai đoạn: Context, Questions, Approaches, Design, Documentation, chuyển sang `/plan`. |
+| **oma-architecture** | Chuyên gia kiến trúc hệ thống | Ranh giới module/service/quyền sở hữu, phân tích đánh đổi, tổng hợp stakeholder. Phương pháp: định tuyến chẩn đoán, so sánh design-twice, phân tích rủi ro kiểu ATAM, ưu tiên kiểu CBAM, ghi quyết định kiểu ADR. Mặc định có ý thức về chi phí. |
+| **oma-pm** | Quản lý sản phẩm | Phân rã yêu cầu thành các task có ưu tiên và dependency. Định nghĩa API contract. Xuất `.agents/results/plan-{sessionId}.json` và bảng task theo session. Hỗ trợ khái niệm ISO 21500, khung rủi ro ISO 31000 và quản trị ISO 38500. |
 
 ### Triển khai
 
 | Agent | Vai trò | Tech stack và tài nguyên |
 |-------|------|----------------------|
-| **oma-frontend** | Chuyên gia UI/UX | React, Next.js, TypeScript, TailwindCSS v4, shadcn/ui, kiến trúc FSD-lite. Thư viện: luxon (ngày tháng), ahooks (hooks), es-toolkit (tiện ích), Jotai (state client), TanStack Query (state server), @tanstack/react-form + Zod (form), better-auth (xác thực), nuqs (state URL). Tài nguyên: `execution-protocol.md`, `tech-stack.md`, `tailwind-rules.md`, `component-template.tsx`, `snippets.md`, `error-playbook.md`, `checklist.md`, `examples/`. |
-| **oma-backend** | Chuyên gia API và server | Kiến trúc sạch (Router-Service-Repository-Models). Không phụ thuộc stack — phát hiện Python/Node.js/Rust/Go/Java/Elixir/Ruby/.NET từ manifest dự án. Xác thực bằng JWT + Argon2id. Tài nguyên: `execution-protocol.md`, `orm-reference.md`, `examples.md`, `checklist.md`, `error-playbook.md`. Hỗ trợ `/stack-set` để tạo tham chiếu `stack/` theo ngôn ngữ. |
-| **oma-mobile** | Mobile đa nền tảng | Flutter, Dart, Riverpod/Bloc quản lý state, Dio với interceptors cho API, GoRouter điều hướng. Kiến trúc sạch: domain-data-presentation. Material Design 3 (Android) + iOS HIG. Mục tiêu 60fps. Tài nguyên: `execution-protocol.md`, `tech-stack.md`, `snippets.md`, `screen-template.dart`, `checklist.md`, `error-playbook.md`. |
-| **oma-db** | Kiến trúc database | Mô hình hóa SQL, NoSQL và vector database. Thiết kế schema (mặc định 3NF), chuẩn hóa, đánh index, transaction, quy hoạch dung lượng, chiến lược backup. Hỗ trợ thiết kế nhận biết ISO 27001/27002/22301. Tài nguyên: `execution-protocol.md`, `document-templates.md`, `anti-patterns.md`, `vector-db.md`, `iso-controls.md`, `checklist.md`, `error-playbook.md`. |
+| **oma-frontend** | Chuyên gia UI/UX | React, Next.js, TypeScript, TailwindCSS v4, shadcn/ui, kiến trúc FSD-lite. Thư viện: luxon (ngày tháng), ahooks hoặc @mantine/hooks (hooks), es-toolkit (tiện ích), Jotai/Zustand (client state), TanStack Query qua hook do orval tạo (server state), @tanstack/react-form + Zod (form), better-auth (auth), nuqs (state URL). Tài nguyên: `execution-protocol.md`, `tech-stack.md`, `tailwind-rules.md`, `snippets.md`, `angular-rules.md`, `error-playbook.md`, `checklist.md`. |
+| **oma-backend** | Chuyên gia API và server | Kiến trúc sạch (Router-Service-Repository-Models). Không phụ thuộc stack; phát hiện Python/Node.js/Rust/Go/Java/Elixir/Ruby/.NET từ manifest dự án. Xác thực bằng JWT + Argon2id. Tài nguyên: `execution-protocol.md`, `orm-reference.md`, `checklist.md`, `error-playbook.md`. Hỗ trợ `/stack-set` để tạo tham chiếu `stack/` theo ngôn ngữ. |
+| **oma-mobile** | Mobile đa nền tảng | Flutter, Dart, Riverpod/Bloc để quản lý state, Dio với interceptor cho lời gọi API, GoRouter để điều hướng. Kiến trúc sạch: domain-data-presentation. Material Design 3 (Android) + iOS HIG. Mục tiêu 60fps. Cũng hỗ trợ iOS native bằng Swift: SwiftUI + `@Observable` (iOS 17+), `swift-openapi-generator` của Apple cho API client, bố cục dự án `App/Core/Features/Shared`. Tài nguyên: `execution-protocol.md`, `tech-stack.md`, `screen-template.dart`, `screen-template.swift`, `screen-template.tsx`, `checklist.md`, `error-playbook.md`; `/stack-set` materialize biến thể theo nền tảng. |
+| **oma-db** | Kiến trúc database | Mô hình hóa database SQL, NoSQL và vector. Thiết kế schema (mặc định 3NF), chuẩn hóa, đánh index, transaction, quy hoạch dung lượng và chiến lược backup. Hỗ trợ thiết kế nhận biết ISO 27001/27002/22301. Tài nguyên: `execution-protocol.md`, `document-templates.md`, `anti-patterns.md`, `vector-db.md`, `iso-controls.md`, `checklist.md`, `error-playbook.md`. |
 
 ### Thiết kế
 
 | Agent | Vai trò | Khả năng chính |
 |-------|------|-----------------|
-| **oma-design** | Chuyên gia design system | Tạo DESIGN.md với token, typography, hệ thống màu sắc, thiết kế chuyển động (motion/react, GSAP, Three.js), bố cục ưu tiên responsive, tuân thủ WCAG 2.2. Quy trình 7 giai đoạn: Setup, Extract, Enhance, Propose, Generate, Audit, Handoff. Áp dụng chống anti-pattern ("AI slop"). Tích hợp tùy chọn Stitch MCP. Tài nguyên: `design-md-spec.md`, `design-tokens.md`, `anti-patterns.md`, `prompt-enhancement.md`, `stitch-integration.md`, cùng thư mục `reference/` (hướng dẫn typography, màu sắc, không gian, chuyển động, responsive, component, accessibility và shader). |
+| **oma-design** | Chuyên gia design system | Tạo DESIGN.md với token, typography, hệ thống màu, motion design (motion/react, GSAP, Three.js), bố cục ưu tiên responsive và tuân thủ WCAG 2.2. Workflow 7 giai đoạn: Setup, Extract, Enhance, Propose, Generate, Audit, Handoff. Thực thi anti-pattern, không chấp nhận “AI slop”. Tích hợp Stitch MCP tùy chọn. Tài nguyên: `design-md-spec.md`, `design-tokens.md`, `anti-patterns.md`, `prompt-enhancement.md`, `stitch-integration.md`, cùng thư mục `reference/` chứa hướng dẫn typography, màu, không gian, chuyển động, responsive, component, accessibility và shader. |
 
 ### Hạ tầng, DevOps và observability
 
 | Agent | Vai trò | Khả năng chính |
 |-------|------|-----------------|
-| **oma-tf-infra** | Infrastructure-as-code | Terraform đa cloud (AWS, GCP, Azure, Oracle Cloud). Xác thực OIDC-first, IAM quyền tối thiểu, policy-as-code (OPA/Sentinel), tối ưu chi phí. Hỗ trợ điều khiển AI ISO/IEC 42001, liên tục ISO 22301, tài liệu kiến trúc ISO/IEC/IEEE 42010. Tài nguyên: `multi-cloud-examples.md`, `cost-optimization.md`, `policy-testing-examples.md`, `iso-42001-infra.md`, `checklist.md`. |
-| **oma-dev-workflow** | Tự động hóa task monorepo | mise task runner, pipeline CI/CD, database migration, phối hợp release, git hooks, xác nhận pre-commit. Tài nguyên: `validation-pipeline.md`, `database-patterns.md`, `api-workflows.md`, `i18n-patterns.md`, `release-coordination.md`, `troubleshooting.md`. |
-| **oma-observability** | Bộ định tuyến observability dựa trên ý định | Bao phủ tín hiệu MELT+P (metrics/logs/traces/profiles/cost/audit/privacy), tinh chỉnh transport (UDP/MTU, OTLP gRPC vs HTTP, topology Collector, sampling), lan truyền W3C Trace Context, quản lý SLO và cảnh báo burn-rate, điều tra pháp y sự cố (định vị 6 chiều), meta-observability (tự chẩn đoán, đồng bộ đồng hồ, cardinality, retention). Ưu tiên CNCF; Fluentd đã ngừng phát triển (dùng Fluent Bit hoặc OTel Collector). |
+| **oma-tf-infra** | Infrastructure-as-code | Terraform đa cloud (AWS, GCP, Azure, Oracle Cloud). Xác thực OIDC-first, IAM quyền tối thiểu, policy-as-code (OPA/Sentinel), tối ưu chi phí. Hỗ trợ kiểm soát AI ISO/IEC 42001, tính liên tục ISO 22301 và tài liệu kiến trúc ISO/IEC/IEEE 42010. Tài nguyên: `multi-cloud-examples.md`, `cost-optimization.md`, `policy-testing-examples.md`, `iso-42001-infra.md`, `checklist.md`. |
+| **oma-dev-workflow** | Tự động hóa task monorepo | mise task runner, pipeline CI/CD, database migration, điều phối release, git hooks và xác nhận pre-commit. Tài nguyên: `validation-pipeline.md`, `database-patterns.md`, `api-workflows.md`, `i18n-patterns.md`, `release-coordination.md`, `troubleshooting.md`. |
+| **oma-observability** | Bộ định tuyến observability theo ý định | Bao phủ tín hiệu MELT+P (metrics/logs/traces/profiles/cost/audit/privacy), tinh chỉnh transport (UDP/MTU, OTLP gRPC và HTTP, topology Collector, sampling), truyền W3C Trace Context, quản lý SLO và cảnh báo burn-rate, điều tra pháp y sự cố (định vị 6 chiều), meta-observability (tự kiểm tra, đồng bộ đồng hồ, cardinality, retention). Ưu tiên CNCF; Fluentd đã lỗi thời (dùng Fluent Bit hoặc OTel Collector). |
 
 ### Chất lượng và gỡ lỗi
 
 | Agent | Vai trò | Khả năng chính |
 |-------|------|-----------------|
-| **oma-qa** | Đảm bảo chất lượng | Kiểm tra bảo mật (OWASP Top 10), phân tích hiệu suất, accessibility (WCAG 2.1 AA), đánh giá chất lượng mã. Mức độ: CRITICAL/HIGH/MEDIUM/LOW với file:line và mã khắc phục. Hỗ trợ đặc tính chất lượng ISO/IEC 25010 và tương thích kiểm thử ISO/IEC 29119. Tài nguyên: `execution-protocol.md`, `iso-quality.md`, `checklist.md`, `self-check.md`, `error-playbook.md`. |
-| **oma-debug** | Chẩn đoán và sửa lỗi | Phương pháp tái hiện trước. Phân tích nguyên nhân gốc, sửa tối thiểu, bắt buộc kiểm thử hồi quy, quét mẫu tương tự. Sử dụng Serena MCP để truy vết symbol. Tài nguyên: `execution-protocol.md`, `common-patterns.md`, `debugging-checklist.md`, `bug-report-template.md`, `error-playbook.md`. |
+| **oma-qa** | Đảm bảo chất lượng | Audit bảo mật (OWASP Top 10), phân tích hiệu suất, accessibility (WCAG 2.2 AA), review chất lượng mã. Mức độ: CRITICAL/HIGH/MEDIUM/LOW kèm file:line và mã khắc phục. Hỗ trợ đặc tính chất lượng ISO/IEC 25010 và tương thích kiểm thử ISO/IEC 29119. Tài nguyên: `execution-protocol.md`, `iso-quality.md`, `checklist.md`, `self-check.md`, `error-playbook.md`. |
+| **oma-debug** | Chẩn đoán và sửa lỗi | Phương pháp tái hiện trước. Phân tích nguyên nhân gốc, sửa tối thiểu, bắt buộc kiểm thử hồi quy, quét mẫu tương tự. Dùng công cụ MCP code-intelligence (Gortex hoặc Serena) để truy vết symbol. Tài nguyên: `execution-protocol.md`, `common-patterns.md`, `debugging-checklist.md`, `bug-report-template.md`, `error-playbook.md`. |
+| **oma-refactor** | Tái cấu trúc bảo toàn hành vi | Tái cấu trúc tăng dần an toàn, có safety net từ characterization test. Nhắm hotspot (complexity × churn), chọn code smell/SATD, hoàn nguyên theo phương pháp Mikado khi thất bại, dùng expand-contract cho thay đổi có state, chỉ tạo commit refactor (không trộn thay đổi hành vi). Biến đổi ưu tiên engine (IDE rename, jscodeshift/ast-grep), đo bằng `uvx lizard` / `uvx radon`. Khả năng đọc là tiêu chí thành công; metric chỉ là đại diện. |
 
 ### Bản địa hóa, điều phối và git
 
 | Agent | Vai trò | Khả năng chính |
 |-------|------|-----------------|
-| **oma-translation** | Dịch thuật nhận biết ngữ cảnh | Phương pháp dịch 4 bước: Phân tích nguồn, Trích xuất ý nghĩa, Tái tạo bằng ngôn ngữ đích, Xác minh. Bảo toàn giọng điệu, phong cách và thuật ngữ chuyên ngành. Phát hiện anti-pattern AI. Hỗ trợ dịch hàng loạt (file i18n). Chế độ tinh chỉnh 7 bước tùy chọn cho chất lượng xuất bản. Hồ sơ theo từng ngôn ngữ đích (`resources/lang/{code}.md`) chứa hệ thống ngữ vực, quy tắc trình bày và các quy tắc chống văn dịch riêng của từng ngôn ngữ. Tài nguyên: `translation-rubric.md`, `anti-ai-patterns.md`, `lang/{ko,ja,zh,en}.md`. |
-| **oma-orchestration** | Điều phối đa agent tự động | Spawn subagent CLI song song, điều phối qua MCP memory, theo dõi tiến trình, chạy vòng lặp xác minh. Cấu hình: MAX_PARALLEL (mặc định 3), MAX_RETRIES (mặc định 2), POLL_INTERVAL (mặc định 30s). Bao gồm vòng lặp review giữa các agent và giám sát Clarification Debt. Tài nguyên: `subagent-prompt-template.md`, `memory-schema.md`. |
-| **oma-scm** | Conventional Commits | Phân tích thay đổi, xác định type/scope, tách theo tính năng khi phù hợp, tạo commit message theo định dạng Conventional Commits. Co-Author: `First Fluke <our.first.fluke@gmail.com>`. |
+| **oma-translation** | Dịch thuật theo ngữ cảnh | Luồng 6 cảnh: Prepare, Acquire, Reason, Act, Verify, Finalize. Phương pháp dịch gồm bốn bước: đọc ý nghĩa và cú pháp được bảo vệ, chọn ngữ vực, tái tạo bằng ngôn ngữ đích và giữ phong cách tác giả khi phù hợp. Profile theo ngôn ngữ đích (`resources/lang/{code}.md`) chứa quy tắc ngữ vực và typography. Tài nguyên: `translation-rubric.md`, `anti-ai-patterns.md`, `lang/{ko,ja,zh,en}.md`. |
+| **oma-orchestration** | Điều phối đa agent tự động | Spawn subagent CLI song song, điều phối qua các tệp session, task-board, progress và result bền vững, đồng thời theo dõi vòng xác minh. Có thể cấu hình: MAX_PARALLEL (mặc định 3), MAX_RETRIES (mặc định 2), POLL_INTERVAL (mặc định 30s). Bao gồm vòng review giữa các agent và theo dõi Clarification Debt. Tài nguyên: `subagent-prompt-template.md`, `memory-schema.md`. |
+| **oma-scm** | Quản lý cấu hình phần mềm (SCM) và Git | Xử lý chiến lược branch, workflow merge/rebase/conflict, worktree, baseline và theo dõi trạng thái release. Đồng thời hướng dẫn Conventional Commit với staging an toàn; trailer co-author lấy từ cấu hình hiệu lực `scm.co_author` khi được bật. |
+| **oma-coordination** | Hướng dẫn workflow đa agent thủ công | Điều phối PM, Frontend, Backend, Mobile và QA từng bước qua CLI `oma agent spawn`. Bắt đầu bằng phân rã của PM, spawn các task cùng ưu tiên trong workspace riêng, theo dõi tệp progress/result theo run, căn chỉnh API/data contract trước khi làm frontend/mobile và kết thúc bằng QA review. Là bản thủ công tương ứng với `oma-orchestration`. |
 
 ### Tìm kiếm, hồi tưởng và xử lý tài liệu
 
 | Agent | Vai trò | Khả năng chính |
 |-------|------|-----------------|
-| **oma-search** | Bộ định tuyến tìm kiếm dựa trên ý định | Chuyển truy vấn đến Context7 (tài liệu), tìm kiếm web native, `gh`/`glab` (mã), Serena (cục bộ). Chấm điểm độ tin cậy miền trên mọi kết quả không cục bộ. Định tuyến fail-forward (docs→web→fetch). Flag: `--docs`, `--code`, `--web`, `--strict`, `--wide`, `--gitlab`. |
-| **oma-recap** | Hồi tưởng công việc đa công cụ | Phân tích lịch sử hội thoại từ Claude, Codex, Qwen và Cursor. Giải quyết đầu vào ngày/cửa sổ ngôn ngữ tự nhiên, nhóm theo công cụ+phiên, trích xuất chủ đề, render tóm tắt hàng ngày/theo kỳ cho standup, retro hàng tuần và nhật ký công việc. |
-| **oma-hwp** | HWP/HWPX/HWPML → Markdown | Chuyển đổi tài liệu trình xử lý văn bản Hàn Quốc qua `bunx kordoc@latest`. Bảo toàn tiêu đề, bảng (kể cả bảng lồng), chú thích, hyperlink, hình ảnh. Loại bỏ ký tự Private Use Area của Hancom qua hậu xử lý `flatten-tables.ts`. |
-| **oma-pdf** | PDF → Markdown | Chuyển đổi tài liệu PDF qua `uvx opendataloader-pdf`. Bảo toàn tiêu đề, bảng, danh sách, hình ảnh; chế độ lai OCR cho PDF quét; đầu ra chuẩn hóa bằng `uvx mdformat`. |
+| **oma-search** | Bộ định tuyến tìm kiếm theo ý định | Định tuyến truy vấn tới Context7 (tài liệu), native web search, `gh`/`glab` (mã), code intelligence cục bộ (Gortex hoặc Serena). Chấm điểm độ tin cậy theo domain cho mọi kết quả không cục bộ. Định tuyến fail-forward (docs→web→fetch). Flags: `--docs`, `--code`, `--web`, `--strict`, `--wide`, `--gitlab`. |
+| **oma-recap** | Hồi tưởng công việc đa công cụ | Phân tích lịch sử hội thoại từ Grok, Claude, Codex, Gemini, Qwen, Cursor và Antigravity. Giải quyết đầu vào ngày/cửa sổ bằng ngôn ngữ tự nhiên, nhóm theo tool+session, trích xuất chủ đề, dựng tóm tắt theo ngày/kỳ và ghi lại khi CLI giới hạn cửa sổ yêu cầu ở 30 ngày. |
+| **oma-hwp** | HWP/HWPX/HWPML → Markdown | Chuyển đổi tài liệu trình xử lý văn bản Hàn Quốc qua `bunx kordoc@latest`. Giữ tiêu đề, bảng (kể cả bảng lồng), footnote, hyperlink và hình ảnh. Xóa ký tự Hancom Private Use Area qua bộ xử lý hậu kỳ `flatten-tables.ts`. |
+| **oma-pdf** | PDF → Markdown | Chuyển đổi tài liệu PDF qua `uvx opendataloader-pdf`. Giữ tiêu đề, bảng, danh sách, hình ảnh; chế độ hybrid OCR cho PDF quét; chuẩn hóa đầu ra bằng `uvx mdformat`. |
+
+### Viết học thuật và nghiên cứu
+
+| Agent | Vai trò | Khả năng chính |
+|-------|------|-----------------|
+| **oma-academic-writing** | Văn phong tiếng Anh cấp xuất bản | Soạn, sửa và audit essay, report, executive summary, conclusion và literature review. Đồng thời thực thi bốn protocol: Sentence Structure (4 loại, độ dài/mở đầu đa dạng), Verb (thay generic verb bị cấm bằng corpus học thuật phân tầng), Hedging (cường độ khớp với bằng chứng) và Anti-AI compliance. Cổng rubric quote-before-judgment, Claim-Evidence Map, reverse outlining. Chế độ: `draft` / `revise` / `review`. |
+| **oma-scholar** | Trợ lý sidecar cho bài nghiên cứu | Tìm kiếm, tạo, xác thực, review và so sánh bài nghiên cứu qua đặc tả sidecar Knows `.knows.yaml` (v0.9.0 / `paper@1`). Truy cập claim/evidence/relation tiết kiệm token (~700 token chỉ claim so với ~10K PDF đầy đủ). `oma scholar search/resolve/get/lint` trên knows.academy với fallback OpenAlex tự động cho bài trước 2026. Chống bịa: bỏ qua field chưa biết thay vì đoán. |
+
+### Bảo mật
+
+| Agent | Vai trò | Khả năng chính |
+|-------|------|-----------------|
+| **oma-deepsec** | Trình điều khiển máy quét lỗ hổng có agent | Vận hành Vercel `deepsec` (`bunx deepsec`) từ đầu đến cuối: `init` workspace `.deepsec/`, viết `INFO.md` theo dự án, chạy các lượt `scan`/`process`/`triage`/`revalidate`/`export` có ý thức về chi phí, gate PR bằng `process --diff` với mẫu CI hai job, và viết matcher tùy chỉnh. Hiệu chỉnh bằng `--limit 50 --concurrency 5` trước lượt lớn và nêu dự báo dollar trước công việc tính phí; chi phí thay đổi theo kích thước repository và backend. Backend agent: `codex` (gpt-5.5) hoặc `claude` (claude-opus-4-8). |
+
+### Tài liệu và meta-tooling
+
+| Agent | Vai trò | Khả năng chính |
+|-------|------|-----------------|
+| **oma-docs** | Bộ phát hiện drift tài liệu | Chế độ `verify` kiểm tra xác định `docs/**/*.md` để tìm ref hỏng (đường dẫn file, lệnh CLI, config key, env var, script) và thoát 0/1; chế độ `sync` liên hệ git diff với tài liệu ứng viên và tạo đề xuất patch của host-LLM để xác nhận theo từng tài liệu (không tự áp dụng). Kiểm tra URL do `lychee` đảm nhiệm; CLI phát JSON có cấu trúc, host LLM thực hiện toàn bộ tổng hợp (không gọi vendor SDK). Không sửa `.agents/`. |
+| **oma-skill-creation** | Chuyên gia tạo skill theo SSL-lite | Tạo, cập nhật và audit skill OMA theo định dạng SSL-lite với bốn phần bắt buộc (Scheduling / Structural Flow / Logical Operations / References). Phân loại loại skill, chèn đúng một path chuẩn inline, thực thi route `When NOT to use` và chạy `oma skill audit` để phát hiện mô tả trùng (cảnh báo ≥ 60%, fail ≥ 75% TF-IDF cosine). Đẩy chi tiết biến thể dài vào `resources/`. |
+| **oma-explanation** | Bộ giải thích thay đổi mã | Biến diff, PR, branch hoặc khoảng commit thành explainer HTML offline tự chứa với các phần Background, Intuition, Code và Quiz. Workflow `/explain` xác thực artifact cuối và ghi vào `.agents/results/explain/`. |
+
+### Nghiên cứu thị trường
+
+| Agent | Vai trò | Khả năng chính |
+|-------|------|-----------------|
+| **oma-market** | Tình báo tín hiệu cộng đồng | Chạy engine upstream `last30days` (Reddit với upvote và comment thực, X, transcript YouTube, TikTok, HN, Polymarket, GitHub, arXiv, Techmeme, Bluesky, web và hơn nữa) qua `oma market run`; oma luôn giữ engine **ở release mới nhất** (`~/.cache/oma-market/`), gate mọi lần chạy bằng `detect-trap`, phân loại ý định (pain / trend / competitor / discovery) và thêm các phần SWOT / Porter's 5F / PESTEL. Xuất một brief tuân thủ LAW tại `.agents/results/market/{slug}-{YYYYMMDD}.md`. |
+
+### Media và tạo nội dung
+
+| Agent | Vai trò | Khả năng chính |
+|-------|------|-----------------|
+| **oma-image** | Bộ định tuyến hình ảnh đa vendor | Dispatch song song có nhận biết xác thực tới Codex (`gpt-image-2` qua ChatGPT OAuth, ưu tiên CLI), các model “nano-banana” họ Gemini của Antigravity qua CLI `agy` + Gemini Code Assist (model chính xác do bên trong chọn), và Pollinations (`flux`/`zimage` miễn phí). Có protocol làm rõ/khuếch đại trước khi tạo, tối đa 10 ảnh tham chiếu, guardrail chi phí (xác nhận ở mức ≥ $0.20), `manifest.json` để tái lập. CLI: `oma image generate`, `oma image doctor` và `oma image vendor list`. |
+| **oma-slide** | Bộ tạo deck HTML giàu animation | Tạo deck trình bày khác biệt, chống “AI slop”, trên canvas cố định 1920×1080, sau đó xác thực hình học có tính xác định, bundle thành HTML một file và xuất PDF/PNG/PPTX qua CLI `oma slide`. Preset style + template đậm, quy tắc CJK→Pretendard, bắt buộc `prefers-reduced-motion` + focus nhìn thấy, vòng validate tự sửa tối đa 3 lần. Ủy quyền hình ảnh cho `oma-image`; tùy chọn xuất/nhập Canva MCP. |
+| **oma-video** | Bộ định tuyến video ngắn, explainer và demo | Tạo shorts/reels (9:16), explainer (16:9) và demo do người ghi (16:9) qua CLI `oma video`. Asset bus xác định (`script.json` → `timing.json` → `render-spec.json`) cấp dữ liệu cho compositor Remotion vendored; provider asset có thể dùng fallback cục bộ, còn thiếu composition/toolchain hoặc lỗi render sẽ làm run thất bại. Capture của người không bao giờ tự động hóa credential. |
+| **oma-voice** | TTS và STT local-first | Điều khiển server Voicebox MCP để thông báo trên thiết bị, TTS asset và chuyển lời mà không gọi cloud hay tính phí mỗi lượt. TTS mặc định WAV và có thể chuyển cục bộ sang MP3; transcription nhận path audio hoặc base64. Mỗi lần gọi TTS tối đa 5000 ký tự, input STT tối đa 30 phút; các run asset/transcription được lưu sẽ ghi manifest. |
 
 ---
 
-## Mô hình tải lũy tiến
+## Mô hình tiết lộ lũy tiến
 
-oh-my-agent sử dụng kiến trúc skill 2 tầng để tránh cạn kiệt cửa sổ ngữ cảnh:
+oh-my-agent dùng kiến trúc skill hai lớp để tránh làm cạn cửa sổ ngữ cảnh:
 
-**Layer 1 — SKILL.md (~800 byte, luôn được tải):**
-Chứa danh tính agent, điều kiện định tuyến, quy tắc cốt lõi và hướng dẫn "khi nào sử dụng / khi nào KHÔNG sử dụng". Đây là tất cả những gì được tải khi agent không đang làm việc.
+**Lớp 1: SKILL.md (trung vị khoảng 3.100 token, tải khi skill được định tuyến)**
+Chứa identity của agent, điều kiện định tuyến, quy tắc cốt lõi và hướng dẫn “when to use / when NOT to use”. Đây là toàn bộ nội dung được tải khi agent chưa làm việc chủ động.
 
-**Layer 2 — resources/ (tải theo nhu cầu):**
-Chứa quy trình thực thi, tham chiếu tech stack, đoạn mã, playbook xử lý lỗi, checklist và ví dụ. Chỉ được tải khi agent được gọi cho một task, và ngay cả khi đó, chỉ tải các tài nguyên liên quan đến loại task cụ thể (dựa trên đánh giá độ khó và ánh xạ task-tài nguyên trong `context-loading.md`).
+**Lớp 2: resources/ (tải theo nhu cầu)**
+Chứa protocol thực thi, tham chiếu tech stack, code snippet, playbook lỗi, checklist và ví dụ. Chỉ tải khi agent được gọi cho một tác vụ, và khi đó chỉ tải tài nguyên liên quan tới loại tác vụ cụ thể (dựa trên đánh giá độ khó và ánh xạ task-resource trong `context-loading.md`).
 
-Thiết kế này tiết kiệm khoảng 75% token so với việc tải mọi thứ từ đầu. Đối với mô hình tầng flash (128K ngữ cảnh), tổng ngân sách tài nguyên khoảng 3.100 token — chỉ 2,4% cửa sổ ngữ cảnh.
+Đo trên session 5 agent, mô hình này giữ khoảng 17-19K token ngữ cảnh skill cho task Simple hoặc Medium trong giới hạn 72K, tránh khoảng 75% mức tối đa; với task Complex kéo theo tham chiếu stack, mức tránh giảm còn khoảng 47%. Xem [token savings math](../core-concepts/skills.md#token-savings-math) để đọc bảng đo và script tái tạo.
 
 ---
 
-## .agents/ — nguồn dữ liệu duy nhất (SSOT)
+## .agents/: Nguồn sự thật duy nhất (SSOT)
 
 Mọi thứ oh-my-agent cần đều nằm trong thư mục `.agents/`:
 
 ```
 .agents/
-├── config/                 # oma-config.yaml
-├── skills/                 # 22 thư mục skill (21 agent + _shared)
-│   ├── _shared/            # Tài nguyên cốt lõi dùng chung cho tất cả agent
-│   └── oma-{agent}/        # SKILL.md + resources/ theo từng agent
-├── workflows/              # 16 định nghĩa workflow
-├── agents/                 # 9 định nghĩa subagent
-├── results/plan-{sessionId}.json               # Kết quả kế hoạch đã tạo
-├── state/                  # File trạng thái workflow đang hoạt động
-├── results/                # File kết quả agent
-└── mcp.json                # Cấu hình MCP server
+├── oma-config.yaml         # Shared preferences and provider/model settings
+├── oma-config.cue          # Optional schema-backed configuration
+├── skills/                 # 33 skill directories + _shared resources
+│   ├── _shared/            # Core resources used by all agents
+│   └── oma-{skill}/         # Per-skill SKILL.md + resources/variants
+├── workflows/              # 21 workflow definitions
+├── agents/                 # 12 subagent definitions
+├── results/plan-{sessionId}.json               # Generated plan output
+├── state/                  # Active workflow state files
+├── results/                # Agent result files
+└── mcp.json                # MCP server configuration
 ```
 
-Thư mục `.claude/` chỉ tồn tại như tầng tích hợp IDE — chứa symlink trỏ về `.agents/`, cùng hook phát hiện từ khóa và thanh trạng thái HUD. Thư mục `.serena/memories/` lưu trữ trạng thái runtime trong các phiên điều phối.
+Thư mục `.claude/` chỉ là lớp tích hợp IDE. Nó chứa symlink trỏ về `.agents/`, cùng hook để phát hiện từ khóa và statusline HUD. Thư mục `.agents/state/memories/` chứa state điều phối runtime trong các session orchestration (project cũ fallback về đường dẫn legacy `.serena/memories/`).
 
-Kiến trúc này có nghĩa là cấu hình agent:
-- **Di động** — chuyển IDE mà không cần cấu hình lại
-- **Quản lý phiên bản** — commit `.agents/` cùng mã nguồn
-- **Chia sẻ được** — thành viên nhóm có cùng thiết lập agent
+Kiến trúc này khiến cấu hình agent của bạn:
+
+- **Di động**: chuyển IDE mà không cần cấu hình lại
+- **Được quản lý phiên bản**: commit `.agents/` cùng mã nguồn
+- **Có thể chia sẻ**: thành viên trong team nhận cùng thiết lập agent
 
 ---
 
 ## IDE và công cụ CLI được hỗ trợ
 
-oh-my-agent hoạt động với bất kỳ IDE hoặc CLI hỗ trợ AI nào có khả năng tải skill/prompt:
+oh-my-agent hoạt động với các IDE và CLI có AI đã chọn thông qua cơ chế tải skill/prompt native hoặc các tệp tích hợp được tạo:
 
 | Công cụ | Phương thức tích hợp | Agent song song |
 |------|-------------------|----------------|
-| **Claude Code** | Skill native + Agent tool | Task tool cho song song thực sự |
-| **Gemini CLI** | Tự động tải skill từ `.agents/skills/` | `oma agent spawn` |
-| **Codex CLI** | Tự động tải skill | Yêu cầu song song qua mô hình trung gian |
-| **Antigravity IDE** | Tự động tải skill | `oma agent spawn` |
+| **Claude Code** | Skill native + Agent tool | Task tool để chạy song song thực sự |
+| **Antigravity CLI/IDE** | Skill và MCP setting chiếu cho `agy` | `oma agent spawn` |
+| **Codex CLI** | Skill tự tải | Yêu cầu song song do model điều phối |
 | **Cursor** | Skill qua tích hợp `.cursor/` | Spawn thủ công |
-| **OpenCode** | Skill + cầu nối plugin in-process + subagent được sinh ra (`.opencode/agents/`) | `oma agent spawn --vendor opencode` |
+| **OpenCode** | Skill + cầu nối plugin trong process + subagent được tạo (`.opencode/agents/`) | `oma agent spawn --vendor opencode` |
+| **Kimi Code CLI** | Hook + skill trong `~/.kimi-code/` (ghi HOME cần consent; cũng đọc SSOT `.agents/skills/` native); Serena MCP theo project | `oma agent spawn --vendor kimi` |
 
-Spawn agent tự động thích ứng với từng vendor thông qua giao thức phát hiện vendor, kiểm tra các marker đặc thù vendor (ví dụ: `Agent` tool cho Claude Code, `apply_patch` cho Codex CLI).
+Cách spawn agent thích ứng với từng vendor được chọn thông qua phát hiện vendor và cấu hình đang hoạt động. Runtime cùng vendor có thể dùng subagent native; công việc cross-vendor fallback về `oma agent spawn`. Xem [Parallel Execution](../core-concepts/parallel-execution.md) để biết quy tắc dispatch.
 
 ---
 
 ## Hệ thống định tuyến skill
 
-Khi bạn gửi prompt, oh-my-agent xác định agent nào sẽ xử lý bằng bản đồ định tuyến skill (`.agents/skills/_shared/core/skill-routing.md`):
+Khi bạn gửi prompt, oh-my-agent xác định agent xử lý qua bản đồ định tuyến skill (`.agents/skills/_shared/core/skill-routing.md`):
 
-| Từ khóa lĩnh vực | Định tuyến đến |
+| Từ khóa domain | Định tuyến tới |
 |----------------|-----------|
 | API, endpoint, REST, GraphQL, database, migration | oma-backend |
 | auth, JWT, login, register, password | oma-backend |
 | UI, component, page, form, screen (web) | oma-frontend |
 | style, Tailwind, responsive, CSS | oma-frontend |
-| mobile, iOS, Android, Flutter, React Native, app | oma-mobile |
+| mobile, iOS, Android, Flutter, React Native, Swift, SwiftUI, app | oma-mobile |
 | bug, error, crash, broken, slow | oma-debug |
 | review, security, performance, accessibility | oma-qa |
 | UI design, design system, landing page, DESIGN.md | oma-design |
@@ -164,51 +218,59 @@ Khi bạn gửi prompt, oh-my-agent xác định agent nào sẽ xử lý bằng
 | plan, breakdown, task, sprint | oma-pm |
 | automatic, parallel, orchestrate | oma-orchestration |
 
-Đối với các yêu cầu phức tạp trải rộng nhiều lĩnh vực, định tuyến theo thứ tự thực thi đã thiết lập. Ví dụ, "Tạo ứng dụng fullstack" sẽ định tuyến đến: oma-pm (lập kế hoạch) rồi oma-backend + oma-frontend (triển khai song song) rồi oma-qa (đánh giá).
+Với yêu cầu phức tạp trải rộng nhiều domain, định tuyến theo thứ tự thực thi đã thiết lập. Ví dụ, “Create a fullstack app” được định tuyến tới oma-pm (plan), rồi oma-backend + oma-frontend (triển khai song song), rồi oma-qa (review).
 
 ---
 
-## Thanh trạng thái HUD
+## HUD statusline
 
-Khi chạy trong Claude Code, oh-my-agent hiển thị chỉ báo trạng thái liên tục `[OMA]` trên thanh trạng thái cho thấy:
-- Tên mô hình (ví dụ: Opus, Sonnet)
-- Mức sử dụng ngữ cảnh với mã màu (xanh < 70%, vàng 70-85%, đỏ > 85%)
-- Trạng thái workflow đang hoạt động (nếu có workflow liên tục đang chạy)
+Khi chạy trong Claude Code, oh-my-agent hiển thị chỉ báo trạng thái liên tục `[OMA]` trên status bar, cho biết:
 
-HUD được vận hành bởi `.claude/hooks/hud.ts` sử dụng tính năng hook `statusLine` của Claude Code.
+- Tên model (ví dụ Opus, Sonnet)
+- Mức sử dụng context với màu (xanh < 70%, vàng 70-85%, đỏ > 85%)
+- State workflow đang hoạt động (nếu có workflow persistent)
 
----
-
-## Phát hiện workflow tự động
-
-Bạn không cần gõ `/command` để kích hoạt workflow. Hook `UserPromptSubmit` của oh-my-agent quét đầu vào ngôn ngữ tự nhiên so với trigger từ khóa được định nghĩa trong `.claude/hooks/triggers.json` — hỗ trợ 11 ngôn ngữ (Tiếng Anh, Tiếng Hàn, Tiếng Nhật, Tiếng Trung, Tiếng Tây Ban Nha, Tiếng Pháp, Tiếng Đức, Tiếng Bồ Đào Nha, Tiếng Nga, Tiếng Hà Lan, Tiếng Ba Lan).
-
-- **Đầu vào hành động** (ví dụ: "plan the auth feature") — tự động tải workflow
-- **Đầu vào thông tin** (ví dụ: "what is orchestrate?") — được lọc bỏ, không trigger workflow
-- **`/command` tường minh** — hook bỏ qua phát hiện để tránh trùng lặp
-- **Workflow liên tục** đưa lại ngữ cảnh vào mỗi tin nhắn cho đến khi bạn nói "workflow done"
+HUD được cung cấp bởi `.claude/hooks/hud.ts`, dùng tính năng hook `statusLine` của Claude Code.
 
 ---
 
-## Hỗ trợ đa vendor
+## Tự động phát hiện workflow
 
-oh-my-agent không giới hạn ở Claude Code. Hệ thống hook hỗ trợ:
+Bạn không cần gõ `/command` để kích hoạt workflow. Hệ thống hook của oh-my-agent quét input ngôn ngữ tự nhiên theo các trigger keyword trong `.agents/hooks/core/triggers.json` (được inline vào binary `oma` và dùng chung cho mọi vendor), hỗ trợ 11 ngôn ngữ (English, Korean, Japanese, Chinese, Spanish, French, German, Portuguese, Russian, Dutch, Polish).
 
-| Vendor | Tích hợp |
-|--------|------------|
-| **Claude Code** | Hook native (`UserPromptSubmit`, `Notification`, statusLine) |
-| **Gemini CLI** | Tự động tải skill từ `.agents/skills/`, spawn agent qua `oma agent spawn` |
-| **Codex CLI** | Tự động tải skill, yêu cầu song song qua mô hình trung gian |
-| **Qwen Code** | Hỗ trợ hook cho phát hiện workflow |
+- **Input có thể thực hiện** (ví dụ “plan the auth feature”) → tự động tải workflow
+- **Input mang tính thông tin** (ví dụ “what is orchestrate?”) → bị lọc, không kích hoạt workflow
+- **`/command` rõ ràng** → hook bỏ qua detection để tránh trùng lặp
+- **Workflow persistent** bơm lại context ở mỗi message cho tới khi bạn nói “workflow done”
 
-Phát hiện vendor diễn ra tự động — agent thích ứng phương thức spawn dựa trên môi trường runtime được phát hiện.
+Mọi hook event được gửi qua ABI chuẩn `oma hook run`: vendor gọi `oma-hook.sh --vendor <v> --event <nativeEvent>`, lệnh này chuyển tới chuỗi handler trong process và xuất dialect riêng của vendor trên stdout (luôn exit 0, fail-open).
+
+---
+
+## Hỗ trợ cross-vendor
+
+oh-my-agent không chỉ giới hạn ở Claude Code. Vendor có hook dùng chung ABI `oma hook run`, còn vendor mở rộng dùng bridge trong process:
+
+| Vendor | Phân phối hook | StatusLine |
+|--------|--------------|------------|
+| **Claude Code** | `oma-hook.sh --vendor claude --event UserPromptSubmit` / `PreToolUse` / `Stop` | `bun .claude/hooks/hud.ts` (trực tiếp, không thay đổi) |
+| **Codex CLI** | `oma-hook.sh --vendor codex --event UserPromptSubmit` / `PreToolUse` / `Stop` | Không có |
+| **Qwen Code** | `oma-hook.sh --vendor qwen --event UserPromptSubmit` / `PreToolUse` / `Stop` | Đường dẫn `bun` qua `ui.statusLine` |
+| **Cursor** | `oma-hook.sh --vendor cursor --event beforeSubmitPrompt` / `preToolUse` | Không có |
+| **Grok** | `oma-hook.sh --vendor grok --event UserPromptSubmit` / `Stop` | Không có |
+| **Kiro** | `oma-hook.sh --vendor kiro --event userPromptSubmit` / `preToolUse` / `stop` | Không có |
+| **Kimi Code** | `oma-hook.sh --vendor kimi --event UserPromptSubmit` / `PreToolUse` / `Stop` (TOML `[[hooks]]` chỉ global trong `~/.kimi-code/config.toml`) | Không có |
+| **Antigravity** | `oma-hook.sh --vendor antigravity --event PreInvocation` / `PreToolUse` / `Stop` | Không có |
+| **pi** | Bridge trong process (`installPiExtension`) không đi qua `oma hook run` | Không có |
+
+Thư mục `.agents/` vẫn là nguồn sự thật. Việc cài đặt link hoặc project skill, workflow, hook và định nghĩa agent vào vendor bạn chọn; khả năng khác nhau theo vendor. Subagent native cùng vendor và agent cross-vendor spawn bằng CLI đều đọc từ nguồn đó.
 
 ---
 
 ## Tiếp theo
 
-- **[Cài đặt](./installation.md)** — Ba phương pháp cài đặt, preset, thiết lập CLI và xác minh
-- **[Agent](/docs/core-concepts/agents)** — Tìm hiểu sâu về 21 agent và Charter Preflight
-- **[Skill](/docs/core-concepts/skills)** — Giải thích kiến trúc 2 tầng
-- **[Workflow](/docs/core-concepts/workflows)** — 16 workflow với trigger và các giai đoạn
-- **[Hướng dẫn sử dụng](/docs/guide/usage)** — Ví dụ thực tế từ task đơn đến điều phối toàn diện
+- **[Installation](./installation.md)**: Ba phương pháp cài đặt, preset, thiết lập CLI và xác minh
+- **[Agents](/docs/core-concepts/agents)**: Tìm hiểu sâu 33 skill, 13 vai trò dispatch và charter preflight
+- **[Skills](/docs/core-concepts/skills)**: Giải thích kiến trúc hai lớp
+- **[Workflows](/docs/core-concepts/workflows)**: Toàn bộ 21 workflow cùng trigger và phase
+- **[Usage Guide](/docs/guide/usage)**: Ví dụ thực tế từ task đơn lẻ tới orchestration đầy đủ

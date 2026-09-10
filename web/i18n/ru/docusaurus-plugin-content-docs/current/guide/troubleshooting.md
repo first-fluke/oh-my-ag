@@ -1,0 +1,107 @@
+---
+title: "Руководство: устранение неполадок"
+sidebar_label: Устранение неполадок
+description: Диагностируйте проблемы установки, конфигурации, вендора, панели, расписания, evaluation и результатов агентов с помощью проверок, опирающихся на исходный код.
+---
+
+# Устранение неполадок
+
+Начните с машиночитаемой диагностики из корня проекта или установки:
+
+```bash
+oma doctor --json
+```
+
+Команда должна завершиться JSON, описывающим найденные проблемы установки, вендора, конфигурации и интеграций. Добавьте `--profile`, если проблема связана с разрешением модели или агента. Сохраните JSON при сообщении о проблеме: он содержит выбранные пути и проверки, поэтому не нужно заменять факты предположениями.
+
+## CLI или установка используют не те файлы
+
+Явно проверьте контекст:
+
+```bash
+oma doctor --json
+oma doctor --profile
+```
+
+Команды проекта читают ближайший `.agents/oma-config.cue` или `.agents/oma-config.yaml`, затем один local overlay. Глобальная команда читает корень установки в HOME. Если одновременно существуют локальные файлы CUE и YAML, удалите один из них. Если локальный файл повреждён, OMA останавливается, а не молча игнорирует override. См. [Справочник конфигурации](/docs/guide/configuration-reference).
+
+После обновления проверьте конфигурацию и созданные пути:
+
+```bash
+oma update --ci
+oma doctor --json
+```
+
+`oma update --ci` сохраняет неинтерактивный режим. Если пользовательская конфигурация неожиданно заменена, проверьте, не использовался ли `--force`; обычные обновления сохраняют пользовательский config, тогда как force mode может его заменить.
+
+## Vendor не запускается
+
+Выполните собственную проверку аутентификации vendor, затем изучите разрешённый профиль OMA:
+
+```bash
+oma doctor --profile
+oma agent spawn AGENT "print the resolved runtime and stop" SESSION --read-only
+```
+
+Для повторной аутентификации используйте точную команду vendor, которую показал `oma doctor`. Override модели должен иметь форму `owner/model`, допустимую схемой, а vendor должен поддерживать выбранный CLI transport. При `model_preset: free` проверьте через `oma doctor --profile` разрешённые URL gateway и модель, затем убедитесь, что в настроенной переменной окружения API key есть ключ. Если карту `free` не задавать, используются `http://127.0.0.1:31415/v1`, `FREELLM_API_KEY` и модель `auto`; никогда не помещайте сам API key в YAML.
+
+Если child завершился без result artifact, проверьте каталог run и статус parent. Запущенный child получает identity run и инструкции результата, записывает claim во внедрённый путь и сообщает свои artifacts; parent завершает managed receipt после получения exit code. Read-only child возвращает `OMA_RESULT_JSON: ...`; эта строка записывается как inspection и не заменяет исполняемую проверку.
+
+## Hooks установлены, но не работают
+
+Для Codex проверьте созданный файл и выполните однократный flow доверия:
+
+```bash
+test -f .codex/hooks.json
+codex
+# inside Codex: /hooks
+```
+
+Запускайте `/hooks` после первой установки и после обновления, изменившего строку команды. Дочерние Codex-процессы, запущенные OMA, передают bypass flag для собственного managed-вызова; это не означает доверие hook в сессии Codex, которую вы запускаете сами. См. [Доверие к Codex hooks](/docs/guide/codex-hook-trust).
+
+## Dashboard пуст или отключён
+
+Запустите terminal dashboard из проекта, содержащего файлы сессий:
+
+```bash
+oma dashboard terminal
+```
+
+По умолчанию он читает `.agents/state/memories/`. Задайте `MEMORIES_DIR`, если состояние находится в другом месте. Web dashboard привязывается к loopback и печатает URL с token:
+
+```bash
+MEMORIES_DIR=/path/to/.agents/state/memories DASHBOARD_PORT=9847 oma dashboard web
+```
+
+Откройте точный URL, напечатанный командой; web API и WebSocket требуют dashboard token. Если порт занят, используйте другой `DASHBOARD_PORT`. Если агенты не отображаются, проверьте, что workflow записал файлы session/task/progress в выбранный каталог memory. Dashboard не ищет автоматически устаревший каталог `.serena/memories/`.
+
+## Расписание отсутствует или не запускается
+
+Проверьте manifest и состояние scheduler:
+
+```bash
+oma schedule list
+oma schedule sync
+oma schedule run SCHEDULE_ID
+```
+
+`schedule list` сообщает `synced`, `missing-in-os` и `orphan-in-os`. `schedule sync` восстанавливает отсутствующие задания; добавляйте `--prune`, только когда осиротевшие задания ОС нужно удалить. Preview, созданный с `--dry-run`, не регистрирует задание. Для повторяющегося интервала после просмотра preview примите округление OMA с помощью `--accept-rounded`. В журнале запуска в `~/.agents/schedule/runs/<id>/` ищите ненулевой exit vendor или сообщение `re-auth required`.
+
+## В отчёте evaluation или optimization нет покрытия
+
+И skill eval, и skill optimization требуют как минимум пять fixture в `.agents/eval/<skill>/`. В mock mode сохранённое происхождение rollout должно соответствовать текущему skill и hash fixture. Перезапишите данные в live mode, если fixture или skill изменился; не копируйте старый файл `_rollouts` в новый каталог skill и не выдавайте его за актуальное evidence.
+
+Во время optimization сохраняйте стандартный `--dry-run`, пока просматриваете предлагаемый diff. `--apply` требует строгого положительного результата validation и успешно пройденного test split, принадлежащего runner; принадлежащий OMA skill может быть перезаписан последующим `oma update`.
+
+## Результат нельзя завершить или возобновить
+
+Проверьте файлы run и plan:
+
+```bash
+ls .agents/state/agent-runs/
+oma agent resume SESSION_ID --dry-run
+```
+
+Перед завершением выполните `oma agent verify RUN_ID --required`. Завершённый claim с неудачным receipt, изменившимися input, отсутствующими artifact, нерешёнными пунктами или изменившимся task contract будет отклонён или понижен до partial. Resume выполняется автоматически только для задач с `retry_policy: "safe"`, воспроизводимым prompt и оставшимися попытками. Живой процесс или прерванный native run без ясного partial/failed результата оставляется без изменений, чтобы избежать дублирования. См. [Результаты агентов и возобновление](/docs/guide/agent-results-and-resume).
+
+Запрашивая помощь, приложите соответствующий результат `oma doctor --json`, команду, ID session/run и нерешённое сообщение. Не включайте credential или содержимое файлов с секретами.

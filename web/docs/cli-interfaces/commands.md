@@ -9,17 +9,91 @@ After installing globally (`bun install --global oh-my-agent`), use `oma` or `oh
 
 The environment variable `OH_MY_AG_OUTPUT_FORMAT` can be set to `json` to force machine-readable output on commands that support it. This is equivalent to passing `--json` to each command.
 
+## Start with a task
+
+Choose the smallest command that answers the question you have. Each command below prints a path or report that you can inspect before moving to the next step.
+
+| Task | Start here | Expected result |
+|:-----|:-----------|:----------------|
+| Install or repair a project | `oma install` then `oma doctor` | Installed resources and a health report; use `oma doctor --profile` when model resolution is the question. |
+| Find a command or option from an agent | `oma describe` or `oma describe "image generate"` | JSON describing arguments, options, and nested commands. |
+| Generate an image | `oma image generate "<prompt>" --output json` | Image paths and a manifest under `.agents/results/images/`. |
+| Plan or render video | `oma video generate "<brief>" --dry-run` | A run directory with planning artifacts; compose and render only after the composition is authored. |
+| Make an interactive code explainer | `/explain` | A validated self-contained HTML artifact under `.agents/results/explain/`. |
+| Resolve a diagram engine | `oma diagram resolve --output json` | The selected Mermaid or archify engine and its reason. |
+| Research community signals | `oma market detect-trap "<topic>"` | A preflight result; continue with `oma market resolve --output json` and the upstream run only when it passes. |
+| Convert or inspect a paper | `oma scholar search "<query>"` | Search results from Knows, OpenAlex, or Semantic Scholar; fetch a sidecar with `oma scholar get`. |
+| Build a slide deck | `oma slide create --output-dir <dir>` | A working directory that can be authored, validated, bundled, and exported. |
+| Review documentation drift | `oma docs verify --json` | A structured broken-reference report and regenerated reference index. |
+
+The registry currently exposes 42 public command families (version `14.7.9` at the time this page was checked). The canonical discovery names below are the paths returned by `oma describe`; the interactive help may show compatibility aliases such as `slide new`, `slide viewer`, `image list-vendors`, or `video list-providers`.
+
+## Current command surface
+
+This map keeps the long references below scannable and makes the less frequently used families discoverable. Use each family’s `--help` or `oma describe <path>` for the exact argument grammar; [CLI Options](./options.md) contains the complete registry flag matrix.
+
+| Family | Registered paths |
+|:-------|:-----------------|
+| `install` | `install` |
+| `describe` | `describe` |
+| `uninstall` | `uninstall` |
+| `update` | `update`, `update mcp` |
+| `link` | `link` |
+| `intel` | `intel`, `intel suggest` |
+| `market` | `market`, `market detect-trap`, `market resolve`, `market update`, `market run` |
+| `doctor` | `doctor` |
+| `profile` | `profile`, `profile list`, `profile show`, `profile create`, `profile use`, `profile run` |
+| `retro` | `retro` |
+| `recap` | `recap` |
+| `docs` | `docs`, `docs verify`, `docs sync`, `docs i18n`, `docs lint` |
+| `emit` | `emit` |
+| `cleanup` | `cleanup` |
+| `bridge` | `bridge` |
+| `verify` | `verify`, `verify agent`, `verify triggers` |
+| `vault` | `vault`, `vault store`, `vault get`, `vault list`, `vault delete` |
+| `star` | `star` |
+| `visualize` | `visualize` |
+| `search` | `search`, `search providers`, `search web`, `search fetch`, `search meta`, `search media`, `search archive`, `search trust`, `search code`, `search doctor`, `search api`, `search api fetch`, `search api search`, `search rss`, `search rss fetch`, `search rss google` |
+| `harness` | `harness`, `harness eval` |
+| `slide` | `slide`, `slide validate`, `slide bundle`, `slide edit`, `slide doctor`, `slide create`, `slide preview`, `slide export`, `slide export pdf`, `slide export png`, `slide export pptx`, `slide import`, `slide import pptx`, `slide asset`, `slide asset fetch-video`, `slide style`, `slide style list`, `slide style preview`, `slide style get` |
+| `scholar` | `scholar`, `scholar search`, `scholar resolve`, `scholar get`, `scholar lint` |
+| `image` | `image`, `image generate`, `image doctor`, `image vendor`, `image vendor list` |
+| `video` | `video`, `video generate`, `video doctor`, `video compose`, `video render`, `video provider`, `video provider list` |
+| `serena` | `serena`, `serena reap`, `serena reaper`, `serena reaper enable`, `serena reaper disable` |
+| `explain` | `explain`, `explain validate` |
+| `diagram` | `diagram`, `diagram resolve`, `diagram update`, `diagram archify` |
+| `help` | `help` |
+| `version` | `version` |
+| `dashboard` | `dashboard`, `dashboard terminal`, `dashboard web` |
+| `auth` | `auth`, `auth status` |
+| `hook` | `hook`, `hook run`, `hook probe` |
+| `state` | `state`, `state emit`, `state migrate`, `state get`, `state list`, `state repair`, `state verify`, `state decisions`, `state decisions list`, `state inject-log`, `state inject-log list`, `state inject-log get`, `state summary`, `state heal-check`, `state activate`, `state archive`, `state purge` |
+| `ralph` | `ralph`, `ralph verify` |
+| `goal` | `goal`, `goal set` |
+| `stats` | `stats`, `stats get`, `stats reset` |
+| `agent` | `agent`, `agent context`, `agent resume`, `agent begin`, `agent verify`, `agent finish`, `agent spawn`, `agent status`, `agent parallel`, `agent review` |
+| `model` | `model`, `model check`, `model probe`, `model propose` |
+| `memory` | `memory`, `memory keys`, `memory init`, `memory setup`, `memory daemon`, `memory daemon status`, `memory daemon start`, `memory daemon stop`, `memory daemon restart`, `memory service`, `memory service install`, `memory service uninstall`, `memory status`, `memory retry`, `memory retry drain`, `memory import`, `memory maintain`, `memory maintain backup`, `memory maintain prune`, `memory maintain vacuum`, `memory gc`, `memory upgrade` |
+| `skill` | `skill`, `skill audit`, `skill lint`, `skill eval`, `skill optimize` |
+| `schedule` | `schedule`, `schedule create`, `schedule list`, `schedule delete`, `schedule run`, `schedule sync` |
+
+When a command delegates its remaining arguments to another tool, the registry intentionally leaves its options open. This applies to `market run` and `diagram archify`; read the resolved upstream help before running a mutating or networked operation.
+
 ---
 
 ## Setup & installation
 
-### oma (install)
+### install
 
-The default command with no arguments launches the interactive installer.
+`oma` with no arguments launches the interactive installer. `oma install` is the explicit form and accepts provider-selection options.
 
 ```
 oma
+oma install
+oma install --web-search native --code-intelligence gortex --semantic-memory agent-memory
 ```
+
+`--web-search`, `--code-intelligence`, and `--semantic-memory` retain the saved provider choice when omitted. `--honcho-url` and `--honcho-workspace` configure a new Honcho connection when that provider is selected. The root `-y, --yes` flag skips prompts and uses defaults; `--global` targets the HOME install.
 
 **What it does:**
 1. Checks for legacy `.agent/` directory and migrates to `.agents/` if found.
@@ -97,7 +171,7 @@ oma doctor --profile
 Update skills to the latest version from the registry.
 
 ```
-oma update [-f | --force] [--ci] [-y | --yes] [--all] [--vendor <vendors>]
+oma update [-f | --force] [--with-new-skills] [--ci] [-y | --yes] [--all] [--vendor <vendors>]
 ```
 
 **Options:**
@@ -105,6 +179,7 @@ oma update [-f | --force] [--ci] [-y | --yes] [--all] [--vendor <vendors>]
 | Flag | Description |
 |:-----|:-----------|
 | `-f, --force` | Overwrite user-customized config files (`oma-config.yaml`, `mcp.json`, `stack/` directories) |
+| `--with-new-skills` | Install skills that are new in this release; without it, refresh only skills already installed. |
 | `--ci` | Run in non-interactive CI mode (skip prompts, plain text output) |
 | `-y, --yes` | Skip prompts. Vendor scope is unchanged: only existing vendor directories are updated unless `--all` or `--vendor` is provided. |
 | `--all` | Create/update all supported project-scoped vendors. |
@@ -143,7 +218,23 @@ oma update --all
 
 # Create/update only Claude and Qwen integrations
 oma update --vendor claude,qwen
+
+# Also refresh browser MCP selections
+oma update mcp --ci
 ```
+
+`oma update mcp` has its own `--yes`, `--ci`, `--all`, and `--vendor <vendors>` options. It selects supported browser MCP servers (Aside, Chrome DevTools, or Firefox DevTools) for the chosen project-scoped vendors.
+
+### uninstall
+
+Preview or remove files owned by OMA from the selected install root:
+
+```
+oma uninstall --dry-run
+oma uninstall --yes
+```
+
+`--dry-run` lists removals without changing files. `--yes` skips the confirmation prompt. The command preserves `oma-config.yaml`, `mcp.json`, and user-authored skills according to the registered command description. If the preview includes a file you still need, stop and keep the dry-run output for review.
 
 ### link
 
@@ -244,7 +335,7 @@ View productivity metrics.
 
 ```
 oma stats get [--json] [--output <format>]
-oma stats reset
+oma stats reset [--json] [--output <format>]
 ```
 
 **Options:**
@@ -253,7 +344,6 @@ oma stats reset
 |:-----|:-----------|
 | `--json` | Output as JSON |
 | `--output <format>` | Output format (`text` or `json`) |
-| `--reset` | Reset all metrics data |
 
 **Metrics tracked:**
 - Session count
@@ -271,7 +361,7 @@ oma stats reset
 
 The estimate is a floor, not a billing-accurate amount. Configure `session.quota_cap` in `.agents/oma-config.yaml` to enforce hard budgets at spawn time; see the Why oh-my-agent page in Getting Started for the quality-first arsenal these caps belong to.
 
-Metrics are stored in `.serena/metrics.json`. Data is collected from git stats and memory files.
+Metrics are stored in `.agents/state/metrics.json`; a legacy `.serena/metrics.json` is read when present. Data is collected from git stats and memory files.
 
 **Examples:**
 ```bash
@@ -594,17 +684,17 @@ oma agent parallel tasks.yaml --vendor claude
 
 ### agent review
 
-Run a code review using an external AI CLI (codex, claude, or qwen).
+Run a code review using an external AI CLI (codex, claude, qwen, or grok).
 
 ```
-oma agent review [-m <vendor>] [-p <prompt>] [-w <path>] [--no-uncommitted]
+oma agent review [--vendor <vendor>] [-p <prompt>] [-w <path>] [--no-uncommitted]
 ```
 
 **Options:**
 
 | Flag | Description |
 |:-----|:-----------|
-| `--vendor <vendor>` | CLI vendor to use: `codex`, `claude`, `gemini`, `qwen`, `grok`. Defaults to `codex` when the resolved config vendor is unsupported. |
+| `--vendor <vendor>` | CLI vendor to use: `codex`, `claude`, `qwen`, or `grok`. Defaults to `codex` when the resolved config vendor is unsupported. |
 | `-p, --prompt <prompt>` | Custom review prompt. If omitted, a default code review prompt is used. |
 | `-w, --workspace <path>` | Path to review. Defaults to the current working directory. |
 | `--no-uncommitted` | Skip uncommitted changes review. When set, only committed changes in the session are reviewed. |
@@ -633,8 +723,8 @@ oma agent review -w ./apps/api
 # Review only committed changes (skip working tree)
 oma agent review --no-uncommitted
 
-# Review committed changes in a specific workspace with gemini
-oma agent review --vendor gemini -w ./apps/web --no-uncommitted
+# Review committed changes in a specific workspace with qwen
+oma agent review --vendor qwen -w ./apps/web --no-uncommitted
 ```
 
 ### goal set
@@ -919,10 +1009,11 @@ oma bridge http://localhost:12341/mcp
 Verify subagent output against expected criteria.
 
 ```
-oma verify <agent-type> [-w <workspace>] [--json] [--output <format>]
+oma verify agent <agent-type> [-w <workspace>] [--json] [--output <format>]
+oma verify triggers [--corpus <path>] [--max-false-fire <pct>] [--max-missed-fire <pct>] [--json] [--output <format>]
 ```
 
-**Arguments:**
+**`verify agent` arguments:**
 
 | Argument | Required | Description |
 |:---------|:---------|:-----------|
@@ -937,6 +1028,8 @@ oma verify <agent-type> [-w <workspace>] [--json] [--output <format>]
 | `--output <format>` | Output format (`text` or `json`) | |
 
 **What it does:** Runs the verification script for the specified agent type, checking build success, test results, and scope compliance.
+
+`verify triggers` measures keyword-detector accuracy against a labeled prompt corpus. The percentage thresholds are gates. The registered path is `verify agent`; the old top-level spelling may still appear in compatibility help.
 
 **Common checks (all agent types):**
 - **Scope Check**: Reads `.agents/results/plan-{sessionId}.json` task scopes. Compares `git diff` changed files against defined scope patterns. Fails if files are modified outside the agent's assigned scope.
@@ -961,13 +1054,13 @@ Each check reports `PASS`, `FAIL`, `WARN`, or `SKIP` with a detail message. Over
 **Examples:**
 ```bash
 # Verify backend output in default workspace
-oma verify backend
+oma verify agent backend
 
 # Verify frontend in specific workspace
-oma verify frontend -w ./apps/web
+oma verify agent frontend -w ./apps/web
 
 # JSON output for CI
-oma verify backend --json
+oma verify agent backend --json
 ```
 
 ### hook
@@ -982,7 +1075,7 @@ oma hook run --vendor <v> --event <nativeEvent> [--matcher <tool>]
 
 | Flag | Required | Description |
 |:-----|:---------|:-----------|
-| `--vendor <v>` | Yes | Vendor identity. One of: `claude`, `codex`, `cursor`, `gemini`, `grok`, `kiro`, `qwen`, `antigravity`. (The `pi` vendor is **not** valid here — it uses the in-process `installPiExtension` bridge instead of `oma hook run`.) |
+| `--vendor <v>` | Yes | Vendor identity. One of: `antigravity`, `claude`, `codex`, `commandcode`, `cursor`, `grok`, `kimi`, `kiro`, or `qwen`. (The `pi` vendor is **not** valid here — it uses the in-process `installPiExtension` bridge instead of `oma hook run`.) |
 | `--event <e>` | Yes | Native hook event name as registered in the vendor settings (e.g. `UserPromptSubmit`, `PreToolUse`, `Stop`) |
 | `--matcher <m>` | No | Optional tool name / matcher forwarded from the hook registration (e.g. `Bash`) |
 
@@ -1017,9 +1110,9 @@ echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /"},"cwd":"/path/to/pr
 echo '{"cwd":"/path/to/project"}' \
   | oma hook run --vendor codex --event Stop
 
-# Test a Gemini BeforeTool event
+# Test an Antigravity BeforeTool event
 echo '{"tool_name":"run_shell_command","tool_input":{"command":"cat /etc/passwd"},"cwd":"/path/to/project"}' \
-  | oma hook run --vendor gemini --event BeforeTool
+  | oma hook run --vendor antigravity --event BeforeTool
 ```
 
 Empty stdout means the chain produced a no-op for that event. A JSON object on stdout is the vendor dialect the agent session would receive.
@@ -1040,9 +1133,9 @@ echo '{"prompt":"plan the new checkout feature","cwd":"'$(pwd)'"}' \
 # Verify a Qwen Stop event fires the persistent-mode block
 echo '{"cwd":"'$(pwd)'"}' | oma hook run --vendor qwen --event Stop
 
-# Check Gemini hook output format
+# Check Antigravity hook output format
 echo '{"prompt":"brainstorm","cwd":"'$(pwd)'"}' \
-  | oma hook run --vendor gemini --event BeforeAgent
+  | oma hook run --vendor antigravity --event BeforeAgent
 ```
 
 ---
@@ -1060,7 +1153,7 @@ oma hook probe [--vendor <list>] [--output <fmt>] [--hooks-dir <dir>]
 | Flag | Description | Default |
 |:-----|:-----------|:--------|
 | `--vendor <list>` | Comma-separated vendors to probe | All supported vendors |
-| `--format <fmt>` | Output format: `text`, `md`, or `json` | `text` |
+| `--output <fmt>` | Output format: `text`, `md`, or `json` | `text` |
 | `--hooks-dir <dir>` | Override the `.agents/hooks/core` directory | Auto-detected |
 
 **What it checks:** For each vendor, probes whether the core hook scripts (`keyword-detector`, `persistent-mode`, etc.) are present and whether the variant JSON maps events correctly to handler chains. Exit code `1` if any vendor reports `failed` status.
@@ -1077,7 +1170,7 @@ oma hook probe --output md
 oma hook probe --output json | jq '.results[] | select(.status == "failed")'
 
 # Probe a subset of vendors
-oma hook probe --vendor claude,codex,gemini
+oma hook probe --vendor claude,codex,antigravity
 ```
 
 ---
@@ -1329,6 +1422,29 @@ oma search code "useEffect cleanup" --language ts --limit 10
 oma search doctor
 ```
 
+The registry also exposes these explicit discovery helpers:
+
+```bash
+# Inspect which providers are registered without making a network request
+oma search providers --json
+
+# Use the selected web provider with bounded output
+oma search web "latest browser automation" --limit 10 --timeout 30s --pretty
+
+# Fetch metadata and feeds directly
+oma search meta https://example.com/article --pretty
+oma search media https://example.com/video --subs --sub-lang en --pretty
+oma search archive https://example.com/article --pretty
+
+# Platform API and RSS routes
+oma search api fetch https://example.com/article --pretty
+oma search api search "RAG patterns" --platforms hackernews,reddit --pretty
+oma search rss fetch https://example.com/feed.xml --pretty
+oma search rss google "browser automation"
+```
+
+`search` emits JSON even without `--json`. `--pretty` changes presentation only; it does not change the result schema. `search web` accepts `--provider`, `--limit`, `--timeout`, `--json`, and `--pretty`. If a strategy is blocked or a dependency is missing, use the exit code table above and rerun `oma search doctor` before changing strategies.
+
 ### image
 
 Multi-vendor AI image generation with authentication-aware parallel dispatch. Aliased as `oma img`.
@@ -1344,26 +1460,25 @@ oma img <subcommand> ...
 |:-----------|:--------|
 | `generate <prompt...>` | Generate images via `pollinations` (flux/zimage, free), `codex` (gpt-image-2 via ChatGPT OAuth), or `antigravity` (nano-banana via Gemini Code Assist subscription, keyless) |
 | `doctor` | Check authentication and install status per vendor |
-| `list-vendors` | List registered vendors and supported models |
+| `vendor list` | List registered vendors and supported models |
 
 **`image generate` options:**
 
 | Flag | Description | Default |
 |:-----|:-----------|:--------|
-| `--vendor <name>` | `auto` \| `pollinations` \| `codex` \| `gemini` \| `all` | `auto` |
-| `--size <size>` | `1024x1024` \| `1024x1536` \| `1536x1024` \| `auto` | vendor default |
+| `--vendor <name>` | `auto` \| `pollinations` \| `codex` \| `antigravity` \| `all` | `auto` |
+| `--size <size>` | Any `WxH` with edges divisible by 16, 16–3840, and aspect ratio 1:3–3:1; `auto` is also accepted. | vendor default |
 | `--quality <level>` | `low` \| `medium` \| `high` \| `auto` | vendor default |
 | `-n, --count <n>` | Number of images (1..5) | `1` |
-| `--out <dir>` | Output directory | `.agents/results/images/{timestamp}/` |
-| `--allow-external-out` | Allow `--out` paths outside `$PWD` | `false` |
-| `--vendor <name>` | Vendor-specific model override | |
-| `--strategy <list>` | Gemini fallback order, comma-separated (`mcp,stream,api`) | |
-| `--timeout <seconds>` | Per-image timeout | vendor default |
-| `-r, --reference <path>` | Reference image(s); repeatable (`-r a.png -r b.png`) or comma-separated. Supported on `codex` and `gemini`; rejected on `pollinations`. Each ≤5MB PNG/JPEG/GIF/WebP (magic-byte validated), max 10. | |
+| `--output-dir <path>` | Output directory | `.agents/results/images/{timestamp}/` |
+| `--allow-external-output` | Allow output paths outside `$PWD` | `false` |
+| `--model <name>` | Vendor-specific model override; ignored by `antigravity`, whose model is opaque. | vendor default |
+| `--timeout <duration>` | Per-image timeout | vendor default |
+| `-r, --reference <path>` | Reference image(s); repeatable or comma-separated. Supported on `codex` and `antigravity`; rejected on `pollinations`. Each ≤5MB PNG/JPEG/GIF/WebP (magic-byte validated), max 10. | |
 | `-y, --yes` | Skip cost confirmation | `false` |
 | `--no-prompt-in-manifest` | Store SHA256 of prompt instead of raw text | `false` |
 | `--dry-run` | Print plan and cost estimate; do not execute | `false` |
-| `--format <format>` | CLI output format: `text` \| `json` | `text` |
+| `--output <format>` | CLI output format: `text` \| `json` | `text` |
 
 Each run writes a `manifest.json` next to the generated images recording vendor, model, prompt (or hash), size, quality, and cost.
 
@@ -1382,16 +1497,35 @@ oma image generate "cat astronaut" --vendor all
 # Cost estimate without spending
 oma image generate "test prompt" --dry-run
 
-# Use a reference image to guide style / subject (codex or gemini)
+# Use a reference image to guide style / subject (codex or antigravity)
 oma image generate "same otter in dramatic lighting" --vendor codex -r ~/Downloads/otter.jpeg
 
 # Multiple references (repeatable or comma-separated)
-oma image generate "blend these styles" --vendor gemini -r a.png -r b.png
-oma image generate "blend these styles" --vendor gemini -r a.png,b.png
+oma image generate "blend these styles" --vendor antigravity -r a.png -r b.png
+oma image generate "blend these styles" --vendor antigravity -r a.png,b.png
 
 # Per-vendor doctor check
 oma image doctor --output json
 ```
+
+### video
+
+Plan, author, and render short-form, explainer, and demo videos. `generate` creates the brief, script, render specification, and run manifest; a composition and a working compositor are required before a real MP4 can be rendered.
+
+```
+oma video generate "three ways to reduce build times" --mode shorts --dry-run --output json
+oma video generate "product walkthrough" --mode demo --capture ./capture.mp4 --output json
+oma video doctor --output json
+oma video provider list --output json
+oma video compose <runDir> --output json
+oma video render <runDir> --output json
+```
+
+`generate` accepts `--mode shorts|explainer|demo`, `--aspect`, `--locale`, `--captions`, `--visual`, `--voice`, `--music`, `--duration`, `--compositor remotion|mpt`, `--capture`, `--source file|web`, `--url`, `--device`, `--ready-selector`, `--show-cursor`, `--polish`, `--capture-timeout`, and `--capture-stop duration:<seconds>|selector:<css>`. Use `--source web --url <url>` for a browser capture; `--source file` is the default. `--output-dir` selects the run root, `--allow-external-output` permits a path outside `$PWD`, `--max-usd` sets a cost ceiling, `--seed` stabilizes planning inputs, and `--no-brief-in-manifest` stores a brief hash instead of its text. `--dry-run` stops after planning. `--output text|json` controls the CLI envelope.
+
+`doctor` checks the cached Remotion/MPT toolchain and accepts `--install`, `--upgrade`, `--install-mpt`, and `--install-strudel`. `provider list` reports provider availability and key status. `compose` scaffolds or refreshes the run composition and reports the authoring contract; `render` typechecks, renders, and probes the output. Missing compositor, composition, or toolchain dependencies are errors. The test-only `OMA_VIDEO_MOCK=1` path is the sole placeholder mode; a normal run never substitutes a text or tiny-file MP4.
+
+Successful JSON output contains `runDir`, `manifestPath`, `scriptPath`, and `renderSpecPath`; the manifest records selected providers, inputs, and generated assets. After `compose`, author the generated composition according to its `AUTHORING.md`, then rerun `render`. If a provider key is unavailable, run `oma video doctor`; if capture fails, check the URL, selector, device, and timeout; if rendering fails, fix the composition diagnostics before retrying.
 
 ### star
 
@@ -1430,13 +1564,172 @@ oma describe [command-path]
 oma describe
 
 # Describe a specific command
-oma describe agent spawn
+oma describe "agent spawn"
 
 # Describe a subcommand
 oma describe "agent:parallel"
 ```
 
 ---
+
+## Research and artifact commands
+
+These families are useful when the output is a research artifact, a presentation, or a report. They are intentionally short here; the linked guides explain the workflow and recovery choices.
+
+### intel suggest
+
+Suggest product work from market and repository signals:
+
+```
+oma intel suggest --topic "developer onboarding" --target ./my-product --dry-run
+oma intel suggest --config .agents/intel.yaml --json
+```
+
+`--config` supplies the full configuration. For one-off runs, `--topic`, `--target`, `--repos`, `--since`, and `--last-commits` select inputs. `--output-dir` controls local reports, and `--fixture` supplies a local JSON fixture for deterministic review. `--create-issue` files the accepted candidates in GitHub and requires a configured target plus confirmation; pair it with `--base-repo <owner/name>` to select the repository and `--yes` only in an already-approved automation context. `--dry-run` and `--json` are safe inspection paths.
+
+### market
+
+The market family delegates to the resolved upstream `last30days` engine. Start with the gate and resolver:
+
+```
+TOPIC="browser automation pain points"
+oma market detect-trap "$TOPIC"
+oma market resolve --output json
+oma market run "$TOPIC" --days 30 --emit=compact
+```
+
+`market detect-trap` returns exit 2 with a reframe for keyword-trap or overly broad topics; `--force` bypasses that gate only when the user explicitly wants to continue. `market resolve` accepts `--refresh` and `--offline`, and `market update` refreshes the managed engine cache. `market run` passes its remaining arguments to the resolved Python engine and adds `--save-dir` from `market.save_dir` when a topic is supplied. Read [Market Research](../guide/market-research.md) before selecting upstream flags; its `--help` output belongs to the managed engine and changes with the release.
+
+### docs
+
+Use the docs family to inspect documentation drift. The commands are report-oriented; `sync` lists candidates for the host agent and does not edit files itself.
+
+```
+oma docs verify --json
+oma docs verify --no-urls --report-file .agents/results/docs-drift.md
+oma docs sync HEAD~3..HEAD --json
+oma docs i18n --json --min-severity HIGH
+oma docs lint --json --locales ko,ja
+```
+
+`verify` checks local references and regenerates `docs/generated/doc-refs.json`; `--urls-sync` waits for the optional `lychee` URL pass. `sync` defaults to staged changes, then `HEAD~1..HEAD`, and emits `{doc, changedFiles, matchedRefs}` candidates. `i18n` reports structural English/translation drift, while `lint` reports translated-document style issues. None of these subcommands auto-edits the docs.
+
+### slide
+
+`oma slide` operates on a working directory of 1920×1080 HTML slide fragments. A smallest working path is:
+
+```
+oma slide create --output-dir .agents/results/slides/demo
+# author slide-01.html and meta.json in that directory
+oma slide validate --workspace .agents/results/slides/demo --output json
+oma slide preview --workspace .agents/results/slides/demo
+oma slide bundle --workspace .agents/results/slides/demo
+```
+
+The quality gate reports overflow, overlap, and font-size findings. Use `--slide <file>` for a single-slide check and `--report-file <path>` with JSON output. Export only after validation:
+
+```
+oma slide export pdf --workspace <dir> --output-file <file> --mode capture
+oma slide export png --workspace <dir> --output-dir <dir> --resolution 1080p
+oma slide export pptx --workspace <dir> --output-file <file>
+```
+
+PPTX export is experimental and raster-backed. `slide import pptx <file>`, `slide asset fetch-video <url>`, and `slide style list|preview|get <slug>` cover input assets and style discovery. Use [oma-slide](../guide/content-and-research.md#slides-and-presentations) for authoring decisions and the fixed-stage constraints.
+
+### scholar
+
+Search papers and work metadata, then validate sidecars before sharing:
+
+```
+oma scholar search "vision language action" --limit 10
+oma scholar resolve "Attention Is All You Need"
+oma scholar get --section statements "knows:generated/reconvla/1.0.0"
+oma scholar get "10.48550/arXiv.1706.03762"
+oma scholar lint paper.knows.yaml
+```
+
+`search` can limit OpenAlex results with `--year-min` and force fallback providers with `--always-fallback`. `get --section` accepts `statements`, `evidence`, `relations`, `artifacts`, or `citation`. `lint --lenient` demotes dangling cross-record references to warnings; `--fail-on-warning` makes warnings fail for CI. The CLI searches Knows first, then OpenAlex and Semantic Scholar fallbacks; it does not submit sidecars upstream.
+
+### explain
+
+`/explain` is the authoring workflow. The CLI validates already-created artifacts:
+
+```
+oma explain validate .agents/results/explain/2026-09-09-change.html
+oma explain validate --input-dir .agents/results/explain --output json --report-file .agents/results/explain/report.json
+```
+
+Pass a file or `--input-dir`, not both. Validation covers the self-contained HTML contract and reports machine-readable failures; it does not judge the accuracy of the explanation. See [Code Explainer](../guide/code-explainer.md).
+
+### diagram
+
+Resolve the engine before a workflow emits a structural diagram:
+
+```
+oma diagram resolve --output json
+oma diagram resolve --engine mermaid --offline
+oma diagram update
+oma diagram archify validate architecture <stem>.archify.json --quality showcase --json
+oma diagram archify deliver architecture <stem>.archify.json <stem>.archify.html --quality showcase --json
+```
+
+`diagram resolve` accepts `--engine auto|archify|mermaid`, `--refresh`, and `--offline`. `diagram update` refreshes the managed archify copy. `diagram archify` forwards the remaining arguments to the resolved upstream executable and propagates its exit code. Mermaid remains the Markdown source of truth; the HTML is a derived artifact. See [Diagram Engine](../guide/diagram-engine.md).
+
+## State, model, and memory inspection
+
+The following families expose durable workflow state and model/provider diagnostics. Prefer `--dry-run` on cleanup-style actions and `--json` when another program will consume the result.
+
+### state
+
+```
+oma state list --json
+oma state list --all-projects --project /path/to/project --search migration
+oma state get <session-id> --json
+oma state verify --workflow work --checkpoint complete --json
+oma state archive --older-than 90d --dry-run --json
+oma state purge --older-than 90d --dry-run --json
+```
+
+`state emit` records one L1 event with explicit category and session metadata. `state migrate` moves legacy sessions to the selected profile. `state repair` repairs malformed state files. `state decisions list` and `state inject-log list|get` inspect required decisions and injection audit entries. `state activate`, `state archive`, and `state purge` are explicit actions; the old boolean action flags are rejected. Archive or purge only after reviewing a dry-run, because these commands change local state.
+
+### model
+
+```
+oma model check --json
+oma model check --owner openai --fail-on-drift
+oma model probe openai/gpt-5 --timeout 30s --json
+oma model propose --owner anthropic --json
+```
+
+`model check` compares the registry with live vendor lists and can probe new candidates. `model probe` tests one slug against its vendor CLI. `model propose` emits an `oma-config` `models:` patch; use `--write` only when you intend to change configuration. Vendor availability and quota can make probes fail even when a registry entry is valid.
+
+### agent evidence commands
+
+Native agent runs use an evidence-backed sequence:
+
+```
+SESSION_ID="session-$(date +%Y%m%d-%H%M%S)"
+oma agent context docs --difficulty Medium
+oma agent begin docs docs "$SESSION_ID" --workspace .
+# Use the runId and claimPath printed by begin.
+oma agent verify "<run-id>" --required
+oma agent finish "<run-id>" "<claim-path>"
+```
+
+`agent context` loads graph-selected context; `begin` starts a run and prints a generated run ID plus claim path; `verify` receives that run ID and executes the pinned checks (`--required`) or narrows them with `--affected`; `finish` receives the run ID and the claim file path. `agent resume --dry-run` reports ready and reusable tasks, and `agent resume --max-attempts <n>` retries only tasks allowed by the plan. See [Agent results and resume](../guide/agent-results-and-resume.md) for the plan and claim shape. These commands are for the OMA execution contract; ordinary user work can use `agent spawn`, `agent parallel`, or `agent review` instead.
+
+### memory
+
+```
+oma memory status --json
+oma memory keys --kind connection --dry-run --json
+oma memory init --json
+oma memory setup --endpoint http://127.0.0.1:8000 --dry-run --json
+oma memory import --source claude --since 7d --dry-run --json
+oma memory gc --scope project --keep 20 --dry-run --json
+```
+
+`memory keys` configures Honcho connection or embedding credentials; `--dry-run` previews destinations without reading or writing keys. `memory setup` prepares an AgentMemory endpoint and can optionally `--install` or `--start` it. `memory daemon` and `memory service` manage local process or OS-service integration. `memory maintain backup|prune|vacuum`, `memory retry drain`, `memory upgrade`, and `memory gc` are maintenance actions; inspect their JSON or dry-run output before applying them.
 
 ## Skill management
 

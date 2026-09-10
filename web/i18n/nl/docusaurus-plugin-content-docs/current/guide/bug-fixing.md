@@ -1,116 +1,218 @@
 ---
-title: "Gids: Bugfixing"
-description: Grondige debugginggids met de gestructureerde 5-stappen debuglus, ernsttriage, escalatiesignalen en post-fix validatie.
+title: "Gids: Bugs oplossen"
+sidebar_label: Bugs oplossen
+description: Gestructureerde debugworkflow in zeven fasen met ernsttriage, escalatiesignalen, een diagnose op basis van broncode en validatie na de fix.
 ---
 
-# Gids: Bugfixing
+# Bugs oplossen
 
-## Wanneer de debug workflow gebruiken
+## Wanneer gebruik je de debugworkflow?
 
-Gebruik `/debug` (of zeg "fix bug", "fix error", "debug" in natuurlijke taal) wanneer je een specifieke bug hebt om te diagnosticeren en te fixen. De workflow biedt een gestructureerde, reproduceerbare benadering van debugging die de veelvoorkomende valkuil vermijdt van symptomen fixen in plaats van oorzaken.
+Gebruik `/debug` (of zeg in natuurlijke taal "fix bug", "fix error" of "debug") wanneer je een specifieke bug wilt diagnosticeren en oplossen. De workflow biedt een gestructureerde, reproduceerbare aanpak die de veelgemaakte fout voorkomt waarbij alleen symptomen worden opgelost in plaats van de hoofdoorzaak.
 
-De debug-workflow ondersteunt alle leveranciers (Gemini, Claude, Codex, Qwen). Stappen 1-5 draaien inline. Stap 6 (vergelijkbare patronenscanning) kan delegeren aan een `debug-investigator` subagent wanneer de scanscope breed is (10+ bestanden of multi-domein fouten).
+De debugworkflow ondersteunt alle geconfigureerde vendors. Fasen 1–5 draaien inline. Fase 6 (scannen op vergelijkbare patronen) kan een `debug-investigator`-subagent delegeren wanneer de scope breed is (10+ bestanden of fouten over meerdere domeinen), gevolgd door de geheugenregistratie in fase 7.
 
 ---
 
-## Bugrapportsjabloon
+## Bugsjabloon
+
+Geef bij het melden van een bug zo veel mogelijk van de volgende informatie. Elk veld helpt de debugworkflow de zoekactie sneller te beperken.
 
 ### Vereiste velden
 
 | Veld | Beschrijving | Voorbeeld |
-|:-----|:-----------|:--------|
+|:-----|:-------------|:---------|
 | **Foutmelding** | De exacte fouttekst of stacktrace | `TypeError: Cannot read properties of undefined (reading 'id')` |
-| **Stappen om te reproduceren** | Geordende acties die de bug triggeren | 1. Log in als admin. 2. Navigeer naar /users. 3. Klik "Delete". |
-| **Verwacht gedrag** | Wat er zou moeten gebeuren | Gebruiker wordt verwijderd uit de lijst. |
-| **Werkelijk gedrag** | Wat er daadwerkelijk gebeurt | Pagina crasht met een wit scherm. |
+| **Stappen om te reproduceren** | Geordende acties die de bug activeren | 1. Log in als admin. 2. Ga naar /users. 3. Klik op "Delete" bij een gebruiker. |
+| **Verwacht gedrag** | Wat er zou moeten gebeuren | De gebruiker wordt verwijderd en verdwijnt uit de lijst. |
+| **Werkelijk gedrag** | Wat er daadwerkelijk gebeurt | De pagina crasht met een wit scherm. |
 
 ### Optionele velden (sterk aanbevolen)
 
-| Veld | Beschrijving |
-|:-----|:-----------|
-| **Omgeving** | Browser, OS, Node-versie, apparaat |
-| **Frequentie** | Altijd, soms, alleen eerste keer |
-| **Recente wijzigingen** | Wat veranderd is voor de bug verscheen |
-| **Gerelateerde code** | Bestanden of functies die je verdenkt |
-| **Logs** | Serverlogs, console-uitvoer |
-| **Screenshots/opnames** | Visueel bewijs |
+<!-- oma-docs:ignore-start -->
+| Veld | Beschrijving | Voorbeeld |
+|:-----|:-------------|:---------|
+| **Omgeving** | Browser, OS, Node-versie, apparaat | Chrome 124, macOS 15.3, Node 22.1 |
+| **Frequentie** | Altijd, soms, alleen de eerste keer | Altijd reproduceerbaar |
+| **Recente wijzigingen** | Wat er veranderde voordat de bug verscheen | PR #142 gemerged (functie voor gebruikers verwijderen) |
+| **Gerelateerde code** | Bestanden of functies die je verdenkt | `src/api/users.ts`, `deleteUser()` |
+| **Logs** | Serverlogs, console-uitvoer | `[ERROR] UserService.delete: user.organizationId is undefined` |
+| **Screenshots/opnamen** | Visueel bewijs | Screenshot van het foutscherm |
+<!-- oma-docs:ignore-end -->
 
-Hoe meer context je vooraf geeft, hoe minder heen-en-weer vragen de debug-workflow nodig heeft.
+Hoe meer context je vooraf geeft, hoe minder heen-en-weer de debugworkflow nodig heeft.
 
 ---
 
-## Ernsttriage (P0-P3)
+## Ernsttriage (P0–P3)
 
-### P0 — kritiek (onmiddellijke respons)
+De ernst bepaalt hoe de bug wordt behandeld en hoe snel deze moet worden opgelost.
 
-**Definitie:** Productie is down, data gaat verloren of raakt beschadigd, beveiligingsinbreuk is actief.
+### P0: kritiek (onmiddellijke respons)
 
-**Verwachte respons:** Drop alles. Dit is de enige taak totdat het is opgelost.
+**Definitie:** De productieomgeving ligt plat, data gaat verloren of raakt beschadigd, of er is een actieve securitybreuk.
+
+**Verwachting:** Laat alles vallen. Dit is de enige taak totdat het probleem is opgelost.
 
 **Voorbeelden:**
-- Authenticatiesysteem is omzeild — alle gebruikers hebben toegang tot admin-endpoints.
-- Databasemigratie heeft de gebruikerstabel beschadigd — accounts zijn onbereikbaar.
-- Betalingsverwerking rekent klanten dubbel af.
 
-**Debugbenadering:** Sla het volledige sjabloon over. Geef de foutmelding en eventuele stacktrace. De workflow start direct bij Stap 2 (Reproduceren).
+- Het authenticatiesysteem wordt omzeild; alle gebruikers hebben toegang tot admin-endpoints.
+- Een databasemigratie heeft de userstabel beschadigd; accounts zijn ontoegankelijk.
+- Betalingen worden dubbel afgeschreven.
+- Een API-endpoint geeft persoonsgegevens van andere gebruikers terug.
 
-### P1 — hoog (dezelfde sessie)
+**Debugaanpak:** Sla het volledige sjabloon over. Geef de foutmelding en eventuele stacktrace. De workflow start onmiddellijk bij stap 2 (Reproduceren).
 
-**Definitie:** Een kernfunctie is kapot voor een aanzienlijk aantal gebruikers. Workaround kan bestaan maar is niet acceptabel op lange termijn.
+### P1: hoog (dezelfde sessie)
 
-**Verwachte respons:** Fix binnen de huidige werksessie. Begin niet aan nieuwe functies tot het is opgelost.
+**Definitie:** Een kernfunctie werkt niet voor een aanzienlijk aantal gebruikers. Er kan een workaround bestaan, maar die is op lange termijn niet acceptabel.
 
-**Debugbenadering:** Volledige 5-stappenlus. QA-review aanbevolen na de fix.
+**Verwachting:** Los het probleem binnen de huidige werksessie op. Start geen nieuwe features totdat het is opgelost.
 
-### P2 — gemiddeld (deze sprint)
+**Voorbeelden:**
 
-**Definitie:** Een functie werkt maar met verminderd gedrag. Beinvloedt bruikbaarheid maar niet functionaliteit.
+- Zoeken geeft geen resultaten voor query's met speciale tekens.
+- Uploaden mislukt voor bestanden groter dan 5 MB (de limiet hoort 50 MB te zijn).
+- De mobileapp crasht bij het opstarten op Android 14-apparaten.
+- E-mails voor het opnieuw instellen van een wachtwoord worden niet verzonden (de integratie met de e-mailservice is defect).
 
-**Verwachte respons:** Inplannen voor de huidige sprint. Fixen voor de volgende release.
+**Debugaanpak:** Doorloop de volledige lus van zeven fasen. Een QA-review na de fix wordt aanbevolen.
 
-**Debugbenadering:** Volledige 5-stappenlus. Opnemen in QA-regressiesuite.
+### P2: gemiddeld (deze sprint)
 
-### P3 — laag (backlog)
+**Definitie:** Een feature werkt, maar met verminderd gedrag. De bruikbaarheid is minder, zonder dat de functionaliteit ontbreekt.
 
-**Definitie:** Cosmetisch probleem, edge case of klein ongemak.
+**Verwachting:** Plan dit voor de huidige sprint. Los het op vóór de volgende release.
 
-**Verwachte respons:** Toevoegen aan backlog. Fixen wanneer het uitkomt, of bundelen met gerelateerde wijzigingen.
+**Voorbeelden:**
 
-**Debugbenadering:** Heeft mogelijk niet de volledige debuglus nodig. Directe fix met regressietest volstaat.
+- Tabelsortering is hoofdlettergevoelig ("apple" komt na "Zebra").
+- Dark mode gebruikt onleesbare tekst in het instellingenpaneel.
+- De responstijd van het `/users`-endpoint is 8 seconden (deze hoort minder dan 1 seconde te zijn).
+- Paginering toont "Pagina 1 van 0" wanneer de lijst leeg is.
+
+**Debugaanpak:** Doorloop de volledige lus van zeven fasen. Neem de bug op in de QA-regressiesuite.
+
+### P3: laag (backlog)
+
+**Definitie:** Een cosmetisch probleem, edge case of klein ongemak.
+
+**Verwachting:** Zet het op de backlog. Los het op wanneer het uitkomt of bundel het met verwante wijzigingen.
+
+**Voorbeelden:**
+
+- De tooltip bevat een typefout: "Delet" in plaats van "Delete".
+- Een consolewaarschuwing over een verouderde React-lifecyclemethode.
+- De footer is 2 pixels verkeerd uitgelijnd bij viewportbreedtes tussen 768 en 800 px.
+- De laadspinner blijft 200 ms zichtbaar nadat de content al zichtbaar is.
+
+**Debugaanpak:** De volledige debuglus is mogelijk niet nodig. Een directe fix met regressietest volstaat.
 
 ---
 
-## De 5-Stappen debuglus in detail
+## De debuglus in zeven fasen
+
+De workflow `/debug` voert deze fasen in volgorde uit. Wanneer beschikbaar gebruikt de workflow de geconfigureerde code-intelligenceprovider, plus native search en scoped file reads wanneer die provider niet beschikbaar is of een timeout geeft.
 
 ### Stap 1: foutinformatie verzamelen
-Foutmelding, stacktrace, reproductiestappen, verwacht vs werkelijk gedrag.
 
-### Stap 2: bug reproduceren
-**Tools:** `search_for_pattern`, `find_symbol` om de exacte locatie in de codebase te vinden.
+De workflow vraagt de gebruiker om de volgende informatie, of ontvangt die al:
 
-### Stap 3: oorzaak diagnosticeren
-**Tools:** `find_referencing_symbols` om het uitvoeringspad terug te traceren. Veelvoorkomende patronen: null/undefined-toegang, race conditions, ontbrekende foutafhandeling, verkeerde datatypes, verouderde state, ontbrekende validatie.
+- Foutmelding en stacktrace
+- Stappen om te reproduceren
+- Verwacht gedrag tegenover werkelijk gedrag
+- Details over de omgeving
 
-De kernvraag: diagnoseer de **oorzaak**, niet het symptoom.
+Als de prompt al een foutmelding bevat, gaat de workflow direct door naar stap 2.
 
-### Stap 4: minimale fix voorstellen
-Presenteert oorzaak, voorgestelde fix en uitleg. **Blokkeert tot gebruiker bevestigt.** Minimale fix principe: verander de minste regels mogelijk.
+### Stap 2: de bug reproduceren
 
-### Stap 5: fix toepassen en regressietest schrijven
-1. Implementeer de goedgekeurde fix
-2. Schrijf een regressietest die faalt zonder de fix en slaagt met de fix
+**Gebruikte tools:** de geconfigureerde search- en symboltools, of native `rg` en scoped reads wanneer de geconfigureerde tools niet beschikbaar zijn.
 
-### Stap 6: scannen op vergelijkbare patronen
-Scant de hele codebase op hetzelfde patroon. Spawnt een `debug-investigator` subagent wanneer: scope > 10 bestanden, meerdere domeinen, of diepgaande afhankelijkheidstracing nodig.
+Het doel is de fout in de codebase te lokaliseren: vind de exacte regel waar de exception wordt gegooid, de exacte functie die verkeerde output produceert of de exacte conditie die het onverwachte gedrag veroorzaakt.
 
-### Stap 7: bug documenteren
-Schrijft geheugenbestand met symptoom, oorzaak, fix, gewijzigde bestanden, regressietestlocatie.
+Deze stap zet een door de gebruiker gemeld symptoom ("de pagina crasht") om in een locatie op codeniveau (`src/api/users.ts:47, deleteUser() throws TypeError`).
+
+### Stap 3: de hoofdoorzaak diagnosticeren
+
+**Gebruikte tools:** referentie- en symboolnavigatie wanneer beschikbaar, gevolgd door gerichte native reads wanneer dat niet zo is.
+
+De workflow traceert vanaf de foutlocatie terug om de werkelijke oorzaak te vinden. Daarbij controleert de workflow deze veelvoorkomende patronen:
+
+| Patroon | Waar je op let |
+|:--------|:---------------|
+| **Null/undefined-toegang** | Ontbrekende null-checks, benodigde optional chaining, niet-geïnitialiseerde variabelen |
+| **Raceconditions** | Asynchrone bewerkingen die in de verkeerde volgorde klaar zijn, ontbrekende `await`, gedeelde mutable state |
+| **Ontbrekende foutafhandeling** | Ontbrekende try/catch, niet afgehandelde promise rejection, ontbrekende error boundary |
+| **Verkeerde datatypes** | String waar een getal wordt verwacht, ontbrekende typeconversie, incorrect schema |
+| **Verouderde state** | React-state wordt niet bijgewerkt, gecachte waarden worden niet geïnvalideerd, closure legt oude waarde vast |
+| **Ontbrekende validatie** | Gebruikersinvoer niet geschoond, requestbody niet gevalideerd, niet-gecontroleerde grenswaarden |
+
+Diagnosticeer de hoofdoorzaak, niet het symptoom. Als `user.id` undefined is, vraag je waarom `user` op dit punt in het uitvoeringspad undefined is, niet alleen hoe je undefined kunt afvangen.
+
+### Stap 4: een minimale fix voorstellen
+
+De workflow presenteert:
+
+1. De vastgestelde hoofdoorzaak (met bewijs uit de codetrace).
+2. De voorgestelde fix (alleen wat nodig is aanpassen).
+3. Een uitleg waarom dit de hoofdoorzaak oplost en niet alleen het symptoom.
+
+De workflow presenteert het voorstel vóór het bewerken. Er wordt om bevestiging gevraagd wanneer de wijziging niet al door het verzoek of het uitvoeringsbeleid is geautoriseerd; bestaande autorisatie maakt een tweede prompt overbodig.
+
+**Principe van de minimale fix:** Wijzig zo weinig mogelijk regels. Refactor niet, verbeter de codestijl niet en voeg geen ongerelateerde features toe. De fix moet in minder dan 2 minuten te reviewen zijn.
+
+### Stap 5: de fix toepassen en een regressietest schrijven
+
+In deze stap gebeuren twee dingen:
+
+1. **De fix implementeren:** De goedgekeurde minimale wijziging wordt toegepast.
+2. **Een regressietest schrijven:** Een test die:
+   - De oorspronkelijke bug reproduceert (zonder de fix moet de test falen)
+   - Controleert dat de fix werkt (met de fix moet de test slagen)
+   - Voorkomt dat dezelfde bug in toekomstige wijzigingen terugkomt
+
+De regressietest is het belangrijkste resultaat van de debugworkflow. Zonder test kan elke toekomstige wijziging dezelfde bug opnieuw introduceren.
+
+### Stap 6: op vergelijkbare patronen scannen
+
+Na de fix scant de workflow de hele codebase op hetzelfde patroon dat de bug veroorzaakte.
+
+**Gebruikte tools:** de geconfigureerde pattern search of een scoped native search met het patroon dat als hoofdoorzaak is gevonden.
+
+Als de bug bijvoorbeeld ontstond door toegang tot `user.organization.id` zonder te controleren of `organization` null is, zoekt de scan naar alle andere gevallen waarin `organization.id` zonder null-check wordt gebruikt.
+
+**Criteria voor subagentdelegatie:** De workflow start een `debug-investigator`-subagent wanneer:
+
+- De fout meerdere domeinen raakt (bijvoorbeeld frontend én backend).
+- De scan op vergelijkbare patronen 10+ bestanden omvat.
+- Diepe dependency-tracing nodig is voor een volledige diagnose.
+
+Vendorspecifieke spawnmethoden:
+
+| Vendor | Spawnmethode |
+|:-------|:-------------|
+| Claude Code | Agenttool met `.claude/agents/debug-investigator.md` |
+| Codex CLI | Modelgestuurd subagentverzoek, resultaten als JSON |
+| Gemini CLI | `oma agent spawn debug "scan prompt" {session_id} -w {workspace}` |
+| Antigravity / fallback | `oma agent spawn debug "scan prompt" {session_id} -w {workspace}` |
+
+Alle kwetsbare locaties die overeenkomen worden gerapporteerd. Bevestigde gevallen worden in dezelfde sessie opgelost.
+
+### Stap 7: de bug documenteren
+
+De workflow schrijft een memorybestand met:
+
+- Symptoom en hoofdoorzaak
+- Toegepaste fix en gewijzigde bestanden
+- Locatie van de regressietest
+- Vergelijkbare patronen die in de codebase zijn gevonden
 
 ---
 
 ## Promptsjabloon voor /debug
 
-Bij het starten van de debug-workflow kun je een gestructureerde prompt geven:
+Bij het starten van de debugworkflow kun je een gestructureerde prompt geven:
 
 ```
 /debug
@@ -133,11 +235,11 @@ Environment: Node 22.1, PostgreSQL 16
 
 **Waarom deze structuur werkt:**
 
-- **Foutmelding + stacktrace** stelt Stap 2 in staat om de code direct te lokaliseren (`search_for_pattern` met "deleteUser" vindt de functie; `find_symbol` wijst de exacte locatie aan).
-- **Reproductiestappen** met de specifieke triggerconditie ("gebruiker wiens organisatie is verwijderd") geven een hint over de oorzaak (null foreign key).
-- **Omgeving** sluit versiespecifieke afleidingsmanoeuvres uit.
+- **Error + stack trace** maakt het mogelijk stap 2 direct naar de code te laten springen (`search_for_pattern` met "deleteUser" vindt de functie; `find_symbol` wijst de exacte locatie aan).
+- **Stappen om te reproduceren** met de specifieke triggerconditie ("user whose organization was deleted") wijzen op de hoofdoorzaak (null foreign key).
+- **Omgeving** sluit versiegebonden dwaalsporen uit.
 
-Voor eenvoudigere bugs werkt een kortere prompt ook:
+Voor eenvoudiger bugs werkt een kortere prompt:
 
 ```
 /debug The login page shows "Invalid credentials" even with correct password
@@ -149,54 +251,60 @@ De workflow vraagt indien nodig om aanvullende details.
 
 ## Escalatiesignalen
 
+Deze signalen wijzen erop dat de bug verder moet worden geëscaleerd dan de standaarddebuglus:
+
 ### Signaal 1: dezelfde fix twee keer geprobeerd
 
-Als de workflow een fix voorstelt, toepast en dezelfde fout opnieuw optreedt, is het probleem dieper dan de eerste diagnose. Dit activeert de **Exploratieslus** in workflows die dit ondersteunen (ultrawork, orchestrate, work):
+Als de workflow een fix voorstelt, toepast en dezelfde fout opnieuw optreedt, ligt het probleem dieper dan de eerste diagnose. Dit activeert de **Exploration Loop** in workflows die dit ondersteunen (ultrawork, orchestrate, work):
 
-- Genereer 2-3 alternatieve hypothesen voor de oorzaak.
-- Test elke hypothese in een aparte werkruimte (git stash per poging).
-- Scoor resultaten en neem de beste benadering over.
+- Genereer 2–3 alternatieve hypothesen voor de hoofdoorzaak.
+- Test elke hypothese in een afzonderlijke workspace (git stash per poging).
+- Score de resultaten en neem de beste aanpak over.
 
-### Signaal 2: multi-domein oorzaak
+### Signaal 2: hoofdoorzaak over meerdere domeinen
 
-De fout in de frontend wordt veroorzaakt door een backend-wijziging die wordt veroorzaakt door een databaseschemamigratie. Wanneer de oorzaak domeingrenzen overschrijdt, escaleer naar `/work` of `/orchestrate` om de relevante domeinagenten te betrekken.
+De fout in de frontend wordt veroorzaakt door een backendwijziging die op zijn beurt door een databaseschemamigratie komt. Als de hoofdoorzaak domeingrenzen overschrijdt, escaleer je naar `/work` of `/orchestrate` om de relevante domeinagents in te schakelen.
 
-**Voorbeeld:** Frontend toont "undefined" voor gebruikersnaam. Backend retourneert null voor `user.display_name`. Databasemigratie heeft de kolom toegevoegd, maar bestaande rijen hebben NULL-waarden. Fix vereist: databasemigratie (backfill), backend null-afhandeling en frontend fallback-weergave.
+**Voorbeeld:** De frontend toont "undefined" als gebruikersnaam. De backend geeft `null` terug voor `user.display_name`. De databasemigratie heeft de kolom toegevoegd, maar bestaande rijen hebben NULL-waarden. De fix vereist: databasebackfill, null-afhandeling in de backend en een fallbackweergave in de frontend.
 
 ### Signaal 3: ontbrekende reproductieomgeving
 
-De bug treedt alleen op in productie en is lokaal niet te reproduceren. Signalen zijn onder andere:
+De bug treedt alleen in productie op en kan lokaal niet worden gereproduceerd. Signalen zijn:
+
 - Omgevingsspecifieke configuratieverschillen.
-- Race conditions die alleen onder productiebelasting optreden.
-- Afwijkend gedrag van externe services tussen staging en productie.
+- Raceconditions die alleen onder productielast zichtbaar worden.
+- Ander gedrag van externe services tussen staging en productie.
 
-**Actie:** Verzamel productielogs, vraag toegang tot productiemonitoring en overweeg instrumentatie/logging toe te voegen voordat je een fix probeert.
+**Actie:** Verzamel productielogs, vraag toegang tot productiemonitoring en overweeg instrumentation/logging toe te voegen voordat je een fix probeert.
 
-### Signaal 4: testinfrastructuur kapot
+### Signaal 4: testinfrastructuur faalt
 
-De regressietest kan niet worden geschreven omdat de testinfrastructuur kapot, afwezig of ontoereikend is.
+De regressietest kan niet worden geschreven omdat de testinfrastructuur defect, ontbrekend of ontoereikend is.
 
-**Actie:** Fix eerst de testinfrastructuur (of gebruik `oma install` om deze te configureren) en keer daarna terug naar de debug-workflow.
+**Actie:** Herstel eerst de testinfrastructuur (of gebruik `oma install` om deze te configureren) en keer daarna terug naar de debugworkflow. Als een uitvoerbare controle niet van toepassing is, leg je de reden vast in het result contract in plaats van een geslaagde controle te verzinnen.
 
 ---
 
-## Post-fix validatiechecklist
+## Checklist voor validatie na de fix
 
-- [ ] Regressietest faalt zonder de fix
-- [ ] Regressietest slaagt met de fix
-- [ ] Bestaande tests slagen nog steeds
-- [ ] Build slaagt
-- [ ] Vergelijkbare patronen gescand
-- [ ] Fix is minimaal
-- [ ] Oorzaak gedocumenteerd
+Controleer na de fix en de regressietest:
+
+- [ ] **Regressietest faalt zonder de fix:** draai de fix tijdelijk terug en bevestig dat de test de bug vangt.
+- [ ] **Regressietest slaagt met de fix:** pas de fix opnieuw toe en bevestig dat de test slaagt.
+- [ ] **Relevante bestaande controles slagen:** voer de projectcontroles uit die het gewijzigde gedrag dekken. Voer alleen een build uit wanneer de taak daar expliciet om vraagt.
+- [ ] **Op vergelijkbare patronen gescand:** stap 6 is voltooid en alle gevonden gevallen zijn opgelost of gedocumenteerd.
+- [ ] **Fix is minimaal:** alleen noodzakelijke regels zijn gewijzigd. Er is geen ongerelateerde refactoring toegevoegd.
+- [ ] **Hoofdoorzaak gedocumenteerd:** het memorybestand bevat symptoom, hoofdoorzaak, toegepaste fix, gewijzigde bestanden, locatie van de regressietest en gevonden vergelijkbare patronen.
 
 ---
 
 ## Gereedcriteria
 
-1. Oorzaak geïdentificeerd en gedocumenteerd
-2. Minimale fix toegepast met gebruikersgoedkeuring
-3. Regressietest bestaat
-4. Codebase gescand op vergelijkbare patronen
-5. Bugrapport vastgelegd in geheugen
-6. Alle bestaande tests slagen nog
+De debugworkflow is voltooid wanneer:
+
+1. De hoofdoorzaak is vastgesteld en gedocumenteerd (niet alleen het symptoom).
+2. Onder de autorisatie van de taak is een minimale fix toegepast.
+3. Er een regressietest bestaat die zonder de fix faalt en met de fix slaagt.
+4. De codebase op vergelijkbare patronen is gescand en alle bevestigde gevallen zijn aangepakt.
+5. Een bugrapport in memory is vastgelegd met symptoom, hoofdoorzaak, toegepaste fix, gewijzigde bestanden, locatie van de regressietest en gevonden vergelijkbare patronen.
+6. Alle bestaande tests blijven slagen na de fix.

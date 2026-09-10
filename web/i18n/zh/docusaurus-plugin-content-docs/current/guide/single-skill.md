@@ -1,11 +1,21 @@
 ---
 title: "指南：单技能执行"
-description: oh-my-agent 单领域任务的详细指南。何时使用、预检清单、带说明的提示模板、前端/后端/移动端/数据库的真实示例、预期执行流程、质量关卡检查清单和升级信号。
+sidebar_label: 单技能
+description: oh-my-agent 单领域任务的详细指南，涵盖适用时机、预检清单、带说明的提示模板、前端、后端、移动端和数据库任务的真实示例、预期执行流程、质量关卡检查清单以及升级信号。
 ---
 
 # 单技能执行
 
-单技能执行是快速路径，一个智能体，一个领域，一个聚焦的任务。没有编排开销，没有多智能体协调。技能从你的自然语言提示自动激活。
+单技能执行是快速路径：一个智能体、一个领域、一个聚焦任务。它没有编排开销和多智能体协调。宿主或选定的工作流可以将自然语言提示路由到该技能；钩子系统自身负责检测工作流，路由行为取决于所选运行时。
+
+## 快速路径
+
+1. 运行一次 `oma doctor`，确认选定的宿主集成。任务不使用相关供应商时，可选供应商警告不会阻塞任务。
+2. 描述一个自包含的变更，明确写出 **Goal**、**Context**、**Constraints** 和 **Done When** 条件。
+3. 选定技能会检查仓库；当前执行契约启用时，会声明范围并输出 `CHARTER_CHECK`，然后报告实际运行的检查。
+4. 如果任务扩展到 API、UI、数据库或移动端边界，停止单技能运行并切换到 `/work` 或 `/orchestrate`。
+
+对于停滞的受管运行，使用 `oma agent status <session-id> [agent-id]`，然后检查 `.agents/state/agent-runs/` 中的回执和注入的声明路径，再重试。供应商和恢复行为请参见[重要默认值](../getting-started/important-defaults.md)。
 
 ---
 
@@ -97,34 +107,36 @@ Add unit tests for: valid submission path, invalid email, short password, loadin
 
 **预期执行流程：**
 
-1. **技能激活：** `oma-frontend` 激活（关键词："form"、"component"、"Tailwind CSS"、"React"）
-2. **难度评估：** 中等（2-3 个文件，需要关于验证 UX 的一些设计决策）
+1. **技能路由：**宿主或工作流选择 `oma-frontend`（"form"、"component"、"Tailwind CSS" 和 "React" 等关键词是路由信号）。
+2. **难度评估：**中等（2-3 个文件，需要在验证 UX 上做一些设计决策）。
 3. **加载的资源：**
-   - `execution-protocol.md`（始终）
+   - `execution-protocol.md`（始终加载）
    - `snippets.md`（表单 + Zod 模式）
-   - `component-template.tsx`（React 结构）
-4. **CHARTER_CHECK 输出：**
+   - 现有组件模式；如果技能提供，则加载 `snippets.md`
+4. **执行契约（启用时可能输出 `CHARTER_CHECK`）：**
    ```
-   CHARTER_CHECK:
+`CHARTER_CHECK`:
    - Clarification level: LOW
    - Task domain: frontend
    - Must NOT do: backend API, database, mobile screens
    - Success criteria: form validation, accessibility, loading state, tests
-   - Assumptions: Next.js App Router, @tanstack/react-form + Zod, shadcn/ui, FSD-lite architecture
+   - Assumptions: Next.js App Router, `@tanstack/react-form` + Zod, shadcn/ui, FSD-lite architecture
    ```
+<!-- oma-docs:ignore-start -->
 5. **实现：**
-   - 创建 `src/features/auth/components/login-form.tsx`（带 `"use client"` 的客户端组件）
+   - 创建 `src/features/auth/components/login-form.tsx`（带 `"use client"` 的 Client Component）
    - 创建 `src/features/auth/utils/login-schema.ts`（Zod schema）
    - 创建 `src/features/auth/components/skeleton/login-form-skeleton.tsx`
-   - 使用 shadcn/ui `<Button>`、`<Input>`、`<Label>`（只读，不修改）
-   - 表单由 `@tanstack/react-form` 与 Zod 验证处理
+   - 使用 shadcn/ui 的 `<Button>`、`<Input>`、`<Label>`（只读，不修改）
+   - 使用 `@tanstack/react-form` 和 Zod 处理表单
    - 使用 `@/` 绝对导入
-   - 每个文件一个组件
+   - 每个文件包含一个组件
 6. **验证：**
-   - 检查清单：ARIA 标签存在、语义化标题、键盘导航有效
-   - 移动端：在 320px 视口正确渲染
+   - 检查清单：存在 ARIA 标签、语义化标题，键盘导航可用
+   - 移动端：在 320px 视口中正确渲染
    - 性能：无 CLS
-   - 测试：Vitest 测试文件位于 `src/features/auth/utils/__tests__/login-schema.test.ts`
+   - 测试：`src/features/auth/utils/__tests__/login-schema.test.ts` 中的 Vitest 测试文件
+<!-- oma-docs:ignore-end -->
 
 ---
 
@@ -144,12 +156,14 @@ Add tests for: auth required, pagination, status filter, empty results.
 **预期执行流程：**
 
 1. **技能激活：** `oma-backend` 激活（关键词："API"、"endpoint"、"REST"）
-2. **栈检测：** 读取 `pyproject.toml` 或 `package.json` 确定语言/框架。如果 `stack/` 存在，从中加载约定。
-3. **难度评估：** 中等（2-3 个文件：路由、服务、仓储，加上测试）
+2. **栈检测：**读取 `pyproject.toml` 或 `package.json` 确定语言和框架。如果生成的 `stack/` 参考或随附 `variants/` 存在，则从中加载约定。
+3. **难度评估：**中等（2 到 3 个文件：路由、服务、仓储，加上测试）
 4. **加载的资源：**
-   - `execution-protocol.md`（始终）
-   - `stack/snippets.md`（如果可用，路由和分页查询模式）
-   - `stack/tech-stack.md`（如果可用，框架特定 API）
+   - `execution-protocol.md`（始终加载）
+<!-- oma-docs:ignore-start -->
+   - 如果可用，加载匹配的 `stack/snippets.md` 或 `variants/{node,python,rust}/snippets.md`
+   - 如果可用，加载匹配的 `stack/tech-stack.md` 或变体技术栈参考
+<!-- oma-docs:ignore-end -->
 5. **CHARTER_CHECK：**
    ```
    CHARTER_CHECK:
@@ -198,12 +212,14 @@ Add tests for: profile save, logout flow, offline state.
    - Success criteria: profile editing, notification toggles, logout, offline
    - Assumptions: existing auth service, Dio interceptors, Riverpod, GoRouter
    ```
+<!-- oma-docs:ignore-start -->
 5. **实现：**
    - 界面：`lib/features/settings/presentation/settings_screen.dart`（带 Riverpod 的 Stateless Widget）
    - Providers：`lib/features/settings/providers/settings_provider.dart`
    - Repository：`lib/features/settings/data/settings_repository.dart`
    - 离线处理：Dio 拦截器捕获 `SocketException`，回退到缓存数据
    - 所有控制器在 `dispose()` 方法中释放
+<!-- oma-docs:ignore-end -->
 
 ---
 

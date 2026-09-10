@@ -1,32 +1,33 @@
 ---
-title: "Guide : Surveillance par Dashboard"
-description: Guide complet des dashboards couvrant les dashboards terminal et web, sources de données, disposition à 3 terminaux, dépannage et détails techniques d'implémentation.
+title: "Guide : surveillance du dashboard"
+sidebar_label: Surveillance du dashboard
+description: Surveillez les sessions OMA depuis le terminal ou un dashboard web en loopback, choisissez le répertoire d'état et récupérez les problèmes courants de connexion et de découverte.
 ---
 
-# Guide : Surveillance par Dashboard
+# Guide : surveillance du dashboard
 
-## Deux commandes de tableau de bord
+## Deux commandes de dashboard
 
-oh-my-agent fournit deux tableaux de bord en temps réel pour surveiller l'activité des agents pendant les workflows multi-agents.
+oh-my-agent fournit deux dashboards en temps réel pour suivre l'activité des agents pendant les workflows multi-agents.
 
-| Command | Interface | URL | Technology |
+| Commande | Interface | URL | Technologie |
 |:--------|:---------|:----|:-----------|
-| `oma dashboard terminal` | Terminal (TUI) | N/A — renders in your terminal | chokidar file watcher, picocolors rendering |
-| `oma dashboard web` | Browser | `http://localhost:9847` | HTTP server, WebSocket, chokidar file watcher |
+| `oma dashboard terminal` | Terminal (TUI) | N/A (rendu dans votre terminal) | chokidar file watcher, picocolors rendering |
+| `oma dashboard web` | Navigateur | `http://127.0.0.1:9847` (jeton affiché au démarrage) | HTTP server, WebSocket, chokidar file watcher |
 
-Les deux tableaux de bord surveillent la même source de données : le répertoire `.serena/memories/`.
+Les deux dashboards surveillent `.agents/state/memories/` par défaut. Définissez `MEMORIES_DIR` lorsque les fichiers de coordination se trouvent ailleurs. Le dashboard ne se rabat pas automatiquement sur `.serena/memories/`.
 
-### Tableau de bord terminal
+### Dashboard terminal
 
 ```bash
 oma dashboard terminal
 ```
 
-Renders a box-drawing UI directly in the terminal. Updates automatically when memory files change. Press `Ctrl+C` to exit.
+Cette commande affiche une interface à cadres directement dans le terminal. Elle se met à jour automatiquement lorsque les fichiers mémoire changent. Appuyez sur `Ctrl+C` pour quitter.
 
 ```
 ╔════════════════════════════════════════════════════════╗
-║  Serena Memory Dashboard                              ║
+║  OMA Memory Dashboard                                 ║
 ║  Session: session-20260324-143052  [RUNNING]          ║
 ╠════════════════════════════════════════════════════════╣
 ║  Agent        Status       Turn   Task                ║
@@ -45,41 +46,45 @@ Renders a box-drawing UI directly in the terminal. Updates automatically when me
 ╚════════════════════════════════════════════════════════╝
 ```
 
-**Status symbols:**
-- `●` (green) — running
-- `✓` (cyan) — completed
-- `✗` (red) — failed
-- `○` (yellow) — blocked
-- `◌` (dim) — pending
+**Symboles de statut :**
 
-### Web Dashboard
+- `●` (vert) : en cours ;
+- `✓` (cyan) : terminé ;
+- `✗` (rouge) : échec ;
+- `○` (jaune) : bloqué ;
+- `◌` (atténué) : en attente.
+
+### Dashboard web
 
 ```bash
 oma dashboard web
 ```
 
-Opens a web server on port 9847 (configurable via `DASHBOARD_PORT` environment variable). The browser UI connects via WebSocket and receives live updates.
+Cette commande démarre un serveur web limité à la boucle locale sur le port 9847 (configurable via `DASHBOARD_PORT`). OMA affiche une URL contenant `127.0.0.1` ; ouvrez l'URL exacte et conservez le jeton. La page utilise ce jeton pour `/api/state`, `/api/recap` et les mises à jour WebSocket. Les requêtes qui n'en contiennent pas renvoient `401`.
 
 ```bash
 # Custom port
 DASHBOARD_PORT=8080 oma dashboard web
 
 # Custom memories directory
-MEMORIES_DIR=/path/to/.serena/memories oma dashboard web
+MEMORIES_DIR=/path/to/.agents/state/memories oma dashboard web
+
+# The process also serves the recap view at /recap; use the tokenized URL it prints.
 ```
 
-The web dashboard shows the same information as the terminal dashboard but with a styled dark-theme UI featuring:
-- Connection status badge (Connected / Disconnected / Connecting with auto-reconnect)
-- Session ID and status bar
-- Agent status table with animated status dots
-- Latest activity feed
-- Auto-updating timestamps
+Le dashboard web affiche les mêmes informations que le dashboard terminal, dans une interface sombre stylisée qui comprend :
+
+- un badge d'état de connexion (Connected / Disconnected / Connecting avec reconnexion automatique) ;
+- l'identifiant et la barre d'état de la session ;
+- un tableau de statut des agents avec des points animés ;
+- un flux des dernières activités ;
+- des horodatages mis à jour automatiquement.
 
 ---
 
-## Disposition Recommandée à 3 Terminaux
+## Disposition recommandée à 3 terminaux
 
-For multi-agent workflows, the recommended setup uses three terminal panes:
+Pour les workflows multi-agents, la configuration recommandée utilise trois volets de terminal :
 
 ```
 ┌────────────────────────────────┬────────────────────────────────┐
@@ -99,188 +104,202 @@ For multi-agent workflows, the recommended setup uses three terminal panes:
 │                                                                 │
 │   $ oma agent status session-20260324-143052 backend frontend   │
 │   $ oma stats get                                                   │
-│   $ oma verify backend -w ./api                                 │
+│   $ oma verify agent backend -w ./api                           │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Terminal 1** runs your primary agent session (Gemini CLI, Claude Code, Codex, etc.) where you interact with workflows like `/orchestrate` or `/work`.
+**Le terminal 1** exécute la session de l'agent principal (Gemini CLI, Claude Code, Codex, etc.) dans laquelle vous utilisez des workflows comme `/orchestrate` ou `/work`.
 
-**Terminal 2** runs the dashboard for passive monitoring. It updates automatically — no interaction needed.
+**Le terminal 2** exécute le dashboard pour une surveillance passive. Il se met à jour automatiquement, sans interaction nécessaire.
 
-**Terminal 3** is for ad-hoc commands: checking agent status, running verifications, viewing stats, or debugging issues.
+**Le terminal 3** sert aux commandes ponctuelles : consulter le statut des agents, lancer des vérifications, afficher les statistiques ou déboguer des problèmes.
 
 ---
 
-## Data Sources in .serena/memories/
+## Sources de données dans .agents/state/memories/
 
-The dashboards read from the `.serena/memories/` directory. This directory is populated by agents and workflows using MCP memory tools during execution.
+Les dashboards lisent le répertoire `.agents/state/memories/`. Les agents et les workflows y écrivent les fichiers de coordination pendant l'exécution. Utilisez `MEMORIES_DIR` lorsque l'état d'un projet est stocké ailleurs.
 
-### File Types and Their Contents
+### Types de fichiers et contenu
 
-| File Pattern | Created By | Contents |
+| Motif de fichier | Créé par | Contenu |
 |:-------------|:----------|:---------|
-| `orchestrator-session.md` | `/orchestrate` Step 2 | Session ID, start time, status (RUNNING/COMPLETED/FAILED), workflow version |
-| `session-{workflow}.md` | `/work`, `/ultrawork` | Session metadata, phase progress, user request summary |
-| `task-board.md` | Orchestration workflows | Markdown table with agent assignments, statuses, and tasks |
-| `progress-{agent}.md` | Each spawned agent | Current turn number, what the agent is working on, intermediate results |
-| `result-{agent}.md` | Each completed agent | Final status (COMPLETED/FAILED), files changed, issues found, deliverables |
-| `debug-{id}.md` | `/debug` workflow | Bug diagnosis, root cause, fix applied, regression test location |
-| `experiment-ledger.md` | Quality Score system | Experiment tracking: baseline scores, deltas, keep/discard decisions |
-| `lessons-learned.md` | Auto-generated at session end | Lessons from discarded experiments (delta <= -5) |
+| `orchestrator-session.md` | Étape 2 de `/orchestrate` | ID de session, heure de début, statut (RUNNING/COMPLETED/FAILED), version du workflow |
+| `session-{workflow}.md` | `/work`, `/ultrawork` | Métadonnées de session, progression des phases, résumé de la demande utilisateur |
+| `task-board.md` | Workflows d'orchestration | Tableau Markdown avec les affectations, statuts et tâches des agents |
+| `progress-{agent}.md` | Chaque agent lancé | Numéro du tour en cours, travail de l'agent, résultats intermédiaires |
+| `result-{agent}.md` | Chaque agent terminé | Statut final (COMPLETED/FAILED), fichiers modifiés, problèmes rencontrés, livrables |
+| `debug-{id}.md` | Workflow `/debug` | Diagnostic du bug, cause racine, correction appliquée, emplacement du test de régression |
+| `experiment-ledger.md` | Système Quality Score | Suivi des expériences : scores de référence, écarts, décisions de conservation ou d'abandon |
+| `lessons-learned.md` | Généré automatiquement en fin de session | Leçons des expériences abandonnées (delta <= -5) |
 
-### How the Dashboard Reads Them
+### Comment le dashboard les lit
 
-The dashboard uses multiple strategies to extract information:
+Le dashboard combine plusieurs stratégies pour extraire les informations :
 
-1. **Session detection** — Looks for `orchestrator-session.md` first, then falls back to the most recently modified `session-*.md` file. Parses status from keywords: `RUNNING`, `IN PROGRESS`, `COMPLETED`, `DONE`, `FAILED`, `ERROR`.
+1. **Détection de session :** recherche d'abord `orchestrator-session.md`, puis le fichier `session-*.md` modifié le plus récemment. Il analyse le statut à partir des mots-clés `RUNNING`, `IN PROGRESS`, `COMPLETED`, `DONE`, `FAILED` et `ERROR`.
 
-2. **Task board parsing** — Reads `task-board.md` as a Markdown table. Extracts agent name, status, and task description from columns.
+2. **Analyse du tableau de tâches :** lit `task-board.md` comme un tableau Markdown. Il extrait le nom de l'agent, son statut et la description de sa tâche à partir des colonnes.
 
-3. **Agent discovery** — If no task board exists, discovers agents by scanning all `.md` files for `**Agent**: {name}` patterns, `Agent: {name}` lines, or filenames containing `_agent` or `-agent`.
+3. **Découverte des agents :** s'il n'existe pas de tableau de tâches, recherche dans tous les fichiers `.md` les motifs `**Agent**: {name}`, les lignes `Agent: {name}` ou les noms de fichiers contenant `_agent` ou `-agent`.
 
-4. **Turn counting** — For each discovered agent, reads `progress-{agent}.md` files and extracts the turn number from `turn: N` patterns.
+4. **Comptage des tours :** pour chaque agent découvert, lit les fichiers `progress-{agent}.md` et extrait le numéro du tour à partir des motifs `turn: N`.
 
-5. **Activity feed** — Lists the 5 most recently modified `.md` files, extracts the last meaningful line (headers, status lines, action items) as the activity message.
-
----
-
-## What Each Dashboard Shows
-
-### Session Status
-
-The top section displays:
-- **Session ID** — Extracted from session files (format: `session-YYYYMMDD-HHMMSS`).
-- **Status** — Color-coded: green for RUNNING, cyan for COMPLETED, red for FAILED, yellow for UNKNOWN.
-
-### Task Board
-
-The agent table shows every detected agent with:
-- **Agent name** — The domain identifier (backend, frontend, mobile, qa, debug, pm).
-- **Status** — Current state with visual indicator (running/completed/failed/blocked/pending).
-- **Turn** — The agent's current turn number (how many iterations it has completed). Extracted from progress files.
-- **Task** — Brief description of what the agent is working on (truncated to fit).
-
-### Agent Progress
-
-Progress is tracked through `progress-{agent}.md` files. Each file is updated by the agent as it works. The dashboard polls these files for:
-- Turn number (increments as the agent progresses).
-- Current action (what the agent is doing right now).
-- Intermediate results (partial completions).
-
-### Results
-
-When an agent completes, it writes `result-{agent}.md` with:
-- Final status (COMPLETED or FAILED).
-- List of files changed.
-- Issues encountered.
-- Deliverables produced.
-
-The dashboard detects completion by the presence of this file and updates the agent's status accordingly.
+5. **Flux d'activité :** liste les 5 fichiers `.md` modifiés le plus récemment, puis extrait la dernière ligne pertinente (titre, ligne de statut ou élément d'action) comme message d'activité. Le dashboard web expose également la vue récapitulative à `/recap`.
 
 ---
 
-## Troubleshooting Runbook
+## Ce que montre chaque dashboard
 
-### Signal 1: Agent Shows "running" but No Turn Progress
+### Statut de la session
 
-**Symptom:** The dashboard shows an agent as running, but the turn number has not changed for several minutes.
+La partie supérieure affiche :
 
-**Possible causes:**
-- The agent is stuck on a long operation (large codebase scan, slow API call).
-- The agent crashed but the PID file still exists.
-- The agent is waiting for user input (should not happen in auto-approve mode).
+- **ID de session :** extrait des fichiers de session (format : `session-YYYYMMDD-HHMMSS`) ;
+- **Statut :** code couleur : vert pour RUNNING, cyan pour COMPLETED, rouge pour FAILED et jaune pour UNKNOWN.
 
-**Actions:**
-1. Check the agent's log file: `cat /tmp/subagent-{session-id}-{agent-id}.log`
-2. Check if the process is actually running: `oma agent status {session-id} {agent-id}`
-3. If the process is not running but status shows "running", the agent crashed. Re-spawn with error context.
+### Tableau des tâches
 
-### Signal 2: Agent Shows "crashed"
+Le tableau des agents affiche chaque agent détecté avec :
 
-**Symptom:** `oma agent status` returns `crashed` for an agent.
+- **Nom de l'agent :** identifiant du domaine (backend, frontend, mobile, qa, debug, pm) ;
+- **Statut :** état courant avec indicateur visuel (running/completed/failed/blocked/pending) ;
+- **Tour :** numéro du tour courant de l'agent (nombre d'itérations terminées), extrait des fichiers de progression ;
+- **Tâche :** brève description du travail en cours, tronquée pour tenir dans l'espace disponible.
 
-**Possible causes:**
-- The CLI vendor process exited unexpectedly (out of memory, API quota exceeded, network timeout).
-- The workspace directory was deleted or permissions changed.
-- The vendor CLI is not installed or not authenticated.
+### Progression des agents
 
-**Actions:**
-1. Check the log file for error details: `cat /tmp/subagent-{session-id}-{agent-id}.log`
-2. Verify CLI installation: `oma doctor`
-3. Check authentication: `oma auth status`
-4. Re-spawn the agent with the same task: `oma agent spawn {agent-id} "{task}" {session-id} -w {workspace}`
+La progression est suivie par les fichiers `progress-{agent}.md`. Chaque fichier est mis à jour par l'agent pendant son travail. Le dashboard y recherche :
 
-### Signal 3: Dashboard Shows "No agents detected yet"
+- le numéro du tour (qui augmente au fil de la progression) ;
+- l'action courante (ce que l'agent fait maintenant) ;
+- les résultats intermédiaires (achèvements partiels).
 
-**Symptom:** The dashboard is running but shows no agents.
+### Résultats
 
-**Possible causes:**
-- The workflow has not reached the agent spawning step yet.
-- The `.serena/memories/` directory is empty.
-- The dashboard is watching the wrong directory.
+Lorsqu'un agent termine, il écrit `result-{agent}.md` avec :
 
-**Actions:**
-1. Verify the memories directory: `ls -la .serena/memories/`
-2. Check if the workflow is still in the planning phase (agents have not been spawned yet).
-3. Ensure the dashboard is watching the correct project directory: the dashboard resolves the memories path from the current working directory.
-4. If using a custom path: `MEMORIES_DIR=/path/to/.serena/memories oma dashboard terminal`
+- le statut final (COMPLETED ou FAILED) ;
+- la liste des fichiers modifiés ;
+- les problèmes rencontrés ;
+- les livrables produits.
 
-### Signal 4: Web Dashboard Shows "Disconnected"
-
-**Symptom:** The web dashboard's connection badge shows "Disconnected" in red.
-
-**Possible causes:**
-- The `oma dashboard web` process was terminated.
-- A network issue between the browser and localhost.
-- The port is in use by another process.
-
-**Actions:**
-1. Check if the dashboard process is running: `ps aux | grep dashboard`
-2. Try a different port: `DASHBOARD_PORT=8080 oma dashboard web`
-3. Check port availability: `lsof -i :9847`
-4. The web dashboard auto-reconnects with exponential backoff (starting at 1s, max 10s). Wait a few seconds for reconnection.
+Le dashboard détecte la fin grâce à la présence de ce fichier et met à jour le statut de l'agent.
 
 ---
 
-## Pre-Merge Monitoring Checklist
+## Runbook de dépannage
 
-Before considering a multi-agent session complete, verify through the dashboard:
+### Signal 1 : l'agent affiche « running », mais le tour n'avance pas
 
-- [ ] **All agents show "completed"** — No agents stuck in "running" or "blocked" state.
-- [ ] **No agents show "failed"** — If any failed, check logs and re-spawn.
-- [ ] **QA agent has completed its review** — Look for `result-qa-agent.md` or `result-qa.md`.
-- [ ] **Zero CRITICAL/HIGH findings** — Check the QA result file for severity counts.
-- [ ] **Session status is COMPLETED** — The session file should show final status.
-- [ ] **Activity feed shows final report** — The last activity should be the summary report.
+**Symptôme :** le dashboard affiche un agent en cours, mais le numéro de tour n'a pas changé depuis plusieurs minutes.
+
+**Causes possibles :**
+
+- l'agent est bloqué sur une opération longue (analyse d'un dépôt volumineux ou appel API lent) ;
+- l'agent a planté, mais le fichier PID existe encore ;
+- l'agent attend une entrée utilisateur (cela ne devrait pas arriver en mode d'approbation automatique).
+
+**Actions :**
+
+1. Consultez le fichier de log de l'agent : `cat /tmp/subagent-{session-id}-{agent-id}.log`
+2. Vérifiez que le processus est réellement actif : `oma agent status {session-id} {agent-id}`
+3. Si le processus ne tourne plus alors que le statut indique « running », l'agent a planté. Relancez-le avec le contexte de l'erreur.
+
+### Signal 2 : l'agent affiche « crashed »
+
+**Symptôme :** `oma agent status` renvoie `crashed` pour un agent.
+
+**Causes possibles :**
+
+- le processus du fournisseur CLI s'est arrêté de manière inattendue (mémoire insuffisante, quota API dépassé, délai réseau) ;
+- le répertoire de workspace a été supprimé ou ses permissions ont changé ;
+- le CLI du fournisseur n'est pas installé ou n'est pas authentifié.
+
+**Actions :**
+
+1. Consultez le fichier de log pour les détails : `cat /tmp/subagent-{session-id}-{agent-id}.log`
+2. Vérifiez l'installation du CLI : `oma doctor`
+3. Vérifiez l'authentification : `oma auth status`
+4. Relancez l'agent avec la même tâche : `oma agent spawn {agent-id} "{task}" {session-id} -w {workspace}`
+
+### Signal 3 : le dashboard affiche « aucun agent détecté pour l'instant »
+
+**Symptôme :** le dashboard fonctionne, mais aucun agent n'est affiché.
+
+**Causes possibles :**
+
+- le workflow n'a pas encore atteint l'étape de lancement des agents ;
+- le répertoire `.agents/state/memories/` est vide ;
+- le dashboard surveille le mauvais répertoire.
+
+**Actions :**
+
+1. Vérifiez le répertoire mémoire : `ls -la .agents/state/memories/`
+2. Vérifiez si le workflow est toujours dans la phase de planification (les agents ne sont pas encore lancés).
+3. Vérifiez que le dashboard surveille le bon répertoire du projet : il résout le chemin mémoire depuis le répertoire courant.
+4. Si vous utilisez un chemin personnalisé : `MEMORIES_DIR=/path/to/.agents/state/memories oma dashboard terminal`
+
+### Signal 4 : le dashboard web affiche « disconnected »
+
+**Symptôme :** le badge de connexion du dashboard web affiche « Disconnected » en rouge.
+
+**Causes possibles :**
+
+- le processus `oma dashboard web` a été arrêté ;
+- le navigateur utilise une URL obsolète ou le jeton de démarrage manque ;
+- le port est déjà utilisé par un autre processus.
+
+**Actions :**
+
+1. Vérifiez que le processus du dashboard tourne : `ps aux | grep dashboard`
+2. Rouvrez l'URL exacte avec jeton imprimée par le processus ; ne supprimez pas son jeton.
+3. Essayez un autre port : `DASHBOARD_PORT=8080 oma dashboard web`
+4. Vérifiez la disponibilité du port : `lsof -i :9847`
+5. Le dashboard web se reconnecte automatiquement avec un backoff exponentiel (1 s au départ, multiplicateur 1,5, maximum 10 s). Attendez quelques secondes la reconnexion.
 
 ---
 
-## Critères de Complétion
+## Liste de contrôle de surveillance avant merge
 
-Dashboard monitoring is done when:
-1. All spawned agents have reached a terminal state (completed or failed-and-handled).
-2. The QA review cycle has concluded with no blocking issues.
-3. The session status reflects the final outcome.
-4. Results are recorded in memory for future reference.
+Avant de considérer une session multi-agents comme terminée, vérifiez dans le dashboard :
+
+- [ ] **Tous les agents affichent « completed » :** aucun agent ne reste dans l'état « running » ou « blocked ».
+- [ ] **Aucun agent n'affiche « failed » :** si un agent a échoué, consultez ses logs et relancez-le.
+- [ ] **L'agent QA a terminé sa revue :** recherchez `result-qa-agent.md` ou `result-qa.md`.
+- [ ] **Zéro constat CRITICAL/HIGH :** vérifiez les décomptes de sévérité dans le fichier de résultat QA.
+- [ ] **Le statut de session est COMPLETED :** le fichier de session doit afficher le statut final.
+- [ ] **Le flux d'activité affiche le rapport final :** la dernière activité doit être le rapport récapitulatif.
 
 ---
 
-## Détails Techniques
+## Critères de complétion
 
-### Terminal Dashboard (oma dashboard terminal)
+La surveillance du dashboard est terminée lorsque :
 
-- **File watching:** Uses [chokidar](https://github.com/paulmillr/chokidar) with `awaitWriteFinish` (200ms stability threshold, 50ms poll interval) to avoid rendering partial file writes.
-- **Rendering:** Clears and redraws the entire terminal on every file change event. Uses `picocolors` for ANSI color output and Unicode box-drawing characters for the border.
-- **Memory directory:** Resolved from `MEMORIES_DIR` env var, CLI argument, or `{cwd}/.serena/memories`.
-- **Graceful shutdown:** Catches `SIGINT` and `SIGTERM`, closes the chokidar watcher, and exits cleanly.
+1. tous les agents lancés ont atteint un état terminal (terminé ou échoué puis pris en charge) ;
+2. le cycle de revue QA est terminé sans problème bloquant ;
+3. le statut de session reflète le résultat final ;
+4. les résultats sont enregistrés en mémoire pour référence ultérieure.
 
-### Web Dashboard (oma dashboard web)
+---
 
-- **HTTP server:** Node.js `createServer` serves the HTML page at `/` and the JSON state at `/api/state`.
-- **WebSocket:** Uses the `ws` library. A `WebSocketServer` is attached to the HTTP server. On connection, the client receives the full state immediately. Subsequent updates are pushed as `{ type: "update", event, file, data }` messages.
-- **File watching:** Same chokidar setup as the terminal dashboard. File changes trigger a `broadcast()` function that builds the current state and sends it to all connected WebSocket clients.
-- **Debouncing:** Updates are debounced at 100ms to avoid flooding clients during rapid file writes (e.g., when multiple agents write progress simultaneously).
-- **Auto-reconnect:** The browser client reconnects with exponential backoff (1s initial, 1.5x multiplier, 10s max) when the WebSocket connection drops.
-- **Port:** Default 9847, configurable via `DASHBOARD_PORT` environment variable.
-- **State building:** The `buildFullState()` function aggregates session info, task board, agent status, turn counts, and activity feed into a single JSON object on every update.
+## Détails techniques
+
+### Dashboard terminal (oma dashboard terminal)
+
+- **Surveillance des fichiers :** utilise [chokidar](https://github.com/paulmillr/chokidar) avec `awaitWriteFinish` (seuil de stabilité de 200 ms, intervalle de polling de 50 ms) pour éviter d'afficher des écritures partielles.
+- **Rendu :** efface et redessine tout le terminal à chaque événement de modification de fichier. Utilise `picocolors` pour les couleurs ANSI et des caractères Unicode de cadres pour la bordure.
+- **Répertoire mémoire :** résolu depuis `MEMORIES_DIR`, puis l'argument CLI du dashboard lorsqu'il est fourni, puis `{cwd}/.agents/state/memories`.
+- **Arrêt propre :** intercepte `SIGINT` et `SIGTERM`, ferme le watcher chokidar et quitte proprement.
+
+### Dashboard web (oma dashboard web)
+
+- **Serveur HTTP :** `createServer` de Node.js sert la page HTML sur `/`, la page récapitulative sur `/recap`, l'état JSON sur `/api/state` et les données récapitulatives sur `/api/recap`. Le serveur se lie à `127.0.0.1`.
+- **WebSocket :** utilise la bibliothèque `ws`. Une connexion provenant de la boucle locale doit inclure le jeton du processus dans sa query string. À la connexion, le client reçoit immédiatement l'état complet. Les mises à jour suivantes sont envoyées sous la forme de messages `{ type: "update", event, file, data }`.
+- **Surveillance des fichiers :** même configuration chokidar que pour le dashboard terminal. Les changements de fichiers déclenchent une fonction `broadcast()` qui construit l'état courant et l'envoie à tous les clients WebSocket connectés.
+- **Anti-rebond :** les mises à jour sont regroupées pendant 100 ms pour éviter d'inonder les clients pendant des écritures rapides de fichiers (par exemple, lorsque plusieurs agents écrivent leur progression en même temps).
+- **Reconnexion automatique :** le client du navigateur se reconnecte avec un backoff exponentiel (1 s initiale, multiplicateur 1,5, maximum 10 s) lorsque la connexion WebSocket est interrompue.
+- **Port :** 9847 par défaut, configurable via la variable d'environnement `DASHBOARD_PORT`. Les requêtes API acceptent `X-OMA-Dashboard-Token` ou `?token=...` ; les jetons absents ou invalides renvoient `401`.
+- **Construction de l'état :** `buildFullState()` agrège les informations de session, le tableau de tâches, le statut des agents, les compteurs de tours et le flux d'activité dans un objet JSON unique à chaque mise à jour.

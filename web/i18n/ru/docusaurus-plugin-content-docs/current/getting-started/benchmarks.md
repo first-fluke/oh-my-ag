@@ -1,31 +1,31 @@
 ---
 title: Бенчмарки
-description: Пять harness'ов Claude Code собрали один и тот же MVP детской 3D-платформы для обучения по идентичному промпту. oh-my-agent занял первое место с результатом 80.6/100 по функциональной, спецификационной, визуальной, инженерной осям и по эффективности.
+description: Пять harness в Claude Code собрали один и тот же MVP детской 3D-платформы обучения по идентичному prompt. oh-my-agent занял первое место с результатом 80.6/100 по функциональности, соответствию спецификации, визуалу, инженерному качеству и эффективности.
 ---
 
 # Бенчмарки
 
-Пять harness'ов Claude Code собрали один и тот же MVP детской 3D-платформы для творческого обучения по идентичному «сырому» промпту. **oh-my-agent занял первое место с 80.6/100** по 5-осевой рубрике (функциональность, спецификация, визуальная часть, инженерия, эффективность).
+Пять harness в Claude Code собрали один и тот же MVP творческой 3D-платформы обучения для детей по одному исходному prompt. **oh-my-agent занял первое место с результатом 80.6/100** по рубрике из пяти осей: функциональность, соответствие спецификации, визуал, инженерное качество и эффективность.
 
-> Условия запуска: `claude-opus-4-6`, effort `max`, `--max-budget-usd 20`, `--no-session-persistence`, `--setting-sources project,local`. OAuth через залогиненный CLI `claude` пользователя (без `ANTHROPIC_API_KEY`).
+> Условия запуска: `claude-opus-4-6`, effort `max`, `--max-budget-usd 20`, `--no-session-persistence`, `--setting-sources project,local`. OAuth через авторизованный CLI `claude` пользователя (без `ANTHROPIC_API_KEY`).
 
 ---
 
-## Сравниваемые harness'ы
+## Сравниваемые harness
 
 | Harness | Механизм |
 |---|---|
-| `vanilla` | чистый Claude Code, без plugin/skill (базовая линия) |
-| `oma` | `oh-my-agent`, инициализированный из исходников (`.agents/` + `.claude/`) |
+| `vanilla` | обычный Claude Code без плагина и навыка (baseline) |
+| `oma` | `oh-my-agent`, подготовленный из исходников (`.agents/` + `.claude/`) |
 | `omc` | `oh-my-claudecode` через `--plugin-dir` |
 | `ecc` | `everything-claude-code`, установленный в `~/.claude/` |
 | `superpowers` | `superpowers` через `--plugin-dir` |
 
 ---
 
-## Итоговая таблица результатов
+## Итоговая таблица
 
-| Ранг | Harness | **Итого** | Func/35 | Spec/15 | Visual/20 | Eng/20 | Eff/10 |
+| Место | Harness | **Итого** | Func/35 | Spec/15 | Visual/20 | Eng/20 | Eff/10 |
 |---|---|---|---|---|---|---|---|
 | 1 | **oma** | **80.6** | 32 | 13.3 | 15.3 | 15 | 5 |
 | 2 | omc | 74.1 | 33.5 | 6.7 | 14.4 | 14.5 | 5 |
@@ -35,7 +35,7 @@ description: Пять harness'ов Claude Code собрали один и тот
 
 ### Экономика запусков
 
-| Harness | Ходов | Длительность | Стоимость | Файлов (src) |
+| Harness | Ходы | Длительность | Стоимость | Файлы (src) |
 |---|---|---|---|---|
 | vanilla | 42 | 8m 56s | $2.37 | 16 |
 | oma | 31 | 15m 56s | $4.04 | 21 |
@@ -45,43 +45,43 @@ description: Пять harness'ов Claude Code собрали один и тот
 
 ---
 
-## Сравнение лендингов
+## Сравнение целевых страниц
 
 | vanilla | oma | omc | ecc | superpowers |
 |---|---|---|---|---|
 | ![vanilla](https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/benchmarks/screenshots/vanilla/01-landing.png) | ![oma](https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/benchmarks/screenshots/oma/01-landing.png) | ![omc](https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/benchmarks/screenshots/omc/01-landing.png) | ![ecc](https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/benchmarks/screenshots/ecc/01-landing.png) | ![superpowers](https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/benchmarks/screenshots/superpowers/01-landing.png) |
 
-Полные поэкранные сравнения (конструктор миров, AI-панель, галерея, состояние save→reload) доступны в [отчёте бенчмарков на GitHub](https://github.com/first-fluke/oh-my-agent/tree/main/benchmarks).
+Полные сравнения отдельных экранов (world builder, панель AI, галерея, состояние save→reload) находятся в [отчёте бенчмарка на GitHub](https://github.com/first-fluke/oh-my-agent/tree/main/benchmarks).
 
 ---
 
-## Как рассчитываются оси
+## Как вычисляются оси
 
-| Ось | Вес | Ключевые сигналы | Инструменты |
+| Ось | Вес | Основные сигналы | Инструменты |
 |---|---|---|---|
-| **Функциональная** | 35 | результат сборки, запуск dev-сервера (HTTP 200 ≤45с), 5 проверок пользовательских сценариев, lint, ts-clean | `pm install/build/lint`, curl, chrome-devtools MCP, `tsc --noEmit` |
-| **Спецификация** | 15 | 13 явных требований из промпта, бонус за реальный API | LLM-судья с экстрактором JSON по балансу скобок |
-| **Визуальная** | 20 | анти-паттерны, удобство для детей, согласованность дизайн-системы, доступность | LLM-судья по скриншотам |
-| **Инженерия** | 20 | широта кода, TS strict, максимальный размер файла + глубина папок, маркеры отложенных заглушек, отсутствие захардкоженных ключей | статический анализ (jq + grep + find) |
-| **Эффективность** | 10 | количество ходов до завершения, время по часам, стоимость за файл | JSON-результат `claude -p` |
+| **Функциональность** | 35 | завершение сборки, запуск dev-сервера (HTTP 200 ≤45s), 5 проверок пользовательских сценариев, lint, ts-clean | `pm install/build/lint`, curl, chrome-devtools MCP, `tsc --noEmit` |
+| **Спецификация** | 15 | 13 явно указанных результатов prompt, бонус за настоящий API | LLM-судья с brace-balanced JSON extractor |
+| **Визуал** | 20 | анти-паттерны, удобство для детей, согласованность дизайн-системы, доступность | LLM-судья по скриншотам |
+| **Инженерное качество** | 20 | охват кода, строгий TS, максимальный размер файла и глубина каталога, маркеры отложенных заглушек, отсутствие захардкоженных ключей | статический анализ (jq + grep + find) |
+| **Эффективность** | 10 | число ходов, длительность по часам, стоимость на файл | JSON результата `claude -p` |
 
-Судьи по спецификации и визуальной части запускаются 3 раза на каждый harness через `judge-multi.sh`, а оценки по каждому пункту усредняются по раундам. Реализация находится в [`benchmarks/scoring/multiaxis/`](https://github.com/first-fluke/oh-my-agent/tree/main/benchmarks/scoring/multiaxis).
+Судьи спецификации и визуала запускаются для каждого harness 3 раза через `judge-multi.sh`, а оценки отдельных пунктов усредняются по раундам. Реализация находится в [`benchmarks/scoring/multiaxis/`](https://github.com/first-fluke/oh-my-agent/tree/main/benchmarks/scoring/multiaxis).
 
 ---
 
-## Оговорки
+## Ограничения
 
-1. **Переопределение промпта для superpowers** — необходимо, чтобы harness работал в неинтерактивном режиме (его навык брейншторма `<HARD-GATE>` блокирует одношаговые запуски). Результат отражает «что superpowers может, если обойти gate», а не чистое сравнение «яблоки к яблокам».
-2. **Усреднение нескольких судей по spec + visual, одиночный запуск journey** — оценка journey требует живого dev-сервера, поэтому остаётся одноразовой. Разрывы в journey менее ~2 пунктов считайте шумом. Размер выборки — 1 сборка на harness.
-3. **Нормализация стоимости** — ось эффективности использует стоимость за файл; абсолютная стоимость ($1.28–$8.19 у пятёрки) в оценке не отражена.
-4. **Штраф `lint-clean` у oma — намеренный** — oma сознательно оставляет проверку lint/typecheck на git-хуки (husky + lint-staged) и CI, а не зашивает специфичные для ESLint правила в навыки агентов. Одноразовый бенчмарк штрафует это на -5 в `lint-clean`, но в реальном рабочем процессе те же проблемы были бы заблокированы pre-push до отправки в remote.
+1. **Переопределение prompt в superpowers:** оно было необходимо для запуска harness в неинтерактивном режиме (навык мозгового штурма с `<HARD-GATE>` блокирует одношаговые запуски). Результат показывает, что «superpowers может сделать после обхода шлюза», а не полностью сопоставимое сравнение.
+2. **Усреднение нескольких судей по спецификации и визуалу, один запуск сценариев:** оценка сценариев требует работающего dev-сервера, поэтому выполняется один раз. Разницу в сценариях менее примерно 2 баллов считайте шумом. Для каждого harness построена одна версия.
+3. **Нормализация стоимости:** ось эффективности использует стоимость на файл; абсолютная стоимость ($1.28–$8.19 для пяти запусков) в оценку не входит.
+4. **Штраф oma за `lint-clean` сделан намеренно:** oma оставляет проверку lint и типов хукам Git (husky + lint-staged) и CI, а не встраивает правила, специфичные для ESLint, в навыки агентов. В одношаговом бенчмарке это даёт -5 за `lint-clean`, но в реальном рабочем процессе те же проблемы будут остановлены pre-push до отправки в удалённый репозиторий.
 
 ---
 
 ## Воспроизведение
 
 ```bash
-# Run all 5 harnesses (sequential, ~45 min, ~$15-20 in API spend)
+# Run all harnesses (sequential, ~45 min, ~$15-20 in API spend)
 ./benchmarks/run.sh
 
 # Multiaxis scoring per harness (5-axis, 100pt) — single judge round
@@ -99,4 +99,4 @@ done
   $(pwd)
 ```
 
-Полное описание по каждому harness'у, исходные оценки и скриншоты поддерживаются в [`benchmarks/README.md`](https://github.com/first-fluke/oh-my-agent/blob/main/benchmarks/README.md) — этот файл генерируется `build-report.sh` из `multiaxis/*.json` каждого запуска, поэтому всегда синхронизирован с последними артефактами оценки.
+Полный narrative каждого harness, исходные оценки и скриншоты хранятся в [`benchmarks/README.md`](https://github.com/first-fluke/oh-my-agent/blob/main/benchmarks/README.md). Этот файл создаётся `build-report.sh` из `multiaxis/*.json` каждого запуска, поэтому он всегда соответствует последним артефактам подсчёта.

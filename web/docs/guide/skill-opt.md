@@ -1,11 +1,12 @@
 ---
 title: "Skill Optimization"
-description: How to use oma skill optimize for persistent, evidence-driven skill evolution with train, validation, and runner-owned final-test gates.
+sidebar_label: Skill Optimization
+description: How to use oma skill optimize for persistent, evidence-driven skill evolution with deterministic train, validation, and runner-owned holdout gates.
 ---
 
 # Skill Optimization
 
-`oma skill optimize` evolves a skill's `SKILL.md` to maximize its measured `utilityLift` as produced by `oma skill eval`. It separates raw rollout evidence, persistent scoped knowledge, and the executable skill. A Wiki Maintainer consolidates observable successes and failures; a Proposer uses that knowledge to emit bounded add/delete/replace edits. Candidates must improve held-out validation utility, and `--apply` additionally requires improvement on a runner-owned final-test split. At deployment there is no extra inference-time wiki lookup: the output remains a `SKILL.md`.
+`oma skill optimize` evolves a skill's `SKILL.md` to maximize its measured `utilityLift` as produced by `oma skill eval`. It separates raw rollout evidence, persistent scoped knowledge, and the executable skill. A Wiki Maintainer consolidates observable successes and failures; a Proposer uses that knowledge to emit bounded add/delete/replace edits. Candidates must improve held-out validation utility, and `--apply` additionally requires improvement on a runner-owned holdout split. At deployment there is no extra inference-time wiki lookup: the output remains a `SKILL.md`.
 
 Research basis: Tang, L., Rashtchian, C., Ferng, C.-S., Tomkins, A., Juan, D.-C., & Vu, T. (2026). *WikiSkill: Compiling agent experience into persistent knowledge for skill evolution* [Preprint]. arXiv. https://doi.org/10.48550/arXiv.2608.27454
 
@@ -25,7 +26,7 @@ See the [Skill Utility Eval guide](/docs/guide/skill-eval) for the `.agents/eval
 
 ## How it works
 
-Fixtures are split deterministically into **train**, **held-out validation**, and **runner-owned final-test** sets (60/20/20). The split is stable across runs — tasks are sorted by ID before splitting, so no randomness is involved.
+Fixtures are sorted by task ID and split deterministically into **train**, **held-out validation**, and **runner-owned final-test** sets. With at least five fixtures, the target proportions are 60/20/20 and every partition has at least one task. The final-test tasks come from this local fixture set; they are held out from the Maintainer and Proposer during the loop, not fetched from a hidden external suite.
 
 For each epoch (up to `--max-epochs`, default 8):
 
@@ -39,7 +40,7 @@ For each epoch (up to `--max-epochs`, default 8):
    - Re-score the candidate on the **held-out validation split**.
 5. **Accept the best validation candidate IFF** the validation lift strictly improves (`Δlift > 0`) AND no negative-transfer entry breaches the regression floor (`NEG_TRANSFER_FAIL = -0.1`). Every proposal gate is persisted.
 6. **Early stop** after 2 consecutive epochs with no accepted edit (`OPT_EARLY_STOP_PATIENCE = 2`).
-7. **Run the hidden final test after evolution.** The Maintainer and Proposer never see these tasks. A failed final test prevents `--apply` and records the validation winner as rejected knowledge.
+7. **Run the runner-owned final test after evolution.** The Maintainer and Proposer never see these tasks during the loop. A failed final test prevents `--apply` and records the validation winner as rejected knowledge.
 
 The optimizer never edits the live `SKILL.md` during the loop — it always works on an in-memory candidate copy.
 
@@ -62,7 +63,7 @@ oma skill optimize --skill <id>
 |:-----|:--------|:-----------|
 | `--skill <id>` | `_all` | Skill ID to optimize (simple name, no path separators). |
 | `--dry-run` | **yes (default)** | Propose edits and print the diff without changing `SKILL.md`; generated evidence and evolution events still persist. |
-| `--apply` | — | Apply accepted edits to `SKILL.md` — backs up the original before an atomic write. Only runs when validation and final-test gates pass. |
+| `--apply` | — | Apply accepted edits to `SKILL.md` — backs up the original before an atomic write. Only runs when validation and runner-owned final-test gates pass; an OMA-owned skill also requires `--yes`. |
 | `--mock` | **yes (default)** | Replay recorded optimizer edits and eval verdicts from `_rollouts/`. Deterministic, offline. Safe for CI. |
 | `--live` | — | Live LLM optimizer dispatch — incurs real model calls per epoch. Prints a cost preview and asks for confirmation unless `--yes`. |
 | `--max-epochs <n>` | `8` | Maximum optimization epochs. |
@@ -114,7 +115,7 @@ When you are satisfied with the proposed diff, re-run with `--apply`:
 oma skill optimize --skill oma-scholar --mock --apply
 ```
 
-`--apply` writes only when the optimization found a strictly positive improvement on both the held-out validation and runner-owned final-test splits. A backup of the original `SKILL.md` is created before the atomic write. The diff is always printed so you can review what changed.
+`--apply` writes only when the optimization found a strictly positive improvement on validation and the runner-owned final-test candidate lift is greater than its baseline lift. A backup of the original `SKILL.md` is created before the atomic write. The diff is always printed so you can review what changed.
 
 ---
 
@@ -162,7 +163,7 @@ oma skill optimize --skill oma-scholar --json
 }
 ```
 
-`ok` is `true` only when validation improves and the runner-owned final test does not fail (or the candidate was applied).
+`ok` is `true` only when the candidate improves validation and the runner-owned final test does not fail (or the candidate was applied). The `_split` counts show the actual local fixture partition used for the run.
 
 ---
 
@@ -180,7 +181,7 @@ The command prints a warning when the target skill is oma-owned:
 
 ## Overfitting guard
 
-The Maintainer and Proposer see only TRAIN rollout evidence. Candidate selection uses the held-out VALIDATION split, while the runner-owned TEST split remains hidden until evolution ends. A validation winner that fails to improve the final test is not applied and is added to persistent rejection history.
+The Maintainer and Proposer see only TRAIN rollout evidence. Candidate selection uses the held-out VALIDATION split, while the runner-owned TEST split remains unavailable to them until evolution ends. A validation winner that fails to improve the final test is not applied and is added to persistent rejection history.
 
 ---
 

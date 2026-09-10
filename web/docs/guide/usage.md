@@ -1,18 +1,19 @@
 ---
 title: Usage Guide
-description: Comprehensive usage guide for oh-my-agent, covering quick start, detailed real-world examples (single tasks, multi-domain projects, bug fixes, design systems, CLI parallel execution, and ultrawork), all workflow commands, auto-detection examples in multiple languages, all 21 skills with use cases, dashboard setup, key concepts, tips, and troubleshooting.
+sidebar_label: Using OMA
+description: Usage guide for OMA, covering reader-first task selection, single-skill and multi-domain examples, workflows, auto-detection, all 33 skill packages, parallel CLI execution, dashboards, defaults, and recovery.
 ---
 
 # How to Use oh-my-agent
 
 ## Quick start
 
-1. Open your project in an AI-powered IDE (Claude Code, Gemini CLI, Cursor, Antigravity, etc.)
-2. Skills are auto-detected from `.agents/skills/`
-3. Describe what you want in natural language. oh-my-agent routes to the right agent
+1. Open your project in a selected AI-powered IDE or CLI (Claude Code, Codex CLI, Cursor, Antigravity, OpenCode, Kimi, Kiro, Qwen, or another supported host)
+2. The selected host can load skills from `.agents/skills/`; enabled hooks can detect workflows from natural-language keywords
+3. Describe what you want in natural language. The host or selected workflow routes the task to the relevant skill
 4. For multi-agent work, use `/work` or `/orchestrate`
 
-Single-domain tasks need no special syntax. Use the [skill and workflow selection guide](/docs/core-concepts/workflows#choosing-a-skill-or-workflow) to choose between a single skill, `/work`, `/orchestrate`, `/ultrawork`, and `/ralph`.
+Single-domain tasks need no special syntax. Use the [skill and workflow selection guide](/docs/core-concepts/workflows#choosing-a-skill-or-workflow) to choose between a single skill, `/work`, `/orchestrate`, `/ultrawork`, and `/ralph`. See [Quick Start](../getting-started/quick-start.md) for setup and [Important Defaults](../getting-started/important-defaults.md) before changing providers.
 
 ---
 
@@ -25,12 +26,12 @@ Create a login form component with email and password fields, client-side valida
 
 **What happens:**
 
-1. The `oma-frontend` skill auto-activates (keywords: "form", "component", "Tailwind CSS")
+1. The host routes the request to `oma-frontend` (keywords such as "form", "component", and "Tailwind CSS" are routing signals)
 2. Layer 1 (SKILL.md) is already loaded with agent identity, core rules, and library list
 3. Layer 2 resources load on-demand:
    - `execution-protocol.md`: the 4-step workflow (Analyze, Plan, Implement, Verify)
    - `snippets.md`: form + Zod validation patterns
-   - `component-template.tsx`: React component structure
+   - existing component patterns and `snippets.md` when supplied by the skill
 4. Agent outputs a **CHARTER_CHECK**:
    ```
    CHARTER_CHECK:
@@ -49,7 +50,7 @@ Create a login form component with email and password fields, client-side valida
 <!-- oma-docs:ignore-end -->
 6. Agent runs the checklist: accessibility (ARIA labels, semantic HTML, keyboard nav), mobile viewport, performance (no CLS), error boundaries
 
-**Output:** A production-ready React component with TypeScript, validation, tests, and accessibility, not just a suggestion.
+**Expected result:** A scoped React component with TypeScript, validation, tests, and accessibility evidence when the project supports those checks. The prompt and selected workflow determine which files and checks actually run.
 
 ---
 
@@ -198,7 +199,7 @@ If your current runtime matches the target vendor in `.agents/oma-config.yaml`, 
 
 - Claude Code -> `.claude/agents/*.md`
 - Codex CLI -> `.codex/agents/*.toml`
-- Gemini CLI -> `.gemini/agents/*.md`
+- Antigravity CLI/IDE -> `oma agent spawn` through `agy`
 
 Cross-vendor tasks still use `oma agent spawn`.
 
@@ -211,7 +212,7 @@ Cross-vendor tasks still use `oma agent spawn`.
 /ultrawork Build a payment processing module with Stripe integration
 ```
 
-**What happens (5 phases, 17 steps, 11 review steps):**
+**What happens (5 phases, 17 steps, 12 isolated review steps):**
 
 **Phase 1, PLAN (Steps 1-4, PM Agent inline):**
 - Step 1: Create plan with task breakdown, API contracts, dependencies
@@ -255,7 +256,7 @@ Cross-vendor tasks still use `oma agent spawn`.
 |---------|------|-------------|-------------|
 | `/orchestrate` | Persistent | Loads or creates a plan, then delegates parallel execution with monitoring and verification | Independent tasks suited to automated parallel coordination |
 | `/work` | Persistent | Step-by-step multi-domain planning, implementation, and QA within the authorized scope | Features spanning multiple domains that need coordinated delivery |
-| `/ultrawork` | Persistent | 5-phase, 17-step quality workflow with 11 review checkpoints | Maximum quality delivery, production-critical code |
+| `/ultrawork` | Persistent | 5-phase, 17-step quality workflow with 12 isolated review checkpoints | Maximum quality delivery, production-critical code |
 | `/plan` | Non-persistent | PM-driven task breakdown, API contracts, and tracked plan artifacts in `docs/plans/work/` (sequential `NNN-name.md`, Status field for lifecycle) | Before any complex multi-agent work; complex features needing tracked progress and decision logs |
 | `/brainstorm` | Non-persistent | Design-first ideation with 2-3 approach proposals | Before committing to an implementation approach |
 | `/deepinit` | Non-persistent | Full project initialization (AGENTS.md, ARCHITECTURE.md, docs/) | Setting up oh-my-agent in an existing codebase |
@@ -265,6 +266,13 @@ Cross-vendor tasks still use `oma agent spawn`.
 | `/scm` | Non-persistent | SCM workflow for Git (branch/merge/conflict/worktree/baseline) plus Conventional Commit generation with auto type/scope detection and feature splitting | After completing code changes or when handling repository configuration management tasks |
 | `/tools` | Non-persistent | MCP tool visibility management (enable/disable groups) | Controlling which MCP tools agents can use |
 | `/stack-set` | Non-persistent | Auto-detect project tech stack and generate backend or mobile (Swift/Flutter/RN) references | Setting up language-specific coding conventions |
+| `/architecture` | Non-persistent | Architecture diagnosis, comparison, and decision records | Reviewing boundaries or choosing an architecture |
+| `/convert` | Non-persistent | Route document conversion to the appropriate skill | Converting HWP/HWPX or PDF source files |
+| `/docs` | Non-persistent | Documentation verification and diff-targeted sync proposals | Checking docs against the current codebase |
+| `/explain` | Non-persistent | Generate and validate an offline HTML code-change explainer | Teaching a diff, PR, branch, or commit range |
+| `/recap` | Non-persistent | Summarize work across supported AI tool histories | Daily or period retrospectives |
+| `/schedule` | Non-persistent | Register recurring agent jobs | Nightly recaps, scans, or housekeeping |
+| `/video` | Non-persistent | Compose reproducible videos from scripts, narration, and visuals | Shorts, explainers, and demos |
 | `/ralph` | Persistent | Repeated ultrawork execution with an independent judge and loop safeguards | Explicit requests to repeat execution until mechanical completion criteria pass |
 
 ---
@@ -308,24 +316,45 @@ oh-my-agent detects workflow keywords in 11 languages. Here are examples showing
 
 ---
 
-## All 14 skills: quick reference
+## All 33 skills: quick reference
+
+The installer’s `all` preset follows the live registry. The table groups every current skill by its primary use; a skill can still coordinate with another skill at a boundary.
 
 | Skill | Best For | Primary Output |
 |-------|---------|---------------|
-| **oma-brainstorm** | "I have an idea", exploring approaches | Design document in `docs/plans/designs/` |
-| **oma-pm** | "plan this", task breakdown | `.agents/results/plan-{sessionId}.json`, `task-board.md` |
-| **oma-frontend** | UI components, forms, pages, styling | React/TypeScript components, Vitest tests |
-| **oma-backend** | APIs, auth, server logic, migrations | Endpoints, models, services, tests |
-| **oma-db** | Schema design, ERD, query tuning, capacity planning | Schema documentation, migration scripts, glossary |
-| **oma-mobile** | Mobile apps, platform features | Flutter screens, state management, tests; Swift native iOS (SwiftUI, swift-openapi-generator) |
-| **oma-design** | Design systems, landing pages, tokens | `DESIGN.md`, CSS/Tailwind tokens, component specs |
-| **oma-qa** | Security audit, performance, accessibility | QA report with CRITICAL/HIGH/MEDIUM/LOW findings |
-| **oma-debug** | Bug investigation, root cause analysis | Fixed code + regression tests + similar pattern fixes |
-| **oma-tf-infra** | Cloud infrastructure provisioning | Terraform modules, IAM policies, cost estimates |
-| **oma-dev-workflow** | CI/CD, monorepo tasks, release automation | mise.toml configs, pipeline definitions |
-| **oma-translation** | Multilingual content, i18n files | Translated text preserving tone and register |
-| **oma-orchestration** | Automated parallel agent execution | Orchestrated results from multiple agents |
-| **oma-scm** | Git commits | Conventional Commits with proper type/scope |
+| **oma-academic-writing** | Academic drafting, revision, and anti-AI review | Publication-oriented prose and claim/evidence revisions |
+| **oma-architecture** | System boundaries, tradeoffs, ADRs | Architecture recommendation or decision record |
+| **oma-backend** | APIs, auth, server logic, migrations | Router/service/repository changes and verification |
+| **oma-brainstorm** | Ambiguous ideas and approach comparison | Design document in `docs/plans/designs/` |
+| **oma-coordination** | Manual multi-agent coordination | Step-by-step task and handoff guidance |
+| **oma-db** | Schema design, ERD, query tuning, capacity planning | Schema documentation, migrations, and recovery plan |
+| **oma-debug** | Bug reproduction and root cause analysis | Minimal fix, regression evidence, and pattern scan |
+| **oma-deepsec** | Agent-powered vulnerability scanning | Scan, triage, revalidation, and gate reports |
+| **oma-design** | Design systems, landing pages, tokens | `DESIGN.md`, tokens, and component guidance |
+| **oma-dev-workflow** | CI/CD, monorepos, migrations, release automation | Workflow configuration and release checks |
+| **oma-docs** | Broken references and documentation drift | Verify report or diff-targeted sync candidates |
+| **oma-explanation** | Diff, PR, branch, or commit walkthroughs | Offline HTML explainer with Background, Intuition, Code, and Quiz |
+| **oma-frontend** | UI components, forms, pages, Angular or React styling | Frontend changes and relevant checks |
+| **oma-hwp** | HWP/HWPX/HWPML conversion | Markdown with headings, tables, images, and links |
+| **oma-image** | Image generation and visual assets | Reproducible image run with manifest |
+| **oma-market** | Pain points, trends, competitor and discovery research | LAW-compliant research brief with frameworks |
+| **oma-mobile** | Flutter, React Native, and Swift iOS work | Mobile screens, state, platform integration, and tests |
+| **oma-observability** | Traces, metrics, logs, profiles, SLOs, incident forensics | Layered observability recommendation or implementation guidance |
+| **oma-orchestration** | Automated parallel agent execution | Coordinated plans, memory updates, and result collection |
+| **oma-pdf** | PDF conversion and OCR-aware extraction | Markdown with reading order, tables, lists, and images |
+| **oma-pm** | Requirements, task breakdown, API contracts | `.agents/results/plan-{sessionId}.json` and task board |
+| **oma-qa** | Security, performance, accessibility, and quality review | Findings report with severity and remediation evidence |
+| **oma-recap** | Cross-tool work retrospectives | Daily or period recap in `.agents/results/recap/` |
+| **oma-refactor** | Behavior-preserving restructuring | Refactor changes with characterization and quality evidence |
+| **oma-scholar** | Scholarly search and paper sidecars | Validated `.knows.yaml` sidecar operations |
+| **oma-scm** | Git branching, worktrees, baselines, and commit hygiene | SCM plan or Conventional Commit output |
+| **oma-search** | Trust-scored docs, web, code, and local search | Routed search results with trust labels |
+| **oma-skill-creation** | Creating and auditing OMA skills | SSL-lite skill files and `oma skill audit` results |
+| **oma-slide** | HTML presentation decks and exports | Validated bundled HTML, PDF, PNG, or PPTX |
+| **oma-tf-infra** | Terraform infrastructure, IAM, and policy-as-code | Terraform modules, plans, and controls |
+| **oma-translation** | UI, documentation, and marketing localization | Context-preserving translated content |
+| **oma-video** | Shorts, explainers, and demos | Reproducible video run with assets and manifest |
+| **oma-voice** | Local TTS, STT, and voiceovers | Audio or transcription artifacts with manifest |
 
 ---
 
@@ -369,7 +398,7 @@ Use 3 terminals:
 
 ### Progressive disclosure
 
-Skills load in two layers to save tokens. Layer 1 (`SKILL.md`, ~3,100 tokens median) enters context when the skill is routed to — the injector passes a path, not the body. Layer 2 (`resources/`) is read only as the task needs it, per the difficulty tiers. Measured across a 5-agent session, a Simple or Medium task holds ~17-19K tokens of skill context against a 72K ceiling, leaving roughly 110K of a 128K context for actual work; a Complex task holds ~38K, leaving ~90K. See [token savings math](../core-concepts/skills.md#token-savings-math) for the table and the script that reproduces it.
+Skills load in two layers to save tokens. Layer 1 (`SKILL.md`, about 2,631 tokens median in the current 33-skill tree) enters context when the host routes the skill — the injector passes a path, not the body. Layer 2 (`resources/`) is read only as the task needs it, per the difficulty tiers. Measured across a 5-agent session, a Simple or Medium task holds about 18-19K tokens of skill context against a 73K ceiling, leaving roughly 109K of a 128K context for actual work; a Complex task holds about 39K, leaving roughly 89K. See [token savings math](../core-concepts/skills.md#token-savings-math) for the table and the script that reproduces it.
 
 ### Token optimization
 
@@ -382,16 +411,16 @@ Beyond progressive disclosure, oh-my-agent optimizes tokens through:
 ### CLI spawning
 
 When you run `oma agent spawn`, the CLI:
-1. Resolves the vendor (using the 5-level priority)
+1. Resolves the role's vendor from explicit options, agent overrides, the model preset, and the configured fallback
 2. Injects the vendor-specific execution protocol from `.agents/skills/_shared/runtime/execution-protocols/{vendor}.md`
 3. Composes the agent prompt using the SKILL.md core rules, execution protocol, and task-relevant resources
 4. Spawns the agent as an independent CLI process
-5. The agent writes progress to `.agents/state/memories/progress-{agent}.md`
-6. On completion, writes final result to `.agents/state/memories/result-{agent}.md`
+5. The run records a structured receipt under `.agents/state/agent-runs/` and injects a claim path
+6. The agent writes a structured claim; human-readable progress and result Markdown files are supplemental
 
 ### Project memory store
 
-Agents coordinate through shared memory files at `.agents/state/memories/` (older projects fall back to the legacy `.serena/memories/` path). The orchestrator writes `orchestrator-session.md` (session state) and `task-board.md` (task assignments). Each agent writes its own `progress-{agent}.md` (turn-by-turn updates) and `result-{agent}.md` (final output). Agents read and write these as plain files with their native file tools; the tool mapping stays configurable via `mcp.json → memoryConfig.tools`.
+Agents coordinate through durable files at `.agents/state/memories/` (older projects fall back to the legacy `.serena/memories/` path). The orchestrator writes run-scoped session and task-board files. Each run writes `progress-{agentId}-{taskId}-{runId}-{sessionId}.md` and `result-{agentId}-{taskId}-{runId}-{sessionId}.md` when Markdown progress or result output is enabled; structured receipts and claims under `.agents/state/agent-runs/` are authoritative for CLI spawns. Agents read and write these files with their native file tools; the tool mapping stays configurable in `.agents/mcp.json → memoryConfig.tools`.
 
 ### Workspaces
 
@@ -419,9 +448,9 @@ The `-w` flag on `agent spawn` isolates an agent to a specific directory. This i
 
 8. **Run `/deepinit` on new codebases.** It creates AGENTS.md and ARCHITECTURE.md that help all agents understand the project structure.
 
-9. **Configure `model_preset`.** Use `claude`, `antigravity`, or `mixed` to route agents to the right CLI. Add `agents:` overrides for fine-grained control. See [Per-Agent Models](./per-agent-models.md).
+9. **Configure `model_preset`.** Start with `auto`, choose a fixed preset such as `claude`, `antigravity`, `codex`, `qwen`, `cursor`, `kiro`, or `mixed`, or use `free` with its local gateway. Add `agents:` overrides for fine-grained control. See [Per-Agent Models](./per-agent-models.md).
 
-10. **Use `/ultrawork` for production-critical code.** The 5-phase, 11-review-step workflow catches issues that simpler workflows miss.
+10. **Use `/ultrawork` when you explicitly want its full review process.** The 5-phase workflow runs 12 isolated review steps; skill loading alone does not run those checks.
 
 ---
 
@@ -430,7 +459,7 @@ The `-w` flag on `agent spawn` isolates an agent to a specific directory. This i
 | Problem | Cause | Fix |
 |---------|-------|-----|
 | Skills not detected in IDE | `.agents/skills/` missing or no `SKILL.md` files | Run the installer (`bunx oh-my-agent@latest`), verify symlinks in `.claude/skills/`, restart IDE |
-| CLI not found when spawning | AI CLI not installed globally | Run `which gemini` / `which claude`, then install missing CLIs per the installation guide |
+| CLI not found when spawning | Selected AI CLI not installed or outside `PATH` | Run `which <selected-cli>` (for example, `claude`, `codex`, `agy`, `qwen`, or `kiro`), open a new shell, or install it per the installation guide |
 | Agents producing conflicting code | No workspace isolation | Use separate workspaces: `-w ./apps/api`, `-w ./apps/web` |
 | Dashboard shows "No agents detected" | Agents have not written to memory yet | Wait for agents to start (first write at turn 1), or verify session ID matches |
 | Web dashboard will not start | Dependencies not installed | Run `bun install` in the web/ directory first |
@@ -439,7 +468,7 @@ The `-w` flag on `agent spawn` isolates an agent to a specific directory. This i
 | Persistent workflow will not stop | State file still exists | Say "workflow done" in the chat, or manually delete the state file from `.agents/state/` |
 | Agent blocked on HIGH clarification | Requirements too ambiguous | Provide the specific answers the agent requested, then re-run |
 | MCP tools not working | Serena not configured or not running | Run `oma doctor` to verify MCP config |
-| Agent exceeds turn limit | Task too complex for default turns | Increase turns with `-t 30` flag, or decompose into smaller tasks |
+| Agent exceeds its execution budget | Task too complex for one run | Decompose the task, use a workflow with explicit task boundaries, or retry with a narrower acceptance contract |
 | Wrong CLI used for agent | `model_preset` not configured or agent override missing | Run `oma install` to configure, or set `model_preset` in `oma-config.yaml`. See [Per-Agent Models](./per-agent-models.md). |
 
 ---

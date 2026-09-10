@@ -1,28 +1,39 @@
 ---
 title: "Hướng dẫn: Cài đặt toàn cục"
-description: Cài oh-my-agent vào HOME của người dùng (~/.agents/) thay vì theo từng dự án, để cùng một bộ skill, workflow và rule áp dụng cho mọi dự án. Bao gồm oma install --global, oma update --global, oma uninstall --global, ghi đè OMA_HOME, phát hiện cài đặt kép qua oma doctor, và các lưu ý theo nền tảng (từ chối sudo, CI, WSL, bảo vệ cwd=HOME).
+sidebar_label: Cài đặt toàn cục
+description: Cài oh-my-agent vào HOME người dùng (`~/.agents/`) thay vì theo từng project để cùng một bộ skill, workflow và rule áp dụng cho mọi project. Bao gồm `oma install --global`, `oma update --global`, `oma uninstall --global`, override `OMA_HOME`, phát hiện cài đặt kép qua `oma doctor` và lưu ý theo nền tảng.
 ---
 
 ## Cài đặt toàn cục là gì?
 
-Mặc định, `oma install` giới hạn mọi thứ trong thư mục dự án hiện tại: SSOT nằm ở `<cwd>/.agents/` và cấu hình vendor được ghi vào `<cwd>/.claude/`, `<cwd>/.codex/`, v.v. **Cài đặt toàn cục** (`oma install --global`) đặt oh-my-agent vào HOME của người dùng, nên cùng một bộ skill, workflow và rule đều có sẵn ở mọi dự án bạn mở mà không cần lặp lại bước cài đặt. SSOT nằm ở `~/.agents/` còn cấu hình vendor ở `~/.claude/`, `~/.codex/`, v.v.
+Mặc định, `oma install` giới hạn mọi thứ trong thư mục project hiện tại: SSOT ở `<cwd>/.agents/` và config vendor ghi vào `<cwd>/.claude/`, `<cwd>/.codex/`, v.v. **Cài đặt toàn cục** (`oma install --global`) cài oh-my-agent vào HOME người dùng, nên cùng skill, workflow và rule có sẵn ở mọi project mà không lặp bước cài. SSOT ở `~/.agents/`, config vendor ở `~/.claude/`, `~/.codex/`, v.v.
 
-## So sánh: dự án vs toàn cục
+## So sánh project và toàn cục
 
-| Khía cạnh | Dự án (`oma install`) | Toàn cục (`oma install --global`) |
+| Khía cạnh | Project (`oma install`) | Toàn cục (`oma install --global`) |
 |--------|------------------------|--------------------------------|
 | Vị trí SSOT | `<cwd>/.agents/` | `~/.agents/` |
-| Cấu hình vendor | `<cwd>/.claude/`, `<cwd>/.codex/`, v.v. | `~/.claude/`, `~/.codex/`, v.v. |
+| Config vendor | `<cwd>/.claude/`, `<cwd>/.codex/`, v.v. | `~/.claude/`, `~/.codex/`, v.v. |
 | File lock | `<cwd>/.agents/_install.lock` | `~/.agents/_install.lock` |
 | Metadata | `<cwd>/.agents/_version.json (schemaVersion=2)` | `~/.agents/_version.json (schemaVersion=2)` |
-| Trường hợp dùng | Tùy biến theo từng dự án | Mặc định cá nhân cho mọi dự án |
-| Phạm vi oma-config.yaml | Theo từng dự án | Baseline cho toàn bộ người dùng |
+| Trường hợp dùng | Tùy biến theo project | Default cá nhân cho mọi project |
+| Phạm vi oma-config.yaml | Riêng project | Baseline toàn user |
 
-Hai chế độ có thể cùng tồn tại. `oma doctor` báo cáo cả hai cài đặt nếu có và đánh dấu phần khác biệt giữa chúng.
+Hai mode có thể cùng tồn tại. `oma doctor` báo cáo cả hai install nếu có và chỉ ra drift giữa chúng.
 
-## Lần chạy đầu tiên
+Sau global install thành công, xác minh file theo user root và profile đã resolve:
 
-Lần đầu bạn chạy `oma install --global` trên một máy, trình cài đặt sẽ hiển thị ghi chú giải thích trước khi tiếp tục:
+```bash
+oma doctor --json
+oma doctor --profile
+```
+
+
+Command đầu báo cáo health của install và vendor; command profile hiển thị kế hoạch model của agent. Chạy từ bất kỳ project nào khi muốn kiểm tra global install.
+
+## Thiết lập lần đầu
+
+Lần đầu chạy `oma install --global` trên máy, installer hiển thị ghi chú trước khi tiếp tục:
 
 ```
 This is your first global install of oh-my-agent.
@@ -35,9 +46,10 @@ Existing per-project installs are not affected.
 ? Proceed with the global install? (y/N)
 ```
 
-Xác nhận để tiếp tục. Việc cài đặt sau đó đi theo cùng một luồng tương tác như cài đặt cho dự án (ngôn ngữ, model preset, loại dự án, chọn vendor).
 
-Sau khi cài thành công, các bước tiếp theo được hiển thị:
+Xác nhận để tiếp tục. Sau đó install đi theo cùng luồng tương tác như project install, gồm language, model preset, project type và vendor selection.
+
+Sau install thành công, các bước tiếp theo hiển thị:
 
 ```
 1. Open your project in your IDE
@@ -45,31 +57,34 @@ Sau khi cài thành công, các bước tiếp theo được hiển thị:
 3. Run `oma doctor` if anything looks off
 ```
 
+
 ## Lưu ý
 
 ### Từ chối sudo
 
-`oma install` (ở mọi chế độ) sẽ thoát ngay khi chạy dưới `sudo`:
+`oma install` ở mọi mode thoát ngay khi chạy dưới `sudo`:
 
 ```
 Refusing to install under sudo. Re-run as the target user (without sudo) — oma writes to your HOME and runs as your user.
 ```
 
-Hãy chạy lệnh bằng người dùng thông thường, không dùng `sudo`.
+
+Chạy command bằng user bình thường, không dùng `sudo`.
 
 ### Môi trường CI
 
-Chạy `oma install --global` bên trong pipeline CI sẽ thay đổi HOME của runner CI. Việc này thường không mong muốn. Nếu bạn thực sự cần (ví dụ pipeline bootstrap), oma sẽ phát ra cảnh báo:
+Chạy `oma install --global` trong CI sẽ sửa thư mục HOME của runner CI, thường không mong muốn. Nếu thật sự cần, chẳng hạn pipeline bootstrap, oma phát warning:
 
 ```
 Running `oma install --global` in CI. This will modify the CI user's HOME.
 ```
 
-Quá trình cài đặt tiếp tục khi `--yes` / `OMA_YES=1` được đặt. Không có chúng, cảnh báo sẽ hiển thị và cài đặt tiếp tục theo chế độ tương tác (thường sẽ treo trong hầu hết thiết lập CI).
 
-### WSL: HOME Linux vs USERPROFILE Windows
+Install tiếp tục nếu đặt `--yes` / `OMA_YES=1`. Nếu không, warning hiển thị và install tiếp tục interactive, thường sẽ treo trong CI.
 
-Khi oma phát hiện đang chạy trong Windows Subsystem for Linux, nó in ra:
+### WSL: HOME Linux và USERPROFILE Windows
+
+Khi phát hiện chạy trong Windows Subsystem for Linux, oma in:
 
 ```
 WSL detected: your $HOME (/home/<user>) is the WSL Linux home and is distinct
@@ -77,43 +92,65 @@ from your Windows %USERPROFILE%. oma will install only to the WSL HOME.
 If you want a Windows-side install, re-run this command from PowerShell.
 ```
 
-Cài đặt WSL và cài đặt PowerShell là độc lập. Nếu muốn phủ toàn cục cho cả hai phía, hãy chạy `oma install --global` một lần từ WSL và một lần từ PowerShell.
 
-### Cảnh báo cwd = HOME (chế độ dự án)
+WSL install và PowerShell install độc lập. Muốn phủ global ở cả hai phía, chạy `oma install --global` một lần trong WSL và một lần từ PowerShell.
 
-Nếu bạn chạy `oma install` (không có `--global`) khi thư mục hiện tại là HOME, oma sẽ cảnh báo:
+### Cảnh báo cwd = HOME (project mode)
+
+Nếu chạy `oma install` không có `--global` khi current directory là HOME, oma cảnh báo:
 
 ```
 You're running oma in your HOME directory without --global. This will scatter
 files in ~/. Are you sure?
 ```
 
-Ở chế độ phi tương tác / CI, lệnh này tự động hủy. Hãy dùng `--global` nếu bạn thực sự muốn cài đặt cho toàn bộ người dùng.
+
+Trong non-interactive / CI mode, command tự hủy. Dùng `--global` nếu thật sự muốn cài cho toàn user.
+
+## Liên kết lại global install
+
+`oma link` tái tạo file native của vendor từ SSOT mà không cài lại. Giống `install` và `update`, nó resolve target theo install context, nên truyền `--global` để reconcile `~/.agents/`; command chạy từ bất kỳ thư mục nào, không chỉ `$HOME`:
+
+```bash
+# Regenerate every configured vendor in the global install
+oma link --global
+
+# Regenerate only opencode (e.g. after editing per-agent models in ~/.agents/oma-config.yaml)
+oma link opencode --global
+```
+
+
+Không có `--global`, `oma link` target `<cwd>/.agents/`. Vì vậy chạy trong project khi install là global sẽ báo không tìm thấy thư mục `.agents/` ở đó.
 
 ## Gỡ cài đặt
 
 ```bash
-# Xem trước những gì sẽ bị xóa (không xóa gì cả)
+# Preview what would be removed (never deletes anything)
 oma uninstall --global --dry-run
 
-# Gỡ cài đặt toàn cục
+# Remove the global install
 oma uninstall --global
 ```
 
-Lệnh gỡ cài đặt tách bạch các file do oma sở hữu khỏi các file do người dùng sở hữu. Nội dung của người dùng (oma-config.yaml, mcp.json, skill tùy biến không có marker `<!-- oma:generated -->`) không bao giờ bị xóa.
 
-Để gỡ cài đặt dự án, hãy bỏ `--global`:
+Lệnh uninstall tách file do oma sở hữu khỏi file do user sở hữu. Nội dung của user, gồm `oma-config.yaml`, `mcp.json` và skill custom không có marker `<!-- oma:generated -->`, không bao giờ bị xóa.
+
+Để gỡ project install, bỏ `--global`:
 
 ```bash
 oma uninstall [--dry-run]
 ```
 
-## Ghi đè OMA_HOME
 
-Cho mục đích test hoặc staging, bạn có thể chuyển hướng mọi thao tác oma sang một thư mục bất kỳ:
+## Override OMA_HOME
+
+Để test hoặc staging, redirect mọi thao tác oma tới thư mục tùy ý:
 
 ```bash
 OMA_HOME=/tmp/oma-test oma install --global
 ```
 
-`OMA_HOME` có độ ưu tiên cao hơn `--global` và `process.cwd()`. Các đường dẫn hệ thống bị cấm (`/etc`, `/usr`, `/bin`, `/boot`, `/sys`, `/proc`) sẽ bị từ chối ngay cả khi đặt qua `OMA_HOME`. Đường dẫn phải tuyệt đối và cho phép ghi.
+
+`OMA_HOME` có ưu tiên cao hơn `--global` và `process.cwd()`. Path hệ thống bị cấm, gồm `/etc`, `/usr`, `/bin`, `/boot`, `/sys` và `/proc`, vẫn bị từ chối dù đặt qua `OMA_HOME`. Path phải tuyệt đối và writable.
+
+Để smoke test an toàn, trỏ `OMA_HOME` tới thư mục rỗng có quyền ghi rồi chạy `oma install --global --yes`; summary phải nêu thư mục đó là install root. Xóa thư mục sau test, rồi chạy install thật với HOME dự kiến.

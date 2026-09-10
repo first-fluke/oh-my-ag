@@ -1,28 +1,28 @@
 ---
 title: スキル
-description: oh-my-agentの2層スキルアーキテクチャ完全ガイド。SKILL.md設計、オンデマンドリソースローディング、全共有リソースの解説、条件付きプロトコル、スキルごとのリソースタイプ、ベンダー実行プロトコル、トークン節約の計算、スキルルーティングの仕組みを解説します。
+description: OMA の 33 スキルによる 2 層アーキテクチャの完全ガイドです。SKILL.md のルーティング、オンデマンドリソース、共有・条件付きプロトコル、ベンダー実行、トークン計測、ルーティングの仕組みを説明します。
 ---
 
 # スキル
 
-スキルは、各エージェントにドメイン専門知識を与える構造化された知識パッケージです。単なるプロンプトではなく、実行プロトコル、技術スタックリファレンス、コードテンプレート、エラー対応手順、品質チェックリスト、Few-shotサンプルが含まれ、トークン効率を考慮した2層アーキテクチャで構成されています。
+スキルは、ディスパッチロールにドメインの指針を与える構造化された知識パッケージです。実行プロトコル、技術スタックのリファレンス、コードテンプレート、エラープレイブック、品質チェックリスト、スキルが提供する例を、トークン効率を考えた 2 層アーキテクチャで整理しています。
 
 ---
 
-## 2層設計
+## 2 層設計
 
-### レイヤー1：SKILL.md（約800バイト、常にロード）
+### Layer 1: SKILL.md（中央値約 2,631 トークン。スキルがルーティングされたときにロード）
 
-すべてのスキルのルートに`SKILL.md`ファイルがあります。スキルが参照されるとき常にコンテキストウィンドウにロードされます。含まれるもの：
+すべてのスキルはルートに `SKILL.md` ファイルを持ちます。スキルがルーティングされるとコンテキストウィンドウに入ります。インジェクターフックが渡すのは本文ではなく **パス参照** なので、ルーティングされていないスキルは `description` 以外のコストを消費しません。次の内容を含みます。
 
-- **YAMLフロントマター**：`name`と`description`（ルーティングと表示に使用）
-- **使用すべき場合/使用すべきでない場合**: 明示的なアクティベーション条件
-- **コアルール**: ドメインの最も重要な5〜15の制約
-- **アーキテクチャ概要**: コードの構造化方法
-- **ライブラリリスト**: 承認済み依存関係とその用途
-- **参照**: レイヤー2リソースへのポインター（自動ロードされない）
+- **YAML フロントマター**：ルーティングと表示に使う `name` と `description`
+- **使用すべき場合 / 使用すべきでない場合**：明示的なアクティベーション条件
+- **コアルール**：そのドメインで最も重要な 5〜15 個の制約
+- **アーキテクチャ概要**：コードをどう構成するか
+- **ライブラリ一覧**：承認済みの依存関係と用途
+- **参照**：Layer 2 リソースへのポインター（自動ロードされません）
 
-フロントマター例：
+フロントマターの例：
 
 ```yaml
 ---
@@ -31,47 +31,57 @@ description: Frontend specialist for React, Next.js, TypeScript with FSD-lite ar
 ---
 ```
 
-descriptionフィールドは非常に重要です。スキルルーティングシステムがタスクをエージェントにマッチさせるルーティングキーワードが含まれています。
+`description` フィールドは、スキルルーティングシステムがタスクとエージェントを照合するためのキーワードを含むため重要です。
 
-### レイヤー2：resources/（オンデマンドロード）
+### Layer 2: resources/（オンデマンド）
 
-`resources/`ディレクトリには深い実行知識が含まれます。以下の場合にのみロードされます：
-1. エージェントが明示的に呼び出された場合（`/command`またはエージェントskillsフィールド経由）
-2. 現在のタスクタイプと難易度に特定のリソースが必要な場合
+`resources/` ディレクトリには、実行に必要な詳しい知識を収めます。次の場合にだけロードされます。
 
-このオンデマンドローディングはコンテキストローディングガイド（`.agents/skills/_shared/core/context-loading.md`）によって制御され、エージェントごとにタスクタイプを必要なリソースにマッピングします。
+1. ホストまたはワークフローがスキルを選択した場合（ネイティブスキルの一致や明示的なコマンドなど）
+2. 現在のタスクの種類と難易度に、そのリソースが必要な場合
+
+このオンデマンドロードはコンテキストローディングガイド（`.agents/skills/_shared/core/context-loading.md`）が制御します。ガイドは、エージェントごとにタスクの種類を必要なリソースへ対応付けます。
 
 ---
 
-## ファイル構造例
+## ファイル構造の例
 
 ```
 .agents/skills/oma-frontend/
-├── SKILL.md                          ← レイヤー1：常にロード（約800バイト）
+├── SKILL.md                          ← Layer 1: loaded when routed
 └── resources/
-    ├── execution-protocol.md         ← レイヤー2：ステップバイステップワークフロー
-    ├── tech-stack.md                 ← レイヤー2：詳細な技術仕様
-    ├── tailwind-rules.md             ← レイヤー2：Tailwind固有の規約
-    ├── component-template.tsx        ← レイヤー2：Reactコンポーネントテンプレート
-    ├── snippets.md                   ← レイヤー2：コピペ可能なコードパターン
-    ├── error-playbook.md             ← レイヤー2：エラー回復手順
-    ├── checklist.md                  ← レイヤー2：品質検証チェックリスト
-    └── examples/                     ← レイヤー2：Few-shot入出力サンプル
-        └── examples.md
+    ├── execution-protocol.md         ← Layer 2: step-by-step workflow
+    ├── tech-stack.md                 ← Layer 2: detailed technology specs
+    ├── angular-rules.md              ← Layer 2: Angular-specific conventions
+    ├── snippets.md                   ← Layer 2: copy-paste code patterns
+    ├── error-playbook.md             ← Layer 2: error recovery procedures
+    └── checklist.md                  ← Layer 2: quality verification checklist
 
 .agents/skills/oma-backend/
 ├── SKILL.md
 ├── resources/
 │   ├── execution-protocol.md
-│   ├── examples.md
-│   ├── orm-reference.md              ← ドメイン固有（ORMクエリ、N+1、トランザクション）
+│   ├── orm-reference.md              ← Domain-specific (ORM queries, N+1, transactions)
 │   ├── checklist.md
 │   └── error-playbook.md
-└── stack/                             ← /stack-setで生成（言語固有）
-    ├── stack.yaml
-    ├── tech-stack.md
-    ├── snippets.md
-    └── api-template.*
+└── variants/                          ← Shipped language seeds / generated references
+    ├── node/
+    ├── python/
+    └── rust/
+
+.agents/skills/oma-mobile/
+├── SKILL.md
+├── resources/
+│   ├── execution-protocol.md
+│   ├── tech-stack.md
+│   ├── screen-template.dart
+│   ├── screen-template.swift         ← Swift native iOS screen template
+│   ├── screen-template.tsx            ← React Native screen template
+│   ├── checklist.md
+│   └── error-playbook.md
+└── variants/                          ← Stack schema and generated platform references
+    ├── README.md
+    └── stack.schema.json
 
 .agents/skills/oma-design/
 ├── SKILL.md
@@ -84,7 +94,7 @@ descriptionフィールドは非常に重要です。スキルルーティング
 │   ├── prompt-enhancement.md
 │   ├── stitch-integration.md
 │   └── error-playbook.md
-└── reference/                         ← 深いリファレンス資料
+└── reference/                         ← Deep reference material
     ├── typography.md
     ├── color-and-contrast.md
     ├── spatial-design.md
@@ -99,273 +109,326 @@ descriptionフィールドは非常に重要です。スキルルーティング
 
 ## スキルごとのリソースタイプ
 
-| リソースタイプ | ファイル名パターン | 目的 | ロードタイミング |
+| リソースタイプ | ファイル名パターン | 目的 | ロードされるタイミング |
 |--------------|-----------------|---------|-------------|
-| **実行プロトコル** | `execution-protocol.md` | ステップバイステップワークフロー：分析 -> 計画 -> 実装 -> 検証 | 常に（SKILL.mdとともに） |
-| **技術スタック** | `tech-stack.md` | 詳細な技術仕様、バージョン、設定 | Complexタスク |
-| **エラー対応手順** | `error-playbook.md` | 「3ストライク」エスカレーション付き回復手順 | エラー発生時のみ |
-| **チェックリスト** | `checklist.md` | ドメイン固有の品質検証 | 検証ステップで |
-| **スニペット** | `snippets.md` | コピペ可能なコードパターン | Medium/Complexタスク |
-| **サンプル** | `examples.md`または`examples/` | LLM向けFew-shot入出力サンプル | Medium/Complexタスク |
-| **バリアント** | `stack/`ディレクトリ | 言語/フレームワーク固有のリファレンス（`/stack-set`で生成） | stackが存在する場合 |
-| **テンプレート** | `component-template.tsx`、`screen-template.dart` | ボイラープレートファイルテンプレート | コンポーネント作成時 |
-| **ドメインリファレンス** | `orm-reference.md`、`anti-patterns.md`など | 特定のサブタスク向け深いドメイン知識 | タスクタイプ固有 |
+| **実行プロトコル** | `execution-protocol.md` | 手順型ワークフロー：Analyze -> Plan -> Implement -> Verify | 常時（`SKILL.md` とともに） |
+| **技術スタック** | `tech-stack.md` | 技術仕様、バージョン、設定の詳細 | 複雑なタスク |
+| **エラープレイブック** | `error-playbook.md` | 「3 回でエスカレーション」する復旧手順 | エラー発生時のみ |
+| **チェックリスト** | `checklist.md` | ドメイン固有の品質検証 | Verify ステップ |
+| **スニペット** | `snippets.md` | コピーして使えるコードパターン | Medium / Complex タスク |
+| **例** | `examples.md` または `examples/` | LLM 向けの少数ショット入出力例 | Medium / Complex タスク |
+| **バリアント** | `variants/` ディレクトリ | 言語・フレームワーク固有のリファレンス。Backend には `node`、`python`、`rust` のシードがあり、Mobile にはスキーマと生成されたプラットフォームリファレンスがあります。 | 対応するスタックがある場合 |
+| **テンプレート** | `component-template.tsx`、`screen-template.dart` | ボイラープレートのファイルテンプレート | コンポーネント作成時 |
+| **ドメインリファレンス** | `orm-reference.md`、`anti-patterns.md` など | 特定のサブタスク向けの詳しいドメイン知識 | タスクの種類に応じて |
 
 ---
 
 ## 共有リソース（_shared/）
 
-すべてのエージェントは`.agents/skills/_shared/`の共通基盤を共有します。3つのカテゴリに分類されます：
+すべてのエージェントは `.agents/skills/_shared/` の共通基盤を共有します。リソースは 3 つのカテゴリに分かれています。
 
 ### コアリソース（`.agents/skills/_shared/core/`）
 
-| リソース | 目的 | ロードタイミング |
-|----------|---------|-------------|
-| **`skill-routing.md`** | タスクキーワードを正しいエージェントにマッピング。Skill-Agentマッピングテーブル、Complex Request Routingパターン、エージェント間依存ルール、エスカレーションルール、ターン制限ガイドを含む。 | オーケストレータおよびコーディネーションスキルが参照 |
-| **`context-loading.md`** | タスクタイプと難易度に応じてロードするリソースを定義。エージェントごとのタスクタイプ-リソースマッピングテーブルと条件付きプロトコルローディングトリガーを含む。 | ワークフロー開始時（Step 0 / Phase 0） |
-| **`prompt-structure.md`** | すべてのタスクプロンプトに必要な4要素を定義：Goal、Context、Constraints、Done When。PM、実装、QAエージェント用テンプレートを含む。 | PMエージェントおよびすべてのワークフローが参照 |
-| **`clarification-protocol.md`** | 不確実性レベル（LOW/MEDIUM/HIGH）と各アクションを定義。不確実性トリガー、エスカレーションテンプレート、サブエージェントモードでの動作を含む。 | 要件が曖昧な場合 |
-| **`context-budget.md`** | トークン予算管理。ファイル読み取り戦略（`read_file`ではなく`find_symbol`を使用）、モデルティアごとのリソースローディング予算（Flash：約3,100トークン / Pro：約5,000トークン）を定義。 | ワークフロー開始時 |
-| **`difficulty-guide.md`** | タスクをSimple/Medium/Complexに分類する基準。予想ターン数、プロトコル分岐を定義。 | タスク開始時（Step 0） |
-| **`reasoning-templates.md`** | 一般的な意思決定パターン向け構造化推論テンプレート。 | 複雑な意思決定時 |
-| **`quality-principles.md`** | すべてのエージェントに適用される4つの普遍的品質原則。 | 品質重視ワークフロー開始時 |
-| **`vendor-detection.md`** | ランタイム環境検出プロトコル。マーカーチェック：Agent tool = Claude Code、apply_patch = Codex、@-syntax = Gemini。 | ワークフロー開始時 |
-| **`session-metrics.md`** | Clarification Debt（CD）スコアリングとセッションメトリクス追跡。 | オーケストレーションセッション中 |
-| **`common-checklist.md`** | Complexタスクの最終検証時に適用される普遍的品質チェックリスト。 | Complexタスクの検証ステップ |
-| **`lessons-learned.md`** | 過去セッションの学びのリポジトリ。 | エラー後およびセッション終了時に参照 |
-| **`api-contracts/`** | APIコントラクトテンプレートと生成されたコントラクトを含むディレクトリ。 | クロスバウンダリ作業の計画時 |
+| リソース | 目的 | ロードされるタイミング |
+|---------|---------|-------------|
+| **`skill-routing.md`** | タスクキーワードを適切なエージェントへ対応付けます。Skill-Agent Mapping、Complex Request Routing、Inter-Agent Dependency Rules、Escalation Rules、Turn Limit Guide の各表を含みます。 | オーケストレータとコーディネーションスキルが参照 |
+| **`context-loading.md`** | タスクの種類と難易度ごとにロードするリソースを定義します。エージェントごとのタスク種類とリソースの対応表、条件付きプロトコルをロードするトリガーを含みます。 | ワークフロー開始時（Step 0 / Phase 0） |
+| **`prompt-structure.md`** | すべてのタスクプロンプトに必要な 4 要素、Goal、Context、Constraints、Done When を定義します。PM、実装、QA エージェント向けのテンプレートと、Goal だけで始めるアンチパターンも含みます。 | PM エージェントとすべてのワークフローが参照 |
+| **`clarification-protocol.md`** | 不確実性レベル（LOW / MEDIUM / HIGH）と各レベルのアクションを定義します。不確実性のトリガー、エスカレーションテンプレート、エージェント種別ごとの必須検証項目、サブエージェントモードの動作を含みます。 | 要件が曖昧な場合 |
+| **`context-budget.md`** | トークン予算を管理します。ファイル読み取り戦略（`read_file` ではなく `find_symbol` を使う）、Simple（約 4,000 トークン）と Complex（約 9,000 トークン）のロードコスト、`oma skill audit` が確認する `SKILL.md` の上限（25,000 文字）、大きなファイルの扱い、コンテキスト不足の兆候を定義します。 | ワークフロー開始時 |
+| **`difficulty-guide.md`** | タスクを Simple / Medium / Complex に分類する基準を定義します。想定ターン数、Fast Track / Standard / Extended のプロトコル分岐、判断を誤った場合の復旧を含みます。 | タスク開始時（Step 0） |
+| **`quality-principles.md`** | すべてのエージェントに適用される 4 つの普遍的な品質原則です。 | 品質重視ワークフローの開始時 |
+| **`vendor-detection.md`** | 現在のランタイム環境を検出するプロトコルです（Claude Code、Codex CLI、Antigravity、Cursor、Kiro、Qwen、CLI フォールバック）。ホストのマーカーと設定済みベンダー状態を使います。 | ワークフロー開始時 |
+| **`session-metrics.md`** | Clarification Debt（CD）のスコアリングとセッションメトリクスを追跡します。イベント種別（clarify +10、correct +25、redo +40）、しきい値（CD >= 50 で RCA、CD >= 80 で一時停止）、統合ポイントを定義します。 | オーケストレーションセッション中 |
+| **`common-checklist.md`** | Complex タスクの最終検証に適用する普遍的な品質チェックリストです（エージェント固有のチェックリストに加えて使います）。 | Complex タスクの Verify ステップ |
+| **`lessons-learned.md`** | Clarification Debt のしきい値超過や破棄した実験から自動生成される過去セッションの学びです。ドメイン別の章と Evaluator Lessons を含みます。 | エラー後とセッション終了時に参照 |
+| **`api-contracts/`** | API コントラクトテンプレートと生成されたコントラクトを収めます。`template.md` はエンドポイントごとの形式（メソッド、パス、リクエスト/レスポンススキーマ、認証、エラー）を定義します。 | 境界をまたぐ作業を計画するとき |
 
 ### ランタイムリソース（`.agents/skills/_shared/runtime/`）
 
 | リソース | 目的 |
-|----------|---------|
-| **`memory-protocol.md`** | CLIサブエージェント用のメモリファイル形式と操作。On Start、During Execution、On Completionプロトコルを定義。 |
-| **`execution-protocols/claude.md`** | Claude Code固有の実行パターン。 |
-| **`execution-protocols/gemini.md`** | Gemini CLI固有の実行パターン。 |
-| **`execution-protocols/codex.md`** | Codex CLI固有の実行パターン。 |
-| **`execution-protocols/qwen.md`** | Qwen CLI固有の実行パターン。 |
+|---------|---------|
+| **`memory-protocol.md`** | CLI サブエージェント向けのメモリファイル形式と操作。On Start、During Execution、On Completion のプロトコルを定義します。実験追跡の拡張も含みます。 |
+| **`execution-protocols/claude.md`** | Claude Code 固有の実行パターン。`oma agent spawn` がベンダーに応じて注入します。 |
+| **`execution-protocols/antigravity.md`** | Antigravity CLI（`agy`）の実行パターン。 |
+| **`execution-protocols/codex.md`** | Codex CLI 固有の実行パターン。 |
+| **`execution-protocols/commandcode.md`** | CommandCode の実行パターン。 |
+| **`execution-protocols/grok.md`** | Grok の実行パターン。 |
+| **`execution-protocols/kimi.md`** | Kimi Code の実行パターン。 |
+| **`execution-protocols/kiro.md`** | Kiro の実行パターン。 |
+| **`execution-protocols/opencode.md`** | OpenCode 拡張の実行パターン。 |
+| **`execution-protocols/pi.md`** | pi 拡張の実行パターン。 |
+| **`execution-protocols/qwen.md`** | Qwen CLI 固有の実行パターン。 |
 
-ベンダー固有の実行プロトコルは`oma agent spawn`により自動的にインジェクトされます。
+ベンダー固有の実行プロトコルは、CLI 起動のエージェントなら `oma agent spawn` が自動で注入します。ネイティブサブエージェントは、選択したベンダーの統合規則を使います。
 
 ### 条件付きリソース（`.agents/skills/_shared/conditional/`）
 
-| リソース | トリガー条件 | ロード元 | 概算トークン |
-|----------|-------------------|-----------|----------------|
-| **`quality-score.md`** | VERIFYまたはSHIPフェーズ開始 | オーケストレータ | 約250 |
-| **`experiment-ledger.md`** | IMPLベースライン確立後の最初の実験 | オーケストレータ | 約250 |
-| **`exploration-loop.md`** | 同じ問題で同じゲートが2回失敗 | オーケストレータ | 約250 |
+| トリガー条件 | ロード元 | 概算トークン |
+|-------------------|---------|----------------|
+| **`quality-score.md`**：ワークフローの VERIFY または SHIP フェーズが開始する | Orchestrator（QA エージェントへ渡す） | 約 250 |
+| **`experiment-ledger.md`**：IMPL ベースライン確立後に最初の実験を記録する | Orchestrator（ベースライン計測後にインラインで渡す） | 約 250 |
+| **`exploration-loop.md`**：同じゲートが同じ問題で 2 回失敗する | Orchestrator（仮説エージェントをスポーンする前にインラインで渡す） | 約 250 |
 
-予算影響：3つすべてロード時、合計約750トークン。一般的なセッションでは1〜2個がロード。
+予算への影響は、3 つすべてをロードした場合で合計約 750 トークンです。条件付きなので、通常のセッションでは 1〜2 個だけがロードされ、約 4,000 トークンの Simple タスクのロード量に比べて小さい値です。
 
 ---
 
-## skill-routing.mdによるスキルルーティング
+## skill-routing.md によるスキルルーティング
+
+ルーティングマップはタスクをエージェントへ対応付けます。
 
 ### シンプルルーティング（単一ドメイン）
 
-「Tailwind CSSでログインフォームを作成」→ キーワード`UI`、`component`、`form`、`Tailwind`にマッチ → **oma-frontend**。
+「Tailwind CSS でログインフォームを作成」というプロンプトは、`UI`、`component`、`form`、`Tailwind` に一致し、**oma-frontend** へルーティングされます。
 
-### 複合リクエストルーティング
+### 複合リクエストのルーティング
 
 | リクエストパターン | 実行順序 |
 |----------------|----------------|
-| 「フルスタックアプリを作成」 | oma-pm -> (oma-backend + oma-frontend) 並列 -> oma-qa |
-| 「モバイルアプリを作成」 | oma-pm -> (oma-backend + oma-mobile) 並列 -> oma-qa |
+| 「フルスタックアプリを作成」 | oma-pm -> （oma-backend + oma-frontend）を並列実行 -> oma-qa |
+| 「モバイルアプリを作成」 | oma-pm -> （oma-backend + oma-mobile）を並列実行 -> oma-qa |
 | 「バグを修正してレビュー」 | oma-debug -> oma-qa |
 | 「ランディングページをデザインして構築」 | oma-design -> oma-frontend |
 | 「機能のアイデアがある」 | oma-brainstorm -> oma-pm -> 関連エージェント -> oma-qa |
-| 「すべて自動でやって」 | oma-orchestration（内部：oma-pm -> エージェント群 -> oma-qa） |
+| 「すべて自動で実行」 | oma-orchestration（内部では oma-pm -> エージェント群 -> oma-qa） |
 
-### エージェント間依存ルール
+### エージェント間の依存関係ルール
 
-**並列実行可能（依存関係なし）：**
-- oma-backend + oma-frontend（APIコントラクトが事前定義の場合）
-- oma-backend + oma-mobile（APIコントラクトが事前定義の場合）
-- oma-frontend + oma-mobile（互いに独立）
+**並列で実行できる（依存関係なし）：**
 
-**順次実行が必要：**
-- oma-brainstorm -> oma-pm（設計が計画より先）
-- oma-pm -> その他すべてのエージェント（計画が最初）
+- oma-backend + oma-frontend（API コントラクトが事前定義されている場合）
+- oma-backend + oma-mobile（API コントラクトが事前定義されている場合）
+- oma-frontend + oma-mobile（互いに独立している場合）
+
+**順番に実行する必要がある：**
+
+- oma-brainstorm -> oma-pm（設計を先に行う）
+- oma-pm -> その他すべてのエージェント（計画が先）
 - 実装エージェント -> oma-qa（実装後にレビュー）
-- oma-backend -> oma-frontend/oma-mobile（事前定義のAPIコントラクトがない場合）
+- oma-backend -> oma-frontend / oma-mobile（API コントラクトが事前定義されていない場合）
 
-**QAは常に最後。**
-
----
-
-## トークン節約の計算
-
-5エージェントのオーケストレーションセッション（pm、backend、frontend、mobile、qa）を想定：
-
-**段階的開示なし：** 5 x 4,000 = 20,000トークン（作業開始前に消費）
-
-**段階的開示あり：** 5 x 800 + 1,500 = 約5,500トークン
-
-**節約：約72〜75%**
-
-Flashティアモデル（128Kコンテキスト）では、作業に使用可能なトークンが108Kか125Kかの差になります。
+**QA は常に最後です。**ただし、ユーザーが特定ファイルだけのレビューを依頼した場合を除きます。
 
 ---
 
-## タスク難易度によるリソースローディング
+## トークン節約の計算 {#token-savings-math}
 
-### Simple（3〜5ターン想定）
+これらの数値は、手作業の推定ではなくスキルツリーから計測したものです。いつでも再計算できます。
 
-単一ファイル変更、明確な要件。ロード：`execution-protocol.md`のみ。
+```bash
+bun scripts/measure-skill-context.ts --skills oma-pm,oma-backend,oma-frontend,oma-mobile,oma-qa
+```
 
-### Medium（8〜15ターン想定）
+トークン数は概算です（英語 Markdown のおおよその比率であるバイト数 ÷ 4）。表やコードフェンスはやや多くトークン化されるため、実際の値は少し高くなります。正確な値が必要なら、対象モデルのトークナイザーで計測してください。
 
-2〜3ファイル変更、設計判断が必要。ロード：`execution-protocol.md` + `examples.md`。
+### ロード階層
 
-### Complex（15〜25ターン想定）
+各階層は、エージェントが `context-loading.md` に従って実際に到達する状態です。
 
-4ファイル以上の変更、アーキテクチャ判断が必要。ロード：`execution-protocol.md` + `examples.md` + `tech-stack.md` + `snippets.md`。
+| 階層 | コンテキストに含まれるもの |
+|------|------------------|
+| `routed` | `SKILL.md` のみ |
+| `simple` | `execution-protocol.md` を追加 |
+| `medium` | タスク用に対応付けられたリソースがあれば追加 |
+| `complex` | 対応付けられたリソースと、プロジェクトにあるスタックリファレンスを追加 |
+| `all` | `SKILL.md` とすべてのリソース。上限であり、選択可能なモードではありません |
+
+Backend と Mobile のスキルでは、`/stack-set` が `stack/` のプロジェクト固有リファレンスを生成できます。新しいチェックアウトには生成済みのスタックディレクトリがないため、`complex` の行は生成元になる `variants/` のシードを基に測定したサイズの目安です。エージェントが現時点でロードするファイルを示すものではありません。
+
+:::note `all` は上限であり、別の選択肢ではありません
+ランタイムがすべてのリソースを最初からロードすることはありません。スキルは `description` で見つかり、ルーティングされたときに本文が読み込まれ、リソースはタスクに必要なときだけ読まれます。`all` はスキルが消費し得る上限なので、割合は実際の構成との比較ではなく「回避できる量」として示しています。
+:::
+
+Layer 1 は下限であり、小さくはありません。インストール済み 33 スキルの `SKILL.md` は約 1,275〜5,489 トークン（中央値約 2,631）です。5 つのエージェントをルーティングすると `routed` 階層だけで上限の 15% に達するため、段階的開示による節約量にはこの下限があります。
+
+### 5 エージェントのセッション（pm、backend、frontend、mobile、qa）
+
+| 階層 | トークン | 上限に対する割合 | 回避量 |
+|------|-------:|----------------:|--------:|
+| `routed` | 11,497 | 15.7% | 84.3% |
+| `simple` | 17,923 | 24.4% | 75.6% |
+| `medium` | 19,125 | 26.1% | 73.9% |
+| `complex` | 39,156 | 53.4% | 46.6% |
+| `all` | 73,355 | 100% | なし |
+
+5 つのエージェントで Simple または Medium タスクを扱う場合、すべてをロードする場合の 73K ではなく、およそ 17〜19K トークンのスキルコンテキストで済みます。Complex タスクでは約 38K です。通常の作業では約 74〜76% を節約し、スタックリファレンスをロードする場合でも約 47% を節約します。128K コンテキストのモデルなら、Simple / Medium では約 110K、Complex では約 90K を作業に使えます。
 
 ---
 
-## コンテキストローディングタスクマップ（エージェントごと）
+## タスクの難易度によるリソースロード
 
-### バックエンドエージェント
+難易度ガイドはタスクを 3 つのレベルに分類し、Layer 2 をどこまでロードするかを決めます。
 
-| タスクタイプ | 必要なリソース |
+### Simple（想定 3〜5 ターン）
+
+単一ファイルの変更、明確な要件、既存パターンの反復です。
+
+ロードするのは `execution-protocol.md` だけです。分析を省略し、最小限のチェックリストで実装へ進みます。
+
+### Medium（想定 8〜15 ターン）
+
+2〜3 ファイルの変更、設計上の判断、既存パターンの新しいドメインへの適用が必要です。
+
+`execution-protocol.md` と、存在する場合は Medium 用に対応付けられたリソースをロードします。短い分析と完全な検証を含む標準プロトコルを使います。
+
+### Complex（想定 15〜25 ターン）
+
+4 ファイル以上の変更、アーキテクチャ上の判断、新しいパターンの導入、他エージェントへの依存が必要です。
+
+`execution-protocol.md`、対応付けられたリソース、利用可能な `tech-stack.md` / `snippets.md` リファレンスをロードします。チェックポイント、中間の進捗記録、`common-checklist.md` を含む完全な検証を行う拡張プロトコルを使います。
+
+---
+
+## コンテキストロードのタスクマップ（エージェント別）
+
+コンテキストローディングガイドには、タスクの種類からリソースへの詳しい対応表があります。主要な対応は次のとおりです。
+
+### Backend エージェント
+
+| タスクの種類 | 必須リソース |
 |-----------|-------------------|
-| CRUD API作成 | stack/snippets.md（route、schema、model、test） |
-| 認証 | stack/snippets.md（JWT、password）+ stack/tech-stack.md |
-| DBマイグレーション | stack/snippets.md（migration） |
-| パフォーマンス最適化 | examples.md（N+1サンプル） |
-| 既存コード変更 | examples.md + Serena MCP |
+| CRUD API の作成 | 存在する場合は対応する `variants/{node,python,rust}/snippets.md` |
+| 認証 | 対応する `variants` の `snippets.md` と、存在する場合は `tech-stack.md` |
+| DB マイグレーション | 存在する場合は対応する `variants/{node,python,rust}/snippets.md` |
+| パフォーマンス最適化 | `orm-reference.md` と、スキルが提供する対応する例 |
+| 既存コードの変更 | プロジェクトのコードインテリジェンスプロバイダーと関連する実行リソース |
 
-### フロントエンドエージェント
+### Frontend エージェント
 
-| タスクタイプ | 必要なリソース |
+| タスクの種類 | 必須リソース |
 |-----------|-------------------|
-| コンポーネント作成 | snippets.md + component-template.tsx |
-| フォーム実装 | snippets.md（form + Zod） |
-| API統合 | snippets.md（TanStack Query） |
-| スタイリング | tailwind-rules.md |
-| ページレイアウト | snippets.md（grid）+ examples.md |
+| コンポーネント作成 | `snippets.md` とプロジェクト既存のコンポーネントパターン |
+| フォーム実装 | `snippets.md`（フォーム + Zod） |
+| API 統合 | `snippets.md`（TanStack Query） |
+| スタイリング | `tailwind-rules.md` |
+| ページレイアウト | `snippets.md`（grid） |
 
-### デザインエージェント
+### Design エージェント
 
-| タスクタイプ | 必要なリソース |
+| タスクの種類 | 必須リソース |
 |-----------|-------------------|
-| デザインシステム作成 | reference/typography.md + reference/color-and-contrast.md + reference/spatial-design.md + design-md-spec.md |
-| ランディングページデザイン | reference/component-patterns.md + reference/motion-design.md + prompt-enhancement.md |
-| デザイン監査 | checklist.md + anti-patterns.md |
-| デザイントークンエクスポート | design-tokens.md |
-| 3D / シェーダーエフェクト | reference/shader-and-3d.md + reference/motion-design.md |
-| アクセシビリティレビュー | reference/accessibility.md + checklist.md |
+| デザインシステム作成 | `reference/typography.md` + `reference/color-and-contrast.md` + `reference/spatial-design.md` + `design-md-spec.md` |
+| ランディングページのデザイン | `reference/component-patterns.md` + `reference/motion-design.md` + `prompt-enhancement.md` |
+| デザイン監査 | `checklist.md` + `anti-patterns.md` |
+| デザイントークンのエクスポート | `design-tokens.md` |
+| 3D / シェーダー効果 | `reference/shader-and-3d.md` + `reference/motion-design.md` |
+| アクセシビリティレビュー | `reference/accessibility.md` + `checklist.md` |
 
-### QAエージェント
+### QA エージェント
 
-| タスクタイプ | 必要なリソース |
+| タスクの種類 | 必須リソース |
 |-----------|-------------------|
-| セキュリティレビュー | checklist.md（Securityセクション） |
-| パフォーマンスレビュー | checklist.md（Performanceセクション） |
-| アクセシビリティレビュー | checklist.md（Accessibilityセクション） |
-| フル監査 | checklist.md（全体）+ self-check.md |
-| 品質スコアリング | quality-score.md（条件付き） |
+| セキュリティレビュー | `checklist.md`（Security セクション） |
+| パフォーマンスレビュー | `checklist.md`（Performance セクション） |
+| アクセシビリティレビュー | `checklist.md`（Accessibility セクション） |
+| 完全監査 | `checklist.md`（全体）+ `self-check.md` |
+| 品質スコアリング | `quality-score.md`（条件付き） |
 
 ---
 
 ## オーケストレータのプロンプト構成
 
-オーケストレータがサブエージェントのプロンプトを構成する際、タスクに関連するリソースのみを含みます：
+オーケストレータがサブエージェントのプロンプトを組み立てるときは、タスクに関係するリソースだけを含めます。
 
-1. エージェントSKILL.mdのCore Rulesセクション
+1. エージェントの `SKILL.md` の Core Rules セクション
 2. `execution-protocol.md`
-3. 特定のタスクタイプにマッチするリソース（上記マップから）
-4. `error-playbook.md`（常に含む。回復は不可欠）
-5. Serenaメモリプロトコル（CLIモード）
+3. 特定のタスク種類に対応するリソース（上のマップから）
+4. `error-playbook.md`（常に含めます。復旧は不可欠です）
+5. Memory Protocol（CLI モード）
 
-このターゲットを絞った構成は、不要なリソースのロードを避け、サブエージェントの実際の作業に利用可能なコンテキストを最大化します。
+この絞り込んだ構成により、不要なリソースをロードせず、サブエージェントが実際の作業に使えるコンテキストを増やせます。
 
 ---
 
 ## Clarification Debt とセッションメトリクス（詳細）
 
-Clarification Debt（CD）は、セッション中に要件が不明瞭であることのコストを測定します。オーケストレータはユーザーの修正をすべて追跡し、スコアを付けます。
+Clarification Debt（CD）は、セッション中に要件が不明確だったことによるコストを測定します。オーケストレータはユーザーからの訂正をすべて追跡してスコアを付けます。
 
-| イベントタイプ | ポイント | 説明 |
+| イベント種別 | ポイント | 説明 |
 |------------|--------|-------------|
-| `clarify` | +10 | 単純な明確化質問（MEDIUMの不確実性で想定される） |
-| `correct` | +25 | 方向転換が必要となる意図の誤解 |
-| `redo` | +40 | スコープ/Charterの違反でロールバックと再開が必要 |
-| `blocked` | +0 | エージェントが正しく停止して質問した場合（良い挙動なのでペナルティなし） |
+| `clarify` | +10 | 単純な明確化質問。MEDIUM の不確実性なら想定されます。 |
+| `correct` | +25 | 方向転換が必要になった意図の誤解。 |
+| `redo` | +40 | スコープまたは Charter の違反によりロールバックと再開が必要。 |
+| `blocked` | +0 | エージェントが正しく停止して質問した。良い動作なので加点しません。 |
 
-**修飾子：** Charter未読（+15）、許可リスト違反（+20）、同じエラーの繰り返し（×1.5）。
+**修飾子：** Charter を読んでいない場合は +15、許可リスト違反は +20、同じエラーの繰り返しは ×1.5 です。
 
-**閾値と強制：**
-- **CD >= 50** → `lessons-learned.md`へのRCAエントリ追加が必須
-- **CD >= 80** → セッション停止、ユーザーは要件を再指定する必要がある
-- **`redo` >= 2** → オーケストレータが一時停止し、明示的なスコープ確認を要求
-- **同じエージェントで連続3セッションの平均CD >= 30** → エージェントプロンプトテンプレートのレビュー対象
+**しきい値と強制事項：**
 
-セッションログは`.serena/memories/session-metrics.md`にイベント単位の行（ターン、エージェント、イベントタイプ、ポイント、詳細）とサマリセクションとともに記録されます。
+- **CD >= 50** → `lessons-learned.md` に RCA エントリを必ず追加します。
+- **CD >= 80** → セッションを停止し、ユーザーが要件を再指定する必要があります。
+- **`redo` >= 2** → オーケストレータが一時停止し、明示的なスコープ確認を求めます。
+- **同じエージェントで 3 セッション連続して CD >= 30** → エージェントのプロンプトテンプレートをレビューします。
+
+セッションログは `.agents/state/memories/session-metrics.md` に保持します。イベントごとの行（ターン、エージェント、イベント種別、ポイント、詳細）とサマリーを記録します。
 
 ---
 
-## 評価者精度とQAチューニング
+## 評価者の精度と QA チューニング
 
-QAエージェントは、追跡された判断ミスを通じて改善されます。CD（リアルタイム）と異なり、Evaluator Accuracy（EA）は事後的なものです。多くのエラーはセッション終了後に発見されます。
+QA エージェントは、記録した判断ミスから改善します。CD がリアルタイムの指標なのに対して、Evaluator Accuracy（EA）は事後的な指標です。多くのエラーはセッション終了後に見つかります。
 
-**EAイベントタイプ：**
+**EA イベント種別：**
 
-| イベント | ポイント | 発見タイミング |
+| イベント | ポイント | 発見されるタイミング |
 |-------|--------|-----------------|
-| `false_negative` | +30 | 次のセッションまたは本番環境（QAが見逃したバグ） |
-| `false_positive` | +15 | セッション中（実装エージェントがQAの指摘に対し正当な反論をした場合） |
-| `severity_mismatch` | +10 | セッション中または次セッションのレビュー時（誤った重要度が割り当てられた場合） |
-| `missed_stub` | +20 | ランタイム検証で表示専用の機能を捕捉した場合 |
-| `good_catch` | -10 | QAが分かりにくいバグを捕捉した場合（ポジティブな報酬シグナル） |
+| `false_negative` | +30 | 次のセッションまたは本番環境（QA が見逃したバグ） |
+| `false_positive` | +15 | セッション中（実装エージェントが QA の指摘に正当な反論をした場合） |
+| `severity_mismatch` | +10 | セッション中または次のセッションのレビュー時（重要度を誤って割り当てた場合） |
+| `missed_stub` | +20 | ランタイム検証で表示だけの機能を捕捉した場合 |
+| `good_catch` | -10 | QA が見つけにくいバグを捕捉した場合（良いシグナル） |
 
-**EAは直近3セッションのローリングウィンドウで計算されます。** 閾値は次のとおりです。
-- **EA >= 30** → チューニング推奨: 蓄積されたEAイベントをレビューし、繰り返されるQA判断エラーを特定
-- **EA >= 50** → チューニング必須：QAの`execution-protocol.md`を更新
-- **ウィンドウ内で`false_negative` >= 3** → 検出パターンをQAの`checklist.md`に追加
-- **ウィンドウ内で`good_catch` >= 5** → 成功パターンを`common-checklist.md`へ一般化
+**EA は直近 3 セッションのローリングウィンドウで計算します。**しきい値は次のとおりです。
 
-閾値を超えた場合は、蓄積されたEAイベントをレビューしてエラーを分類し、QAチェックリスト/実行プロトコルにパッチを適用し、次の3セッションで検証します。
+- **EA >= 30** → チューニングを推奨します。累積した EA イベントをレビューして、繰り返す QA 判断エラーを確認します。
+- **EA >= 50** → チューニングが必須です。QA の `execution-protocol.md` を更新します。
+- **ウィンドウ内で `false_negative` >= 3** → QA の `checklist.md` に検出パターンを追加します。
+- **ウィンドウ内で `good_catch` >= 5** → 成功したパターンを `common-checklist.md` に一般化します。
+
+しきい値を超えたら、累積した EA イベントをレビューしてエラーを分類し、QA のチェックリストまたは実行プロトコルを更新します。その後の 3 セッションで検証します。
 
 ---
 
 ## 複雑なタスクのスプリント分解
 
-複雑なタスク（4つ以上のファイル、アーキテクチャ判断を含む）は、単一の長時間実行ではなく、スプリントベースの実行を使います。
+複雑なタスク（4 ファイル以上の変更、アーキテクチャ上の判断）は、1 回の長い実行ではなくスプリント単位で進めます。
 
-1. **分解**: 各々が独立してテスト可能な、機能フォーカスのスプリント2〜4個に分解
-2. **目標**: スプリントごとに5〜8ターン
+1. **分解**：各スプリントを独立してテストできる、機能に焦点を当てた 2〜4 個のスプリントへ分けます。
+2. **目標**：各スプリントを 5〜8 ターンにします。
 3. **スプリントゲート**（各スプリントの後）：
-   - スプリントの成果物は完成しているか？
-   - lint/testは通るか？
-   - スプリントが想定の2倍のターン数を要した場合 → チェックポイントを書き出し、ユーザーに通知
-4. **継続**: ゲート通過時に次のスプリントへ
+   - スプリントの成果物は完成したか？
+   - lint / test は通ったか？
+   - 想定の 2 倍のターン数がかかった場合は、チェックポイントを書き、ユーザーへ通知します。
+4. **継続**：ゲートを通過したら次のスプリントへ進みます。
 
-**例：** 「JWT認証 + CRUD API + テスト」というタスクは以下に分解されます。
-- スプリント1：ユーザーモデル + 認証エンドポイント（register/login）
-- スプリント2：CRUDエンドポイント + バリデーション
-- スプリント3：テスト + エラーハンドリング
+**例：**「JWT 認証 + CRUD API + テスト」というタスクは次のように分解します。
 
-**難易度誤判の回復：** タスクがSimpleとして始まったがより複雑であることが判明した場合、エージェントは実行中にMediumまたはComplexプロトコルへアップグレードし、変更を進捗ログに記録します。
+- スプリント 1：ユーザーモデル + 認証エンドポイント（register / login）
+- スプリント 2：CRUD エンドポイント + バリデーション
+- スプリント 3：テスト + エラーハンドリング
+
+**難易度の判断を誤った場合の復旧：** Simple で始めたタスクが複雑だと分かったら、実行中に Medium または Complex プロトコルへ切り替え、その変更を進捗に記録します。
 
 ---
 
 ## コンテキストリセットプロトコル
 
-長時間動作するエージェントは、コンテキストが満杯になるにつれて品質が低下します。エージェント自身ではなく、オーケストレータがこれを監視してリセットをトリガーします。
+長時間動作するエージェントは、コンテキストが埋まるにつれて品質が低下します。エージェント自身ではなく、オーケストレータがこの状態を監視してリセットを開始します。
 
-**トリガー条件**（オーケストレータがモニタリング中に確認）：
+**トリガー条件（オーケストレータが監視中に確認）：**
 
 | 条件 | 検出 | アクション |
 |-----------|-----------|--------|
-| ターン予算の枯渇 | エージェントが想定ターン数の80%以上を消費 かつ 受入基準の達成が50%未満 | コンテキストリセット |
-| 進捗の停止 | 進捗ファイルが3回以上連続のモニタリングサイクルで更新されない | コンテキストリセット |
-| 浅い出力 | 結果ファイルがスタブマーカーまたはTODOプレースホルダーを含む | 明示的指示で再スポーン |
+| ターン予算の枯渇 | 想定ターン数の 80%以上を消費し、受入基準の達成が 50% 未満 | コンテキストをリセット |
+| 進捗の停止 | 3 回以上連続した監視サイクルで進捗ファイルが更新されない | コンテキストをリセット |
+| 浅い出力 | 結果ファイルにスタブマーカーまたは TODO プレースホルダーがある | 明示的な指示を付けて再スポーン |
 
 **リセット手順：**
-1. **チェックポイント**: エージェントの現状を保存（完了項目、残項目、主要決定）
-2. **終了**: 現在のエージェント実行を停止
-3. **再スポーン**: チェックポイントをコンテキストとして新しいエージェントを起動
-4. **再開**: 新しいエージェントがチェックポイントを読み、残項目のみから継続
 
-オーケストレータを伴わないスタンドアロンのエージェントの場合、`difficulty-guide.md`のスプリントゲートが安全網として機能します。スプリントが想定の2倍のターン数を要したら、エージェントはチェックポイントを書き出してユーザーに通知します。
+1. **チェックポイント**：完了項目、残りの項目、主要な決定を保存します。
+2. **終了**：現在のエージェント実行を停止します。
+3. **再スポーン**：チェックポイントをコンテキストとして新しいエージェントを起動します。
+4. **再開**：新しいエージェントがチェックポイントを読み、残りの項目だけを続けます。
+
+オーケストレータを使わない単独実行では、`difficulty-guide.md` のスプリントゲートが安全網になります。スプリントが想定の 2 倍のターン数を要したら、エージェントはチェックポイントを書いてユーザーへ通知します。

@@ -1,11 +1,12 @@
 ---
 title: "스킬 최적화"
-description: oma skill opt로 train, validation, 실행기 전용 final-test 게이트를 거치는 영속적 근거 기반 스킬 진화를 수행하는 방법을 다룹니다.
+sidebar_label: 스킬 최적화
+description: 결정론적 train, validation, 실행기 전용 holdout 게이트를 거치는 영속적 근거 기반 스킬 진화를 위해 oma skill optimize를 사용하는 방법을 다룹니다.
 ---
 
 # 스킬 최적화
 
-`oma skill optimize`는 `oma skill eval`이 산출하는 `utilityLift`를 최대화하도록 스킬의 `SKILL.md`를 진화시킵니다. 원시 롤아웃 근거, 범위가 지정된 영속 지식, 실행 가능한 스킬을 분리합니다. Wiki Maintainer가 관측 가능한 성공과 실패를 통합하고, Proposer가 그 지식으로 제한된 추가·삭제·교체 편집을 제안합니다. 후보는 held-out 검증 유용성을 높여야 하며, `--apply`에는 실행기 전용 최종 테스트의 향상도 필요합니다. 배포 시에는 별도의 wiki 조회 비용 없이 결과가 `SKILL.md`에 남습니다.
+`oma skill optimize`는 `oma skill eval`이 산출하는 `utilityLift`를 최대화하도록 스킬의 `SKILL.md`를 진화시킵니다. 원시 롤아웃 근거, 범위가 지정된 영속 지식, 실행 가능한 스킬을 분리합니다. Wiki Maintainer가 관측 가능한 성공과 실패를 통합하고, Proposer가 그 지식으로 제한된 추가·삭제·교체 편집을 제안합니다. 후보는 held-out 검증 유용성을 높여야 하며, `--apply`에는 실행기 전용 holdout 분할의 향상도 필요합니다. 배포 시에는 별도의 wiki 조회 비용 없이 결과가 `SKILL.md`에 남습니다.
 
 연구 근거: Tang, L., Rashtchian, C., Ferng, C.-S., Tomkins, A., Juan, D.-C., & Vu, T. (2026). *WikiSkill: Compiling agent experience into persistent knowledge for skill evolution* [Preprint]. arXiv. https://doi.org/10.48550/arXiv.2608.27454
 
@@ -25,7 +26,7 @@ description: oma skill opt로 train, validation, 실행기 전용 final-test 게
 
 ## 동작 방식
 
-픽스처는 **train**, **held-out validation**, **실행기 전용 final-test** 세트로 결정론적으로 나뉩니다(60/20/20). 나누기 전에 태스크를 ID로 정렬하므로 실행할 때마다 분할이 같고 무작위성이 개입하지 않습니다.
+픽스처는 task ID로 정렬한 뒤 **train**, **held-out validation**, **실행기 전용 final-test** 세트로 결정론적으로 나뉩니다. 픽스처가 5개 이상이면 목표 비율은 60/20/20이며 모든 partition에 최소 하나의 task가 있습니다. final-test task는 이 local fixture set에서 나오며, loop 동안 Maintainer와 Proposer에게 숨겨지고 숨겨진 외부 suite에서 가져오지 않습니다.
 
 에폭마다(`--max-epochs`까지, 기본 8회) 다음을 수행합니다.
 
@@ -39,7 +40,7 @@ description: oma skill opt로 train, validation, 실행기 전용 final-test 게
    - 후보를 **held-out 검증 분할**에서 다시 채점합니다.
 5. **최선의 검증 후보를 수락하는 조건은** 검증 향상이 확실히 커지고(`Δlift > 0`) 음의 전이 항목이 퇴행 하한(`NEG_TRANSFER_FAIL = -0.1`)을 넘지 않는 경우뿐입니다. 모든 제안 게이트는 영속화됩니다.
 6. **수락된 편집이 없는 에폭이 2회 연속되면 조기 종료합니다**(`OPT_EARLY_STOP_PATIENCE = 2`).
-7. **진화가 끝난 뒤 숨겨진 최종 테스트를 실행합니다.** Maintainer와 Proposer는 이 태스크를 볼 수 없습니다. 최종 테스트가 실패하면 `--apply`를 막고 검증 승자를 거부 지식으로 기록합니다.
+7. **진화가 끝난 뒤 실행기 전용 최종 테스트를 실행합니다.** loop 동안 Maintainer와 Proposer는 이 태스크를 볼 수 없습니다. 최종 테스트가 실패하면 `--apply`를 막고 검증 승자를 거부 지식으로 기록합니다.
 
 최적화기는 루프 도중 실제 `SKILL.md`를 절대 건드리지 않습니다. 항상 메모리상의 후보 사본에서만 작업합니다.
 
@@ -62,7 +63,7 @@ oma skill optimize --skill <id>
 |:-----|:--------|:-----------|
 | `--skill <id>` | `_all` | 최적화할 스킬 ID(단순 이름이며 경로 구분자를 쓰지 않습니다). |
 | `--dry-run` | **기본값** | 편집과 diff를 제안하되 `SKILL.md`는 바꾸지 않습니다. 생성된 근거와 진화 이벤트는 영속화합니다. |
-| `--apply` | 없음 | 수락된 편집을 `SKILL.md`에 적용합니다. 원본을 백업한 뒤 원자적으로 쓰며, 검증과 최종 테스트 게이트가 모두 통과할 때만 실행됩니다. |
+| `--apply` | 없음 | 수락된 편집을 `SKILL.md`에 적용합니다. 원본을 백업한 뒤 원자적으로 쓰며, validation과 실행기 전용 final-test 게이트가 통과하고 OMA 소유 스킬이면 `--yes`도 지정한 경우에만 실행됩니다. |
 | `--mock` | **기본값** | `_rollouts/`에 기록된 최적화 편집과 평가 판정을 재생합니다. 결정론적이고 오프라인이며 CI에서 안전합니다. |
 | `--live` | 없음 | 실제 LLM 최적화를 디스패치합니다. 에폭마다 실제 모델 호출이 발생합니다. 비용 미리보기를 출력하고 `--yes`가 없으면 확인을 받습니다. |
 | `--max-epochs <n>` | `8` | 최대 최적화 에폭 수. |
@@ -114,7 +115,7 @@ diff는 최적화기가 쓰려는 내용을 보여줍니다. `--dry-run`에서�
 oma skill optimize --skill oma-scholar --mock --apply
 ```
 
-`--apply`는 held-out 검증과 실행기 전용 최종 테스트에서 모두 확실한 양의 개선을 찾았을 때만 파일을 씁니다. 원본을 백업한 뒤 원자적으로 쓰며, 무엇이 바뀌었는지 검토할 수 있도록 diff를 항상 출력합니다.
+`--apply`는 validation에서 개선되고 실행기 전용 final-test candidate lift가 baseline lift보다 클 때만 파일을 씁니다. 원본을 백업한 뒤 원자적으로 쓰며, 무엇이 바뀌었는지 검토할 수 있도록 diff를 항상 출력합니다.
 
 ---
 
@@ -162,7 +163,7 @@ oma skill optimize --skill oma-scholar --json
 }
 ```
 
-검증 향상이 있고 실행기 전용 최종 테스트가 실패하지 않았을 때만(또는 후보가 적용됐을 때) `ok`가 `true`입니다.
+candidate가 validation을 개선하고 실행기 전용 final-test가 실패하지 않았을 때만(또는 후보가 적용됐을 때) `ok`가 `true`입니다. `_split` count는 실행에 사용한 실제 local fixture partition을 보여 줍니다.
 
 ---
 
@@ -180,7 +181,7 @@ ID가 `oma-`로 시작하는 스킬은 oh-my-agent가 소유하며 **`oma update
 
 ## 과적합 방지
 
-Maintainer와 Proposer는 TRAIN 롤아웃 근거만 봅니다. 후보 선택은 held-out VALIDATION 분할을 쓰고, 실행기 전용 TEST 분할은 진화가 끝날 때까지 숨깁니다. 검증 승자가 최종 테스트를 개선하지 못하면 적용하지 않고 영속 거부 이력에 추가합니다.
+Maintainer와 Proposer는 TRAIN 롤아웃 근거만 봅니다. 후보 선택은 held-out VALIDATION 분할을 쓰고, 실행기 전용 TEST 분할은 진화가 끝날 때까지 이들에게 제공되지 않습니다. 검증 승자가 최종 테스트를 개선하지 못하면 적용하지 않고 영속 거부 이력에 추가합니다.
 
 ---
 

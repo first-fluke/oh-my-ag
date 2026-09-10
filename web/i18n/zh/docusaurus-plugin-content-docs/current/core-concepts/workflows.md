@@ -1,13 +1,13 @@
 ---
 title: 工作流
-description: 全部 16 个 oh-my-agent 工作流的完整参考。斜杠命令、持久化与非持久化模式、11 种语言的触发关键词、阶段和步骤、读写文件、通过 triggers.json 和 keyword-detector.ts 的自动检测机制、信息性模式过滤和持久化模式状态管理。
+description: OMA 全部 21 个工作流的完整参考，涵盖斜杠命令、持久化与非持久化模式、11 种语言的触发关键词、阶段和步骤、读写文件、通过 triggers.json 与 keyword-detector.ts 实现的自动检测、信息性模式过滤，以及持久化模式的状态管理。
 ---
 
 # 工作流
 
-工作流是由斜杠命令或自然语言关键词触发的结构化多步骤流程。它们定义了智能体如何在任务上协作，从单阶段工具到复杂的 5 阶段质量关卡。
+工作流是由斜杠命令或自然语言关键词触发的结构化多步骤流程。它们定义智能体如何协作处理任务，范围从单阶段工具到包含 5 个阶段的复杂质量关卡。
 
-共有 16 个工作流，其中 4 个是持久化的（它们维护状态且不能被意外中断）。
+共有 21 个工作流，其中 4 个是持久化工作流（会维护状态，不能被意外中断）。
 
 ---
 
@@ -39,7 +39,7 @@ description: 全部 16 个 oh-my-agent 工作流的完整参考。斜杠命令�
 
 ### /orchestrate
 
-**说明：** 基于 CLI 的自动化并行智能体执行。通过 CLI 启动子智能体，通过 MCP 内存协调，监控进度，运行验证循环。
+**说明：**基于 CLI 的自动化并行智能体执行。通过 CLI 启动子智能体，使用持久化运行状态和回执协调它们，监控进度并运行验证循环。
 
 **持久化：** 是。状态文件：`.agents/state/orchestrate-state.json`。
 
@@ -69,21 +69,19 @@ description: 全部 16 个 oh-my-agent 工作流的完整参考。斜杠命令�
 名词白名单（15 个）：app、api、service、server、cli、tool、website、dashboard、system、feature、backend、frontend、prototype、mvp、bot。
 
 **步骤：**
-1. **步骤 0：准备** 读取协调技能、上下文加载指南、内存协议。检测供应商。
-2. **步骤 1：加载/创建计划** 先检查 `.agents/results/plan-{sessionId}.json`，再检查最新的 `plan-*.json`。如果没有计划，或计划尚不可执行（任务缺少智能体、优先级、依赖关系或验收标准），则在当前流程中委派 `/plan` 创建计划，并沿用同一会话 ID。展示计划并沿用已有授权；只有缺少关键决策或需要新增授权时，才在分派任务前询问。
-3. **步骤 2：初始化会话** 加载 `oma-config.yaml`，显示 CLI 映射表，沿用创建计划时的会话 ID，或生成新的会话 ID（`session-YYYYMMDD-HHMMSS`），在内存中创建 `orchestrator-session.md` 和 `task-board.md`。
-4. **步骤 3：启动智能体** 对每个优先级层（先 P0，然后 P1...），使用供应商适配的方式启动智能体（Claude Code 用 Agent 工具，Gemini/Antigravity 用 `oma agent spawn`，Codex 用模型协调）。不超过 MAX_PARALLEL。
-5. **步骤 4：监控** 轮询 `progress-{agent}.md` 文件，更新 `task-board.md`。监视完成、失败、崩溃。
-6. **步骤 5：验证** 对每个完成的智能体运行 `verify.sh {agent-type} {workspace}`。失败时带错误上下文重新启动（最多 2 次重试）。2 次重试后，激活探索循环：生成 2-3 个假设，启动并行实验，评分，保留最佳。
-7. **步骤 6：收集** 读取所有 `result-{agent}.md` 文件，汇总摘要。
-8. **步骤 7：最终报告** 呈现会话摘要。如果测量了质量评分，包含实验账本摘要和自动生成的经验教训。
+1. **步骤 0，准备：**读取协调技能、上下文加载指南和内存协议。检测供应商。
+2. **步骤 1，加载或创建计划：**先检查 `.agents/results/plan-{sessionId}.json`，再检查最新的 `plan-*.json`。如果没有计划，或计划尚不可执行（任务缺少智能体、优先级层、依赖关系或验收标准），则在当前流程中内联委派 `/plan` 创建计划，并沿用同一会话 ID。展示计划并沿用已有授权；只有缺少关键决策或需要新增授权时，才在委派前询问。
+3. **步骤 2，初始化会话：**加载 `oma-config.yaml`，显示 CLI 映射表，沿用创建计划时的会话 ID，或生成新的会话 ID（`session-YYYYMMDD-HHMMSS`），并在配置的内存存储中创建 `orchestrator-session-{sessionId}.md` 和 `task-board-{sessionId}.md`。
+4. **步骤 3，启动智能体：**按优先级层处理每个任务（先 P0，再 P1……），使用供应商适配的方法启动智能体（当前运行时和目标供应商相同时使用原生子智能体；外部或跨供应商工作使用 `oma agent spawn`）。绝不超过 MAX_PARALLEL。
+5. **步骤 4，监控：**轮询运行范围内的 `progress-{agentId}-{taskId}-{runId}-{sessionId}.md` 文件和结构化回执，然后更新任务板。留意完成、失败和崩溃。
+6. **步骤 5，验证：**对每个完成的智能体运行 `verify.sh {agent-type} {workspace}`。失败时带上错误上下文重新启动（最多重试 2 次）。重试 2 次后激活探索循环：生成 2 到 3 个假设，启动并行实验，评分并保留最佳方案。
+7. **步骤 6，收集：**读取运行范围内的结果文件和结构化声明，然后编写摘要。
+8. **步骤 7，最终报告：**呈现会话摘要。如果测量了质量评分，则包含实验账本摘要并自动生成经验教训。
 
-**读取文件：** `.agents/results/plan-{sessionId}.json`、`.agents/oma-config.yaml`、`progress-{agent}.md`、`result-{agent}.md`。
-**写入文件：** `orchestrator-session.md`、`task-board.md`（内存）、最终报告。
+**读取文件：**`.agents/results/plan-{sessionId}.json`、`.agents/oma-config.yaml`、运行范围内的进度和结果文件，以及结构化运行回执。
+**写入文件：**配置内存存储中的运行范围会话和任务板状态、结构化回执和声明，以及最终报告。
 
-**何时使用：** 需要最大并行度和自动化协调的大型项目。
-
----
+**何时使用：**需要最大并行度和自动化协调的大型项目。
 
 ### /work
 
@@ -119,7 +117,7 @@ description: 全部 16 个 oh-my-agent 工作流的完整参考。斜杠命令�
 
 ### /ultrawork
 
-**说明：** 以质量为核心的工作流。5 个阶段，17 个总步骤，其中 11 个是审查步骤。每个阶段都有必须通过才能继续的关卡。
+**说明：**以质量为核心的工作流。包含 5 个阶段、17 个总步骤和 12 个隔离审查步骤。每个阶段都有必须通过才能继续的关卡。
 
 **持久化：** 是。状态文件：`.agents/state/ultrawork-state.json`。
 
@@ -135,7 +133,7 @@ description: 全部 16 个 oh-my-agent 工作流的完整参考。斜杠命令�
 | **PLAN** | 1-4 | PM 智能体（内联） | 完整性、元审查、过度工程/简洁性 |
 | **IMPL** | 5 | 开发智能体（启动） | 实现 |
 | **VERIFY** | 6-8 | QA 智能体（启动） | 对齐性、安全性（OWASP）、回归预防 |
-| **REFINE** | 9-13 | Debug 智能体（启动） | 文件拆分、复用性、级联影响、一致性、死代码 |
+| **REFINE** | 9-13 | 重构智能体（启动） | 文件拆分、复用性、级联影响、一致性、死代码 |
 | **SHIP** | 14-17 | QA 智能体（启动） | 代码质量（lint/覆盖率）、UX 流程、相关问题、部署就绪 |
 
 **关卡定义：**
@@ -153,7 +151,7 @@ description: 全部 16 个 oh-my-agent 工作流的完整参考。斜杠命令�
 
 **REFINE 跳过条件：** 50 行以下的简单任务。
 
-**何时使用：** 最高质量交付。代码必须达到生产就绪且经过全面审查。
+**何时使用：**在决定结果是否达到发布条件前运行完整的审查流程。工作流会记录检查和发现，但不会替你做出生产就绪决定。
 
 ---
 
@@ -195,38 +193,22 @@ description: 全部 16 个 oh-my-agent 工作流的完整参考。斜杠命令�
 
 ### /plan
 
-**说明：** PM 驱动的任务分解。分析需求，选择技术栈，分解为带依赖关系的优先级任务，定义 API 契约。
+**说明：**PM 驱动的任务分解。分析需求，选择技术栈，分解为带依赖关系的优先级任务，并定义 API 契约。
 
 **触发关键词：**
 | 语言 | 关键词 |
-|------|-------|
+|----------|----------|
 | 通用 | "task breakdown" |
 | 英语 | "plan" |
 | 韩语 | "계획"、"요구사항 분석"、"스펙 분석" |
 | 日语 | "計画"、"要件分析"、"タスク分解" |
 | 中文 | "计划"、"需求分析"、"任务分解" |
 
-**步骤：** 收集需求 -> 分析技术可行性（MCP 代码分析）-> 定义 API 契约 -> 分解为任务 -> 与用户审查 -> 保存计划。
+**步骤：**收集需求 -> 使用 MCP 代码分析评估技术可行性 -> 评估复杂度（Simple、Medium、Complex）-> 在跨边界时定义 API 契约 -> 分解任务 -> 与用户审查 -> 保存计划工件（Medium/Complex 时同时保存机器可读 JSON 和人类可读的 Markdown 跟踪文件）。
 
-**输出：** `.agents/results/plan-{sessionId}.json`、内存写入，复杂计划可选输出到 `docs/exec-plans/active/`。
+**输出：**`.agents/results/plan-{sessionId}.json`、内存写入，以及 Medium/Complex 任务的 `docs/plans/work/{NNN}-{name}.md`，其中包含任务表、决策日志和进度备注。Markdown 标题中的 `Status` 字段记录生命周期（`Active` -> `Completed`），计划不会在目录间移动。通过 `/brainstorm` 创建的设计保存到 `docs/plans/designs/{NNN}-{name}.md`。
 
-**执行方式：** 内联（不启动子智能体）。由 `/orchestrate` 或 `/work` 消费。
-
----
-
-### /exec-plan
-
-**说明：** 创建、管理和跟踪执行计划，将其作为一等仓库产物存储在 `docs/exec-plans/` 中。
-
-**触发关键词：** 无（排除在自动检测之外，必须显式调用）。
-
-**步骤：** 准备 -> 分析范围（评估复杂度：简单/中等/复杂）-> 创建执行计划（Markdown 存储在 `docs/exec-plans/active/` 中）-> 定义 API 契约（如果跨边界）-> 与用户审查 -> 执行（交给 `/orchestrate` 或 `/work`）-> 完成（移至 `completed/`）。
-
-**输出：** `docs/exec-plans/active/{plan-name}.md`，包含任务表、决策日志、进度备注。
-
-**何时使用：** 在 `/plan` 之后，用于需要跟踪执行和决策记录的复杂功能。
-
----
+**执行方式：**内联执行（不启动子智能体）。由 `/orchestrate` 或 `/work` 消费，后者会在执行期间更新任务和状态字段。
 
 ### /brainstorm
 
@@ -280,9 +262,9 @@ description: 全部 16 个 oh-my-agent 工作流的完整参考。斜杠命令�
 | 日语 | "プロジェクト初期化" |
 | 中文 | "项目初始化" |
 
-**步骤：** 准备 -> 分析代码库（项目类型、架构、隐含规则、领域、边界）-> 生成 ARCHITECTURE.md（领域地图，不超过 200 行）-> 生成 `docs/` 知识库（design-docs/、exec-plans/、generated/、product-specs/、references/、领域文档）-> 生成根 AGENTS.md（约 100 行，目录）-> 生成边界 AGENTS.md 文件（monorepo 包，每个不超过 50 行）-> 更新现有框架（如果重新运行）-> 验证（无死链接，行数限制）。
+**步骤：** 准备 -> 分析代码库（项目类型、架构、隐含规则、领域、边界）-> 生成 ARCHITECTURE.md（领域地图，不超过 200 行）-> 生成 `docs/` 知识库（design-docs/、plans/、generated/、product-specs/、references/、领域文档）-> 生成根 AGENTS.md（约 100 行，目录）-> 生成边界 AGENTS.md 文件（monorepo 包，每个不超过 50 行）-> 更新现有框架（如果重新运行）-> 验证（无死链接，行数限制）。
 
-**输出：** AGENTS.md、ARCHITECTURE.md、docs/design-docs/、docs/exec-plans/、docs/PLANS.md、docs/QUALITY-SCORE.md、docs/CODE-REVIEW.md 以及发现的领域特定文档。
+**输出：** AGENTS.md、ARCHITECTURE.md、docs/design-docs/、docs/plans/、docs/PLANS.md、docs/QUALITY-SCORE.md、docs/CODE-REVIEW.md 以及发现的领域特定文档。
 
 ---
 
@@ -389,7 +371,7 @@ description: 全部 16 个 oh-my-agent 工作流的完整参考。斜杠命令�
 
 **步骤：** 分析变更（git status、git diff）-> 分离功能（如果超过 5 个文件且跨越不同 scope/type）-> 确定类型（feat/fix/refactor/docs/test/chore/style/perf）-> 确定范围（变更的模块）-> 编写描述（祈使语气，< 72 字符）-> 立即执行提交（不需确认提示）。
 
-**规则：** 不使用 `git add -A`。不提交密钥。多行消息使用 HEREDOC。Co-Author: `First Fluke <our.first.fluke@gmail.com>`。
+**规则：**绝不使用 `git add -A`。绝不提交密钥。多行消息使用 HEREDOC。只有生效的 `scm.co_author` 配置启用并同时提供两个值时，才添加共同作者尾注。
 
 ---
 
@@ -417,33 +399,106 @@ description: 全部 16 个 oh-my-agent 工作流的完整参考。斜杠命令�
 
 **步骤：** 验证输入并按类别路由（文档 `.pdf`/`.hwp*`；图像 `.jpg`/`.png`/`.webp`/…；视频 `.mp4`/`.mov`/…；音频 `.mp3`/`.wav`/…）-> 确定目标格式（文档默认 = Markdown；媒体 = 显式 `--to`）-> 转换（PDF：`uvx opendataloader-pdf`，扫描 PDF 使用混合 OCR；HWP：`bunx kordoc@latest`；媒体：`ffmpeg`）-> 规范化文档（PDF：`uvx mdformat`；HWP：`flatten-tables.ts`）-> 验证（读取 Markdown / `ffprobe` 检查媒体）-> 报告源→目标格式以及任何质量/编解码器选择。
 
-**规则：** 按类别路由——切勿对媒体文件运行文档转换器，反之亦然。默认输出位置是与输入文件相同的目录。报告媒体的质量/编解码器选择（转码并非无损）。永远不要跳过步骤。响应语言遵循 `.agents/oma-config.yaml`。
+**规则：** 按类别路由：切勿对媒体文件运行文档转换器，反之亦然。默认输出位置是与输入文件相同的目录。报告媒体的质量/编解码器选择（转码并非无损）。永远不要跳过步骤。响应语言遵循 `.agents/oma-config.yaml`。
 
 **何时使用：** 将 PDF 或韩文 HWP 系列文档转换为 Markdown 以用于 LLM/RAG 摄取，或在不同格式间转码图像（jpg→webp/png）、视频（mov→mp4、mp4→gif）和音频（wav→mp3）。
 
 ---
 
+### /docs
+
+**说明：**通过 `oma-docs` 检测文档漂移并同步。验证模式会检查仓库中全部 Markdown（默认 glob 为 `**/*.md`）的损坏引用；同步模式会为受 Git diff 影响的文档提出逐文档补丁。内联执行（不启动子智能体）；所有供应商都直接调用 `oma docs`。
+
+**触发关键词：**通用：“oma-docs”、“docs verify”、“docs sync”。英语：“verify docs”、“check docs”、“docs drift”、“broken doc links”、“stale docs”、“sync docs”、“patch docs”。韩语：“문서 검증”、“문서 드리프트”、“문서 동기화”。日语：“ドキュメント検証”、“ドキュメント同期”。中文：“文档校验”、“文档同步”。
+
+**步骤：**检测模式（默认 `verify`；提示包含 sync 或 Git diff 范围时使用 `sync`）-> 预检（`command -v oma`；同步时确认可用 diff，回退到 `HEAD~1..HEAD`）-> 验证：运行 `oma docs verify --json`（干净时退出 `0`，有损坏引用时退出 `1`），或同步：针对范围运行 `oma docs sync --json` -> 按宿主 LLM 契约综合结果（验证：按 CRITICAL/HIGH/MEDIUM/LOW 分组并给出具体修复；同步：起草最小统一 diff 补丁）-> 逐个交互呈现同步补丁（`[y] apply [n] skip [d] show diff [s] show full proposal`，绝不自动应用）-> 应用后用 `oma docs verify --json` 重新生成索引 -> 报告模式、按类型统计的数量，以及 `docs/generated/doc-refs.json` / `url-drift.json` 的位置。
+
+**规则：**绝不自动应用同步补丁（每篇文档都需要 `[y]` 确认）。绝不修改 `.agents/`（SSOT）。如果缺少 `oma docs`，打印安装提示后退出，不回退到手工 grep。
+
+**读取文件：**目标 Markdown（`**/*.md` 或请求的 glob），以及同步模式中 `changedFiles` 对应的 `git diff`。
+**写入文件：**`docs/generated/doc-refs.json`（验证时始终重新生成）、`docs/generated/url-drift.json`（运行 URL 检查时），以及获准的文档补丁（同步选择 `[y]` 时）。
+
+**何时使用：**检查文档是否仍与代码库一致（损坏的文件路径、CLI 命令、配置键、环境变量），或在代码变更后提出补丁。
+
+### /recap
+
+**说明：**通过 `oma-recap` 生成每日或周期工作回顾。解析自然语言中的日期或时间窗口，通过 `oma recap --json` 汇总多个 AI 工具的历史（Grok、Claude、Codex、Qwen、Cursor、Antigravity），将主题分析和 Markdown 格式化交给技能，并报告 TL;DR 和保存路径。内联执行（不启动子智能体）。
+
+**触发关键词：**通用：“recap”。韩语：“리캡”。日语：“リキャップ”。
+
+**步骤：**检测模式并解析窗口（默认 `daily`，使用今天；短语如“this week”或“지난 7일”解析为 `--window Nd` 的 `period`）-> 只有用户明确指定工具时才提取 `--tool` 过滤器（`grok, claude, codex, qwen, cursor, antigravity`）-> 预检（`command -v oma`）-> 运行 `oma recap --json`（daily：`--date YYYY-MM-DD` 或省略；period：`--window 7d` / `30d`）-> 按技能契约综合（15 分钟主题阈值，使用 daily 或多日模板）-> 报告 3 条 TL;DR 和保存路径。
+
+**规则：**绝不修改 `.agents/`（SSOT）。保存的回顾中绝不自动翻译技术术语（项目名、工具名、CLI 标志）。没有来源时不要编造回顾。
+
+**读取文件：**AI 工具对话历史（通过 `oma recap`）。
+**写入文件：**`.agents/results/recap/{date}.md` 或 `.agents/results/recap/{start}~{end}.md`。
+
+**何时使用：**总结某一天或某个周期内跨 AI 工具完成的工作，可选按工具过滤。
+
 ### /stack-set
 
-**说明：** 自动检测项目技术栈并为 backend 技能生成语言特定的参考资料。
+**说明：**自动检测项目技术栈，为已解析的领域技能（backend 或 mobile）生成语言专用参考资料。它会检测移动端技术栈（通过 `Package.swift` / `.xcodeproj` 检测 Swift/iOS，通过 `pubspec.yaml` 检测 Flutter，通过 `package.json` + react-native 检测 React Native），并路由到 `oma-mobile`；否则路由到 `oma-backend`。如果单体仓库同时存在两者，则询问要配置哪一个。
 
-**触发关键词：** 无（排除在自动检测之外）。
+**触发关键词：**无（排除在自动检测之外）。
 
-**步骤：** 检测（扫描配置清单：pyproject.toml、package.json、Cargo.toml、pom.xml、go.mod、mix.exs、Gemfile、*.csproj）-> 确认（显示检测到的技术栈，获取用户确认）-> 生成（`stack/stack.yaml`、`stack/tech-stack.md`、包含 8 个必需模式的 `stack/snippets.md`、`stack/api-template.*`）-> 验证。
+<!-- oma-docs:ignore-start -->
+**步骤：**检测（扫描清单：pyproject.toml、package.json、Cargo.toml、pom.xml、go.mod、mix.exs、Gemfile、*.csproj、Package.swift、*.xcodeproj、pubspec.yaml）-> 确认（显示检测到的技术栈并获取用户确认）-> 生成（`stack/stack.yaml`、`stack/tech-stack.md`、包含 8 个必需模式的 `stack/snippets.md`、`stack/api-template.*`）-> 验证。
+<!-- oma-docs:ignore-end -->
 
-**输出：** 文件保存在 `.agents/skills/oma-backend/stack/` 中。不修改 SKILL.md 或 `resources/`。
+**输出：**写入已解析领域技能的 `stack/` 目录，例如 `.agents/skills/oma-backend/stack/` 或 `.agents/skills/oma-mobile/stack/`。不会修改 SKILL.md 或 `resources/`。
 
----
 
-## 技能 vs. 工作流
+### /video
+
+**说明：**端到端驱动 `oma-video` 技能：简介 -> 脚本 -> 旁白 -> 视觉素材 -> 字幕 -> render-spec -> 供应商自带的 Remotion（或 MoneyPrinterTurbo）合成器。工作流会创建可复现的运行目录，只有合成器和 ffprobe 检查通过后才输出真实的 `.mp4`。受支持素材回退的供应商配置可以不提供密钥；合成器或工具链失败仍会使运行失败。内联执行（不启动子智能体）。
+
+**触发关键词：**
+| 语言 | 关键词 |
+|----------|----------|
+| 通用 | "/video"、"oma-video"、"remotion"、"shorts"、"reels"、"screencast" |
+| 英语 | "generate video"、"create a video"、"make a video"、"short-form video"、"explainer video"、"demo video"、"walkthrough video"、"video from readme"、"video from code" |
+| 韩语 | "영상 만들어"、"영상 생성"、"비디오 만들어"、"숏폼 만들어"、"쇼츠 영상"、"릴스 영상"、"데모 영상"、"설명 영상" |
+| 日语 | "動画を生成"、"動画を作成"、"ショート動画"、"解説動画"、"デモ動画" |
+| 中文 | "生成视频"、"制作视频"、"短视频"、"讲解视频"、"演示视频" |
+
+**步骤：**
+1. **解析简介和模式：**选择 `shorts`（9:16）、`explainer`（16:9）或 `demo`（屏幕或 Web 捕获），应用模式默认值，可用标志覆盖。
+2. **组合脚本：**生成场景和旁白（有密钥时使用 LLM，否则从简介生成确定性大纲）。
+3. **合成素材：**使用 `oma-voice` 生成旁白，使用 `oma-image` / `oma-slide` / 素材库生成视觉内容，使用免密钥字幕对齐，或在 `demo --source web` 中使用受监督的浏览器 Web 捕获。每个供应商都会降级为确定性回退。
+4. **构建 render-spec：**在运行目录中写入 `render-spec.json`（确定性边界）和素材。
+5. **渲染：**以子进程启动供应商自带的 Remotion 项目（或 MoneyPrinterTurbo）。普通合成器或工具链失败会使运行失败；确定性占位符仅可通过显式 mock/test 路径（`OMA_VIDEO_MOCK=1`）使用。实时捕获会在清单中记录为 `nondeterministic`。
+
+**输出：**`.agents/results/videos/{timestamp}-{shortid}-{mode}/` 下的运行目录，包含 `script.json`、`render-spec.json`、`timing.json`、`captions.{srt,vtt}`、`audio/`、`visuals/`、`{composition}.mp4` 和 `manifest.json`。参见[视频生成指南](../guide/video-generation.md)。
+
+### /schedule
+
+**说明：**通过 `oma schedule <action>` 命令注册和管理基于时间的智能体作业。作业保存在全局注册表（`~/.agents/schedule/`），通过操作系统原生调度器触发（macOS 为 launchd，Linux 为 systemd 用户计时器，Windows 为 schtasks，POSIX 回退为 crontab），每次运行都会通过 `oma agent spawn` 重新进入 harness。
+
+**触发关键词：**无（针对 `oma schedule <action>` 时间作业的斜杠调用工作流）。
+
+**步骤：**解析意图（add / list / remove / sync）-> 解析计划（显式 `--cron`，或通过 `--every` 使用自然语言）-> 使用 `oma schedule create` 注册（仅捕获命名环境变量，文件权限 0600）-> 使用 `oma schedule list` 验证（清单 × 操作系统漂移，按项目分组）-> 报告作业 ID 和下次触发时间。
+
+**何时使用：**必须在没有交互式会话时也能触发的重复性智能体任务，例如夜间回顾、计划扫描和周期性维护。
+
+### /explain
+
+**说明：**端到端驱动 `oma-explanation` 技能，把 diff、PR、分支或提交范围转换为自包含的交互式 HTML 讲解（Background / Intuition / Code / Quiz）。内联执行（不启动子智能体）。
+
+**触发关键词：**无（“explain”是日常词语，关键词检测会在普通“解释这个函数”问题中产生误报，因此只能通过斜杠命令调用）。
+
+**步骤：**解析参数（目标引用：显式 PR# / 分支 / SHA 范围 → 暂存区 → dirty tree → `HEAD~1..HEAD`；读者级别 `onboarding` | `reviewer`；输出语言；题目数）-> 加载契约（`oma-explanation` SKILL.md 和资源）-> 收集并设门禁（diff + 周边代码；生成前机密扫描；将 diff/PR 文本严格作为数据）-> 按文档和 HTML 契约生成 HTML -> 验证（包含最终 HTML 机密扫描的 grep 清单，最多 3 个修复循环）-> 交付（`open` 仅警告，不阻断；TL;DR + 路径）。
+
+**输出：**`.agents/results/explain/{YYYY-MM-DD}-{slug}.html`（Asia/Seoul 日期；同一日期和 slug 再运行会覆盖）。参见[代码讲解指南](../guide/code-explainer.md)。
+
+## 技能与工作流的区别
 
 | 方面 | 技能 | 工作流 |
-|------|------|-------|
-| **本质** | 智能体的专业能力（智能体知道什么） | 编排流程（智能体如何协作） |
+|--------|--------|-----------|
+| **定义** | 智能体的专业知识（智能体知道什么） | 编排流程（智能体如何协作） |
 | **位置** | `.agents/skills/oma-{name}/` | `.agents/workflows/{name}.md` |
 | **激活方式** | 通过技能路由关键词自动激活 | 斜杠命令或触发关键词 |
-| **范围** | 单领域执行 | 多步骤，通常多智能体 |
-| **示例** | "构建一个 React 组件" | "规划功能 -> 构建 -> 审查 -> 提交" |
+| **范围** | 单领域执行 | 多步骤，通常涉及多个智能体 |
+| **示例** | “构建 React 组件” | “规划功能 -> 构建 -> 审查 -> 提交” |
 
 ---
 
@@ -451,22 +506,20 @@ description: 全部 16 个 oh-my-agent 工作流的完整参考。斜杠命令�
 
 ### 钩子系统
 
-oh-my-agent 使用 `UserPromptSubmit` 钩子，在处理每条用户消息之前运行。钩子系统由以下部分组成：
+oh-my-agent 使用 `UserPromptSubmit` 钩子，在处理每条用户消息前运行。供应商设置会注册一个 `<hookDir>/oma-hook.sh --vendor <v> --event <e>` 入口，将请求路由到 `oma hook run`，由处理器链在进程内运行。处理器链包括：
 
-1. **`triggers.json`**（`.claude/hooks/triggers.json`）：为全部 11 种支持语言（英语、韩语、日语、中文、西班牙语、法语、德语、葡萄牙语、俄语、荷兰语、波兰语）定义关键词到工作流的映射。
-
-2. **`keyword-detector.ts`**（`.claude/hooks/keyword-detector.ts`）：TypeScript 逻辑，扫描用户输入与触发关键词的匹配，支持语言特定匹配，并注入工作流激活上下文。
-
-3. **`persistent-mode.ts`**（`.claude/hooks/persistent-mode.ts`）：通过检查活跃状态文件并重新注入工作流上下文来强制执行持久化工作流。
+1. **`triggers.json`**（`.agents/hooks/core/triggers.json`，内联在 `oma` 二进制中）：定义全部 11 种支持语言（英语、韩语、日语、中文、西班牙语、法语、德语、葡萄牙语、俄语、荷兰语、波兰语）的关键词到工作流映射。
+2. **`keyword-detector.ts`**（`.agents/hooks/core/keyword-detector.ts`）：扫描用户输入中的触发关键词，遵循按语言匹配，并注入工作流激活上下文的 TypeScript 逻辑。
+3. **`persistent-mode.ts`**（`.agents/hooks/core/persistent-mode.ts`）：检查活跃状态文件并重新注入工作流上下文，以强制执行持久化工作流。
 
 ### 检测流程
 
 1. 用户输入自然语言。
-2. 钩子检查是否存在显式 `/command`（如果有，跳过检测以避免重复）。
-3. 钩子先净化输入（剥离代码块、引号字符串以及粘贴的系统回显块），再扫描其与 `.agents/hooks/core/triggers.json` 的匹配，涵盖关键词列表（字面短语）和 `patterns`（原始正则）；同时强化保护机制会抑制 60 秒内已触发 2 次或以上的同一工作流，避免重复触发。
-4. 如果找到匹配，检查输入是否匹配信息性模式。
-5. 如果是信息性的（如 "什么是 orchestrate？"），过滤掉，不触发工作流。
-6. 如果是可操作的，将 `[OMA WORKFLOW: {workflow-name}]` 注入上下文。
+2. 钩子检查是否存在显式 `/command`。如果存在，则跳过检测以避免重复。
+3. 钩子会清理输入（去除代码块、引号字符串和粘贴的系统回显块），然后对照 `.agents/hooks/core/triggers.json` 扫描关键词列表（字面短语）和 `patterns`（原始正则）。如果同一工作流在最近 60 秒内已触发 2 次或更多次，强化保护机制会抑制再次触发。
+4. 如果找到匹配项，检查输入是否匹配信息性模式。
+5. 如果属于信息性问题（例如“什么是 orchestrate？”），将其过滤，不触发工作流。
+6. 如果属于可执行请求，将 `[OMA WORKFLOW: {workflow-name}]` 注入上下文。
 7. 智能体读取注入的标签，并从 `.agents/workflows/` 加载对应的工作流文件。
 
 ### 语言分节约定
@@ -474,16 +527,16 @@ oh-my-agent 使用 `UserPromptSubmit` 钩子，在处理每条用户消息之前
 `.agents/hooks/core/triggers.json` 对 `keywords`、`patterns` 和 `informationalPatterns` 使用按语言分节的结构：
 
 | 分节 | 行为 |
-|------|------|
-| `*` | 通用：无论 `.agents/oma-config.yaml` 中的 `language` 设置如何都会加载。用于英语内容（通用语）以及真正跨语言的 token（如工作流名 `"orchestrate"`）。 |
-| `en` | 英语：为向后兼容而加载。功能上等价于 `*`。新的英语内容应放入 `*`。 |
-| `ko`、`ja`、`zh`、`es`、`fr`、`de`、`pt`、`ru`、`nl`、`pl` | 语言专用：仅当 `.agents/oma-config.yaml` 中设置了 `language: <lang>` 时才加载。 |
+|----------|----------|
+| `*` | 通用：无论 `.agents/oma-config.yaml` 中的 `language` 设置如何都会加载。用于英语内容（通用语）以及真正跨语言的标记，例如工作流名 `"orchestrate"`。 |
+| `en` | 英语：为向后兼容而加载，功能上等同于 `*`。新的英语内容应放入 `*`。 |
+| `ko`、`ja`、`zh`、`es`、`fr`、`de`、`pt`、`ru`、`nl`、`pl` | 语言专用：仅当 `.agents/oma-config.yaml` 设置了 `language: <lang>` 时加载。 |
 
-**含义**：如果在 `.agents/oma-config.yaml` 中设置 `language: en`，则只会加载 `*` 和 `en` 模式。即使用户使用韩语/日语等输入，这些自然语言触发器也不会触发。要启用非英语语言，请相应地设置 `language: <code>`。`*` 中的英语回退始终保持活跃。
+**含义：**如果在 `.agents/oma-config.yaml` 中设置 `language: en`，只会加载 `*` 和 `en` 模式。即使用户使用韩语、日语等输入，相应的自然语言触发器也不会触发。要启用非英语语言，请相应设置 `language: <code>`。`*` 中的英语回退始终保持活跃。
 
 ### 模式字段（原始正则） {#pattern-field-raw-regex}
 
-除了字面量 `keywords` 之外，每个工作流还可以声明 `patterns`，使用 `iu` 标志编译的原始正则表达式字符串。模式可实现多 token 的意图匹配，否则需要组合爆炸的关键词列表才能覆盖。
+除字面量 `keywords` 外，每个工作流还可以声明 `patterns`，这些原始正则字符串会使用 `iu` 标志编译。模式支持多标记意图匹配，否则需要组合数量巨大的关键词列表。
 
 ```jsonc
 {
@@ -501,104 +554,128 @@ oh-my-agent 使用 `UserPromptSubmit` 钩子，在处理每条用户消息之前
 ```
 
 编写规则：
-- 字符串会被直接编译：反斜杠需要转义两次：一次给 JSON，一次给正则（`\\b`、`\\s+`）
-- 不会自动包裹单词边界：模式作者需自行处理 `\b`
-- 无效正则在运行时会被静默跳过（在配置编辑期间通过测试失败可见）
+
+- 字符串会直接编译。反斜杠要分别为 JSON 和正则转义一次（`\\b`、`\\s+`）。
+- 不会自动包裹单词边界，模式作者要自行处理 `\b`。
+- 无效正则会在运行时静默跳过，但可在配置编辑时通过测试失败发现。
 
 ### 信息性模式过滤
 
-`.agents/hooks/core/triggers.json` 中的 `informationalPatterns` 部分定义了表示提问而非命令的短语。在每个潜在工作流匹配周围 60 个字符的窗口内进行检查：
+`.agents/hooks/core/triggers.json` 的 `informationalPatterns` 部分定义表示提问而非命令的短语。系统会在每个潜在工作流匹配项周围 60 个字符的窗口内检查这些短语：
 
 | 分节 | 模式示例 |
-|------|---------|
-| `*`（通用英语） | "what is"、"what are"、"how to"、"how does"、"how do"、"should we"、"should i"、"could we"、"would you"、"what if"、"what about"、"why build"、"false positive"、"trigger when"、"auto-trigger" |
-| `ko` | "뭐야"、"무엇"、"어떻게"、"설명해"、"알려줘"、"트리거"、"발동"、"메타"、"왜 만들"、"어떻게 만들"、"어떨까"、"한다면"、"할까요" |
-| `ja` | "とは"、"って何"、"どうやって"、"説明して" |
-| `zh` | "是什么"、"什么是"、"怎么"、"解释" |
+|---------|----------|
+| `*`（通用英语） | “what is”、“what are”、“how to”、“how does”、“how do”、“should we”、“should i”、“could we”、“would you”、“what if”、“what about”、“why build”、“false positive”、“trigger when”、“auto-trigger” |
+| `ko` | “뭐야”、“무엇”、“어떻게”、“설명해”、“알려줘”、“트리거”、“발동”、“메타”、“왜 만들”、“어떻게 만들”、“어떨까”、“한다면”、“할까요” |
+| `ja` | “とは”、“って何”、“どうやって”、“説明して” |
+| `zh` | “是什么”、“什么是”、“怎么”、“解释” |
 
-如果输入同时匹配工作流触发器和信息性模式，信息性模式优先，不触发任何工作流。这正是用于阻止以下提示的机制：
-- `"How do you build a TODO app?"`：`*` 中的 `how do` 阻止 orchestrate 意图正则
-- `"orchestrate 트리거 해주면 되나요?"`（在 `language: ko` 下） ， `ko` 中的 `트리거` 阻止 orchestrate 关键词
+如果输入同时匹配工作流触发器和信息性模式，信息性模式优先，不触发工作流。正是这一点阻止了以下提示：
+
+- `"How do you build a TODO app?"`：`*` 中的 `how do` 会阻止 orchestrate 意图正则。
+- `"orchestrate 트리거 해주면 되나요?"`（`language: ko` 下）：`ko` 中的 `트리거` 会阻止 orchestrate 关键词。
 
 ### 排除的工作流
 
-以下工作流不由关键词触发，必须使用显式 `/command` 调用。`/tools` 和 `/stack-set` 在 `excludedWorkflows` 中（已刻意从关键词检测中移除）；`/convert` 只是不附带触发关键词（`oma-pdf` 和 `oma-hwp` 技能各自携带自己的关键词检测）：
-- `/scm`
+以下工作流不会由关键词触发，必须使用显式 `/command` 调用。`/tools` 和 `/stack-set` 位于 `excludedWorkflows` 中，已特意从关键词检测中移除；`/convert` 不附带触发关键词（`oma-pdf` 和 `oma-hwp` 技能各自携带关键词检测）；`/schedule` 是斜杠调用工作流（用于 `oma schedule <action>` 时间作业）；`/explain` 不附带触发关键词，因为“explain”是日常词语，关键词检测会不断产生误报：
+
 - `/tools`
 - `/stack-set`
-- `/exec-plan`
 - `/convert`
+- `/schedule`
+- `/explain`
+
 
 ---
 
-## 持久化模式机制
+## 持久化模式机制 {#persistent-mode-mechanics}
 
 ### 状态文件
 
-持久化工作流（orchestrate、ultrawork、work）在 `.agents/state/` 中创建状态文件：
+持久化工作流（orchestrate、ultrawork、work、ralph）会在 `.agents/state/` 中创建状态文件：
 
 ```
 .agents/state/
 ├── orchestrate-state.json
 ├── ultrawork-state.json
-└── work-state.json
+├── work-state.json
+└── ralph-state.json
 ```
 
-这些文件包含：工作流名称、当前阶段/步骤、会话 ID、时间戳以及任何待处理状态。
+这些文件包含工作流名称、当前阶段或步骤、会话 ID、时间戳和任何待处理状态。
 
 ### 强化
 
-当持久化工作流活跃时，`persistent-mode.ts` 钩子会在每条用户消息中注入 `[OMA PERSISTENT MODE: {workflow-name}]`。这确保工作流即使跨越多次对话轮次也能持续执行。
+持久化工作流活跃时，`persistent-mode.ts` 钩子会在每条用户消息中注入 `[OMA PERSISTENT MODE: {workflow-name}]`。即使跨越多次对话轮次，工作流也会继续执行。
+
+### 目标契约（可选的停止关卡和预算）
+
+`oma goal set` 会为活跃的持久化工作流附加机械完成契约：
+
+- `--gate typecheck|test|lint`：Stop 钩子只有在对应 `package.json` 脚本通过后才允许会话结束（以 argv 数组运行，不使用 shell；设计上拒绝自由格式命令）。失败时会用输出末尾阻塞；失败和超时会计入强化限制，因此失败的关卡不会永久阻塞会话。
+- `--budget-minutes <n>`：从激活时起计算墙钟预算。超时会停用工作流，允许诚实地部分停止，并记录在会话事件轨迹中。
+
+没有契约时，持久化模式仍按上文运行，契约是可选项。参见 [CLI 命令参考](../cli-interfaces/commands.md#goal-set) 中的 `goal set`。
 
 ### 停用
 
-要停用持久化工作流，用户说 "workflow done"（或其配置语言的等价表达）。这将：
-1. 从 `.agents/state/` 删除状态文件
-2. 停止注入持久化模式上下文
-3. 恢复正常操作
+要停用持久化工作流，用户说“workflow done”（或配置语言中的等价表达）。这会：
 
-当所有步骤完成且最终关卡通过时，工作流也可以自然结束。
+1. 从 `.agents/state/` 删除状态文件。
+2. 停止注入持久化模式上下文。
+3. 返回普通操作。
+
+当所有步骤完成且最终关卡通过时，工作流也可以自然结束。配置了 `goal set` 关卡时，关卡通过会自动停用工作流。
+
 
 ---
 
 ## 典型工作流序列
 
 ### 单领域功能
+
 ```
 Describe the task → relevant skill → implement → focused verification
 ```
 
 ### 复杂多领域项目
+
 ```
 /work → PM plans → review within authorized scope → agents spawn → QA reviews → fix issues → report
 ```
 
 ### 自动并行实现
+
 ```
 /orchestrate → load or create plan → resolve dependencies → spawn independent tasks → verify → report
 ```
 
 ### 最高质量交付
+
 ```
-/ultrawork → PLAN（4 个审查步骤）→ IMPL → VERIFY（3 个审查步骤）→ REFINE（5 个审查步骤）→ SHIP（4 个审查步骤）
+/ultrawork → PLAN (4 review steps) → IMPL → VERIFY (3 review steps) → REFINE (5 review steps) → SHIP (4 review steps)
 ```
 
 ### Bug 调查
+
 ```
-/debug → 复现 → 根因 → 最小修复 → 回归测试 → 类似模式扫描
+/debug → reproduce → root cause → minimal fix → regression test → similar pattern scan
 ```
 
 ### 设计到实现的流水线
+
 ```
-/brainstorm → 设计文档 → /plan → 任务分解 → /orchestrate → 并行实现 → /review → /scm
+/brainstorm → design document → /plan → task breakdown → /orchestrate → parallel implementation → /review → /scm
 ```
 
 ### 新代码库设置
+
 ```
 /deepinit → AGENTS.md + ARCHITECTURE.md + docs/
 ```
 
 ### 反复执行并独立验证
+
 ```
 /ralph → define criteria → ultrawork → judge → repeat as needed → completion, partial completion, or safeguard report
 ```

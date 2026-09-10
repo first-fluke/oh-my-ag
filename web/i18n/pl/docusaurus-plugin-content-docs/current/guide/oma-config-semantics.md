@@ -1,53 +1,65 @@
 ---
 title: "Przewodnik: semantyka oma-config.yaml"
-description: Reguły priorytetu per klucz dla oma-config.yaml, gdy obecne są jednocześnie instalacja projektowa i globalna. Obejmuje auto_update_cli (projekt wygrywa nad globalną), serena.mode, telemetry, language, model_preset, translation_voice, timezone oraz wskazuje, które pliki konfiguracyjne wczytują agy / claude / codex / gemini / qwen.
+sidebar_label: Ładowanie konfiguracji
+description: Wyjaśnia, jak OMA wybiera warstwy konfiguracji CUE i YAML, stosuje lokalne nakładki oraz rozstrzyga kilka awaryjnych ustawień zależnych od kontekstu instalacji. Obsługiwane klucze i wartości domyślne opisano w konfiguracji referencyjnej.
 ---
 
 ## Przegląd
 
-`oma-config.yaml` może znajdować się w dwóch miejscach:
+Konfiguracja jest wybierana z najbliższego katalogu `.agents/` znalezionego podczas przechodzenia w górę od bieżącego katalogu roboczego:
 
-- **Projekt**: `<cwd>/.agents/oma-config.yaml`
-- **Globalna**: `~/.agents/oma-config.yaml`
+- **Współdzielona**: `.agents/oma-config.cue` albo `.agents/oma-config.yaml`, gdy CUE nie istnieje lub nie można go ocenić.
+- **Lokalna**: `.agents/oma-config.local.cue` albo `.agents/oma-config.local.yaml` (jeden plik nakładany na plik współdzielony; zachowaj ten plik prywatnie).
 
-Gdy oba pliki istnieją, dla każdego klucza wygrywa plik projektowy. Jest to celowe: personalizacja per projekt to bardziej szczegółowy sygnał i nie powinna być nadpisywana przez ustawienie globalne.
+OMA nie scala pliku projektowego z `~/.agents/oma-config.*` przy zwykłym odczycie w czasie działania. Instalacja globalna odczytuje plik z katalogu domowego, ponieważ jej katalogiem głównym instalacji jest HOME; polecenie projektowe odczytuje najbliższą warstwę projektu. `auto_update_cli` jest celowym wyjątkiem: jego kontrola aktualizacji sprawdza konfigurację projektu, potem konfigurację domową, a na końcu przyjmuje wartość domyślną włączoną. Pełny model opisano w [konfiguracji referencyjnej](/docs/guide/configuration-reference).
 
-## Tabela priorytetów
+## Tabela priorytetu
 
-| Klucz | Projekt wygrywa? | Uwagi |
+| Klucz | Zasada efektywna | Uwagi |
 |-----|:---:|-------|
-| `auto_update_cli` | Tak | Wartość projektowa nadpisuje globalną. Zaimplementowane w `resolveAutoUpdateCli` (`cli/commands/update/update.ts`). |
-| `serena.mode` | Tak | Steruje trybem transportu Serena MCP (np. `stdio`, `sse`). |
-| `serena.auto_update` | Tak | Aktualizuje `serena-agent` podczas `oma update` (`uv tool upgrade serena-agent --prerelease=allow`). |
-| `telemetry` | Tak | Zgoda na telemetrię vendora (`true` / `false`). |
-| `language` | Tak | Język odpowiedzi agentów (np. `en`, `ko`, `ja`). |
-| `model_preset` | Tak | Preset wyboru modelu (np. `claude`, `mixed`, `codex`). |
-| `translation_voice` | Tak | Ton tłumacza: `formal`, `balanced`, `interpreter`. |
-| `timezone` | Tak | Identyfikator strefy czasowej (np. `Asia/Seoul`, `America/New_York`). |
+| `OMA_MODEL_PRESET` | Najwyższy | Niepusta wartość środowiskowa zastępuje `model_preset` dla tego procesu. |
+| Plik lokalny | Nakładany na współdzielony | Zwykłe mapy są scalane rekurencyjnie; tablice, skalary i `null` zastępują wartość współdzieloną. Oba lokalne formaty nie mogą istnieć jednocześnie. |
+| Współdzielony CUE | Preferowany | Gdy CUE nie istnieje lub jego ocena się nie powiedzie, loader próbuje użyć współdzielonego pliku YAML. Błąd lokalnego CUE jest krytyczny. |
+| Współdzielony YAML | Awaryjny | Używany, gdy nie wybrano użytecznego współdzielonego pliku CUE. |
+| `auto_update_cli` | Projekt, potem HOME, potem `true` | To awaryjne rozstrzygnięcie dotyczy tylko aktualizacji i jest zaimplementowane w `resolveAutoUpdateCli`; nie jest ogólną warstwą globalną. |
 
-"Projekt wygrywa" oznacza: jeśli klucz występuje w pliku projektowym, ta wartość jest stosowana niezależnie od tego, co podaje plik globalny. Jeśli klucza brakuje w pliku projektowym, używana jest wartość z pliku globalnego. Jeżeli brak go w obu, obowiązuje wartość domyślna.
+Aby ustawić lokalne nadpisanie projektu, umieść w lokalnym pliku tylko zmienione liście. Na przykład lokalny wybór modelu może pozostać poza plikiem współdzielonym:
+
+```yaml
+# .agents/oma-config.local.yaml
+model_preset: claude
+agents:
+  backend:
+    model: anthropic/claude-sonnet-4-6
+```
+
+Uruchom polecenie z projektu, aby wybrany został najbliższy katalog `.agents/`. Niepoprawny plik lokalny kończy się wyraźnym błędem; napraw go albo usuń przed ponowieniem próby.
 
 ## Wartości domyślne
 
-| Klucz | Domyślnie | Kiedy stosowane |
+| Klucz | Domyślna wartość | Kiedy stosowana |
 |-----|---------|--------------|
-| `auto_update_cli` | `true` | Oba pliki nieobecne lub brak klucza |
-| `serena.mode` | `stdio` | Oba pliki nieobecne lub brak klucza |
-| `serena.auto_update` | `true` | Oba pliki nieobecne lub brak klucza |
-| `telemetry` | `false` | Oba pliki nieobecne lub brak klucza |
-| `language` | `en` | Oba pliki nieobecne lub brak klucza |
-| `model_preset` | `claude` | Oba pliki nieobecne lub brak klucza |
-| `translation_voice` | `balanced` | Oba pliki nieobecne lub brak klucza |
-| `timezone` | Strefa systemowa | Oba pliki nieobecne lub brak klucza |
+| `auto_update_cli` | `true` | Oba pliki nie istnieją albo brakuje klucza |
+| `serena.mode` | `bridge` | Oba pliki nie istnieją albo brakuje klucza |
+| `serena.auto_update` | `true` | Oba pliki nie istnieją albo brakuje klucza |
+| `telemetry` | `false` | Oba pliki nie istnieją albo brakuje klucza |
+| `language` | `en` | Oba pliki nie istnieją albo brakuje klucza |
+| `model_preset` | Wymagane | Dostarczony szablon projektu używa `auto`; schemat wymaga niepustej wartości. |
+| `translation_voice` | `balanced` | Oba pliki nie istnieją albo brakuje klucza |
+| `timezone` | Strefa systemowa | Oba pliki nie istnieją albo brakuje klucza |
 
-## Uzasadnienie kolejności wczytywania
+## Uzasadnienie kolejności odczytu
 
-Konfiguracja projektowa wczytywana jest jako pierwsza, ponieważ reprezentuje bardziej szczegółowy kontekst — repozytorium, w którym deweloper właśnie pracuje. Zespół może wymagać `language: ko` lub `model_preset: mixed` dla swojego projektu, a tych decyzji nie powinno po cichu nadpisywać indywidualne `oma-config.yaml` z poziomu globalnego.
-
-Plik globalny stanowi linię bazową dla całego konta użytkownika. Klucze, których projekt nie ustawia, przechodzą na wartość globalną, a ta z kolei przechodzi na zaszytą wartość domyślną.
+Reguła najbliższej warstwy utrzymuje konfigurację projektu jako samowystarczalną. Jeśli potrzebujesz bazowych ustawień dla użytkownika, zainstaluj narzędzie globalnie i edytuj `~/.agents/oma-config.yaml`; instalacje projektowe nadal mogą definiować własną najbliższą warstwę.
 
 ## Uwagi
 
-- `language` w `oma-config.yaml` steruje językiem odpowiedzi agentów. **Nie** wpływa na komunikaty ostrzegawcze instalacji/aktualizacji — te korzystają z lokalizacji systemowej (`$LANG`), ponieważ na etapie instalacji `oma-config.yaml` nie jest jeszcze wczytany.
-- Priorytet `auto_update_cli` jest jawnie zaimplementowany w komendzie update. Gdy obecne są jednocześnie instalacja projektowa i globalna, najpierw sprawdzane jest projektowe `oma-config.yaml`.
-- Bezpośrednia edycja `oma-config.yaml` jest bezpieczna. `oma install` oraz `oma update` korzystają z podmiany pól na poziomie regex i zachowują klucze edytowane przez użytkownika, którymi nie zarządzają (np. własne nadpisania `agents:`, `session.quota_cap`).
+- `language` w `oma-config.yaml` steruje językiem odpowiedzi agenta. **Nie** służy do określania języka komunikatów ostrzegawczych instalacji/aktualizacji — te używają lokalizacji systemu (`$LANG`), ponieważ `oma-config.yaml` nie jest jeszcze wczytany w czasie instalacji.
+- Priorytet `auto_update_cli` jest jawnie zaimplementowany w poleceniu aktualizacji. Gdy istnieją zarówno instalacja projektowa, jak i globalna, najpierw sprawdzana jest wartość projektu, a potem wartość z HOME.
+- `telemetry` (domyślnie `false`) mapuje się na wyłączenie telemetrii właściwe dla każdego vendora, zapisywane przez `oma install` / `oma update` / `oma link`: Claude `DISABLE_TELEMETRY` + `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY`, Gemini/Qwen `privacy.usageStatisticsEnabled`, Codex `analytics.enabled` + `feedback.enabled`, Grok `[features] telemetry` oraz Antigravity (agy) `enableTelemetry` w `~/.gemini/antigravity-cli/settings.json`. Ustawienie `telemetry: true` ponownie włącza telemetrię, usuwając wyłączenie oma dla danego vendora.
+- `diagram` (silnik `auto` / `archify` / `mermaid`, `explain_sidecar`, `archify.managed|channel|check_interval_min|path|quality|open`) to rzadka sekcja nadpisania umiejętności, podobna do `video` / `image`; zobacz [Silnik diagramów](/docs/guide/diagram-engine).
+- `video.remotion.check_interval_min` ogranicza częstotliwość kontroli najnowszych wersji dla uruchamianego per run toolchainu Remotion i remotion-dev/skills (`oma video compose`, `oma update`).
+- `market` (`managed|channel|check_interval_min|path|python|save_dir`) konfiguruje zawsze aktualny silnik `last30days` za `oma market`; zobacz [Badanie rynku](/docs/guide/market-research).
+- Typowany schemat runtime obejmuje `providers`, `free`, `agents`, `models`, `custom_presets`, `vendors`, `session`, `docs` oraz rzadkie sekcje umiejętności. Dostarczone szablony zawierają też bloki należące do konsumentów, takie jak `scm`, `memory`, `serena_reaper` i `mcp`; ich konsumenci są właścicielami zagnieżdżonych kluczy. Nie wnioskuj o kluczu na podstawie tej listy — użyj [konfiguracji referencyjnej](/docs/guide/configuration-reference) i przewodnika funkcji dla danego bloku.
+- Bezpośrednia edycja `oma-config.yaml` jest bezpieczna. `oma install` i `oma update` używają zamiany pól na poziomie wyrażeń regularnych i zachowują edytowane przez użytkownika klucze, którymi nie zarządzają (np. własne nadpisania `agents:` i `session.quota_cap`).
+- `oma update` dodatkowo dopisuje klucze najwyższego poziomu zdefiniowane w dostarczonym szablonie, których brakuje w pliku (z wartościami domyślnymi szablonu), pod znacznikiem `# Added by oma update`. Posiadane już klucze nigdy nie są modyfikowane — ich istniejąca zawartość pozostaje identyczna bajtowo. Klucze celowo usunięte pojawią się ponownie z wartością domyślną szablonu; aby zrezygnować, ustaw wartość jawnie zamiast usuwać klucz.

@@ -1,11 +1,21 @@
 ---
-title: "Anwendungsfall: Einzelner Skill"
-description: Detaillierte Anleitung für Einzeldomänen-Aufgaben in oh-my-agent — wann verwenden, Preflight-Checkliste, Prompt-Vorlage mit Erklärung, praxisnahe Beispiele für Frontend, Backend, Mobile und Datenbank, erwarteter Ausführungsablauf, Qualitäts-Gate-Checkliste und Eskalationssignale.
+title: "Anleitung: Einzelne Skill-Ausführung"
+sidebar_label: Einzelner Skill
+description: Detaillierte Anleitung für Einzeldomänen-Aufgaben in oh-my-agent mit Einsatzentscheidung, Preflight-Checkliste, Prompt-Vorlage, Beispielen für Frontend, Backend, Mobile und Datenbank, Ausführungsablauf, Qualitäts-Gate-Checkliste und Eskalationssignalen.
 ---
 
 # Einzelne Skill-Ausführung
 
-Einzelne Skill-Ausführung ist der schnelle Weg — ein Agent, eine Domäne, eine fokussierte Aufgabe. Kein Orchestrierungsaufwand, keine Multi-Agenten-Koordination. Der Skill aktiviert sich automatisch aus Ihrem natürlichsprachlichen Prompt.
+Einzelne Skill-Ausführung ist der schnelle Weg: ein Agent, eine Domäne, eine fokussierte Aufgabe. Es gibt keinen Orchestrierungsaufwand und keine Multi-Agenten-Koordination. Ein Host oder ausgewählter Workflow kann einen natürlichsprachlichen Prompt an den Skill routen; das Hook-System selbst erkennt Workflows, und das Routing hängt von der ausgewählten Laufzeit ab.
+
+## Schnellweg
+
+1. Führen Sie einmal `oma doctor` aus, um die Integration des ausgewählten Hosts zu prüfen. Optionale Anbieterwarnungen blockieren keine Aufgabe, die diese Anbieter nicht verwendet.
+2. Beschreiben Sie eine in sich geschlossene Änderung mit klaren Angaben zu **Ziel**, **Kontext**, **Einschränkungen** und **Fertig wenn**.
+3. Der ausgewählte Skill untersucht das Repository, nennt seinen Umfang, wenn der aktive Ausführungsvertrag ein `CHARTER_CHECK` verlangt, und meldet, welche Prüfungen tatsächlich liefen.
+4. Wenn die Aufgabe API-, UI-, Datenbank- oder Mobile-Grenzen überschreitet, beenden Sie den Einzel-Skill-Lauf und wechseln Sie zu `/work` oder `/orchestrate`.
+
+Bei hängenden verwalteten Läufen verwenden Sie `oma agent status <session-id> [agent-id]` und prüfen Sie vor einem erneuten Versuch die Belege in `.agents/state/agent-runs/` sowie den injizierten Claim-Pfad. Siehe [Wichtige Defaults](../getting-started/important-defaults.md) zum Anbieter- und Wiederherstellungsverhalten.
 
 ---
 
@@ -71,11 +81,11 @@ Add tests for: <critical test cases>.
 
 | Teil | Zweck | Beispiel |
 |------|---------|---------|
-| `Build <specific artifact>` | Das Ziel — was erstellt werden soll | "Build a user registration form component" |
-| `using <stack/framework>` | Der Kontext — Tech-Stack | "using React + TypeScript + Tailwind CSS" |
-| `Constraints:` | Regeln, die der Agent einhalten muss | "accessible labels, no external form libraries, client-side validation only" |
-| `Acceptance criteria:` | Fertig wenn — verifizierbare Ergebnisse | "1) email format validation 2) password strength indicator 3) submit disabled while invalid" |
-| `Add tests for:` | Testanforderungen | "valid/invalid submit paths, edge cases for email validation" |
+| `Build <specific artifact>` | Das Ziel — was erstellt werden soll | "Eine Komponente für ein Benutzerregistrierungsformular erstellen" |
+| `using <stack/framework>` | Der Kontext — Tech-Stack | "React + TypeScript + Tailwind CSS verwenden" |
+| `Constraints:` | Regeln, die der Agent einhalten muss | "barrierefreie Labels, keine externen Formularbibliotheken, nur clientseitige Validierung" |
+| `Acceptance criteria:` | Fertig wenn — verifizierbare Ergebnisse | "1) Validierung des E-Mail-Formats 2) Anzeige der Passwortstärke 3) Senden deaktiviert, solange ungültig" |
+| `Add tests for:` | Testanforderungen | "gültige/ungültige Sendewege, Grenzfälle der E-Mail-Validierung" |
 
 ---
 
@@ -97,13 +107,13 @@ Add unit tests for: valid submission path, invalid email, short password, loadin
 
 **Erwarteter Ausführungsablauf:**
 
-1. **Skill-Aktivierung:** `oma-frontend` aktiviert sich (Keywords: "form", "component", "Tailwind CSS", "React")
+1. **Skill-Routing:** Der Host oder Workflow wählt `oma-frontend` aus (Begriffe wie "form", "component", "Tailwind CSS" und "React" dienen als Routing-Signale)
 2. **Schwierigkeitsbewertung:** Mittel (2-3 Dateien, einige Designentscheidungen zur Validierungs-UX)
 3. **Geladene Ressourcen:**
    - `execution-protocol.md` (immer)
    - `snippets.md` (Formular- + Zod-Muster)
-   - `component-template.tsx` (React-Struktur)
-4. **CHARTER_CHECK-Ausgabe:**
+   - vorhandene Komponenten-Muster und `snippets.md`, sofern vom Skill bereitgestellt
+4. **Ausführungsvertrag (falls aktiviert) kann `CHARTER_CHECK` ausgeben:**
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -112,6 +122,7 @@ Add unit tests for: valid submission path, invalid email, short password, loadin
    - Success criteria: form validation, accessibility, loading state, tests
    - Assumptions: Next.js App Router, @tanstack/react-form + Zod, shadcn/ui, FSD-lite architecture
    ```
+<!-- oma-docs:ignore-start -->
 5. **Implementierung:**
    - Erstellt `src/features/auth/components/login-form.tsx` (Client Component mit `"use client"`)
    - Erstellt `src/features/auth/utils/login-schema.ts` (Zod-Schema)
@@ -125,6 +136,7 @@ Add unit tests for: valid submission path, invalid email, short password, loadin
    - Mobil: rendert korrekt bei 320px-Viewport
    - Performance: kein CLS
    - Tests: Vitest-Testdatei unter `src/features/auth/utils/__tests__/login-schema.test.ts`
+<!-- oma-docs:ignore-end -->
 
 ---
 
@@ -143,14 +155,16 @@ Add tests for: auth required, pagination, status filter, empty results.
 
 **Erwarteter Ausführungsablauf:**
 
-1. **Skill-Aktivierung:** `oma-backend` aktiviert sich (Keywords: "API", "endpoint", "REST")
-2. **Stack-Erkennung:** Liest `pyproject.toml` oder `package.json`, um Sprache/Framework zu bestimmen. Falls `stack/` existiert, werden Konventionen von dort geladen.
+1. **Skill-Routing:** Der Host oder Workflow wählt `oma-backend` aus (Begriffe wie "API", "endpoint" und "REST" dienen als Routing-Signale)
+2. **Stack-Erkennung:** Liest `pyproject.toml` oder `package.json`, um Sprache und Framework zu bestimmen. Falls generierte `stack/`-Verweise oder ausgelieferte `variants/` vorhanden sind, werden die Konventionen daraus geladen.
 3. **Schwierigkeitsbewertung:** Mittel (2-3 Dateien: Route, Service, Repository, plus Test)
 4. **Geladene Ressourcen:**
    - `execution-protocol.md` (immer)
-   - `stack/snippets.md` falls verfügbar (Route, paginierte Abfragemuster)
-   - `stack/tech-stack.md` falls verfügbar (Framework-spezifische API)
-5. **CHARTER_CHECK:**
+<!-- oma-docs:ignore-start -->
+   - passendes `stack/snippets.md` oder `variants/{node,python,rust}/snippets.md`, falls verfügbar
+   - passende `stack/tech-stack.md` oder Verweise auf den Varianten-Tech-Stack, falls verfügbar
+<!-- oma-docs:ignore-end -->
+5. **Ausführungsvertrag (falls aktiviert) kann `CHARTER_CHECK` ausgeben:**
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -163,7 +177,7 @@ Add tests for: auth required, pagination, status filter, empty results.
    - Repository: `TaskRepository.find_by_user(user_id, cursor, status, limit)` mit parametrisierter Abfrage
    - Service: `TaskService.get_user_tasks(user_id, cursor, status, limit)` — Geschäftslogik-Wrapper
    - Router: `GET /api/tasks` mit JWT-Auth-Middleware, Eingabevalidierung, Antwortformatierung
-   - Tests: Auth erforderlich gibt 401 zurück, Paginierung gibt korrekten Cursor zurück, Filter funktioniert, leer gibt 200 mit leerem Array zurück
+   - Tests: Auth erforderlich gibt 401 zurück, Paginierung gibt den korrekten Cursor zurück, der Filter funktioniert, leere Ergebnisse geben 200 mit leerem Array zurück
 
 ---
 
@@ -183,13 +197,13 @@ Add tests for: profile save, logout flow, offline state.
 
 **Erwarteter Ausführungsablauf:**
 
-1. **Skill-Aktivierung:** `oma-mobile` aktiviert sich (Keywords: "Flutter", "screen", "mobile")
+1. **Skill-Routing:** Der Host oder Workflow wählt `oma-mobile` aus (Begriffe wie "Flutter", "screen" und "mobile" dienen als Routing-Signale)
 2. **Schwierigkeitsbewertung:** Mittel (Einstellungsbildschirm + Zustandsverwaltung + Offline-Behandlung)
 3. **Geladene Ressourcen:**
    - `execution-protocol.md`
    - `snippets.md` (Bildschirmvorlage, Riverpod-Provider-Muster)
    - `screen-template.dart`
-4. **CHARTER_CHECK:**
+4. **Ausführungsvertrag (falls aktiviert) kann `CHARTER_CHECK` ausgeben:**
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -198,12 +212,14 @@ Add tests for: profile save, logout flow, offline state.
    - Success criteria: profile editing, notification toggles, logout, offline
    - Assumptions: existing auth service, Dio interceptors, Riverpod, GoRouter
    ```
+<!-- oma-docs:ignore-start -->
 5. **Implementierung:**
    - Bildschirm: `lib/features/settings/presentation/settings_screen.dart` (Stateless Widget mit Riverpod)
    - Provider: `lib/features/settings/providers/settings_provider.dart`
    - Repository: `lib/features/settings/data/settings_repository.dart`
    - Offline-Behandlung: Dio-Interceptor fängt `SocketException`, greift auf gecachte Daten zurück
    - Alle Controller in der `dispose()`-Methode freigegeben
+<!-- oma-docs:ignore-end -->
 
 ---
 
@@ -223,14 +239,14 @@ Add deliverables: data standards table, glossary, migration script.
 
 **Erwarteter Ausführungsablauf:**
 
-1. **Skill-Aktivierung:** `oma-db` aktiviert sich (Keywords: "database", "schema", "ERD", "migration")
+1. **Skill-Routing:** Der Host oder Workflow wählt `oma-db` aus (Begriffe wie "database", "schema", "ERD" und "migration" dienen als Routing-Signale)
 2. **Schwierigkeitsbewertung:** Komplex (Architekturentscheidungen, mehrere Entitäten, Kapazitätsplanung)
 3. **Geladene Ressourcen:**
    - `execution-protocol.md`
    - `document-templates.md` (Ergebnisstruktur)
    - `examples.md`
    - `anti-patterns.md` (Review während der Optimierung)
-4. **CHARTER_CHECK:**
+4. **Ausführungsvertrag (falls aktiviert) kann `CHARTER_CHECK` ausgeben:**
    ```
    CHARTER_CHECK:
    - Clarification level: LOW
@@ -239,7 +255,7 @@ Add deliverables: data standards table, glossary, migration script.
    - Success criteria: schema, ERD, indexes, capacity estimate, backup strategy
    - Assumptions: PostgreSQL, 3NF, soft delete, multi-tenant with RLS
    ```
-5. **Workflow:** Erkunden (Entitäten, Beziehungen, Zugriffsmuster, Volumenschätzungen) -> Entwerfen (externe/konzeptionelle/interne Schemata, Constraints, Lebenszyklus-Felder) -> Optimieren (Indizes für Abfragemuster, Partitionierungsstrategie, Backup-Plan, Anti-Pattern-Review)
+5. **Workflow:** Erkunden (Entitäten, Beziehungen, Zugriffsmuster, Volumenschätzungen) -> Entwerfen (externe/konzeptionelle/interne Schemata, Constraints, Lebenszyklusfelder) -> Optimieren (Indizes für Abfragemuster, Partitionierungsstrategie, Backup-Plan, Anti-Pattern-Review)
 6. **Ergebnisse:**
    - Zusammenfassung des externen Schemas (Sichten pro Rolle: Admin, Projektmanager, Teammitglied)
    - Konzeptionelles Schema mit ERD (Organisation 1:N Projekt, Projekt 1:N Aufgabe, Organisation 1:N Teammitgliedschaft usw.)

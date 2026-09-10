@@ -1,6 +1,7 @@
 ---
 title: "Anleitung: Multi-Agenten-Projekte"
-description: Vollständige Anleitung zur Koordination mehrerer Domain-Agenten über Frontend, Backend, Datenbank, Mobile und QA — von der Planung bis zum Merge.
+sidebar_label: Multi-Agenten-Projekte
+description: Vollständige Anleitung zur Koordination mehrerer Domänenagenten über Frontend, Backend, Datenbank, Mobile und QA von der Planung bis zum Merge.
 ---
 
 # Anleitung: Multi-Agenten-Projekte
@@ -35,8 +36,8 @@ Der `/plan`-Workflow läuft inline (kein Subagenten-Spawning) und erzeugt einen 
 Was passiert:
 
 1. **Anforderungen erfassen** — Der PM-Agent fragt nach Zielgruppen, Kernfunktionen, Einschränkungen und Deployment-Zielen.
-2. **Technische Machbarkeit analysieren** — Verwendet MCP-Code-Analyse-Tools (`get_symbols_overview`, `find_symbol`, `search_for_pattern`), um die vorhandene Codebasis nach wiederverwendbarem Code und Architekturmustern zu scannen.
-3. **API-Verträge definieren** — Entwirft Endpunkt-Verträge (Methode, Pfad, Anfrage-/Antwort-Schemata, Auth, Fehlerantworten) und speichert sie in `.agents/skills/_shared/core/api-contracts/`.
+2. **Technische Machbarkeit analysieren** — Verwendet den konfigurierten Code-Intelligence-Anbieter oder bei dessen Nichtverfügbarkeit die native Suche mit begrenztem Umfang, um die vorhandene Codebasis nach wiederverwendbarem Code und Architekturmustern zu scannen.
+3. **API-Verträge definieren** — Entwirft Endpunkt-Verträge (Methode, Pfad, Anfrage-/Antwort-Schemata, Auth, Fehlerantworten) und speichert sie in `.agents/results/api-contracts/` (Laufartefakte); dauerhafte Spezifikationen werden beim Commit nach `docs/plans/contracts/` übernommen.
 4. **In Aufgaben zerlegen** — Zerlegt das Projekt in umsetzbare Aufgaben, jeweils mit: zugewiesenem Agenten, Titel, Akzeptanzkriterien, Priorität (P0-P3) und Abhängigkeiten.
 5. **Plan mit Benutzer prüfen** — Präsentiert den vollständigen Plan zur Bestätigung. Der Workflow fährt ohne explizite Benutzergenehmigung nicht fort.
 6. **Plan speichern** — Schreibt den genehmigten Plan nach `.agents/results/plan-{sessionId}.json` und zeichnet eine Zusammenfassung im Memory auf.
@@ -50,8 +51,8 @@ Es gibt zwei Ausführungspfade:
 | Aspekt | /work | /orchestrate |
 |:-------|:-----------|:-------------|
 | **Interaktion** | Interaktiv — Benutzer bestätigt bei jeder Stufe | Automatisiert — läuft bis zum Abschluss |
-| **PM-Planung** | Eingebaut (Schritt 2 führt PM-Agent aus) | Benötigt plan von /plan |
-| **Benutzer-Checkpoint** | Nach Plan-Review (Schritt 3) | Vor dem Start (Plan muss existieren) |
+| **PM-Planung** | Eingebaut (Schritt 2 führt PM-Agent aus) | Lädt einen vorhandenen Plan; wenn keiner verwendbar ist, wird inline einer erstellt |
+| **Benutzer-Checkpoint** | Nach Plan-Review (Schritt 3) | Der Inline-Plan durchläuft vor dem Fan-out weiterhin das Review-Gate |
 | **Persistenter Modus** | Ja — kann bis zum Abschluss nicht beendet werden | Ja — kann bis zum Abschluss nicht beendet werden |
 | **Am besten für** | Erstmalige Nutzung, komplexe Projekte mit Aufsichtsbedarf | Wiederholte Läufe, klar definierte Aufgaben |
 
@@ -75,7 +76,7 @@ Es gibt zwei Ausführungspfade:
 /orchestrate
 ```
 
-1. Lädt `.agents/results/plan-{sessionId}.json` (fährt ohne diesen nicht fort).
+1. Lädt `.agents/results/plan-{sessionId}.json` und erstellt inline über `/plan` einen Plan, wenn kein verwendbarer Plan vorhanden ist.
 2. Initialisiert eine Sitzung mit ID-Format `session-YYYYMMDD-HHMMSS`.
 3. Erstellt `orchestrator-session.md` und `task-board.md` im Memory-Verzeichnis.
 4. Startet Agenten pro Prioritätsstufe, jeweils mit: Aufgabenbeschreibung, API-Verträgen und Kontext.
@@ -95,16 +96,17 @@ oma agent spawn backend "Implement user auth API with JWT" session-20260324-1430
 
 | Flag | Beschreibung |
 |:-----|:-----------|
-| `--vendor <vendor>` | CLI-Vendor-Überschreibung (antigravity/claude/codex/qwen). Überschreibt alle Konfiguration. |
+| `--vendor <vendor>` | CLI-Vendor-Überschreibung (antigravity/claude/codex/cursor/opencode/qwen/grok/pi). Überschreibt die Modellauflösung für diesen Spawn. |
 | `-w, --workspace <path>` | Arbeitsverzeichnis für den Agenten. Automatisch aus Monorepo-Konfiguration erkannt, wenn nicht angegeben. |
+| `--task-id <id>` | Bindet den Spawn an eine Aufgabe im Sitzungsplan; Standard ist die Agenten-ID. |
+| `--isolation worktree` | Erstellt einen Git-Worktree für den Spawn; standardmäßig gibt es keine zusätzliche Isolation. |
+| `--read-only` | Beschränkt das Kind auf Inspektionswerkzeuge und unterdrückt Auto-Approve-Flags. |
 
-**Vendor-Auflösungsreihenfolge** (erster Treffer gewinnt):
+**Vendor-Auflösungsreihenfolge** (der erste Treffer gewinnt):
 
 1. `--vendor`-Flag auf der Kommandozeile
-2. `model_preset` in `oma-config.yaml` für diesen spezifischen Agententyp
-3. `default_cli` in `oma-config.yaml`
-4. `active_vendor` in `cli-config.yaml`
-5. `gemini` (fest codierter Standard)
+2. `agents:`-Überschreibung in `oma-config.yaml` für diesen Agenten
+3. Aktive `model_preset`-Agentenstandards
 
 **Automatische Workspace-Erkennung** prüft Monorepo-Konfigurationen in dieser Reihenfolge: pnpm-workspace.yaml, package.json Workspaces, lerna.json, nx.json, turbo.json, mise.toml. Jedes Workspace-Verzeichnis wird gegen Agententyp-Keywords bewertet (z. B. "web", "frontend", "client" für den Frontend-Agenten). Ohne Monorepo-Konfiguration werden fest codierte Kandidaten wie `apps/web`, `apps/frontend`, `frontend/` usw. geprüft.
 
@@ -124,7 +126,7 @@ Der Review-Workflow führt eine vollständige QA-Pipeline durch:
 4. **Performance-Analyse** — N+1-Abfragen, fehlende Indizes, unbegrenzte Paginierung, Speicherlecks, unnötige Re-Renders, Bundle-Größen.
 5. **Barrierefreiheit** — WCAG 2.1 AA: semantisches HTML, ARIA, Tastaturnavigation, Farbkontrast, Fokusverwaltung.
 6. **Code-Qualität** — Benennung, Fehlerbehandlung, Testabdeckung, TypeScript Strict Mode, unbenutzte Imports, async/await-Muster.
-7. **Bericht** — Befunde kategorisiert als CRITICAL / HIGH / MEDIUM / LOW mit `Datei:Zeile`, Beschreibung und Behebungscode.
+7. **Bericht** — Befunde kategorisiert als CRITICAL / HIGH / MEDIUM / LOW mit `file:line`, Beschreibung und Behebungscode.
 
 Für große Scopes wird an den QA-Agent-Subagenten delegiert. Mit der `--fix`-Option wird eine Fix-Verify-Schleife gestartet: Domänenagenten zur Behebung von CRITICAL-/HIGH-Problemen starten, erneut prüfen, bis zu 3-mal wiederholen.
 
@@ -207,7 +209,7 @@ API-Verträge sind der Synchronisierungsmechanismus zwischen Agenten. Die Contra
    - Authentifizierungsanforderungen
    - Fehlerantwortformate
 
-4. **Vertragsverletzungen werden während der Überwachung erkannt.** Schritt 5 von `/work` verwendet MCP-Code-Analyse-Tools (`find_symbol`, `search_for_pattern`), um die API-Vertrags-Übereinstimmung zwischen Agenten zu verifizieren.
+4. **Vertragsverletzungen werden während der Überwachung erkannt.** Schritt 5 von `/work` verwendet den konfigurierten Code-Intelligence-Anbieter oder die native Suche mit begrenztem Umfang, um die API-Vertrags-Übereinstimmung zwischen Agenten zu verifizieren.
 
 5. **QA-Review prüft die Vertragseinhaltung.** Das Alignment-Review des QA-Agenten (Schritt 6 in ultrawork) vergleicht explizit die Implementierung mit dem Plan, einschließlich der API-Verträge.
 
@@ -219,9 +221,9 @@ API-Verträge sind der Synchronisierungsmechanismus zwischen Agenten. Die Contra
 
 Bevor eine Multi-Agenten-Arbeit als abgeschlossen gilt, müssen vier Bedingungen erfüllt sein:
 
-### 1. Build erfolgreich
+### 1. Deklarierte Prüfungen erfolgreich
 
-Aller Code kompiliert und baut fehlerfrei. Dies wird durch das Verifikationsskript (`verify.sh`) geprüft, das zum Agententyp passende Build-Befehle ausführt.
+Jedes Akzeptanzkriterium hat eine passende Prüfung, und die im Plan deklarierten Prüfungen bestehen. Ein Build ist nur enthalten, wenn das Projekt-Gate der Aufgabe ihn verlangt; der Ergebnisvertrag zeichnet die tatsächlich ausgeführten Argumente und den Exit-Code auf.
 
 ### 2. Tests bestehen
 
@@ -244,13 +246,13 @@ Im ultrawork-Workflow übersetzen sich diese in explizite **Phasen-Gates** (PLAN
 ### Einzelner Agent-Spawn
 
 ```bash
-# Backend-Agent mit Gemini (Standard) starten
+# Spawn backend agent with Gemini (default)
 oma agent spawn backend "Implement /api/users CRUD endpoint per API contract" session-20260324-143000
 
-# Frontend-Agent mit Claude, expliziter Workspace
+# Spawn frontend agent with Claude, explicit workspace
 oma agent spawn frontend "Build user dashboard with React" session-20260324-143000 --vendor claude -w ./apps/web
 
-# Aus einer Prompt-Datei starten
+# Spawn from a prompt file
 oma agent spawn backend ./prompts/auth-api.md session-20260324-143000 -w ./api
 ```
 
@@ -289,7 +291,7 @@ Hintergrundmodus (kein Warten):
 
 ```bash
 oma agent parallel tasks.yaml --no-wait
-# Kehrt sofort zurück, Ergebnisse werden nach .agents/results/parallel-{timestamp}/ geschrieben
+# Returns immediately, results written to .agents/results/parallel-{timestamp}/
 ```
 
 Mit Vendor-Überschreibung:
@@ -302,9 +304,9 @@ oma agent parallel tasks.yaml --vendor claude
 
 ## Zu vermeidende Anti-Patterns
 
-### 1. Plan überspringen
+### 1. Den Plan unkritisch abnicken
 
-`/orchestrate` ohne plan file starten. Der Workflow wird die Ausführung verweigern. Immer zuerst `/plan` ausführen oder `/work` verwenden, das eingebaute Planung hat.
+`/orchestrate` kann über `/plan` inline einen Plan erstellen, wenn keine verwendbare Plandatei vorhanden ist. Dieser Inline-Plan durchläuft weiterhin das Review-Gate von `/plan`, und der Fan-out folgt in Schritt 2 der bestätigten Zerlegung. Bei umfangreicher domänenübergreifender Arbeit sollte `/plan` vorher ausgeführt werden, damit ein dauerhafter Tracker unter `docs/plans/work/` verfügbar ist und die Zerlegung vor dem Agenten-Spawn verfeinert werden kann.
 
 ### 2. Überlappende Workspaces
 
@@ -328,7 +330,7 @@ P1-Aufgaben vor Abschluss der P0-Aufgaben ausführen. Prioritätsstufen existier
 
 ### 7. Verifikation überspringen
 
-`agent spawn` direkt verwenden, ohne danach das Verifikationsskript auszuführen. Der Verifikationsschritt erkennt Build-Fehler, Test-Regressionen und Scope-Verletzungen, die sich sonst ausbreiten würden.
+`agent spawn` direkt verwenden, ohne danach den Ergebnisvertrag zu erfassen. Führen Sie die für die Aufgabe deklarierten Prüfungen aus und schließen Sie einen strukturierten Claim ab; siehe [Agentenergebnisse und Fortsetzung](/docs/guide/agent-results-and-resume). Der Verifikationsschritt erkennt anschließend fehlgeschlagene Prüfungen und Scope-Abweichungen, bevor Ergebnisse wiederverwendet werden.
 
 ---
 
@@ -336,7 +338,7 @@ P1-Aufgaben vor Abschluss der P0-Aufgaben ausführen. Prioritätsstufen existier
 
 Nachdem alle Agenten ihre individuellen Aufgaben abgeschlossen haben, muss die domänenübergreifende Integration validiert werden:
 
-1. **API-Vertrags-Übereinstimmung** — MCP-Tools (`find_symbol`, `search_for_pattern`) verifizieren, dass Backend-Implementierungen den Verträgen entsprechen, die von Frontend und Mobile konsumiert werden.
+1. **API-Vertrags-Übereinstimmung** — Der konfigurierte Code-Intelligence-Anbieter oder die native Suche mit begrenztem Umfang verifiziert, dass Backend-Implementierungen den Verträgen entsprechen, die von Frontend und Mobile konsumiert werden.
 
 2. **Typkonsistenz** — TypeScript-Typen, Python-Dataclasses oder Dart-Modelle, die domänenübergreifend geteilt werden, müssen konsistente Feldnamen und -typen verwenden.
 

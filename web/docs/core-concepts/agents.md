@@ -1,17 +1,17 @@
 ---
 title: Agents
-description: Complete reference for all 32 oh-my-agent agents, covering their domains, tech stacks, resource files, capabilities, charter preflight protocol, two-layer skill loading, scoped execution rules, quality gates, workspace strategy, orchestration flow, and runtime memory.
+description: Reference for OMA's 33 skill packages, 13 canonical dispatch roles, and 12 checked-in subagent definitions, including their domains, resources, charter preflight, progressive loading, scope rules, quality gates, workspace strategy, orchestration, and runtime memory.
 ---
 
 # Agents
 
-Agents in oh-my-agent are specialized engineering roles. Each agent has a defined domain, tech stack knowledge, resource files, quality gates, and execution constraints. Agents are not generic chatbots. They are scoped workers that stay in their lane and follow structured protocols.
+OMA separates skill packages, dispatch roles, and subagent definition files. A skill routes and loads domain guidance; a canonical role is the runtime identity used for dispatch; a checked-in definition gives a subagent a vendor-native persona. These layers overlap by design, so use the task boundary and acceptance criteria to decide whether one skill is enough.
 
 The agent definitions under `.agents/agents/` are the source of truth. OMA projects them into vendor-native files for runtimes that support custom subagents:
 
 - `.claude/agents/*.md`
 - `.codex/agents/*.toml`
-- `.gemini/agents/*.md`
+- `.cursor/agents/*`, `.opencode/agents/*`, or another selected vendor projection when supported
 
 When a workflow maps an agent to the same vendor as the current runtime, it should use that runtime's native agent file first. Cross-vendor tasks fall back to `oma agent spawn`.
 
@@ -26,7 +26,7 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 | **Ideation** | oma-brainstorm | Exploring ideas, proposing approaches, producing design documents |
 | **Architecture** | oma-architecture | System/module/service boundaries, ADR/ATAM/CBAM-style analysis, tradeoff records |
 | **Planning** | oma-pm | Requirements decomposition, task breakdown, API contracts, priority assignment |
-| **Implementation** | oma-frontend, oma-backend, oma-mobile, oma-db | Writing production code in their respective domains |
+| **Implementation** | oma-frontend, oma-backend, oma-mobile, oma-db | Writing code in their respective domains |
 | **Design** | oma-design | Design systems, DESIGN.md, tokens, typography, color, motion, accessibility |
 | **Infrastructure** | oma-tf-infra | Multi-cloud Terraform provisioning, IAM, cost optimization, policy-as-code |
 | **DevOps** | oma-dev-workflow | mise task runner, CI/CD, migrations, release coordination, monorepo automation |
@@ -40,6 +40,7 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 | **Retrospective** | oma-recap | Cross-tool conversation history analysis and themed work summaries |
 | **Document Processing** | oma-hwp, oma-pdf | HWP/HWPX/HWPML and PDF to Markdown conversion for LLM/RAG ingestion |
 | **Documentation** | oma-docs | Documentation drift detection (verify broken refs, propose sync patches for diff-affected docs) |
+| **Explanation** | oma-explanation | Offline interactive HTML explainers for diffs, branches, PRs, or commit ranges |
 | **Academic Writing** | oma-academic-writing, oma-scholar | Publication-grade academic prose drafting/audit and Knows-sidecar scholarly research, search, and peer review |
 | **Security** | oma-deepsec | Driving Vercel's deepsec agent-powered vulnerability scanner (scan, PR gate, matchers, triage) cost-consciously |
 | **Refactoring** | oma-refactor | Behavior-preserving incremental restructuring with hotspot targeting, characterization-test safety nets, refactor-only commits |
@@ -107,7 +108,7 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 - Minimize dependencies for maximum parallel execution
 - Security and testing are part of every task (not separate phases)
 - Tasks must be completable by a single agent
-- Output JSON plan + task-board.md for orchestrator compatibility
+- Output the JSON plan plus a session-scoped task board for orchestrator compatibility
 
 **Output:** `.agents/results/plan-{sessionId}.json`, `.agents/results/result-pm.md`, memory write for orchestrator.
 
@@ -151,7 +152,7 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 - FCP target < 1s
 - Responsive breakpoints: 320px, 768px, 1024px, 1440px
 
-**Resources:** `execution-protocol.md`, `tech-stack.md`, `tailwind-rules.md`, `component-template.tsx`, `snippets.md`, `error-playbook.md`, `checklist.md`, `examples/`.
+**Resources:** `execution-protocol.md`, `tech-stack.md`, `tailwind-rules.md`, `snippets.md`, `angular-rules.md`, `error-playbook.md`, and `checklist.md`.
 
 **Quality gate checklist:**
 - Accessibility: ARIA labels, semantic headings, keyboard navigation
@@ -173,7 +174,7 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 
 **Architecture:** Router (HTTP) -> Service (Business Logic) -> Repository (Data Access) -> Models.
 
-**Stack detection:** Reads project manifests (pyproject.toml, package.json, Cargo.toml, go.mod, etc.) to determine language and framework. Falls back to `stack/` directory if present, or asks user to run `/stack-set`.
+**Stack detection:** Reads project manifests (pyproject.toml, package.json, Cargo.toml, go.mod, etc.) to determine language and framework. If project-specific conventions are missing, ask the user to run `/stack-set`; that command materializes the resolved `stack/` references from the shipped schema and templates.
 
 **Core rules:**
 - Clean architecture: no business logic in route handlers
@@ -184,7 +185,11 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 - Custom exceptions via centralized error module
 - Explicit ORM loading strategy, transaction boundaries, safe lifecycle
 
-**Resources:** `execution-protocol.md`, `examples.md`, `orm-reference.md`, `checklist.md`, `error-playbook.md`. Stack-specific resources in `stack/` (generated by `/stack-set`): `tech-stack.md`, `snippets.md`, `api-template.*`, `stack.yaml`.
+**Resources:** `execution-protocol.md`, `orm-reference.md`, `checklist.md`, and `error-playbook.md`. `variants/stack.schema.json` defines the stack manifest shape.
+
+<!-- oma-docs:ignore-start -->
+Project-specific `stack/stack.yaml`, `stack/tech-stack.md`, snippets, and API templates are generated by `/stack-set` when needed; they are absent until the stack is materialized.
+<!-- oma-docs:ignore-end -->
 
 **Turn limits:** Default 20, max 30.
 
@@ -209,7 +214,7 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 - 60fps target; test on both platforms
 - Swift: use `@Observable` over `ObservableObject` on iOS 17+; generate API clients from OpenAPI specs via `swift-openapi-generator`
 
-**Resources:** `execution-protocol.md`, `tech-stack.md`, `snippets.md`, `screen-template.dart`, `screen-template.swift`, `checklist.md`, `error-playbook.md`, `examples.md`. Swift variant references in `variants/swift-ios/` (generated by `/stack-set`: `stack.yaml`, `tech-stack.md`, `snippets.md`, `api-template.swift`).
+**Resources:** `execution-protocol.md`, `tech-stack.md`, `screen-template.dart`, `screen-template.swift`, `screen-template.tsx`, `checklist.md`, and `error-playbook.md`. The `variants/` directory contains the stack schema and generated platform references when `/stack-set` materializes them.
 
 **Turn limits:** Default 20, max 30.
 
@@ -384,9 +389,7 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 
 **When to use:** Translating UI strings, documentation, marketing copy, reviewing existing translations, creating glossaries.
 
-**4-stage method:** Analyze Source (register, intent, domain terms, cultural references, emotional connotations, figurative language mapping) -> Extract Meaning (strip source structure) -> Reconstruct in Target Language (natural word order, register matching, sentence splitting/merging) -> Verify (naturalness rubric + anti-AI pattern check).
-
-**Optional 7-stage refined mode** for publication quality: extends with Critical Review, Revision, and Polish stages.
+**Six-scene flow:** Prepare, Acquire, Reason, Act, Verify, and Finalize. The translation method has four steps: read meaning and protected syntax, choose register, reconstruct in the target language, and preserve author style where it belongs.
 
 **Core rules:**
 - Scan existing locale files first to match conventions
@@ -421,7 +424,7 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 
 **Agent-to-agent review loop:**
 1. Self-review: agent checks own diff against acceptance criteria
-2. Automated verify: `oma verify {agent-type} --workspace {workspace}`
+2. Automated verify: `oma verify agent {agent-type} --workspace {workspace}`
 3. Cross-review: QA agent reviews changes
 4. On failure: issues fed back for fixing (max 5 total loop iterations)
 
@@ -446,7 +449,7 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 - Never commit secrets files
 - Always specify files when staging
 - Use HEREDOC for multi-line commit messages
-- Co-Author: `First Fluke <our.first.fluke@gmail.com>`
+- Co-author trailers are included only when the effective `scm.co_author` configuration enables them and supplies the name and email.
 
 ---
 
@@ -623,9 +626,23 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 
 ---
 
+### oma-explanation
+
+**Domain:** Interactive explainers for code changes.
+
+**When to use:** Explaining a diff, pull request, branch, or commit range to a reader who needs background, intuition, code walkthroughs, and a short quiz in one offline-capable HTML artifact.
+
+**Workflow:** Reads the requested change, builds a self-contained HTML explainer with Background / Intuition / Code / Quiz sections, validates the artifact, and writes it under `.agents/results/explain/`.
+
+**When NOT to use:** A plain documentation page, a live feature implementation, or a slide deck (use `oma-slide` for presentations).
+
+**Resources:** Uses the shared execution and quality resources plus the `/explain` workflow's artifact validation.
+
+---
+
 ### oma-image
 
-**Domain:** Multi-vendor AI image generation with authentication-aware parallel dispatch (Codex `gpt-image-2`, Antigravity `gemini-2.5-flash-image`/nano-banana via `agy`, Pollinations flux/zimage).
+**Domain:** Multi-vendor AI image generation with authentication-aware parallel dispatch (Codex `gpt-image-2`, Antigravity Gemini-family “nano-banana” models via `agy` with the exact model selected internally, Pollinations flux/zimage).
 
 **When to use:** Generating images, visual assets, illustrations, product photos, concept art, or mockups; comparing output across multiple image models for the same prompt; producing images from prompts inside editor workflows.
 
@@ -635,8 +652,8 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 - Clarify before invoking: if subject/style/composition/usage is ambiguous, ask first or amplify the prompt and show the user the expanded version
 - Authentication-aware dispatch: run only authenticated vendors; with `--vendor all`, every requested vendor must be available
 - Cost guardrail: confirm before runs whose estimated cost is ≥ $0.20 (`--yes`/`OMA_IMAGE_YES=1` bypass); default `pollinations` and `antigravity` are free
-- Path safety: output outside `$PWD` requires `--allow-external-out`; max `n` = 5
-- Deterministic outputs: every run writes `manifest.json` next to the images
+- Path safety: output outside `$PWD` requires `--allow-external-output`; max `n` = 5
+- Recorded outputs: every run writes `manifest.json` next to the images with prompt, vendor/model, inputs, and artifact metadata. It records reproducibility data; it does not promise pixel-identical images.
 - Auto-forward attached reference images via `--reference <path>` (codex/antigravity)
 
 **Workflow:** PREPARE (clarify/amplify prompt, choose vendor) → ACQUIRE (validate auth, references, output path) → ACT (`oma image generate`) → VERIFY (manifest, files, exit code) → FINALIZE (output paths + warnings).
@@ -759,7 +776,7 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 
 ### oma-video
 
-**Domain:** Short-form, explainer, and demo video generation via a key-optional 3-tier (CLI-first / MCP / guided) provider router, composing script → narration → visuals → captions → Remotion render.
+**Domain:** Short-form, explainer, and human-recorded demo video generation through the `oma video` CLI, composing script → narration → visuals → captions → Remotion render.
 
 **When to use:** Generating short-form video (shorts/reels, 9:16) from a topic, explainers (16:9/9:16) from a README/code/data, demos/walkthroughs from a screen capture (`--source file`) or supervised headed web-app capture of any URL (`--source web`), re-rendering an existing run deterministically.
 
@@ -767,11 +784,11 @@ When a workflow maps an agent to the same vendor as the current runtime, it shou
 
 **Core rules:**
 - Clarify or infer the mode before invoking; show the user the inferred plan rather than silently rendering from a vague brief
-- Key-optional dispatch: every external capability has a real path AND a key-free fallback; paid providers (Pexels, Pixelle) auto-enable only when their env key is present
+- Provider configuration is key-optional for supported asset fallbacks; paid providers (Pexels, Pixelle) auto-enable only when their env key is present, while a compositor failure is never replaced with a fallback video
 - Cost guardrail at ≥ `$0.20` (`--yes`/`OMA_VIDEO_YES=1` bypass); limits of 180s duration / 40 scenes
-- Deterministic outputs: `render-spec.json` + assets (+ seed + embedded Pretendard) are the determinism boundary; `OMA_VIDEO_MOCK=1` replays golden fixtures
+- Render inputs are recorded in `render-spec.json`, assets, seed, and embedded Pretendard; `OMA_VIDEO_MOCK=1` is a test harness for golden fixtures, not a user deliverable
 - Demo is human-in-the-loop: web capture only opens a headed browser and records while a human drives the flow — NO credential automation; `--url` and tokens masked in logs/manifest
-- Path safety (`--allow-external-out` for output outside `$PWD`)
+- Path safety (`--allow-external-output` for output outside `$PWD`)
 
 **Workflow:** PREPARE (mode/aspect/locale, clarify/amplify brief) → ACQUIRE (probe provider availability, validate capture path, check cost) → ACT (script → voice ∥ visuals ∥ captions → render-spec → render) → VERIFY (schema, manifest hashes, exit code, mp4) → FINALIZE (run-dir + mp4 path + coverage warnings).
 
@@ -889,12 +906,12 @@ oma agent spawn frontend "Build login form" session-01 -w ./apps/web
 When running a multi-agent workflow (`/orchestrate` or `/work`):
 
 1. **PM Agent** decomposes the request into domain-specific tasks with priorities (P0, P1, P2) and dependencies
-2. **Session initialized**: session ID generated, `orchestrator-session.md` and `task-board.md` created in memory
+2. **Session initialized**: session ID generated, `orchestrator-session-{sessionId}.md` and `task-board-{sessionId}.md` created in the configured memory store
 3. **P0 tasks** spawned in parallel (up to MAX_PARALLEL concurrent agents)
-4. **Progress monitored**: orchestrator polls `progress-{agent}.md` files every POLL_INTERVAL
+4. **Progress monitored**: orchestrator polls run-scoped `progress-{agentId}-{taskId}-{runId}-{sessionId}.md` files every POLL_INTERVAL
 5. **P1 tasks** spawned after P0 completes, and so on
 6. **Verification loop** runs for each completed agent (self-review -> automated verify -> cross-review by QA)
-7. **Results collected** from all `result-{agent}.md` files
+7. **Results collected** from run-scoped result files and structured claims
 8. **Final report** with session summary, files changed, remaining issues
 
 ---
@@ -903,7 +920,7 @@ When running a multi-agent workflow (`/orchestrate` or `/work`):
 
 Agents are defined in two locations:
 
-**`.agents/agents/`**: Contains the abstract source-of-truth agent definitions, including:
+**`.agents/agents/`**: Contains 12 checked-in source-of-truth subagent definitions, including:
 - `backend-engineer.md`
 - `frontend-engineer.md`
 - `mobile-engineer.md`
@@ -913,13 +930,18 @@ Agents are defined in two locations:
 - `pm-planner.md`
 - `architecture-reviewer.md`
 - `tf-infra-engineer.md`
+- `docs-curator.md`
+- `refactor-engineer.md`
+- `research-explorer.md`
 
 These files define the agent's identity, execution protocol reference, CHARTER_CHECK template, architecture summary, and rules. They are used when spawning subagents via the Task/Agent tool (Claude Code) or CLI.
+
+The runtime also exposes 13 canonical dispatch roles: `orchestrator`, `architecture`, `qa`, `pm`, `backend`, `frontend`, `mobile`, `db`, `debug`, `refactor`, `docs`, `tf-infra`, and `explore`. `research-explorer.md` is the checked-in definition aliased to `explore`; `orchestrator` is a runtime coordination role without a separate definition file.
 
 **Vendor-native projections**: OMA materializes the source definitions into runtime-specific agent files:
 - `.claude/agents/*.md`
 - `.codex/agents/*.toml`
-- `.gemini/agents/*.md`
+- `.cursor/agents/*`, `.opencode/agents/*`, and other selected vendor projections when supported
 
 These generated files are refreshed by `oma link`, `oma install`, and `oma update`.
 
@@ -931,10 +953,10 @@ During orchestration sessions, agents coordinate through shared memory files in 
 
 | File | Owner | Purpose | Others |
 |------|-------|---------|--------|
-| `orchestrator-session.md` | Orchestrator | Session ID, status, start time, phase tracking | Read-only |
-| `task-board.md` | Orchestrator | Task assignments, priorities, status updates | Read-only |
-| `progress-{agent}.md` | That agent | Turn-by-turn progress: actions taken, files read/modified, current status | Orchestrator reads |
-| `result-{agent}.md` | That agent | Final output: status (completed/failed), summary, files changed, acceptance criteria checklist | Orchestrator reads |
+| `orchestrator-session-{sessionId}.md` | Orchestrator | Session ID, status, start time, phase tracking | Read-only |
+| `task-board-{sessionId}.md` | Orchestrator | Task assignments, priorities, status updates | Read-only |
+| `progress-{agentId}-{taskId}-{runId}-{sessionId}.md` | That run | Turn-by-turn progress: actions taken, files read/modified, current status | Orchestrator reads |
+| `result-{agentId}-{taskId}-{runId}-{sessionId}.md` | That run | Final output: status (completed/failed), summary, files changed, acceptance criteria checklist | Orchestrator reads |
 | `session-metrics.md` | Orchestrator | Clarification Debt tracking, Quality Score progression | QA reads |
 | `experiment-ledger.md` | Orchestrator/QA | Experiment tracking when Quality Score is active | All read |
 

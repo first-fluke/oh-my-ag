@@ -1,37 +1,49 @@
 ---
 title: Introduction
-description: A comprehensive overview of oh-my-agent, the multi-agent orchestration framework that turns AI coding assistants into specialized engineering teams with 32 domain agents, progressive skill loading, and cross-IDE portability.
+description: A comprehensive overview of oh-my-agent, the multi-agent orchestration framework that turns AI coding assistants into specialized engineering teams with 33 skill packages, 12 subagent definitions, progressive skill loading, and cross-IDE portability.
 ---
 
 # Introduction
 
-oh-my-agent is a multi-agent orchestration framework for AI-powered IDEs and CLI tools. Instead of relying on a single AI assistant for everything, oh-my-agent decomposes work across 21 specialized agents, each modeled after a real engineering team role with its own tech stack knowledge, execution protocols, error playbooks, and quality checklists.
+oh-my-agent is a multi-agent orchestration framework for AI-powered IDEs and CLI tools. Instead of relying on a single AI assistant for everything, oh-my-agent routes work across 33 skill packages and 13 canonical dispatch roles. Twelve checked-in subagent definition files provide the reusable implementation, review, planning, debugging, documentation, research, and infrastructure personas. `research-explorer.md` maps to the canonical `explore` role; `orchestrator` is a runtime coordination role without a separate definition file.
 
-What separates it from a faster spawner is that agent work is checked mechanically rather than taken on trust. A Stop hook holds the session open until your project's own `typecheck` / `test` / `lint` script exits 0; `oma ralph verify` decides whether a workflow really ran from the artifacts it left on disk; an independently spawned judge re-verifies every criterion — including ones that already passed — against silent regressions. Every gate decision is appended to a durable event log.
+OMA provides mechanical checks when you invoke them or select a workflow that includes them. `oma verify agent <agent-type>` runs the checks for the selected agent type; `/ralph` adds artifact-backed verification and a judge loop; enabled vendor Stop hooks can keep a workflow open while its configured checks run. Skill loading alone does not establish acceptance, and a plain prompt does not automatically run every workflow gate. Use the workflow's acceptance criteria and the resulting files to decide what is complete.
 
-The entire system lives in a portable `.agents/` directory inside your project. Switch between Claude Code, Gemini CLI, Codex CLI, Antigravity IDE, Cursor, or any other supported tool, and your agent configuration travels with your code.
+The entire system lives in a portable `.agents/` directory inside your project. Switch between Claude Code, Codex CLI, Antigravity CLI or IDE, Cursor, OpenCode, and other supported tools, and your agent configuration travels with your code.
+
+If you are new to OMA, start with [Quick Start](./quick-start.md), then read [Important Defaults](./important-defaults.md). Installation creates the SSOT and vendor integrations; the first useful check is `oma doctor`; the first useful task is one small single-domain change. Move to `/work` or `/orchestrate` only when the task needs coordination.
 
 ---
 
 ## The multi-agent paradigm
 
-Traditional AI coding assistants operate as generalists. They handle frontend, backend, database, security, and infrastructure with the same prompt context and the same level of expertise. This leads to:
+Traditional AI coding assistants often handle frontend, backend, database, security, and infrastructure from one prompt context. That can lead to:
 
 - **Context dilution**: loading knowledge for every domain wastes the context window
-- **Inconsistent quality**: a generalist can not match a specialist in any single domain
-- **No coordination**: complex features spanning multiple domains get handled sequentially
+- **Unclear ownership**: a cross-domain task has no explicit boundary for each part
+- **Manual coordination**: complex features spanning multiple domains need handoffs chosen by the host or user
 
 oh-my-agent solves this with specialization:
 
-1. **Each agent knows one domain deeply.** The frontend agent knows React/Next.js, shadcn/ui, TailwindCSS v4, FSD-lite architecture. The backend agent knows the Repository-Service-Router pattern, parameterized queries, JWT authentication. They do not overlap.
+1. **Each skill has a primary domain.** The frontend skill knows React/Next.js, shadcn/ui, TailwindCSS v4, FSD-lite architecture. The backend skill knows the Repository-Service-Router pattern, parameterized queries, and JWT authentication. Domains can overlap at boundaries, so use the task's acceptance criteria to decide when a second skill or a coordinating workflow is needed.
 
-2. **Agents run in parallel.** While the backend agent builds your API, the frontend agent is already creating the UI. The orchestrator coordinates via shared memory.
+2. **Agents can run in parallel.** While a backend agent builds an API, a frontend agent can work in its own workspace. The orchestrator coordinates through durable, run-scoped files and receipts.
 
-3. **Quality is built in.** Every agent has a domain-specific checklist and error playbook. Charter preflight catches scope creep before code is written. QA review runs as part of the workflow, not as a separate add-on.
+3. **Quality guidance is built in.** Skills carry domain checklists, error playbooks, and charter rules. Charter preflight narrows scope before code is written; QA review runs when the selected workflow includes it or when you request it.
 
 ---
 
-## All 32 agents
+## The current catalog: 33 skills, 12 definitions, 21 workflows
+
+The catalog separates three things that are easy to confuse:
+
+- **Skills** are the 33 domain knowledge packages under `.agents/skills/*/SKILL.md`. They route from natural-language intent and load their resources progressively.
+- **Agent definitions** are the 12 files under `.agents/agents/`. They provide vendor-native subagent personas and reference one or more skills.
+- **Workflows** are the 21 process definitions under `.agents/workflows/`. Four are persistent (`orchestrate`, `work`, `ultrawork`, and `ralph`); the rest run to a report and do not keep persistent mode active.
+
+The sections below preserve the detailed skill catalog. When a name or description changes, the live `SKILL.md` frontmatter is authoritative.
+
+The 12 checked-in definition files cover the 13 runtime roles through aliases: `research-explorer.md` maps to `explore`, while `orchestrator` is runtime-only. The other definition files map to the named roles listed in [Agents](../core-concepts/agents.md).
 
 ### Ideation, architecture, and planning
 
@@ -39,15 +51,15 @@ oh-my-agent solves this with specialization:
 |-------|------|-----------------|
 | **oma-brainstorm** | Design-first ideation | Explores user intent, proposes 2-3 approaches with trade-off analysis, produces design documents before any code is written. 6-phase workflow: Context, Questions, Approaches, Design, Documentation, Transition to `/plan`. |
 | **oma-architecture** | System architecture specialist | Module/service/ownership boundaries, tradeoff analysis, stakeholder synthesis. Methodologies: diagnostic routing, design-twice comparison, ATAM-style risk analysis, CBAM-style prioritization, ADR-style decision records. Cost-aware by default. |
-| **oma-pm** | Product manager | Decomposes requirements into prioritized tasks with dependencies. Defines API contracts. Outputs `.agents/results/plan-{sessionId}.json` and `task-board.md`. Supports ISO 21500 concepts, ISO 31000 risk framing, ISO 38500 governance. |
+| **oma-pm** | Product manager | Decomposes requirements into prioritized tasks with dependencies. Defines API contracts. Outputs `.agents/results/plan-{sessionId}.json` and a session-scoped task board. Supports ISO 21500 concepts, ISO 31000 risk framing, ISO 38500 governance. |
 
 ### Implementation
 
 | Agent | Role | Tech Stack & Resources |
 |-------|------|----------------------|
 | **oma-frontend** | UI/UX specialist | React, Next.js, TypeScript, TailwindCSS v4, shadcn/ui, FSD-lite architecture. Libraries: luxon (dates), ahooks or @mantine/hooks (hooks), es-toolkit (utils), Jotai/Zustand (client state), TanStack Query via orval-generated hooks (server state), @tanstack/react-form + Zod (forms), better-auth (auth), nuqs (URL state). Resources: `execution-protocol.md`, `tech-stack.md`, `tailwind-rules.md`, `snippets.md`, `angular-rules.md`, `error-playbook.md`, `checklist.md`. |
-| **oma-backend** | API & server specialist | Clean architecture (Router-Service-Repository-Models). Stack-agnostic; detects Python/Node.js/Rust/Go/Java/Elixir/Ruby/.NET from project manifests. JWT + Argon2id for auth. Resources: `execution-protocol.md`, `orm-reference.md`, `examples.md`, `checklist.md`, `error-playbook.md`. Supports `/stack-set` for generating language-specific `stack/` references. |
-| **oma-mobile** | Cross-platform mobile | Flutter, Dart, Riverpod/Bloc for state management, Dio with interceptors for API calls, GoRouter for navigation. Clean architecture: domain-data-presentation. Material Design 3 (Android) + iOS HIG. 60fps target. Also supports Swift native iOS: SwiftUI + `@Observable` (iOS 17+), Apple `swift-openapi-generator` for API clients, `App/Core/Features/Shared` project layout. Resources: `execution-protocol.md`, `tech-stack.md`, `snippets.md`, `screen-template.dart`, `screen-template.swift`, `checklist.md`, `error-playbook.md`. Variant references in `variants/swift-ios/` (generated by `/stack-set`). |
+| **oma-backend** | API & server specialist | Clean architecture (Router-Service-Repository-Models). Stack-agnostic; detects Python/Node.js/Rust/Go/Java/Elixir/Ruby/.NET from project manifests. JWT + Argon2id for auth. Resources: `execution-protocol.md`, `orm-reference.md`, `checklist.md`, `error-playbook.md`. Supports `/stack-set` for generating language-specific `stack/` references. |
+| **oma-mobile** | Cross-platform mobile | Flutter, Dart, Riverpod/Bloc for state management, Dio with interceptors for API calls, GoRouter for navigation. Clean architecture: domain-data-presentation. Material Design 3 (Android) + iOS HIG. 60fps target. Also supports Swift native iOS: SwiftUI + `@Observable` (iOS 17+), Apple `swift-openapi-generator` for API clients, `App/Core/Features/Shared` project layout. Resources: `execution-protocol.md`, `tech-stack.md`, `screen-template.dart`, `screen-template.swift`, `screen-template.tsx`, `checklist.md`, `error-playbook.md`; platform-specific variants are materialized by `/stack-set`. |
 | **oma-db** | Database architecture | SQL, NoSQL, and vector database modeling. Schema design (3NF default), normalization, indexing, transactions, capacity planning, backup strategy. Supports ISO 27001/27002/22301-aware design. Resources: `execution-protocol.md`, `document-templates.md`, `anti-patterns.md`, `vector-db.md`, `iso-controls.md`, `checklist.md`, `error-playbook.md`. |
 
 ### Design
@@ -68,7 +80,7 @@ oh-my-agent solves this with specialization:
 
 | Agent | Role | Key Capabilities |
 |-------|------|-----------------|
-| **oma-qa** | Quality assurance | Security audit (OWASP Top 10), performance analysis, accessibility (WCAG 2.1 AA), code quality review. Severity: CRITICAL/HIGH/MEDIUM/LOW with file:line and remediation code. Supports ISO/IEC 25010 quality characteristics and ISO/IEC 29119 test alignment. Resources: `execution-protocol.md`, `iso-quality.md`, `checklist.md`, `self-check.md`, `error-playbook.md`. |
+| **oma-qa** | Quality assurance | Security audit (OWASP Top 10), performance analysis, accessibility (WCAG 2.2 AA), code quality review. Severity: CRITICAL/HIGH/MEDIUM/LOW with file:line and remediation code. Supports ISO/IEC 25010 quality characteristics and ISO/IEC 29119 test alignment. Resources: `execution-protocol.md`, `iso-quality.md`, `checklist.md`, `self-check.md`, `error-playbook.md`. |
 | **oma-debug** | Bug diagnosis and fixing | Reproduce-first methodology. Root cause analysis, minimal fixes, mandatory regression tests, similar pattern scanning. Uses code-intelligence MCP tools (Gortex or Serena) for symbol tracing. Resources: `execution-protocol.md`, `common-patterns.md`, `debugging-checklist.md`, `bug-report-template.md`, `error-playbook.md`. |
 | **oma-refactor** | Behavior-preserving refactoring | Safe incremental restructuring gated by characterization-test safety nets. Hotspot targeting (complexity × churn), code-smell/SATD selection, Mikado-method revert on failure, expand-contract for stateful change, refactor-only commits (no behavior change mixed in). Engine-first transforms (IDE rename, jscodeshift/ast-grep), metrics via `uvx lizard` / `uvx radon`. Readability is the success criterion; metrics are proxies. |
 
@@ -76,17 +88,17 @@ oh-my-agent solves this with specialization:
 
 | Agent | Role | Key Capabilities |
 |-------|------|-----------------|
-| **oma-translation** | Context-aware translation | 4-stage translation method: Analyze Source, Extract Meaning, Reconstruct in Target Language, Verify. Preserves tone, register, and domain terminology. Anti-AI pattern detection. Supports batch translation (i18n files). Optional 7-stage refined mode for publication quality. Per-target language profiles (`resources/lang/{code}.md`) carry register systems, typography, and language-specific translation-ese rules. Resources: `translation-rubric.md`, `anti-ai-patterns.md`, `lang/{ko,ja,zh,en}.md`. |
-| **oma-orchestration** | Automated multi-agent coordinator | Spawns CLI subagents in parallel, coordinates via MCP memory, monitors progress, runs verification loops. Configurable: MAX_PARALLEL (default 3), MAX_RETRIES (default 2), POLL_INTERVAL (default 30s). Includes agent-to-agent review loop and Clarification Debt monitoring. Resources: `subagent-prompt-template.md`, `memory-schema.md`. |
-| **oma-scm** | Software configuration management (SCM) + Git | Handles branching strategies, merge/rebase/conflict workflows, worktrees, baselines, and release-state tracking. Also generates Conventional Commit messages with safe staging. Co-Author: `First Fluke <our.first.fluke@gmail.com>`. |
-| **oma-coordination** | Manual multi-agent workflow guide | Step-by-step coordination of PM, Frontend, Backend, Mobile, and QA agents via CLI `oma agent spawn`. Always starts with PM decomposition, spawns same-priority tasks in parallel with separate workspaces, monitors `progress-{agent}.md`, aligns API/data contracts before frontend/mobile work, ends with QA review. The manual counterpart to `oma-orchestration`. |
+| **oma-translation** | Context-aware translation | Six-scene flow: Prepare, Acquire, Reason, Act, Verify, Finalize. The translation method has four steps: read meaning and protected syntax, choose register, reconstruct in the target language, and preserve author style where it belongs. Per-target language profiles (`resources/lang/{code}.md`) carry register and typography rules. Resources: `translation-rubric.md`, `anti-ai-patterns.md`, `lang/{ko,ja,zh,en}.md`. |
+| **oma-orchestration** | Automated multi-agent coordinator | Spawns CLI subagents in parallel, coordinates through durable session, task-board, progress, and result files, and monitors verification loops. Configurable: MAX_PARALLEL (default 3), MAX_RETRIES (default 2), POLL_INTERVAL (default 30s). Includes agent-to-agent review loop and Clarification Debt monitoring. Resources: `subagent-prompt-template.md`, `memory-schema.md`. |
+| **oma-scm** | Software configuration management (SCM) + Git | Handles branching strategies, merge/rebase/conflict workflows, worktrees, baselines, and release-state tracking. Also guides Conventional Commit messages with safe staging; co-author trailers come from effective `scm.co_author` configuration when enabled. |
+| **oma-coordination** | Manual multi-agent workflow guide | Step-by-step coordination of PM, Frontend, Backend, Mobile, and QA agents via CLI `oma agent spawn`. Starts with PM decomposition, spawns same-priority tasks in separate workspaces, monitors run-scoped progress/result files, aligns API/data contracts before frontend/mobile work, and ends with QA review. The manual counterpart to `oma-orchestration`. |
 
 ### Search, retrospective, and document processing
 
 | Agent | Role | Key Capabilities |
 |-------|------|-----------------|
 | **oma-search** | Intent-based search router | Routes queries to Context7 (docs), native web search, `gh`/`glab` (code), local code intelligence (Gortex or Serena). Domain trust scoring on all non-local results. Fail-forward routing (docs→web→fetch). Flags: `--docs`, `--code`, `--web`, `--strict`, `--wide`, `--gitlab`. |
-| **oma-recap** | Cross-tool work retrospective | Analyzes conversation histories from Claude, Codex, Qwen, and Cursor. Resolves natural-language date/window input, groups by tool+session, extracts themes, renders daily/period summaries for standups, weekly retros, and work logs. |
+| **oma-recap** | Cross-tool work retrospective | Analyzes conversation histories from Grok, Claude, Codex, Gemini, Qwen, Cursor, and Antigravity. Resolves natural-language date/window input, groups by tool+session, extracts themes, renders daily/period summaries, and records when the CLI caps a requested window at 30 days. |
 | **oma-hwp** | HWP/HWPX/HWPML → Markdown | Korean word-processor document conversion via `bunx kordoc@latest`. Preserves headings, tables (incl. nested), footnotes, hyperlinks, images. Strips Hancom Private Use Area characters via `flatten-tables.ts` post-processor. |
 | **oma-pdf** | PDF → Markdown | PDF document conversion via `uvx opendataloader-pdf`. Preserves headings, tables, lists, images; OCR hybrid mode for scanned PDFs; output normalized with `uvx mdformat`. |
 
@@ -101,7 +113,7 @@ oh-my-agent solves this with specialization:
 
 | Agent | Role | Key Capabilities |
 |-------|------|-----------------|
-| **oma-deepsec** | Agent-powered vulnerability scanner driver | Operates Vercel's `deepsec` (`bunx deepsec`) end-to-end: `init` the `.deepsec/` workspace, write a tight project-specific `INFO.md`, run cost-aware `scan`/`process`/`triage`/`revalidate`/`export` passes, gate PRs via `process --diff` with a two-job CI pattern, and author custom matchers. Calibrates with `--limit 50 --concurrency 5` before any full pass and states a dollar forecast first — scans range from ~$25 to over $1,200. Agent backends: `codex` (gpt-5.5) or `claude` (claude-opus-4-8). |
+| **oma-deepsec** | Agent-powered vulnerability scanner driver | Operates Vercel's `deepsec` (`bunx deepsec`) end-to-end: `init` the `.deepsec/` workspace, write a project-specific `INFO.md`, run cost-aware `scan`/`process`/`triage`/`revalidate`/`export` passes, gate PRs via `process --diff` with a two-job CI pattern, and author custom matchers. Calibrates with `--limit 50 --concurrency 5` before a large pass and states a dollar forecast before paid work; cost varies by repository size and backend. Agent backends: `codex` (gpt-5.5) or `claude` (claude-opus-4-8). |
 
 ### Documentation and meta-tooling
 
@@ -109,6 +121,7 @@ oh-my-agent solves this with specialization:
 |-------|------|-----------------|
 | **oma-docs** | Documentation drift detector | `verify` mode deterministically checks `docs/**/*.md` for broken refs (file paths, CLI commands, config keys, env vars, scripts) and exits 0/1; `sync` mode correlates a git diff to candidate docs and drafts host-LLM patch proposals confirmed per-doc (never auto-applies). URL checking delegated to `lychee`; CLI emits structured JSON, host LLM does all synthesis (no vendor SDK calls). Never modifies `.agents/`. |
 | **oma-skill-creation** | SSL-lite skill authoring specialist | Creates, updates, and audits OMA skills in the SSL-lite format with the four mandatory sections (Scheduling / Structural Flow / Logical Operations / References). Classifies skill type, inserts exactly one inline canonical path, enforces `When NOT to use` cross-routes, and runs `oma skill audit` to catch description collisions (warn ≥ 60%, fail ≥ 75% TF-IDF cosine). Pushes long variant detail into `resources/`. |
+| **oma-explanation** | Code-change explainer | Turns a diff, PR, branch, or commit range into a self-contained offline HTML explainer with Background, Intuition, Code, and Quiz sections. The `/explain` workflow validates the final artifact and writes it under `.agents/results/explain/`. |
 
 ### Market research
 
@@ -120,10 +133,10 @@ oh-my-agent solves this with specialization:
 
 | Agent | Role | Key Capabilities |
 |-------|------|-----------------|
-| **oma-image** | Multi-vendor image router | Authentication-aware parallel dispatch to Codex (`gpt-image-2` via ChatGPT OAuth, CLI-first), Antigravity (`gemini-2.5-flash-image` aka nano-banana via the `agy` CLI + Gemini Code Assist), and Pollinations (free `flux`/`zimage`). Clarification/amplification protocol before generation, up to 10 reference images, cost guardrail (confirm at ≥ $0.20), `manifest.json` for reproducibility. CLI: `oma image generate/doctor/list-vendors`. |
+| **oma-image** | Multi-vendor image router | Authentication-aware parallel dispatch to Codex (`gpt-image-2` via ChatGPT OAuth, CLI-first), Antigravity Gemini-family “nano-banana” models via the `agy` CLI + Gemini Code Assist (the exact model is selected internally), and Pollinations (free `flux`/`zimage`). Clarification/amplification protocol before generation, up to 10 reference images, cost guardrail (confirm at ≥ $0.20), `manifest.json` for reproducibility. CLI: `oma image generate`, `oma image doctor`, and `oma image vendor list`. |
 | **oma-slide** | Animation-rich HTML deck generator | Generates distinctive, anti-"AI slop" presentation decks authored at a fixed 1920×1080 stage, then deterministically validates geometry, bundles to single-file HTML, and exports to PDF/PNG/PPTX via the `oma slide` CLI. Style presets + bold templates, CJK→Pretendard rule, `prefers-reduced-motion` + visible focus required, max-3 auto-fix validate loop. Delegates imagery to `oma-image`; optional Canva MCP export/import. |
-| **oma-video** | Short-form, explainer & demo router | Generates finished `.mp4` via a key-optional 3-tier router (CLI-first / MCP / guided). Three modes: shorts/reels (9:16), explainer (16:9 from README/code/data), demo/walkthrough (screen-capture file or supervised headed web capture of any URL). Deterministic asset bus (`script.json` → `timing.json` → `render-spec.json`) into a vendored Remotion compositor. Composes `oma-voice` narration, `oma-image`/`oma-slide` visuals, key-free captions; human-in-the-loop capture with no credential automation. |
-| **oma-voice** | Local-first TTS and STT | Drives the Voicebox MCP server for on-device speech generation and transcription with no cloud, no API keys, no per-call cost. Modes: notification (task-complete/blocker audio), asset TTS (mp3/wav voiceover from cloned or preset profiles), and transcription (audio → Markdown). `voicebox_speak` / `voicebox_transcribe` MCP tools; 5000-char TTS / 30-min STT caps; `manifest.json` per generation. |
+| **oma-video** | Short-form, explainer & demo router | Creates shorts/reels (9:16), explainers (16:9), and human-recorded demos (16:9) through the `oma video` CLI. The deterministic asset bus (`script.json` → `timing.json` → `render-spec.json`) feeds a vendored Remotion compositor; asset providers may use local fallbacks, while missing composition/toolchain or render errors fail the run. Human capture never automates credentials. |
+| **oma-voice** | Local-first TTS and STT | Drives the Voicebox MCP server for on-device notifications, asset TTS, and transcription without cloud calls or per-call cost. TTS defaults to WAV and can be locally transcoded to MP3; transcription accepts audio paths or base64. TTS calls cap at 5000 characters and STT inputs at 30 minutes; persisted asset/transcription runs write a manifest. |
 
 ---
 
@@ -147,11 +160,12 @@ Everything oh-my-agent needs lives in the `.agents/` directory:
 
 ```
 .agents/
-├── config/                 # oma-config.yaml
-├── skills/                 # 33 skill directories (32 agents + _shared)
+├── oma-config.yaml         # Shared preferences and provider/model settings
+├── oma-config.cue          # Optional schema-backed configuration
+├── skills/                 # 33 skill directories + _shared resources
 │   ├── _shared/            # Core resources used by all agents
-│   └── oma-{agent}/        # Per-agent SKILL.md + resources/
-├── workflows/              # 19 workflow definitions
+│   └── oma-{skill}/         # Per-skill SKILL.md + resources/variants
+├── workflows/              # 21 workflow definitions
 ├── agents/                 # 12 subagent definitions
 ├── results/plan-{sessionId}.json               # Generated plan output
 ├── state/                  # Active workflow state files
@@ -170,19 +184,18 @@ This architecture means your agent configuration is:
 
 ## Supported IDEs and CLI tools
 
-oh-my-agent works with any AI-powered IDE or CLI that supports skill/prompt loading:
+oh-my-agent works with the selected AI-powered IDEs and CLIs through their native skill/prompt loading or generated integration files:
 
 | Tool | Integration Method | Parallel Agents |
 |------|-------------------|----------------|
 | **Claude Code** | Native skills + Agent tool | Task tool for true parallelism |
-| **Gemini CLI** | Skills auto-loaded from `.agents/skills/` | `oma agent spawn` |
+| **Antigravity CLI/IDE** | Skills and MCP settings projected for `agy` | `oma agent spawn` |
 | **Codex CLI** | Skills auto-loaded | Model-mediated parallel requests |
-| **Antigravity IDE** | Skills auto-loaded | `oma agent spawn` |
 | **Cursor** | Skills via `.cursor/` integration | Manual spawning |
 | **OpenCode** | Skills + in-process plugin bridge + generated subagents (`.opencode/agents/`) | `oma agent spawn --vendor opencode` |
 | **Kimi Code CLI** | Hooks + skills in `~/.kimi-code/` (consent-gated HOME write; also reads SSOT `.agents/skills/` natively); project-scoped Serena MCP | `oma agent spawn --vendor kimi` |
 
-Agent spawning adapts to each vendor automatically via the vendor detection protocol, which checks for vendor-specific markers (e.g., the `Agent` tool for Claude Code, `apply_patch` for Codex CLI).
+Agent spawning adapts to each selected vendor through vendor detection and the active configuration. Same-vendor runtimes may use native subagents; cross-vendor work falls back to `oma agent spawn`. See [Parallel Execution](../core-concepts/parallel-execution.md) for the dispatch rules.
 
 ---
 
@@ -234,13 +247,12 @@ Every hook event is delivered through the `oma hook run` canonical ABI: the vend
 
 ## Cross-vendor support
 
-oh-my-agent is not limited to Claude Code. All hook-model vendors share the same `oma hook run` ABI:
+oh-my-agent is not limited to Claude Code. Hook-capable vendors share the same `oma hook run` ABI, while extension vendors use their in-process bridge:
 
 | Vendor | Hook delivery | StatusLine |
 |--------|--------------|------------|
 | **Claude Code** | `oma-hook.sh --vendor claude --event UserPromptSubmit` / `PreToolUse` / `Stop` | `bun .claude/hooks/hud.ts` (direct, unchanged) |
 | **Codex CLI** | `oma-hook.sh --vendor codex --event UserPromptSubmit` / `PreToolUse` / `Stop` | — |
-| **Gemini CLI** | `oma-hook.sh --vendor gemini --event BeforeAgent` / `BeforeTool` / `AfterAgent` | — |
 | **Qwen Code** | `oma-hook.sh --vendor qwen --event UserPromptSubmit` / `PreToolUse` / `Stop` | `bun` path via `ui.statusLine` |
 | **Cursor** | `oma-hook.sh --vendor cursor --event beforeSubmitPrompt` / `preToolUse` | — |
 | **Grok** | `oma-hook.sh --vendor grok --event UserPromptSubmit` / `Stop` | — |
@@ -249,14 +261,14 @@ oh-my-agent is not limited to Claude Code. All hook-model vendors share the same
 | **Antigravity** | `oma-hook.sh --vendor antigravity --event PreInvocation` / `PreToolUse` / `Stop` | — |
 | **pi** | In-process bridge (`installPiExtension`) — not routed through `oma hook run` | — |
 
-Skills and workflows are auto-loaded from `.agents/` for all vendors. Vendor detection happens automatically. Agents adapt their spawning method based on the detected runtime environment.
+The `.agents/` directory remains the source of truth. Installation links or projects its skills, workflows, hooks, and agent definitions into the vendors you selected; capabilities differ by vendor. Native same-vendor subagents and CLI-spawned cross-vendor agents both read from that source.
 
 ---
 
 ## What is next
 
 - **[Installation](./installation.md)**: Three install methods, presets, CLI setup, and verification
-- **[Agents](/docs/core-concepts/agents)**: Deep dive into all 32 agents and charter preflight
+- **[Agents](/docs/core-concepts/agents)**: Deep dive into the 33 skills, 13 dispatch roles, and charter preflight
 - **[Skills](/docs/core-concepts/skills)**: The two-layer architecture explained
-- **[Workflows](/docs/core-concepts/workflows)**: All 19 workflows with triggers and phases
+- **[Workflows](/docs/core-concepts/workflows)**: All 21 workflows with triggers and phases
 - **[Usage Guide](/docs/guide/usage)**: Real examples from single tasks to full orchestration

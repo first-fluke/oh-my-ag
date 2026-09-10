@@ -1,0 +1,69 @@
+---
+title: Início rápido
+description: O caminho mais curto entre um projeto vazio e um prompt oh-my-agent verificado, com resultados esperados e etapas de recuperação.
+---
+
+# Início rápido
+
+Use esta página para confirmar que o harness funciona antes de ler a referência completa. Você precisa de um diretório de projeto e de pelo menos uma CLI ou IDE de IA compatível. O instalador pode preparar `bun`, `uv`, Serena e CUE no macOS, Linux ou Windows; a integração do host selecionado é necessária para o primeiro prompt, enquanto providers e integrações de navegador são opcionais.
+
+## 1. Instalar o harness do projeto
+
+No diretório do projeto, execute o instalador de bootstrap:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.sh | bash
+```
+
+No Windows PowerShell, execute:
+
+```powershell
+irm https://raw.githubusercontent.com/first-fluke/oh-my-agent/main/cli/install.ps1 | iex
+```
+
+A configuração interativa pergunta o idioma das respostas, vendors de CLI, providers de capacidade, preset de modelo, preset de skills do projeto e qualquer variante de stack. Na primeira execução, mantenha os padrões, selecione o vendor que você já usa e escolha o preset de projeto mais próximo do repositório.
+
+Se você já tem `bun`, use o instalador diretamente:
+
+```bash
+bunx oh-my-agent@latest
+```
+
+Os scripts de bootstrap instalam no projeto atual. Use `oma install --global` quando quiser uma instalação no HOME; leia [Instalação](./installation.md) antes de misturar instalações de projeto e globais.
+
+## 2. Verificar o resultado
+
+Execute a verificação de saúde no mesmo diretório do projeto:
+
+```bash
+oma doctor
+```
+
+Sucesso significa que a integração do vendor selecionado e os arquivos `.agents/` estão prontos. Integrações opcionais de MCP, navegador, memória ou inteligência de código podem aparecer como avisos; elas são necessárias somente para tarefas que as utilizam. Use `oma doctor --profile` para inspecionar o modelo e a CLI resolvidos para cada papel canônico de agente.
+
+Se o comando estiver ausente, a CLI foi instalada fora do seu `PATH`; abra um novo shell ou adicione o diretório bin do gerenciador de pacotes. Se `oma doctor` informar uma configuração inválida, corrija o campo indicado e execute novamente. Não apague `.agents/oma-config.yaml` para recuperar: essa é a configuração pertencente ao usuário, que preserva as definições entre atualizações.
+
+## 3. Executar uma tarefa pequena
+
+Abra o repositório na ferramenta de IA configurada e descreva uma alteração autocontida:
+
+```text
+Add a validation message to the existing email field. Follow the project's current form and test conventions. Done when the invalid-email case is covered by a focused test.
+```
+
+Quando o hook de palavras-chave está habilitado para o host selecionado, ele pode ativar um workflow correspondente. O roteamento de skills é feito pelo host ou pelo workflow selecionado, portanto um prompt arbitrário do host não garante um hook, uma skill específica ou um `CHARTER_CHECK`. O contrato de execução ainda deve inspecionar as convenções do repositório, fazer somente a alteração no escopo e informar a verificação. Os arquivos e comandos exatos dependem do projeto; o prompt acima é ilustrativo.
+
+Para uma tarefa que atravesse limites de API e UI, selecione `/work` ou `/orchestrate` explicitamente. Para um único domínio, continue com [Execução de uma única skill](../guide/single-skill.md). O [Guia de uso](../guide/usage.md) contém exemplos mais longos.
+
+## 4. Conhecer os padrões antes de escalar
+
+O OMA começa com `model_preset: auto`, Serena para inteligência de código, Agent Memory para memória semântica, busca web nativa e telemetria desabilitada. Serena usa o transporte compartilhado `bridge` e se atualiza automaticamente, salvo configuração diferente. O MCP do Browser DevTools é opt-in; uma configuração interativa nova oferece Aside primeiro. Consulte [Padrões importantes](./important-defaults.md) para as consequências e as chaves de substituição.
+
+Se uma tarefa gerenciada parar, comece com `oma agent status <session-id> [agent-id]`, depois inspecione o receipt em `.agents/state/agent-runs/` e o caminho do claim estruturado injetado. Esses registros mostram a execução, a tarefa, o workspace, o código de saída e o status da verificação. Arquivos legíveis `result-*.md` e `progress-*.md` em `.agents/state/memories/` acrescentam contexto quando presentes. Execute novamente somente o menor comando que falhou depois de confirmar que a execução não está mais ativa. Um workflow persistente continua ativo até concluir ou você dizer `workflow done`; consulte [Workflows](../core-concepts/workflows.md#persistent-mode-mechanics) para a recuperação do arquivo de estado.
+
+## Próximos passos
+
+- [Padrões importantes](./important-defaults.md) para precedência, providers e escolhas de recuperação
+- [Instalação](./installation.md) para presets, configuração de vendors, instalações globais e atualizações
+- [Agentes](../core-concepts/agents.md) para os 33 pacotes de skills e papéis de dispatch
+- [Workflows](../core-concepts/workflows.md) para planejamento, execução paralela, QA e modos persistentes

@@ -1,5 +1,6 @@
 ---
 title: "Harness Evaluation"
+sidebar_label: Harness Evaluation
 description: Evaluate a complete OMA harness overlay with paired, isolated repository tasks and deterministic artifact checks.
 ---
 
@@ -110,6 +111,8 @@ oma harness eval \
   --live --record
 ```
 
+For a successful run, the report contains paired baseline/candidate scores, a lift, regression counts, and a decision such as `pass` or `insufficient`. If you change the suite, baseline definitions, candidate overlay, prompts, fixtures, or checks, record a new live run; an old `_runs` file will be rejected by its hash.
+
 Use `--yes` for non-interactive execution and `--timeout-minutes` to set the identical per-arm wall-clock limit. Live execution is available only when the selected vendor discovers harness files relative to the project workspace. OMA refuses HOME-based discovery because the baseline could see globally installed candidate content.
 
 `--record` writes a hash-addressed JSON record below `_runs/` next to the suite. The record binds the results to three inputs:
@@ -141,8 +144,8 @@ OMA also reports:
 - regressed tasks: baseline passed and candidate failed;
 - coverage: at least five paired, scoreable tasks are required.
 
-The candidate passes when lift is at least 5 percentage points and there are no regressions. Any regression fails the candidate. A non-negative lift below 5 points warns, and fewer than five paired tasks produces an `insufficient` decision. Add `--require-coverage` to make insufficient coverage exit non-zero in CI.
+The candidate passes when lift is at least 5 percentage points and there are no regressions. Any regression fails the candidate. A non-negative lift below 5 points warns, and fewer than five paired tasks produces an `insufficient` decision. Add `--require-coverage` to make insufficient coverage exit non-zero in CI. A score is not evidence when an arm is missing, a record hash is stale, or a deterministic check is incomplete.
 
 ## Current boundary
 
-This is an evaluation foundation, not automatic harness optimization. A builder can produce candidate overlays externally, then use this command as the acceptance gate. Hidden final-test suites, repeated stochastic trials, trusted external test runners, token accounting, forced model pinning for nested subagent calls, and an automated `harness opt` loop remain future extensions. Until nested-call pinning exists, suites intended to measure one fixed model should avoid candidate workflows that spawn other configured agent roles.
+This is an evaluation foundation, not automatic harness optimization. A builder can produce candidate overlays externally, then use this command as the acceptance gate. A separate hidden final-test suite, repeated stochastic trials, trusted external test runners, token accounting, forced model pinning for nested subagent calls, and an automated `harness opt` loop are not part of the current command. Until nested-call pinning exists, suites intended to measure one fixed model should avoid candidate workflows that spawn other configured agent roles.

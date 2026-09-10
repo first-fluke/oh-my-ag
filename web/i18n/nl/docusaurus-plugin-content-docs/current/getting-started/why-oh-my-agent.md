@@ -1,78 +1,39 @@
 ---
 title: Waarom oh-my-agent
-description: Positionering van oh-my-agent in een verzadigde multi-agent CLI categorie. De kostenas is verschoven van implementatie naar testen en onderhoud; oh-my-agent levert quality gates, onafhankelijke verificatie, multi-vendor dispatch en repo-native maatwerk als antwoord op die verschuiving.
+description: Kies oh-my-agent wanneer je repository-eigen agent-skills, workflows, dispatch naar meerdere leveranciers en expliciete verificatie nodig hebt.
 ---
 
 # Waarom oh-my-agent
 
-De multi-agent CLI categorie is verzadigd. Alleen al in het afgelopen kwartaal zijn er meer dan twintig multi-agent orchestrators verschenen: Metateam, OpenSwarm, DevSquad, Praktor, Salacia, Codelegate, agent-of-empires, TTal, Maggy en andere. De meeste optimaliseren dezelfde as: agents sneller code laten schrijven.
+oh-my-agent voegt een repository-eigen laag toe rond de agent-CLI's die je team al gebruikt. De directory `.agents/` bevat skills, workflows, agentdefinities, regels en modelconfiguratie. Vanuit die bron van waarheid worden bestanden voor leveranciers gegenereerd, zodat je het gedrag samen met het project kunt reviewen en wijzigen.
 
-oh-my-agent optimaliseert een andere as. De uitgangshypothese is dat met voldoende capabele modellen de kosten van analyse, ontwerp en implementatie in de SDLC naar nul tenderen. Het dure deel van software-ontwikkeling was altijd al testen en onderhoud: een systeem werkend, veilig en begrijpelijk houden na de eerste commit. Op die as is oh-my-agent ontworpen.
+## Kies het wanneer de repository een coördinatielaag nodig heeft
 
-Deze pagina maakt die positionering concreet. Voor de uitgebreide discussie die dit kader heeft voortgebracht, zie [issue #155](https://github.com/first-fluke/oh-my-agent/issues/155#issuecomment-4142133589).
+OMA past goed wanneer je een of meer van deze dingen nodig hebt:
 
----
+- **Meerdere agenthosts of leveranciers.** `model_preset: auto` gebruikt de native configuratie van de huidige runtime. Vaste en aangepaste presets kunnen rollen naar andere leveranciers routeren; `oma agent spawn` verzorgt dispatch die niet native is.
+- **Een herhaalbare teamworkflow.** `/work` behandelt één afgebakende taak, `/orchestrate` coördineert gedelegeerd werk, `/ultrawork` voert parallel werk met reviewstappen uit en `/ralph` herhaalt een taak met een expliciete judge-fase.
+- **Instructies die bij de repository horen.** Skills, workflows, regels en agentdefinities staan naast de code. `oma link` projecteert de geselecteerde bestanden naar indelingen van ondersteunde leveranciers.
+- **Mechanische controles en blijvende resultaten.** Agentruns kunnen gestructureerde status- en resultaatreceipts schrijven, terwijl `oma verify agent <agent-type>` en `oma docs verify` expliciete controles bieden.
 
-## De kostenas is verschoven
+Als een project één host gebruikt en geen gedeelde skills, workflows of leveranciersroutering nodig heeft, rechtvaardigen de extra `.agents/`-bestanden en CLI-commando's de setup mogelijk niet. OMA is een coördinatielaag; de modelkeuze, editor en projectspecifieke acceptatiecriteria van de host blijven leidend.
 
-Als één capabel model in minuten een werkende feature produceert, is implementatie-doorvoer niet langer de bottleneck. De bottleneck wordt: verifiëren dat de geproduceerde code echt doet wat hij beweert, stille regressies tussen iteraties opvangen, secrets uit prompts en logs houden, en token-uitgaven zichtbaar maken voordat ze het team verrassen.
+## Verificatie is een commando dat je selecteert
 
-Een harness die alleen agents sneller spawnt lost daar niets van op. Een harness ontworpen voor de fase na implementatie wel.
+Voer `oma verify agent <agent-type> --workspace <path>` uit wanneer je de controles voor een backend-, frontend-, mobile-, QA-, debug- of planningsrol wilt uitvoeren. De verifier combineert statische inspecties met geconfigureerde commando's, zoals tests, typechecks, SQL-controles of `flutter analyze`; zie [`cli/commands/verify/report.ts`](https://github.com/first-fluke/oh-my-agent/blob/main/cli/commands/verify/report.ts). Het rapport toont het resultaat van elke controle. Als deze controles slagen, is daarmee nog niet vastgesteld dat een feature aan de product- of domeinvereisten voldoet; review daarom ook de acceptatiecriteria van de taak.
 
----
+`/ralph` voegt een afzonderlijke judge-fase toe wanneer je die workflow selecteert. De workflow controleert de vastgelegde criteria opnieuw in elke iteratie en registreert de workflowartefacten; dit is geen gate die bij elke gewone prompt draait. Het laden van skills start evenmin elke workflow of elk verificatiecommando.
 
-## Wat oh-my-agent levert voor het echte kostencentrum
+## Dispatch blijft zichtbaar
 
-Elke onderstaande capability beantwoordt een specifiek faalpatroon uit de multi-agent CLI categorie.
+`oma doctor --profile` toont de opgeloste leverancier en het model voor elke dispatchrol. `oma agent spawn <agent-id> <prompt> <session-id>` is de expliciete CLI-route wanneer een rol niet door de huidige host wordt afgehandeld. De regels voor modelresolutie en leveranciersspecifiek gedrag staan in [Belangrijke standaardinstellingen](./important-defaults.md) en [Modellen per agent](../guide/per-agent-models.md).
 
-### Onafhankelijke verificatie, geen LLM-zelfbeoordeling
+Hooks kunnen alleen een workflow activeren wanneer de integratie voor de betreffende host is ingeschakeld. Native skill-routing wordt door de host uitgevoerd, terwijl workflow-routing de geselecteerde workflow of hook volgt; een gewone prompt garandeert niet dat een bepaalde skill of gate draait.
 
-`oma verify <agent>` voert veertien deterministische checks per agent-type uit. Allemaal mechanische checks: exit code van het testcommando, TypeScript strict slaagt, raw SQL pattern-detectie, scan op hardcoded secrets, Flutter analyze, scan op inline styles, scope violation tegen het charter van de agent. Geen LLM beoordeelt of het werk "er goed uitziet". Een check slaagt als en alleen als het onderliggende commando succes meldt.
+Optionele coördinatiecontroles staan beschreven in de [sessie-quota cap](../guide/configuration-reference.md#session-quota-caps), de [`/orchestrate` retry- en exploratielus](../core-concepts/workflows.md#orchestrate) en [workspace-toewijzing](../core-concepts/parallel-execution.md#workspace-aware-pattern).
 
-Dit reageert op de meest gehoorde klacht in de categorie, samengevat in een community-post als "agents lie - they say tests pass when tests do not". Zie `cli/commands/verify/verify.ts` voor de check-lijst.
+## De praktische afweging
 
-### Her-verificatie tussen iteraties
+OMA geeft een team één gedeelde plek om routering, uitvoeringsstappen, controles en uitvoerbestanden te definiëren. Daar staat tegenover dat het team die repositoryconfiguratie actueel moet houden en moet bepalen welke workflows of verificatiecommando's in het acceptatiecontract horen. Die afweging is nuttig wanneer consistentie tussen bijdragers zwaarder weegt dan de kleinst mogelijke installatie.
 
-De `ralph` workflow wikkelt `ultrawork` in een onafhankelijke JUDGE-fase. Na elke iteratie her-verifieert JUDGE elk criterion, inclusief degene die in eerdere iteraties al slaagden. Dat vangt het geval waarin het fixen van C2 stilletjes C1 breekt, het feitelijke mechanisme achter de meeste regressies in lange agent-sessies.
-
-Zware verificaties (langer dan dertig seconden) worden gecached tegen de getroffen bestandspaden, zodat her-verificatie goedkoop blijft. Zie `.agents/workflows/ralph/resources/judge-protocol.md` voor het volledige protocol.
-
-### Quota caps die blokkeren voor de schade
-
-Elke `oma agent spawn` aanroep registreert de token-schatting van die spawn in `.serena/memories/session-cost-{sessionId}.md`. Voor de volgende spawn raadpleegt `checkCap` de geconfigureerde quota cap en weigert hij te starten als één dimensie overschreden is. Drie dimensies worden afgedwongen: totaal tokens, totaal spawns, per-vendor token budget.
-
-Dat is het verschil tussen achteraf horen dat je veertigduizend dollar hebt uitgegeven en bij spawn vijftien te horen krijgen dat er nog één spawn in je budget zit. Zie `cli/io/session-cost.ts` en configureer onder `session.quota_cap` in `.agents/oma-config.yaml`.
-
-### Retry en daarna verkennen, niet eeuwig retry
-
-Wanneer `orchestrate` Step 5 een verificatie-fout vindt, herhaalt het de agent maximaal twee keer met error-context. Als de tweede retry nog steeds faalt en de cost cap nog niet overschreden is, schakelt de workflow naar de Exploration Loop: hij spawnt twee of drie alternatieve hypothese-varianten parallel in aparte workspaces en houdt alleen het hoogst scorende resultaat. Mislukte benaderingen worden weggegooid met hun kosten geregistreerd.
-
-Dit is een gestructureerd antwoord op het geval waarin één aanpak fundamenteel verkeerd is. Hem opnieuw proberen convergeert nooit; verschillende aanpakken parallel proberen wel.
-
-### Monorepo-bewuste workspace routing
-
-`detectWorkspace` leest pnpm, nx, turbo en lerna configuraties en routeert elke agent automatisch naar zijn corresponderende sub-workspace. De backend agent draait tegen `apps/api/`, de frontend agent tegen `apps/web/`, zonder dat de orchestrator paden handmatig hoeft samen te stellen. Zie `cli/io/workspaces.ts`.
-
----
-
-## Multi-vendor is geen optie
-
-De tweede ontwerphypothese is dat elk team dat serieus AI-geassisteerde ontwikkeling doet meer dan één provider gebruikt. Vandaag betekent dat Claude, Codex, Gemini, Copilot, Qwen, Kimi en wat volgend kwartaal verschijnt. Vendor-wissel is een feit, geen edge case: Anthropic verschuift agent-functies naar een apart betaald plan, OpenAI lanceert Codex CLI in dezelfde week waarin Anthropic-modellen degraderen, GitHub Copilot stapt over op consumption-based pricing.
-
-oh-my-agent behandelt vendor-keuze als per-agent configuratie via `model_preset` en `agents.<id>.model` in `.agents/oma-config.yaml`. De portable `.agents/` directory is de single source of truth; elke ondersteunde runtime projecteert daaruit. Geen vendor lock-in nodig om oh-my-agent te gebruiken, en geen migratie nodig bij wisselen.
-
----
-
-## Repo-native maatwerk
-
-De derde hypothese is dat geen twee teams dezelfde definitie van "done" delen. Eén team eist OWASP Top 10 scans bij elke backend-wijziging. Een ander eist een QA-rapport in het Koreaans. Een derde eist dat elke migration voor merge door een database agent wordt gereviewd.
-
-Omdat `.agents/` gewoon bestanden in je repository zijn, kan elk team agents, skills, workflows en quality gates toevoegen of aanpassen om bij de eigen gedragscode en compliance-houding te passen. Aanpassen is een `git commit`, geen vendor support ticket.
-
----
-
-## Wat dit in de praktijk betekent
-
-Als je prioriteit "parallelle agents snel spawnen" is, dekken veel tools dat oppervlak. Als je prioriteit "code uitleveren die blijft werken nadat de agents de kamer hebben verlaten" is, is oh-my-agent voor dat specifieke doel gebouwd. `oma verify`, JUDGE, Exploration Loop, quota cap en monorepo routing zijn geen optionele extra's - ze zijn de reden dat het project bestaat.
-
-Voor details over elke capability, zie de sectie Core Concepts (Agents, Parallel Execution) in de zijbalk.
+Voor de oorspronkelijke positioneringsdiscussie zie [issue #155](https://github.com/first-fluke/oh-my-agent/issues/155#issuecomment-4142133589).

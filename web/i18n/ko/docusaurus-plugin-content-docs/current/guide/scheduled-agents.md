@@ -1,11 +1,12 @@
 ---
 title: "가이드: 예약 에이전트"
-description: OS 스케줄러(macOS launchd, Linux systemd, Windows 작업 스케줄러)로 어떤 에이전트든 반복 또는 일회성 일정에 맞춰 실행합니다. 벤더 런타임을 열어 두지 않아도 지원하는 일곱 벤더 전부에서 동작합니다.
+sidebar_label: 에이전트 예약 실행
+description: OS 스케줄러(macOS launchd, Linux systemd, Windows 작업 스케줄러)로 어떤 에이전트든 반복 또는 일회성 일정에 맞춰 실행하며 벤더 런타임을 열어 둘 필요가 없습니다.
 ---
 
 # 예약 에이전트
 
-`oma schedule`을 쓰면 지금 어떤 AI 벤더 런타임(Claude Code, Codex, Antigravity, Cursor, Qwen, Grok, opencode)이 열려 있든 상관없이, 어떤 에이전트든 시간 기준으로 실행할 수 있습니다. OS 스케줄러가 작업을 발동하면, 그 작업이 디스크에 이미 캐시된 벤더 자격 증명으로 `oma agent spawn`을 헤드리스로 호출합니다.
+`oma schedule`을 쓰면 지금 어떤 AI 벤더 런타임(Claude Code, Codex, Antigravity, Cursor, Qwen, Grok, opencode, pi)이 열려 있든 상관없이, 어떤 에이전트든 시간 기준으로 실행할 수 있습니다. OS 스케줄러가 작업을 발동하면, 그 작업이 디스크에 이미 캐시된 벤더 자격 증명으로 `oma agent spawn`을 헤드리스로 호출합니다.
 
 ---
 
@@ -79,7 +80,7 @@ oma schedule delete sch_abc123def456
 예약 에이전트 작업을 등록합니다.
 
 ```
-oma schedule create <agent-id> <prompt> --cron "<5-field>" | --every "<phrase>" [-m <vendor>] [-w <path>] [--once] [--expires-after <n>] [--env <KEY1,KEY2>]
+oma schedule create <agent-id> <prompt> --cron "<5-field>" | --every "<phrase>" [--vendor <vendor>] [-w <path>] [--once] [--expires-after <n>] [--env <KEY1,KEY2>] [--dry-run] [--accept-rounded]
 ```
 
 **인자:**
@@ -100,6 +101,8 @@ oma schedule create <agent-id> <prompt> --cron "<5-field>" | --every "<phrase>" 
 | `--once` | 일회성 모드입니다. 한 번 발동한 뒤 스스로 제거됩니다. 기본값은 반복입니다. |
 | `--expires-after <duration>` | 반복 작업을 N일 뒤 자동 만료시킵니다. `0`은 무기한이며 기본값입니다. |
 | `--env <KEY1,KEY2>` | 나열한 환경 변수만 `~/.agents/schedule/env/<id>`(권한 0600)에 캡처해 실행 시점에 주입합니다. 시크릿은 매니페스트 자체에 절대 기록되지 않습니다. |
+| `--dry-run` | scheduler 작업, manifest 항목 또는 환경 파일을 쓰지 않고 해석된 cron과 반올림 안내를 출력합니다. |
+| `--accept-rounded` | OMA가 자연어 간격을 cron으로 표현 가능한 단계로 반올림한 뒤 등록하려면 필요합니다. 먼저 `--dry-run`으로 미리 보세요. |
 
 `--cron`과 `--every` 중 정확히 하나가 필요합니다.
 
@@ -115,6 +118,17 @@ oma schedule create <agent-id> <prompt> --cron "<5-field>" | --every "<phrase>" 
 | 초 | `30s` | 최소 1분으로 올림합니다. cron은 분 미만 간격을 표현할 수 없습니다 |
 
 나누어떨어지지 않는 간격은 가장 가까운 깔끔한 단위로 반올림하고 안내를 출력합니다. 예를 들어 `--every 7m`은 7이 60을 나누지 못하므로 `6m`(`*/6`)으로 반올림됩니다.
+
+등록 전에 반올림된 간격을 미리 확인하세요.
+
+```bash
+oma schedule create backend "Check logs" --every 7m --dry-run
+# Preview: requested interval resolves to */6 * * * *
+# Preview only: no OS job, manifest entry, or env file was written.
+oma schedule create backend "Check logs" --every 7m --accept-rounded
+```
+
+미리 보기를 생략하면 명령이 반올림된 간격 등록을 거부합니다. Schedule은 선택한 OS scheduler의 local time 규칙을 사용합니다.
 
 **예제:**
 

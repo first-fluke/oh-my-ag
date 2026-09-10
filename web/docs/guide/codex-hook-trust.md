@@ -1,5 +1,6 @@
 ---
 title: "Guide: Codex Hook Trust"
+sidebar_label: Codex Hook Trust
 description: Why Codex hooks do not run until you review them once, what happens on updates, and what oh-my-agent automates for spawned Codex subprocesses.
 ---
 
@@ -24,6 +25,15 @@ Until you do this, the hooks stay untrusted and are skipped silently. This is wh
 ```
 Codex hooks installed/updated — run codex and use /hooks to trust them (untrusted hooks do not run)
 ```
+
+Verify the generated file before opening Codex:
+
+```bash
+test -s .codex/hooks.json && echo "Codex hooks are installed"
+oma link codex
+```
+
+The expected result is the install/update notice followed by the hooks in Codex’s `/hooks` browser. `oma link codex` reconciles the generated file; it does not replace the one-time trust decision.
 
 **Note:** `--dangerously-bypass-hook-trust` does not help here. Its warning ("Enabled hooks may run without review") means it only bypasses review for hooks that were already enabled — it will not run a hook that has never been reviewed. The `/hooks` browser is the only way to enable a hook the first time.
 

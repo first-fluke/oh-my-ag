@@ -1,27 +1,30 @@
 ---
-title: "Guia: Atualizações Automatizadas"
-description: "Documentação completa da GitHub Action do oh-my-agent — setup, todos os inputs e outputs, exemplos detalhados e como funciona por baixo dos panos."
+title: "Guia: Atualizações automáticas"
+sidebar_label: Atualizações automáticas
+description: "Configure a GitHub Action do OMA, entenda suas entradas e saídas e veja exatamente o que o CI preserva ou substitui durante as atualizações."
 ---
 
-# Guia: Atualizações Automatizadas
+# Guia: Atualizações automáticas
 
 ## Visão geral
 
-A GitHub Action do oh-my-agent (`first-fluke/oma-update-action@v1`) atualiza automaticamente as skills de agentes do seu projeto executando `oma update` no CI. Suporta dois modos: criar um pull request para revisão, ou commitar diretamente em uma branch.
+A GitHub Action do oh-my-agent (`first-fluke/oma-update-action@v1`) atualiza automaticamente as skills de agentes do seu projeto executando `oma update` no CI. Ela oferece dois modos: criar um pull request para revisão ou fazer commit diretamente em uma branch.
 
 ---
 
-## Setup rápido
+## Configuração rápida
 
-Adicione este arquivo ao seu projeto como `.github/workflows/update-oh-my-agent.yml`:
+<!-- oma-docs:ignore-start -->
+Adicione este arquivo ao projeto como `.github/workflows/update-oh-my-agent.yml`:
+<!-- oma-docs:ignore-end -->
 
 ```yaml
 name: Update oh-my-agent
 
 on:
   schedule:
-    - cron: '0 9 * * 1'  # Toda segunda-feira às 9am UTC
-  workflow_dispatch:        # Permitir trigger manual
+    - cron: '0 9 * * 1'  # Every Monday at 9am UTC
+  workflow_dispatch:        # Allow manual trigger
 
 permissions:
   contents: write
@@ -36,32 +39,32 @@ jobs:
       - uses: first-fluke/oma-update-action@v1
 ```
 
-Essa é a configuração mínima. Cria um PR com configurações padrão quando uma nova versão está disponível.
+Essa é a configuração mínima. Quando um componente instalado muda, a action deve terminar com `updated=true`, uma saída de versão e um pull request. Quando nenhum arquivo muda, ela termina com `updated=false` e sem PR.
 
 ---
 
-## Todos os inputs da action
+## Todas as entradas da action
 
-| Input | Tipo | Obrigatório | Padrão | Descrição |
-|:------|:-----|:-----------|:-------|:-----------|
-| `mode` | string | Não | `"pr"` | Como aplicar mudanças. `"pr"` cria um pull request. `"commit"` faz push direto para a branch base. |
-| `base-branch` | string | Não | `"main"` | Branch base para o PR (no modo `pr`) ou branch alvo para commits diretos (no modo `commit`). |
-| `force` | string | Não | `"false"` | Passa `--force` para `oma update`. Quando `"true"`, sobrescreve arquivos de config customizados (`oma-config.yaml`, `mcp.json`) e diretórios `stack/`. Normalmente estes são preservados. |
-| `pr-title` | string | Não | `"chore(deps): update oh-my-agent skills"` | Título customizado para o pull request. Usado apenas no modo `pr`. |
-| `pr-labels` | string | Não | `"dependencies,automated"` | Labels separadas por vírgula para adicionar ao PR. Usado apenas no modo `pr`. |
-| `commit-message` | string | Não | `"chore(deps): update oh-my-agent skills"` | Mensagem de commit customizada. Usada em ambos os modos. |
-| `token` | string | Não | `${{ github.token }}` | Token do GitHub para criar PRs. Use um Personal Access Token (PAT) se precisar que o PR acione outros workflows. |
+| Entrada | Tipo | Obrigatória | Padrão | Descrição |
+|:--------|:-----|:------------|:-------|:-----------|
+| `mode` | string | Não | `"pr"` | Como aplicar as mudanças. `"pr"` cria um pull request. `"commit"` envia diretamente para a branch base. |
+| `base-branch` | string | Não | `"main"` | Branch base do PR (no modo `pr`) ou branch de destino dos commits diretos (no modo `commit`). |
+| `force` | string | Não | `"false"` | Passa `--force` para `oma update`. Quando `"true"`, sobrescreve arquivos de configuração personalizados pelo usuário (`oma-config.yaml`, `mcp.json`) e diretórios `stack/`. Normalmente eles são preservados. |
+| `pr-title` | string | Não | `"chore(deps): update oh-my-agent skills"` | Título personalizado do pull request. Usado apenas no modo `pr`. |
+| `pr-labels` | string | Não | `"dependencies,automated"` | Labels separadas por vírgula para adicionar ao PR. Usadas apenas no modo `pr`. |
+| `commit-message` | string | Não | `"chore(deps): update oh-my-agent skills"` | Mensagem de commit personalizada. Usada nos dois modos (como mensagem do commit do PR ou do commit direto). |
+| `token` | string | Não | `${{ github.token }}` | Token do GitHub para criar PRs. Use um Personal Access Token (PAT) se precisar que o PR dispare outros workflows (o `GITHUB_TOKEN` padrão não dispara execuções de workflow nos PRs que cria). |
 
 ---
 
-## Todos os outputs da action
+## Todas as saídas da action
 
-| Output | Tipo | Descrição | Disponível |
-|:-------|:-----|:----------|:---------|
-| `updated` | string | `"true"` se mudanças foram detectadas após executar `oma update`. `"false"` se já está atualizado. | Sempre |
-| `version` | string | A versão do oh-my-agent após a atualização. Lida de `.agents/skills/_version.json`. | Quando `updated` é `"true"` |
-| `pr-number` | string | O número do pull request. | Apenas no modo `pr` quando PR é criado |
-| `pr-url` | string | A URL completa do pull request criado. | Apenas no modo `pr` quando PR é criado |
+| Saída | Tipo | Descrição | Disponível |
+|:------|:-----|:-----------|:-----------|
+| `updated` | string | `"true"` quando foram detectadas mudanças depois de executar `oma update`. `"false"` quando já estava atualizado. | Sempre |
+| `version` | string | Versão do oh-my-agent após a atualização. Lida de `.agents/skills/_version.json`. | Quando `updated` é `"true"` |
+| `pr-number` | string | Número do pull request. | Somente no modo `pr` quando um PR é criado |
+| `pr-url` | string | URL completa do pull request criado. | Somente no modo `pr` quando um PR é criado |
 
 ---
 
@@ -69,7 +72,7 @@ Essa é a configuração mínima. Cria um PR com configurações padrão quando 
 
 ### Exemplo 1: modo PR padrão
 
-O setup mais comum. Cria um PR toda segunda se atualizações estão disponíveis.
+É a configuração mais comum. Cria um PR toda segunda-feira quando há atualizações disponíveis.
 
 ```yaml
 name: Update oh-my-agent
@@ -101,22 +104,22 @@ jobs:
 
 **O que acontece:**
 - Faz checkout do repositório.
-- Instala o Bun e em seguida o oh-my-agent globalmente.
+- Instala o Bun e depois instala o oh-my-agent globalmente.
 - Executa `oma update --ci`.
 - Verifica se `.agents/` ou `.claude/` têm mudanças.
 - Se houver mudanças, usa `peter-evans/create-pull-request@v8` para criar um PR na branch `chore/update-oh-my-agent`.
 - O PR recebe as labels `dependencies,automated` e inclui o novo número de versão no corpo.
 
-### Exemplo 2: modo commit direto com PAT
+### Exemplo 2: modo de commit direto com PAT
 
-Para equipes que querem atualizações aplicadas imediatamente sem etapa de revisão via PR.
+Para equipes que querem aplicar atualizações imediatamente, sem uma etapa de revisão de PR. Usa um PAT para que o commit possa disparar workflows posteriores.
 
 ```yaml
 name: Update oh-my-agent (Direct)
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # Diariamente às 6am UTC
+    - cron: '0 6 * * *'  # Daily at 6am UTC
   workflow_dispatch:
 
 permissions:
@@ -141,14 +144,14 @@ jobs:
 **O que acontece:**
 - Faz checkout da branch `develop` usando um PAT.
 - Executa `oma update --ci`.
-- Se houver mudanças, configura o git como `github-actions[bot]` e commita diretamente em `develop`.
-- O PAT garante que o commit aciona quaisquer workflows que escutam pushes em `develop`.
+- Se houver mudanças, configura o git como `github-actions[bot]` e faz commit diretamente em `develop`.
+- O PAT garante que o commit dispare os workflows que escutam pushes em `develop`.
 
-**Importante:** Use `secrets.OH_MY_AGENT_PAT` (um Fine-Grained PAT com permissão Contents: Write) em vez de `github.token`. O `GITHUB_TOKEN` padrão cria commits que não acionam outros workflows, o que pode quebrar pipelines de CI que esperam eventos de push.
+**Importante:** use `secrets.OH_MY_AGENT_PAT` (um Fine-Grained PAT com permissão Contents: Write) no lugar de `github.token`. O `GITHUB_TOKEN` padrão cria commits que não disparam outros workflows, o que pode quebrar pipelines de CI que esperam eventos de push.
 
 ### Exemplo 3: notificação condicional
 
-Atualizar com notificação Slack quando nova versão está disponível.
+Atualiza com uma notificação do Slack quando uma nova versão está disponível.
 
 ```yaml
 name: Update oh-my-agent
@@ -187,17 +190,17 @@ jobs:
         run: echo "Already up to date, no notification needed."
 ```
 
-**Padrão-chave:** Use `steps.update.outputs.updated == 'true'` para executar condicionalmente etapas downstream apenas quando uma atualização real ocorreu. Isso evita ruído de execuções "sem mudanças".
+**Padrão principal:** use `steps.update.outputs.updated == 'true'` para executar condicionalmente as etapas posteriores apenas quando uma atualização real ocorreu. Isso evita ruído em execuções "sem mudanças".
 
-### Exemplo 4: modo force com labels customizadas
+### Exemplo 4: modo force com labels personalizadas
 
-Para projetos que querem resetar todos os arquivos de config para padrões na atualização.
+Para projetos que querem restaurar todos os arquivos de configuração aos padrões durante a atualização.
 
 ```yaml
 name: Update oh-my-agent (Force)
 
 on:
-  workflow_dispatch:  # Apenas trigger manual para atualizações force
+  workflow_dispatch:  # Manual trigger only for force updates
 
 permissions:
   contents: write
@@ -217,31 +220,31 @@ jobs:
           commit-message: "chore(deps): force-update oh-my-agent skills"
 ```
 
-**Aviso:** Modo force sobrescreve `oma-config.yaml`, `mcp.json` e diretórios `stack/`. Use apenas quando quiser resetar todas as customizações para padrões. Para atualizações regulares, omita o input `force`.
+**Aviso:** o modo force sobrescreve `oma-config.yaml`, `mcp.json` e os diretórios `stack/`. Use-o somente quando quiser restaurar todas as personalizações aos padrões. Para atualizações normais, omita a entrada `force`.
 
 ---
 
-## Como funciona por baixo dos panos
+## Como funciona internamente
 
-A action é uma [composite action](https://docs.github.com/en/actions/creating-actions/creating-a-composite-action) definida em `action/action.yml`. Executa 4 etapas:
+A action é uma [composite action](https://docs.github.com/en/actions/creating-actions/creating-a-composite-action) definida em `action/action.yml`. Ela executa 4 etapas:
 
-### Step 1: setup Bun
+### Etapa 1: configurar o Bun
 
 ```yaml
 - uses: oven-sh/setup-bun@v2
 ```
 
-Instala o runtime Bun, necessário para executar o CLI oh-my-agent.
+Instala o runtime Bun, necessário para executar a CLI do oh-my-agent.
 
-### Step 2: instalar oh-my-agent
+### Etapa 2: instalar o oh-my-agent
 
 ```bash
 bun install -g oh-my-agent
 ```
 
-Instala a CLI globalmente do registry npm. Isso disponibiliza o comando `oma`.
+Instala a CLI globalmente a partir do registro npm. Isso disponibiliza o comando `oma`.
 
-### Step 3: executar oma update
+### Etapa 3: executar oma update
 
 ```bash
 FLAGS="--ci"
@@ -251,21 +254,23 @@ fi
 oma update $FLAGS
 ```
 
-A flag `--ci` executa a atualização em modo não-interativo (pula todos os prompts, gera texto puro em vez de animações de spinner). A flag `--force`, quando habilitada, sobrescreve arquivos de config customizados pelo usuário.
+A flag `--ci` executa a atualização em modo não interativo (ignora todos os prompts e exibe texto simples em vez de animações de spinner). A flag `--force`, quando habilitada, sobrescreve os arquivos de configuração personalizados pelo usuário.
 
 O que `oma update --ci` faz internamente:
 
-1. Busca `prompt-manifest.json` da branch main para obter o número da versão mais recente.
-2. Compara com a versão local em `.agents/skills/_version.json`.
-3. Se versões correspondem, sai com "Already up to date."
-4. Se nova versão disponível, baixa e extrai o tarball mais recente.
-5. Preserva arquivos customizados pelo usuário (a menos que `--force`): `oma-config.yaml`, `mcp.json`, diretórios `stack/`.
-6. Copia novos arquivos sobre o diretório `.agents/` existente.
-7. Restaura arquivos preservados.
-8. Atualiza adaptações de vendor (hooks, settings, definições de agente) para todos os vendors.
-9. Atualiza symlinks da CLI.
+1. Busca `prompt-manifest.json` na branch principal para obter o número da versão mais recente.
+2. Compara esse número com a versão local em `.agents/skills/_version.json`.
+3. Se as versões coincidirem, termina com "Already up to date.".
+4. Se houver uma versão nova, baixa e extrai o tarball mais recente.
+5. Preserva os arquivos personalizados pelo usuário (exceto com `--force`): `oma-config.yaml`, `mcp.json` e os diretórios de stack.
+6. Copia os arquivos novos sobre o diretório `.agents/` existente.
+7. Restaura os arquivos preservados.
+8. Atualiza as adaptações dos vendors (hooks, configurações e definições de agentes) para todos os vendors.
+9. Atualiza os symlinks da CLI.
 
-### Step 4: verificar mudanças
+A action chama `oma update --ci` sem `--with-new-skills`. Isso atualiza o conjunto de skills instalado e informa sobre skills novas disponíveis; execute `oma update --with-new-skills` deliberadamente quando o projeto deve adicionar novas skills como parte da atualização.
+
+### Etapa 4: verificar mudanças
 
 ```bash
 if [ -n "$(git status --porcelain .agents/ .claude/ 2>/dev/null)" ]; then
@@ -277,11 +282,9 @@ else
 fi
 ```
 
-Verifica se `oma update` realmente alterou arquivos em `.agents/` ou `.claude/`. Define os outputs `updated` e `version` adequadamente.
+Verifica se `oma update` realmente alterou arquivos em `.agents/` ou `.claude/`. Define as saídas `updated` e `version` conforme o resultado.
 
-Após isso, dependendo do input `mode`:
+Depois disso, de acordo com a entrada `mode`:
 
-- **Modo `pr`:** Usa `peter-evans/create-pull-request@v8` para criar um PR na branch `chore/update-oh-my-agent`. O PR inclui o novo número de versão, um link para o repo do oh-my-agent e as labels configuradas. Se a branch já existe (de um PR anterior não fechado), atualiza o PR existente.
-
-- **Modo `commit`:** Configura o git como `github-actions[bot]`, faz staging de `.agents/` e `.claude/`, commita com a mensagem configurada e faz push para a branch base.
-
+- **Modo `pr`:** usa `peter-evans/create-pull-request@v8` para criar um PR na branch `chore/update-oh-my-agent`. O PR inclui o novo número de versão, um link para o repositório do oh-my-agent e as labels configuradas. Se a branch já existir (por causa de um PR anterior ainda aberto), atualiza o PR existente.
+- **Modo `commit`:** configura o git como `github-actions[bot]`, adiciona `.agents/` e `.claude/` ao staging, faz commit com a mensagem configurada e envia para a branch base.

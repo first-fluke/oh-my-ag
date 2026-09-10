@@ -1,53 +1,68 @@
 ---
 title: "Hướng dẫn: Sinh ảnh"
-description: Hướng dẫn đầy đủ về sinh ảnh trong oh-my-agent — điều phối đa vendor qua Codex (gpt-image-2), Pollinations (flux/zimage, miễn phí) và Gemini, cùng với ảnh tham chiếu, guardrail chi phí, layout đầu ra, troubleshooting và pattern gọi dùng chung.
+sidebar_label: Sinh ảnh
+description: Hướng dẫn đầy đủ về sinh ảnh trong oh-my-agent, gồm điều phối nhiều vendor qua Codex, Pollinations và Antigravity qua Gemini Code Assist, ảnh tham chiếu, guardrail chi phí, layout đầu ra, troubleshooting và pattern gọi dùng chung.
 ---
 
 # Sinh ảnh
 
-`oma-image` là router ảnh đa vendor cho oh-my-agent. Nó sinh ảnh từ prompt ngôn ngữ tự nhiên, điều phối đến CLI vendor mà bạn đã xác thực, và ghi một manifest tất định cạnh đầu ra để mọi lần chạy đều có thể tái lập.
+`oma-image` là router ảnh nhiều vendor của oh-my-agent. Nó sinh ảnh từ prompt ngôn ngữ tự nhiên, dispatch tới CLI vendor mà bạn đã xác thực và ghi manifest cạnh output với input cùng quyết định provider cần để audit hoặc lặp lại run. Output provider live vẫn có thể thay đổi.
 
-Skill tự kích hoạt khi gặp các từ khóa như *image*, *illustration*, *visual asset*, *concept art*, hoặc khi một skill khác cần ảnh như side-effect (hero shot, thumbnail, ảnh sản phẩm).
+Skill tự kích hoạt với từ khóa như *image*, *illustration*, *visual asset*, *concept art*, hoặc khi skill khác cần ảnh như một side-effect, chẳng hạn hero shot, thumbnail hay product photo.
 
 ---
 
 ## Khi nào dùng
 
-- Sinh ảnh, illustration, ảnh sản phẩm, concept art, hero/landing visual
-- So sánh cùng một prompt qua nhiều model song song (`--vendor all`)
-- Tạo asset từ trong workflow của editor (Claude Code, Codex, Gemini CLI)
-- Để skill khác (design, marketing, docs) gọi pipeline ảnh như hạ tầng dùng chung
+- Sinh image, illustration, product photo, concept art hoặc visual hero/landing.
+- So sánh cùng một prompt qua nhiều model song song (`--vendor all`).
+- Tạo asset bên trong editor workflow, như Claude Code, Codex hoặc Gemini CLI.
+- Cho skill khác, như design, marketing hoặc docs, gọi image pipeline như shared infrastructure.
 
 ## Khi nào KHÔNG dùng
 
-- Chỉnh sửa hoặc retouch ảnh có sẵn — ngoài phạm vi (dùng công cụ chuyên dụng)
-- Sinh video hoặc audio — ngoài phạm vi
-- Sinh SVG inline / vector composition từ dữ liệu có cấu trúc — dùng skill templating
-- Resize / chuyển định dạng đơn giản — dùng thư viện ảnh, không phải pipeline sinh ảnh
+- Chỉnh sửa hoặc retouch ảnh có sẵn, vì ngoài phạm vi; dùng tool chuyên dụng.
+- Sinh video hoặc audio, vì ngoài phạm vi.
+- Tạo inline SVG hoặc vector composition từ structured data; dùng skill templating.
+- Resize hoặc đổi format đơn giản; dùng image library thay cho generation pipeline.
 
 ---
 
-## Nhìn nhanh các vendor
+## Tổng quan vendor
 
-Skill ưu tiên CLI: khi CLI native của vendor có thể trả về raw image bytes, đường subprocess được ưu tiên hơn so với API key trực tiếp.
+Skill ưu tiên CLI: khi CLI native của vendor có thể trả raw image bytes, đường subprocess được ưu tiên hơn API key trực tiếp.
 
 | Vendor | Strategy | Models | Trigger | Chi phí |
 |---|---|---|---|---|
-| `pollinations` | HTTP trực tiếp | Miễn phí: `flux`, `zimage`. Cần credit: `qwen-image`, `wan-image`, `gpt-image-2`, `klein`, `kontext`, `gptimage`, `gptimage-large` | Đã đặt `POLLINATIONS_API_KEY` (đăng ký miễn phí tại https://enter.pollinations.ai) | Miễn phí cho `flux` / `zimage` |
-| `codex` | Ưu tiên CLI — `codex exec` qua ChatGPT OAuth | `gpt-image-2` | `codex login` (không cần API key) | Tính vào gói ChatGPT của bạn |
-| `gemini` | Ưu tiên CLI → fallback API trực tiếp | `gemini-2.5-flash-image`, `gemini-3.1-flash-image-preview` | `gemini auth login` hoặc `GEMINI_API_KEY` + billing | Tắt mặc định; cần billing |
+| `pollinations` | Direct HTTP | Free: `flux`, `zimage`. Credit-gated: `qwen-image`, `wan-image`, `gpt-image-2`, `klein`, `kontext`, `gptimage`, `gptimage-large` | Đã đặt `POLLINATIONS_API_KEY` (đăng ký miễn phí tại https://enter.pollinations.ai) | Miễn phí với `flux` / `zimage` |
+| `codex` | CLI-first qua `codex exec` (ChatGPT OAuth) | `gpt-image-2` | `codex login`, không cần API key | Tính vào gói ChatGPT |
+| `antigravity` | CLI `agy` qua thuê bao Gemini Code Assist | Model do `agy` chọn nội bộ | Đã cài và đăng nhập `agy` | Không tính phí từng ảnh qua Code Assist |
 
-`pollinations` là vendor mặc định vì `flux` / `zimage` miễn phí, nên việc tự kích hoạt theo từ khóa là an toàn.
+Mode vendor tích hợp sẵn là `auto`: nó chạy provider vượt health check. Model `flux` và `zimage` của Pollinations miễn phí theo ảnh nhưng vẫn cần `POLLINATIONS_API_KEY`; Codex và Antigravity cần đăng nhập riêng. Ước tính có phí vẫn dùng guardrail xác nhận chi phí.
 
 ---
 
-## Quick start
+## Bắt đầu nhanh
+
+Trước lần sinh đầu tiên, kiểm tra provider sẵn sàng và xác thực một path được hỗ trợ:
 
 ```bash
-# Free, zero-config — uses pollinations/flux
+oma image doctor
+
+# Pollinations: create a free account and export its key.
+export POLLINATIONS_API_KEY="<pollinations-key>"
+
+# Or authenticate an alternative provider instead.
+codex login
+# Sign in to Gemini Code Assist for `agy` when using --vendor antigravity.
+```
+
+
+```bash
+# Auto-selects the healthy provider; cost and auth depend on that provider.
 oma image generate "minimalist sunrise over mountains"
 
-# Compare every authenticated vendor in parallel
+# Run all configured vendors; every selected vendor must be healthy or the command stops.
 oma image generate "cat astronaut" --vendor all
 
 # Specific vendor + size + count, skip cost prompt
@@ -59,127 +74,134 @@ oma image generate "test prompt" --dry-run
 # Inspect authentication and install status per vendor
 oma image doctor
 
-# List registered vendors and the models each one supports
+# List registered vendors and supported models
 oma image vendor list
 ```
 
-`oma img` là alias cho `oma image`.
+
+`oma img` là alias của `oma image`.
 
 ---
 
-## Sử dụng như một skill
+## Dùng như một skill
 
-`oma-image` là một skill — nó tự kích hoạt từ ngôn ngữ tự nhiên và cũng có thể được gọi tường minh. Có ba lối vào.
+`oma-image` là skill tự kích hoạt từ ngôn ngữ tự nhiên và cũng có thể gọi tường minh. Có ba entry point.
 
 ### 1. Ngôn ngữ tự nhiên (tự kích hoạt)
 
-Trong Claude Code, Codex CLI hay Gemini CLI, chỉ cần mô tả ảnh. Skill khớp các từ khóa như *image*, *illustration*, *visual asset*, *concept art*, *hero shot*, *thumbnail*, *product photo*.
+Trong Claude Code, Codex CLI hoặc Gemini CLI, chỉ cần mô tả ảnh. Skill khớp các từ khóa như *image*, *illustration*, *visual asset*, *concept art*, *hero shot*, *thumbnail* và *product photo*.
 
-Bạn không cần nhớ flag CLI — cứ nói bằng ngôn ngữ tự nhiên và skill sẽ ánh xạ sang option phù hợp:
+Không cần nhớ CLI flag. Nói bằng ngôn ngữ tự nhiên, skill sẽ ánh xạ sang option phù hợp:
 
 | Bạn nói | Skill suy luận |
 |---|---|
-| "dùng codex" / "với gpt-image-2" / "flux miễn phí" | `--vendor codex` / `--vendor pollinations` |
-| "so sánh các vendor" / "xếp cạnh nhau" | `--vendor all` |
-| "dọc" / "ngang" / "1024×1536" | `--size 1024x1536` / `--size 1536x1024` |
-| "chất lượng cao" / "bản nháp" | `--quality high` / `--quality low` |
-| "ba biến thể" / "cho tôi 3 cái" | `-n 3` |
-| "lưu vào ./hero" / "xuất ra docs/assets" | `--out <dir>` |
-| Ảnh đính kèm + "đổi sang ban đêm" | `-r <đường dẫn đính kèm>` |
-| "chỉ ước tính chi phí thôi" / "dry run" | `--dry-run` |
+| “use codex” / “with gpt-image-2” / “free flux” | `--vendor codex` / `--vendor pollinations` |
+| “compare across vendors” / “side by side” | `--vendor all` |
+| “portrait” / “landscape” / “1024×1536” | `--size 1024x1536` / `--size 1536x1024` |
+| “high quality” / “draft” | `--quality high` / `--quality low` |
+| “three variations” / “give me 3” | `-n 3` |
+| “save to ./hero” / “output to docs/assets” | `--output-dir <dir>` |
+| Ảnh đính kèm + “make it nighttime” | `-r <attached path>` |
+| “just estimate the cost” / “dry run” | `--dry-run` |
 
 Ví dụ:
 
-> "Tạo một cảnh bình minh tối giản trên núi cho hero của trang landing, ngang, chất lượng cao."
-> "So sánh ảnh sản phẩm cốc gốm trên tất cả vendor, mỗi vendor ba biến thể."
-> "Dùng codex để biến ảnh con rái cá này thành cảnh đêm kịch tính." (kèm ảnh tham chiếu)
+> “Generate a minimalist sunrise over mountains for the landing hero, landscape, high quality.”
+> “Compare a ceramic mug product photo across all vendors, three variations each.”
+> “Use codex to make this otter photo dramatic and nighttime.” (kèm ảnh tham chiếu)
 
-Agent sẽ chạy [Quy trình Clarification](#clarification-protocol), khuếch đại prompt nếu cần, rồi gọi `oma image generate` với các flag đã suy luận. Chỉ dùng slash command khi bạn muốn kiểm soát trực tiếp giá trị flag.
+Agent chạy [Quy trình Clarification](#clarification-protocol), khuếch đại prompt nếu cần rồi gọi `oma image generate` với flag suy luận. Dùng slash command khi muốn kiểm soát trực tiếp giá trị flag.
 
 ### 2. Slash command tường minh
 
 ```text
 /oma-image a red apple on white background
 /oma-image --vendor all --size 1536x1024 jeju coastline at sunset
-/oma-image -n 3 --quality high --out ./hero "minimalist dashboard hero illustration"
+/oma-image -n 3 --quality high --output-dir ./hero "minimalist dashboard hero illustration"
 ```
 
-Mọi flag CLI (`--vendor`, `-n`, `--size`, `-r`, `--dry-run`, …) đều hoạt động trong slash command — nó được forward đến cùng pipeline `oma image generate`.
 
-### 3. Từ skill khác (hạ tầng dùng chung)
+Mọi CLI flag (`--vendor`, `-n`, `--size`, `-r`, `--dry-run`, …) đều hoạt động trong slash command và được forward vào cùng pipeline `oma image generate`.
 
-Các skill khác (design, marketing, docs) gọi pipeline như hạ tầng dùng chung với đầu ra JSON:
+### 3. Từ skill khác (shared infrastructure)
+
+Skill khác, như design, marketing hoặc docs, gọi pipeline như shared infrastructure với JSON output:
 
 ```bash
 oma image generate "<prompt>" --output json
 ```
 
-Manifest ghi ra stdout bao gồm output path, vendor, model và chi phí — dễ parse và chain.
+
+Manifest ghi ra stdout gồm output path, vendor, model và cost, nên dễ parse và chain.
 
 ---
 
-## CLI reference
+## Tham chiếu CLI
 
 ```bash
 oma image generate "<prompt>"
-  [--vendor auto|codex|pollinations|gemini|all]
+  [--vendor auto|codex|pollinations|antigravity|all]
   [-n 1..5]
   [--size 1024x1024|1024x1536|1536x1024|auto]
   [--quality low|medium|high|auto]
-  [--out <dir>] [--allow-external-out]
+  [--output-dir <dir>] [--allow-external-output]
   [-r <path>]...
   [--timeout 180] [-y] [--no-prompt-in-manifest]
-  [--dry-run] [--format text|json]
+  [--dry-run] [--output text|json]
 
 oma image doctor
 oma image vendor list
 ```
 
+
 ### Flag chính
 
 | Flag | Mục đích |
 |---|---|
-| `--vendor <name>` | `auto`, `pollinations`, `codex`, `antigravity`, hoặc `all`. Với `all`, mọi vendor được yêu cầu đều phải xác thực (strict). |
-| `-n, --count <n>` | Số ảnh mỗi vendor, 1–5 (giới hạn theo wall-time). |
-| `--size <size>` | Tỷ lệ: `1024x1024` (vuông), `1024x1536` (dọc), `1536x1024` (ngang), hoặc `auto`. |
-| `--quality <level>` | `low`, `medium`, `high`, hoặc `auto` (mặc định của vendor). |
-| `--out <dir>` | Thư mục đầu ra. Mặc định `.agents/results/images/{timestamp}/`. Đường dẫn ngoài `$PWD` cần `--allow-external-out`. |
-| `-r, --reference <path>` | Tối đa 10 ảnh tham chiếu (PNG/JPEG/GIF/WebP, ≤ 5 MB mỗi ảnh). Có thể lặp lại hoặc phân tách bằng dấu phẩy. Hỗ trợ trên `codex` và `gemini`; bị từ chối trên `pollinations`. |
-| `-y, --yes` | Bỏ qua prompt xác nhận chi phí cho run ước tính ≥ `$0.20`. Cũng có thể qua `OMA_IMAGE_YES=1`. |
+| `--vendor <name>` | `auto`, `pollinations`, `codex`, `antigravity` hoặc `all`. Với `all`, mọi vendor được yêu cầu phải healthy, tức strict. |
+| `-n, --count <n>` | Số ảnh mỗi vendor, 1 đến 5, bị giới hạn theo wall-time. |
+| `--size <size>` | Aspect: `1024x1024` (square), `1024x1536` (portrait), `1536x1024` (landscape) hoặc `auto`. |
+| `--quality <level>` | `low`, `medium`, `high` hoặc `auto`, theo mặc định vendor. |
+| `--output-dir <dir>` | Thư mục output, mặc định `.agents/results/images/{timestamp}/`. Path ngoài `$PWD` cần `--allow-external-output`. |
+| `--allow-external-output` | Cho phép output directory nằm ngoài `$PWD`. |
+| `--model <name>` | Ghi đè model vendor cho run này. Antigravity bỏ qua vì `agy` chọn model. |
+| `-r, --reference <path>` | Tối đa 10 ảnh tham chiếu (PNG/JPEG/GIF/WebP, ≤ 5 MB mỗi ảnh). Có thể lặp hoặc phân tách bằng comma. Hỗ trợ Codex và Antigravity; Pollinations từ chối. |
+| `-y, --yes` | Bỏ qua prompt xác nhận cho run ước tính ≥ `$0.20`. Cũng có thể dùng `OMA_IMAGE_YES=1`. |
 | `--no-prompt-in-manifest` | Lưu SHA-256 của prompt thay vì raw text trong `manifest.json`. |
-| `--dry-run` | In kế hoạch và ước tính chi phí mà không tốn chi phí. |
-| `--format text\|json` | Định dạng đầu ra CLI. JSON là bề mặt tích hợp cho các skill khác. |
-| `--strategy <list>` | Escalation chỉ dành cho Gemini, ví dụ `mcp,stream,api`. Override `vendors.gemini.strategies`. |
+| `--dry-run` | In plan và cost estimate mà không tiêu tiền. |
+| `--output text\|json` | Định dạng output CLI. JSON là bề mặt tích hợp cho skill khác. |
+| `--timeout <duration>` | Timeout cho từng ảnh. |
 
 ---
 
 ## Ảnh tham chiếu
 
-Đính kèm tối đa 10 ảnh tham chiếu để dẫn dắt style, danh tính chủ thể hoặc bố cục.
+Đính kèm tối đa 10 ảnh tham chiếu để định hướng style, identity của subject hoặc composition.
 
 ```bash
 oma image generate -r ~/Downloads/otter.jpeg "same otter in dramatic lighting" --vendor codex
-oma image generate -r a.png -r b.png "blend these styles" --vendor gemini
-oma image generate -r a.png,b.png "blend these styles" --vendor gemini
+oma image generate -r a.png -r b.png "blend these styles" --vendor antigravity
+oma image generate -r a.png,b.png "blend these styles" --vendor antigravity
 ```
+
 
 | Vendor | Hỗ trợ tham chiếu | Cách thực hiện |
 |---|---|---|
-| `codex` (gpt-image-2) | Có | Truyền `-i <path>` cho `codex exec` |
-| `gemini` (2.5-flash-image) | Có | Inline base64 `inlineData` trong request |
-| `pollinations` | Không | Bị từ chối với exit code 4 (cần URL hosting) |
+| `codex` (`gpt-image-2`) | Có | Truyền `-i <path>` vào `codex exec` |
+| `antigravity` | Có | Copy reference vào thư mục theo run và cấp quyền cho `agy` |
+| `pollinations` | Không | Từ chối với exit code 4, cần URL hosting |
 
-### Ảnh được đính kèm nằm ở đâu
+### Ảnh đính kèm nằm ở đâu
 
-- **Claude Code** — `~/.claude/image-cache/<session>/N.png`, hiển thị trong system message dưới dạng `[Image: source: <path>]`. Phạm vi session: copy sang vị trí lâu dài nếu muốn tái sử dụng sau này.
-- **Antigravity** — thư mục upload của workspace (IDE hiển thị đường dẫn chính xác)
-- **Codex CLI làm host** — phải truyền tường minh; attachment trong cuộc hội thoại không được forward
+- **Claude Code:** `~/.claude/image-cache/<session>/N.png`, hiện trong system message dạng `[Image: source: <path>]`. Phạm vi session; muốn dùng lại sau thì copy đến vị trí bền vững.
+- **Antigravity:** thư mục upload của workspace, IDE hiển thị path chính xác.
+- **Codex CLI làm host:** phải truyền tường minh; attachment trong hội thoại không được forward.
 
-Khi user đính kèm ảnh và yêu cầu sinh hoặc chỉnh sửa ảnh dựa trên nó, agent gọi **bắt buộc** phải forward qua `--reference <path>` thay vì mô tả bằng văn xuôi. Nếu CLI cục bộ quá cũ và không hỗ trợ `--reference`, hãy chạy `oma update` rồi thử lại.
+Khi user đính kèm ảnh và yêu cầu sinh hoặc edit dựa trên ảnh đó, agent gọi phải forward qua `--reference <path>` thay vì mô tả bằng prose. Nếu local CLI quá cũ và không hỗ trợ `--reference`, chạy `oma update` rồi retry.
 
 ---
 
-## Layout đầu ra
+## Layout output
 
 Mỗi run ghi vào `.agents/results/images/` với thư mục có timestamp và hash suffix:
 
@@ -194,75 +216,74 @@ Mỗi run ghi vào `.agents/results/images/` với thư mục có timestamp và 
     └── manifest.json
 ```
 
-`manifest.json` ghi lại vendor, model, prompt (hoặc SHA-256 của nó), size, quality và chi phí — mọi run đều có thể tái lập chỉ từ manifest.
+
+`manifest.json` ghi vendor, model, prompt hoặc SHA-256, size, quality và cost để request có thể audit và lặp lại. Nó không đảm bảo pixel giống hệt provider live.
 
 ---
 
-## Chi phí, an toàn và hủy bỏ
+## Chi phí, an toàn và hủy
 
-1. **Guardrail chi phí** — run được ước tính ≥ `$0.20` sẽ yêu cầu xác nhận. Bypass bằng `-y` hoặc `OMA_IMAGE_YES=1`. Mặc định `pollinations` (flux/zimage) miễn phí, nên prompt được bỏ qua tự động cho nó.
-2. **An toàn đường dẫn** — đường dẫn đầu ra ngoài `$PWD` cần `--allow-external-out` để tránh ghi bất ngờ.
-3. **Có thể hủy** — `Ctrl+C` (SIGINT/SIGTERM) hủy mọi lệnh gọi provider đang chạy và orchestrator cùng lúc.
-4. **Đầu ra tất định** — `manifest.json` luôn được ghi cạnh ảnh.
-5. **Tối đa `n` = 5** — giới hạn theo wall-time, không phải quota.
-6. **Exit code** — căn chỉnh với `oma search fetch`: `0` ok, `1` general, `2` safety, `3` not-found, `4` invalid-input, `5` auth-required, `6` timeout.
+1. **Guardrail chi phí:** run ước tính ≥ `$0.20` sẽ hỏi xác nhận. Bypass bằng `-y` hoặc `OMA_IMAGE_YES=1`. Provider mặc định Pollinations (`flux`/`zimage`) miễn phí nên tự bỏ qua prompt.
+2. **An toàn path:** output path ngoài `$PWD` cần `--allow-external-output` để tránh ghi ngoài ý muốn.
+3. **Có thể hủy:** `Ctrl+C` (SIGINT/SIGTERM) hủy mọi provider call đang chạy và orchestrator.
+4. **Run record ổn định:** `manifest.json` luôn được ghi cạnh ảnh.
+5. **Tối đa `n` = 5:** giới hạn wall-time, không phải quota.
+6. **Exit code:** phù hợp với `oma search fetch`: `0` ok, `1` general, `2` safety, `3` not-found, `4` invalid-input, `5` auth-required, `6` timeout.
 
 ---
 
 ## Quy trình clarification {#clarification-protocol}
 
-Trước khi gọi `oma image generate`, agent gọi chạy checklist này. Nếu thiếu gì đó và không suy luận được, nó hỏi trước hoặc khuếch đại prompt và hiển thị bản mở rộng để duyệt.
+Trước khi gọi `oma image generate`, agent chạy checklist này. Nếu thiếu thông tin và không thể suy luận, agent hỏi trước hoặc khuếch đại prompt rồi hiển thị bản mở rộng để user duyệt.
 
 **Bắt buộc:**
-- **Subject** — đối tượng chính trong ảnh là gì? (vật thể, người, cảnh)
-- **Setting / backdrop** — nó ở đâu?
+- **Subject:** đối tượng chính trong ảnh là gì, như object, person hoặc scene?
+- **Setting / backdrop:** nó ở đâu?
 
-**Khuyến nghị mạnh (hỏi nếu thiếu và không suy luận được):**
-- **Style** — photorealistic, illustration, 3D render, oil painting, concept art, flat vector?
-- **Mood / lighting** — tươi sáng vs trầm, ấm vs lạnh, kịch tính vs tối giản
-- **Bối cảnh sử dụng** — hero image, icon, thumbnail, ảnh sản phẩm, poster?
-- **Tỷ lệ khung hình** — vuông, dọc hay ngang
+**Rất nên có, hỏi nếu thiếu và không suy luận được:**
+- **Style:** photorealistic, illustration, 3D render, oil painting, concept art hay flat vector?
+- **Mood / lighting:** sáng hay trầm, ấm hay lạnh, dramatic hay minimal?
+- **Usage context:** hero image, icon, thumbnail, product shot hay poster?
+- **Aspect ratio:** square, portrait hay landscape?
 
-Với prompt ngắn như *"a red apple"*, agent **không** hỏi thêm. Thay vào đó nó khuếch đại inline và hiển thị cho user:
+Với prompt ngắn như *“a red apple”*, agent **không** hỏi tiếp. Thay vào đó agent khuếch đại inline và hiển thị:
 
-> User: "a red apple"
-> Agent: "I'll generate this as: *a single glossy red apple centered on a clean white background, soft studio lighting, photorealistic, shallow depth of field, 1024×1024*. Shall I proceed, or would you like a different style/composition?"
+> User: “a red apple”
+> Agent: “I'll generate this as: *a single glossy red apple centered on a clean white background, soft studio lighting, photorealistic, shallow depth of field, 1024×1024*. Shall I proceed, or would you like a different style/composition?”
 
-Khi user đã viết một creative brief đầy đủ (≥ 2 trong: subject + style + lighting + composition), prompt của họ được tôn trọng nguyên văn — không clarification, không amplification.
+Khi user tự viết creative brief đầy đủ (ít nhất 2 trong subject, style, lighting và composition), prompt được tôn trọng nguyên văn, không clarification và không amplification.
 
-**Ngôn ngữ đầu ra.** Prompt sinh ảnh được gửi cho provider bằng tiếng Anh (image model được train chủ yếu trên caption tiếng Anh). Nếu user viết bằng ngôn ngữ khác, agent dịch và hiển thị bản dịch trong lúc amplification để user có thể sửa nếu hiểu sai.
+**Ngôn ngữ output:** Prompt sinh ảnh được gửi provider bằng tiếng Anh, vì image model chủ yếu được train trên caption tiếng Anh. Nếu user viết bằng ngôn ngữ khác, agent dịch và hiển thị bản dịch trong lúc amplification để user sửa nếu có hiểu sai.
 
 ---
 
 ## Cấu hình
 
-- **Project config:** `config/image-config.yaml`
+- **Project config:** section `image:` của `.agents/oma-config.yaml`. Legacy `config/image-config.yaml` không còn được đọc.
 - **Biến môi trường:**
-  - `OMA_IMAGE_DEFAULT_VENDOR` — override vendor mặc định (mặc định là `pollinations`)
-  - `OMA_IMAGE_DEFAULT_OUT` — override thư mục đầu ra mặc định
-  - `OMA_IMAGE_YES` — `1` để bypass xác nhận chi phí
-  - `POLLINATIONS_API_KEY` — bắt buộc cho vendor pollinations (đăng ký miễn phí)
-  - `GEMINI_API_KEY` — bắt buộc khi vendor gemini fallback về API trực tiếp
-  - `OMA_IMAGE_GEMINI_STRATEGIES` — thứ tự escalation phân tách bằng dấu phẩy cho gemini (`mcp,stream,api`)
+  - `OMA_IMAGE_DEFAULT_VENDOR`: ghi đè vendor mặc định, nếu không thì `pollinations`.
+  - `OMA_IMAGE_DEFAULT_OUT`: ghi đè output directory mặc định.
+  - `OMA_IMAGE_YES`: `1` để bypass xác nhận chi phí.
+  - `POLLINATIONS_API_KEY`: bắt buộc cho vendor Pollinations, đăng ký miễn phí.
 
 ---
 
 ## Troubleshooting
 
-| Triệu chứng | Nguyên nhân khả năng | Khắc phục |
+| Triệu chứng | Nguyên nhân khả năng | Cách khắc phục |
 |---|---|---|
-| Exit code `5` (auth-required) | Vendor được chọn chưa xác thực | Chạy `oma image doctor` để xem vendor nào cần đăng nhập. Sau đó `codex login` / đặt `POLLINATIONS_API_KEY` / `gemini auth login`. |
-| Exit code `4` ở `--reference` | `pollinations` từ chối tham chiếu, hoặc file quá lớn / sai định dạng | Chuyển sang `--vendor codex` hoặc `--vendor gemini`. Mỗi tham chiếu phải ≤ 5 MB và là PNG/JPEG/GIF/WebP. |
-| `--reference` không được nhận diện | CLI cục bộ đã cũ | Chạy `oma update` rồi thử lại. Không fallback về mô tả văn xuôi. |
-| Xác nhận chi phí chặn automation | Run được ước tính ≥ `$0.20` | Truyền `-y` hoặc đặt `OMA_IMAGE_YES=1`. Tốt hơn: chuyển sang `pollinations` miễn phí. |
-| `--vendor all` hủy ngay lập tức | Một trong các vendor được yêu cầu chưa xác thực (strict mode) | Xác thực vendor còn thiếu, hoặc chọn một `--vendor` cụ thể. |
-| Đầu ra ghi vào thư mục bất ngờ | Mặc định là `.agents/results/images/{timestamp}/` | Truyền `--out <dir>`. Đường dẫn ngoài `$PWD` cần `--allow-external-out`. |
-| Gemini không trả về image bytes | Vòng lặp agentic của Gemini CLI không phát raw `inlineData` ra stdout (tính đến 0.38) | Provider tự động fallback về API trực tiếp. Đặt `GEMINI_API_KEY` và đảm bảo có billing. |
+| Exit code `5` (auth-required) | Vendor đã chọn chưa được xác thực | Chạy `oma image doctor` để xem vendor cần đăng nhập, rồi `codex login`, đăng nhập `agy` hoặc đặt `POLLINATIONS_API_KEY`. |
+| Exit code `4` ở `--reference` | Pollinations từ chối reference, hoặc file quá lớn/sai format | Chuyển sang `--vendor codex` hoặc `--vendor antigravity`. Mỗi reference tối đa 5 MB và phải là PNG/JPEG/GIF/WebP. |
+| Không nhận diện `--reference` | Local CLI đã cũ | Chạy `oma update` rồi retry, không fallback về mô tả prose. |
+| Xác nhận chi phí chặn automation | Run ước tính ≥ `$0.20` | Truyền `-y` hoặc đặt `OMA_IMAGE_YES=1`; có thể chuyển sang Pollinations miễn phí. |
+| `--vendor all` abort ngay | Một vendor yêu cầu chưa healthy, do strict mode | Cài/đăng nhập vendor thiếu hoặc chọn `--vendor` cụ thể. |
+| Output ghi nhầm thư mục | Mặc định là `.agents/results/images/{timestamp}/` | Truyền `--output-dir <dir>`. Path ngoài `$PWD` cần `--allow-external-output`. |
+| Antigravity fail dù health pass | `agy --version` chỉ chứng minh đã cài, không chứng minh đã đăng nhập | Đăng nhập Gemini Code Assist, rồi thử lại với `oma image doctor` và `--vendor antigravity`. |
 
 ---
 
 ## Liên quan
 
-- [Skills](/docs/core-concepts/skills) — kiến trúc skill hai tầng cấp năng lượng cho `oma-image`
-- [CLI Commands](/docs/cli-interfaces/commands) — tham chiếu lệnh `oma image` đầy đủ
-- [CLI Options](/docs/cli-interfaces/options) — ma trận option toàn cục
+- [Skills](/docs/core-concepts/skills): kiến trúc skill hai tầng cấp năng lượng cho `oma-image`
+- [CLI Commands](/docs/cli-interfaces/commands): tham chiếu lệnh `oma image` đầy đủ
+- [CLI Options](/docs/cli-interfaces/options): ma trận option toàn cục

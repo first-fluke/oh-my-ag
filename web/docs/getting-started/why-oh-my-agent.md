@@ -1,78 +1,39 @@
 ---
 title: Why oh-my-agent
-description: Positioning thesis for oh-my-agent in a saturated multi-agent CLI category. Cost has shifted from implementation to test and maintenance; oh-my-agent ships quality gates, independent verification, multi-vendor dispatch, and repo-native customization to address that shift.
+description: Choose oh-my-agent when you need repository-owned agent skills, workflows, multi-vendor dispatch, and explicit verification.
 ---
 
 # Why oh-my-agent
 
-The multi-agent CLI category is crowded. In the last quarter alone, more than twenty multi-agent orchestrators have appeared - Metateam, OpenSwarm, DevSquad, Praktor, Salacia, Codelegate, agent-of-empires, TTal, Maggy, and others. Most optimize the same axis: making agents write code faster.
+oh-my-agent adds a repository-owned layer around the agent CLIs your team already uses. The `.agents/` directory stores skills, workflows, agent definitions, rules, and model configuration. Vendor-native files are generated from that source of truth, so the behavior can be reviewed and changed with the project.
 
-oh-my-agent optimizes a different axis. With capable models, the cost of analysis, design, and implementation in the SDLC approaches zero. Testing and maintenance — keeping a system working, secure, and understandable after the first commit — are where the cost now sits. oh-my-agent is designed around that axis.
+## Choose it when the repository needs the coordination layer
 
-This page makes that positioning concrete. For the long-form discussion that originated this framing, see [issue #155](https://github.com/first-fluke/oh-my-agent/issues/155#issuecomment-4142133589).
+OMA is a useful fit when you need one or more of these:
 
----
+- **Several agent hosts or vendors.** `model_preset: auto` uses the current runtime's native configuration. Fixed and custom presets can route roles to other vendors; `oma agent spawn` handles non-native dispatch.
+- **A repeatable team workflow.** `/work` handles one scoped task, `/orchestrate` coordinates delegated work, `/ultrawork` runs parallel work with review steps, and `/ralph` repeats a task with an explicit judge phase.
+- **Repository-owned instructions.** Skills, workflows, rules, and agent definitions live beside the code. `oma link` projects the selected files into supported vendor formats.
+- **Mechanical checks and durable results.** Agent runs can write structured status and result receipts, while `oma verify agent <agent-type>` and `oma docs verify` provide explicit checks.
 
-## The cost has shifted
+If a project uses one host and does not need shared skills, workflows, or vendor routing, the extra `.agents/` files and CLI commands may not justify the setup. OMA is a coordination layer; it does not replace the host's model, editor, or project-specific acceptance criteria.
 
-When a single capable model can produce a working feature in minutes, the bottleneck is no longer implementation throughput. The bottleneck is verifying that the produced code actually does what was claimed, catching silent regressions across iterations, keeping secrets out of prompts and logs, and surfacing token spend before it surprises the team.
+## Verification is a command you select
 
-A harness that only spawns agents faster does not address any of these. A harness designed for the post-implementation phase does.
+Run `oma verify agent <agent-type> --workspace <path>` when you want the checks for a backend, frontend, mobile, QA, debug, or planning role. The verifier combines static inspections with configured commands such as tests, type checks, SQL checks, or `flutter analyze`; see [`cli/commands/verify/report.ts`](https://github.com/first-fluke/oh-my-agent/blob/main/cli/commands/verify/report.ts). The report shows the result of each check. Passing these checks does not establish that a feature meets its product or domain requirements, so the task's acceptance criteria still need review.
 
----
+`/ralph` adds a separate judge phase when you select that workflow. It rechecks the declared criteria across iterations and records the workflow artifacts; it is not a gate that runs for every ordinary prompt. Skill loading also does not start every workflow or verification command.
 
-## What oh-my-agent ships for the post-implementation phase
+## Dispatch remains visible
 
-Each capability below addresses a specific failure mode reported in the multi-agent CLI category.
+`oma doctor --profile` shows the resolved vendor and model for each dispatch role. `oma agent spawn <agent-id> <prompt> <session-id>` is the explicit CLI path when a role is not handled by the current host. The model resolution rules and provider-specific behavior are documented in [Important Defaults](./important-defaults.md) and [Per-Agent Models](../guide/per-agent-models.md).
 
-### Independent verification, not LLM self-assessment
+Hooks can activate a workflow only when the relevant host integration is enabled. Native skill routing is performed by the host, while workflow routing follows the selected workflow or hook; a plain prompt does not guarantee that a particular skill or gate runs.
 
-`oma verify <agent>` runs a deterministic battery of checks for each agent type: a shared core that always runs (scope violation against the agent's charter, charter preflight, hardcoded secret scan, TODO scan, declared-output check) plus type-specific checks (test exit code, TypeScript strict pass, raw SQL pattern detection, inline style scan, Flutter analyze). The checks are mechanical. No LLM judges whether the work "looks correct". A check passes if and only if its underlying command reports success.
+Optional coordination controls are documented in the [session quota cap](../guide/configuration-reference.md#session-quota-caps), the [`/orchestrate` retry and exploration loop](../core-concepts/workflows.md#orchestrate), and [workspace assignment](../core-concepts/parallel-execution.md#workspace-aware-pattern).
 
-This addresses the most common complaint in the category, summarized by one community post as "agents lie - they say tests pass when tests do not". See `cli/commands/verify/report.ts` for the check list (`collectVerifyReport` assembles the core checks and `runAgentChecks` adds the type-specific ones).
+## The practical trade-off
 
-### Re-verification across iterations
+OMA gives a team a shared place to define routing, execution steps, checks, and output files. In return, the team has to keep that repository configuration current and decide which workflows or verification commands belong in its acceptance contract. That trade-off is useful when consistency across contributors matters more than the smallest possible install.
 
-The `ralph` workflow wraps `ultrawork` with an independent JUDGE phase. After every iteration, JUDGE re-verifies every criterion - including the ones that already passed in earlier iterations. This catches the case where fixing criterion C2 silently breaks criterion C1, which is the actual mechanism behind most regressions in long agent sessions.
-
-Heavy verifications (greater than thirty seconds) are cached against affected file paths, so re-verification stays cheap. See `.agents/workflows/ralph/resources/judge-protocol.md` for the protocol.
-
-### Quota caps that block before damage
-
-Every `oma agent spawn` call records the spawn's token estimate to `.agents/state/memories/session-cost-{sessionId}.md`. Before the next spawn, `checkCap` consults the configured quota cap and refuses to launch if any dimension is exceeded. Three dimensions are enforced: total tokens, total spawn count, and per-vendor token budget.
-
-Without the cap you discover at the end of the month that you spent $40,000. With it, the orchestrator tells you at spawn fifteen that one spawn remains. See `cli/io/session-cost.ts` and configure under `session.quota_cap` in `.agents/oma-config.yaml`.
-
-### Retry then explore, not retry forever
-
-When `orchestrate` Step 5 finds a verification failure, it retries the agent up to twice with error context. If the second retry still fails and the cost cap is not yet exceeded, the workflow switches to the Exploration Loop - it spawns two or three alternative hypothesis variants in parallel separate workspaces and keeps only the highest-scoring result. Failed approaches are discarded with their cost recorded.
-
-This is a structured response to the case where one approach is fundamentally wrong. Retrying it never converges; trying different approaches in parallel does.
-
-### Monorepo-aware workspace routing
-
-`detectWorkspace` reads pnpm, nx, turbo, and lerna configurations and routes each agent to its target sub-workspace automatically. The backend agent runs against `apps/api/`, the frontend agent against `apps/web/`, without the orchestrator having to compose paths manually. See `cli/io/workspaces.ts`.
-
----
-
-## Multi-vendor is not optional
-
-The second design assumption is that any team doing real AI-assisted development uses more than one provider. Today that means Claude, Codex, Gemini, Copilot, Qwen, Kimi, and whatever ships next quarter. Vendor switching is a fact, not an edge case - Anthropic moves agent features to a separate paid plan, OpenAI ships Codex CLI the same week Anthropic models degrade, GitHub Copilot moves to consumption-based pricing.
-
-oh-my-agent treats vendor selection as per-agent configuration through `model_preset` and `agents.<id>.model` in `.agents/oma-config.yaml`. The portable `.agents/` directory is the single source of truth; every supported runtime projects from it. No vendor lock-in is required to use oh-my-agent, and no migration is required when you switch.
-
----
-
-## Repo-native customization
-
-The third assumption is that no two teams share the same definition of "done". One team requires OWASP Top 10 scans on every backend change. Another requires a Korean-language QA report. A third requires that every migration is reviewed by a database agent before merge.
-
-Because `.agents/` is just files in your repository, every team can add or modify agents, skills, workflows, and quality gates to match their own code of conduct and compliance posture. Customization is a `git commit`, not a vendor support ticket.
-
----
-
-## What this means in practice
-
-If your priority is spawning parallel agents fast, many tools cover that. If your priority is shipping code that keeps working after the agents leave the room, oh-my-agent is built for that. `oma verify`, JUDGE, the Exploration Loop, the quota cap, and monorepo routing are the reason the project exists, not optional add-ons.
-
-For details on each capability, see the Core Concepts section (Agents, Parallel Execution) in the sidebar.
+For the original positioning discussion, see [issue #155](https://github.com/first-fluke/oh-my-agent/issues/155#issuecomment-4142133589).
