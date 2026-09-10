@@ -1792,7 +1792,7 @@ oma skill lint [--skill <id>] [--json] [--output <format>]
 | `template-placeholder` | warn | leftover `{Placeholder}` text outside code spans  <!-- Перевод на русский -->|
 | `broken-reference` | fail | references a `resources/`, `config/`, `scripts/`, or `assets/` file that does not exist  <!-- Перевод на русский -->|
 
-**SSL-lite smells** (only for skills that opt into the format, i.e. have a `## Scheduling` heading — third-party skills are not held to it): <!-- Перевод на русский -->
+**Проблемы SSL-lite** (проверка SSL-lite обязательна, если объявленное имя навыка или имя его доступного каталога/псевдонима начинается с `oma-`, даже без `## Scheduling`; псевдоним без префикса не может обойти объявленное имя с `oma-`. Обычные навыки без префикса выбирают этот формат, добавляя `## Scheduling`): <!-- Перевод на русский -->
 
 | Сигнал | Серьёзность | Значение |
 |:------|:---------|:-------- <!-- Перевод на русский -->|

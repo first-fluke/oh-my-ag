@@ -1790,7 +1790,7 @@ oma skill lint [--skill <id>] [--json] [--output <format>]
 | `template-placeholder` | warn | leftover `{Placeholder}`文本outside代码spans |
 | `broken-reference` |失败| references一个`resources/`, `config/`, `scripts/`,或`assets/`文件该does不存在|
 
-**SSL-lite气味** (仅用于技能该退出到该格式, i.e.有一个`## Scheduling` heading ，第三-party技能是不held到它):
+**SSL-lite 异味**（当技能的声明名称或公开的目录/别名名称以 `oma-` 开头时，即使没有 `## Scheduling` 也必须进行 SSL-lite 校验；没有前缀的别名不能绕过声明为 `oma-` 的名称。普通的无前缀技能通过包含 `## Scheduling` 选择使用该格式）：
 
 |气味| Severity |含义|
 |:------|:---------|:--------|

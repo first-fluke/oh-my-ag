@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { basename, join, resolve } from "node:path";
+import { parseDocument } from "yaml";
 import { INSTALLED_SKILLS_DIR } from "../../constants/vendors.js";
 import { parseFrontmatter } from "../../utils/frontmatter.js";
 
@@ -42,6 +43,28 @@ export interface SkillLintReport {
   sslLiteCount: number;
   smells: SkillLintSmell[];
   cleanCount: number;
+}
+
+export interface LintSkillPathOptions {
+  requireSslLite?: boolean;
+  exposedNames?: readonly string[];
+}
+
+interface InternalLintSkillPathOptions extends LintSkillPathOptions {
+  failClosed: boolean;
+  skipGeneratedWrapper: boolean;
+}
+
+export function requiresSslLite({
+  declaredName,
+  exposedNames,
+}: {
+  declaredName: string;
+  exposedNames: readonly string[];
+}): boolean {
+  return [declaredName, ...exposedNames].some((name) =>
+    name.startsWith("oma-"),
+  );
 }
 
 /** Drop fenced code blocks so headings/placeholders inside them are ignored. */
@@ -203,6 +226,187 @@ function lintSslLite(skill: string, stripped: string): SkillLintSmell[] {
   return smells;
 }
 
+function reportForPathFailure(
+  skillsDir: string,
+  smell: string,
+  detail: string,
+): SkillLintReport {
+  return {
+    skillsDir,
+    skillCount: 0,
+    sslLiteCount: 0,
+    smells: [
+      {
+        skill: basename(skillsDir) || "unknown",
+        smell,
+        severity: "fail",
+        detail,
+      },
+    ],
+    cleanCount: 0,
+  };
+}
+
+function hasMalformedFrontmatter(raw: string): boolean {
+  try {
+    const trimmed = raw.trimStart();
+    if (!trimmed.startsWith("---")) return true;
+
+    const match = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/.exec(
+      trimmed,
+    );
+    if (!match?.[1]) return true;
+
+    const document = parseDocument(match[1], { prettyErrors: false });
+    if (document.errors.length > 0) return true;
+    const frontmatter = document.toJSON();
+    return (
+      !frontmatter ||
+      typeof frontmatter !== "object" ||
+      Array.isArray(frontmatter)
+    );
+  } catch {
+    return true;
+  }
+}
+
+function sortSmells(smells: SkillLintSmell[]): void {
+  smells.sort((a, b) =>
+    a.severity === b.severity
+      ? a.skill.localeCompare(b.skill)
+      : a.severity === "fail"
+        ? -1
+        : 1,
+  );
+}
+
+function lintSkillPathInternal(
+  skillDir: string,
+  options: InternalLintSkillPathOptions,
+): SkillLintReport {
+  let directoryIsValid = false;
+  try {
+    directoryIsValid = statSync(skillDir).isDirectory();
+  } catch {
+    // A selected path must fail closed; workspace enumeration skips bad entries.
+  }
+  if (!directoryIsValid) {
+    return options.failClosed
+      ? reportForPathFailure(
+          skillDir,
+          "invalid-directory",
+          `skill directory does not exist or is not a directory: ${skillDir}`,
+        )
+      : {
+          skillsDir: skillDir,
+          skillCount: 0,
+          sslLiteCount: 0,
+          smells: [],
+          cleanCount: 0,
+        };
+  }
+
+  const skillMdPath = join(skillDir, "SKILL.md");
+  let skillFileIsValid = false;
+  try {
+    skillFileIsValid = statSync(skillMdPath).isFile();
+  } catch {
+    // Handled below so explicitly selected paths produce a finding.
+  }
+  if (!skillFileIsValid) {
+    return options.failClosed
+      ? reportForPathFailure(
+          skillDir,
+          "missing-skill-file",
+          `SKILL.md is missing or is not a file in ${skillDir}`,
+        )
+      : {
+          skillsDir: skillDir,
+          skillCount: 0,
+          sslLiteCount: 0,
+          smells: [],
+          cleanCount: 0,
+        };
+  }
+
+  let raw: string;
+  try {
+    raw = readFileSync(skillMdPath, "utf-8");
+  } catch {
+    return options.failClosed
+      ? reportForPathFailure(
+          skillDir,
+          "unreadable-skill-file",
+          `unable to read SKILL.md at ${skillMdPath}`,
+        )
+      : {
+          skillsDir: skillDir,
+          skillCount: 0,
+          sslLiteCount: 0,
+          smells: [],
+          cleanCount: 0,
+        };
+  }
+
+  const pathName = basename(resolve(skillDir)) || "unknown";
+  const exposedNames = [pathName, ...(options.exposedNames ?? [])];
+  const { frontmatter, body } = parseFrontmatter(raw);
+  const declaredName =
+    typeof frontmatter.name === "string" ? frontmatter.name : "";
+  if (
+    options.skipGeneratedWrapper &&
+    raw.includes("<!-- oma:generated -->") &&
+    !requiresSslLite({ declaredName, exposedNames })
+  ) {
+    return {
+      skillsDir: skillDir,
+      skillCount: 0,
+      sslLiteCount: 0,
+      smells: [],
+      cleanCount: 0,
+    };
+  }
+
+  const skill = options.exposedNames?.[0] ?? pathName;
+  const stripped = stripFences(body);
+  const requiresStructure =
+    options.requireSslLite === true ||
+    requiresSslLite({ declaredName, exposedNames }) ||
+    /^## Scheduling$/m.test(stripped);
+  const smells = lintGeneric(skill, skillDir, frontmatter, body, stripped);
+
+  if (hasMalformedFrontmatter(raw)) {
+    smells.push({
+      skill,
+      smell: "malformed-frontmatter",
+      severity: "fail",
+      detail: "SKILL.md must start with a valid YAML frontmatter mapping",
+    });
+  }
+  if (requiresStructure) smells.push(...lintSslLite(skill, stripped));
+
+  sortSmells(smells);
+  return {
+    skillsDir: skillDir,
+    skillCount: 1,
+    sslLiteCount: requiresStructure ? 1 : 0,
+    smells,
+    cleanCount: smells.length === 0 ? 1 : 0,
+  };
+}
+
+/** Lint one explicitly supplied skill directory without installing it. */
+export function lintSkillPath(
+  skillDir: string,
+  options: LintSkillPathOptions = {},
+): SkillLintReport {
+  return lintSkillPathInternal(skillDir, {
+    ...options,
+    failClosed: true,
+    skipGeneratedWrapper: false,
+  });
+}
+
 export function lintSkills(
   workspace: string,
   skillFilter?: string,
@@ -213,11 +417,16 @@ export function lintSkills(
   let sslLiteCount = 0;
   let cleanCount = 0;
 
+  if (skillFilter) {
+    return lintSkillPath(join(skillsDir, skillFilter), {
+      exposedNames: [skillFilter],
+    });
+  }
+
   let entries: string[] = [];
   if (existsSync(skillsDir)) {
     entries = readdirSync(skillsDir).filter((name) => {
       if (name.startsWith("_")) return false;
-      if (skillFilter && name !== skillFilter) return false;
       try {
         return statSync(join(skillsDir, name)).isDirectory();
       } catch {
@@ -228,35 +437,18 @@ export function lintSkills(
 
   for (const name of entries) {
     const skillDir = join(skillsDir, name);
-    const skillMdPath = join(skillDir, "SKILL.md");
-    if (!existsSync(skillMdPath)) continue;
-    let raw: string;
-    try {
-      raw = readFileSync(skillMdPath, "utf-8");
-    } catch {
-      continue;
-    }
-    if (raw.includes("<!-- oma:generated -->")) continue;
-    skillCount += 1;
-
-    const { frontmatter, body } = parseFrontmatter(raw);
-    const stripped = stripFences(body);
-    const found = lintGeneric(name, skillDir, frontmatter, body, stripped);
-    if (/^## Scheduling$/m.test(stripped)) {
-      sslLiteCount += 1;
-      found.push(...lintSslLite(name, stripped));
-    }
-    if (found.length === 0) cleanCount += 1;
-    smells.push(...found);
+    const report = lintSkillPathInternal(skillDir, {
+      exposedNames: [name],
+      failClosed: false,
+      skipGeneratedWrapper: true,
+    });
+    skillCount += report.skillCount;
+    sslLiteCount += report.sslLiteCount;
+    cleanCount += report.cleanCount;
+    smells.push(...report.smells);
   }
 
-  smells.sort((a, b) =>
-    a.severity === b.severity
-      ? a.skill.localeCompare(b.skill)
-      : a.severity === "fail"
-        ? -1
-        : 1,
-  );
+  sortSmells(smells);
   return { skillsDir, skillCount, sslLiteCount, smells, cleanCount };
 }
 
@@ -280,12 +472,12 @@ export function renderSkillLintReport(report: SkillLintReport): void {
     `\nSkill smell lint  (skills: ${report.skillCount}, ssl-lite: ${report.sslLiteCount})`,
   );
   console.log(`  source: ${report.skillsDir}\n`);
-  if (report.skillCount === 0) {
-    console.log("  No skills found to lint.");
-    return;
-  }
   if (report.smells.length === 0) {
-    console.log("  PASS — no skill smells detected.");
+    console.log(
+      report.skillCount === 0
+        ? "  No skills found to lint."
+        : "  PASS — no skill smells detected.",
+    );
     return;
   }
   for (const smell of report.smells) {

@@ -1788,7 +1788,7 @@ oma skill lint [--skill <id>] [--json] [--output <format>]
 | `template-placeholder` | warn | コード範囲外に `{Placeholder}` の残りがあります。 |
 | `broken-reference` | fail | 存在しない `resources/`、`config/`、`scripts/`、`assets/` ファイルを参照しています。 |
 
-**SSL-lite の臭い**（`## Scheduling` 見出しを持ち、この形式をオプトインしたスキルだけが対象。サードパーティーのスキルには適用しません）:
+**SSL-lite の臭い**（スキルの宣言名、または公開されるディレクトリ名・エイリアスが `oma-` で始まる場合、`## Scheduling` がなくても SSL-lite 検証が必須です。プレフィックスのないエイリアスで、宣言名の `oma-` を回避することはできません。通常のプレフィックスなしスキルは、`## Scheduling` を含めることでこの形式をオプトインします）:
 
 | 臭い | 重大度 | 意味 |
 |:------|:---------|:--------|

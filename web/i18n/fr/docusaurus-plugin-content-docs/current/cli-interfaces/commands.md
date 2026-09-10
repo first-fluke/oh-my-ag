@@ -1744,7 +1744,7 @@ oma skill lint [--skill <id>] [--json] [--output <format>]
 | `template-placeholder` | warn | Texte `{Placeholder}` résiduel hors des spans de code |
 | `broken-reference` | fail | Référence vers un fichier `resources/`, `config/`, `scripts/` ou `assets/` inexistant |
 
-**Défauts SSL-lite** (uniquement pour les compétences adoptant ce format, c’est-à-dire possédant un titre `## Scheduling` — les compétences tierces ne sont pas soumises à cette règle) :
+**Défauts SSL-lite** (la validation SSL-lite est obligatoire lorsqu’un nom déclaré de compétence ou son nom de répertoire/alias exposé commence par `oma-`, même sans `## Scheduling` ; un alias sans préfixe ne peut pas contourner un nom déclaré en `oma-`. Les compétences ordinaires sans préfixe adoptent le format en incluant `## Scheduling`) :
 
 | Défaut | Gravité | Signification |
 |:------|:---------|:--------|

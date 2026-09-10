@@ -1789,7 +1789,7 @@ oma skill lint [--skill <id>] [--json] [--output <format>]
 | `template-placeholder` | warn | leftover `{Placeholder}` text outside code spans |
 | `broken-reference` | fail | references a `resources/`, `config/`, `scripts/`, or `assets/` file that does not exist |
 
-**Problemy SSL-lite** (tylko dla umiejętności korzystających z tego formatu, czyli mających nagłówek `## Scheduling` — umiejętności zewnętrzne nie podlegają tej zasadzie):
+**Problemy SSL-lite** (walidacja SSL-lite jest wymagana, gdy zadeklarowana nazwa umiejętności albo nazwa jej udostępnionego katalogu/aliasu zaczyna się od `oma-`, nawet bez `## Scheduling`; alias bez prefiksu nie może obejść zadeklarowanej nazwy `oma-`. Zwykłe umiejętności bez prefiksu wybierają ten format przez dodanie `## Scheduling`):
 
 | Smell | Severity | Meaning |
 |:------|:---------|:--------|

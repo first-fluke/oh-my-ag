@@ -1784,7 +1784,7 @@ oma skill lint [--skill <id>] [--json] [--output <format>]
 | `template-placeholder` | warn | achtergebleven tekst `{Placeholder}` buiten codespans |
 | `broken-reference` | fail | verwijst naar een niet-bestaand bestand in `resources/`, `config/`, `scripts/` of `assets/` |
 
-**SSL-lite-smells** (alleen voor skills die voor dit formaat kiezen, dus een heading `## Scheduling` hebben — voor skills van derden geldt dit niet):
+**SSL-lite-smells** (SSL-lite-validatie is verplicht wanneer de gedeclareerde naam van een skill of de zichtbare directory-/aliasnaam met `oma-` begint, ook zonder `## Scheduling`; een alias zonder voorvoegsel kan een gedeclareerde `oma-`-naam niet omzeilen. Gewone skills zonder voorvoegsel kiezen voor het formaat door `## Scheduling` op te nemen):
 
 | Smell | Ernst | Betekenis |
 |:------|:---------|:--------|

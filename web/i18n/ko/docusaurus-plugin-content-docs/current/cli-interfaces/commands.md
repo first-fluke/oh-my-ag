@@ -1745,7 +1745,7 @@ oma skill lint [--skill <id>] [--json] [--output <format>]
 | `template-placeholder` | warn | 코드 스팬 밖에 `{Placeholder}` 텍스트가 남아 있음 |
 | `broken-reference` | fail | 존재하지 않는 `resources/`, `config/`, `scripts/`, `assets/` 파일을 참조함 |
 
-**SSL-lite 스멜** (형식을 채택한 스킬, 즉 `## Scheduling` 헤딩이 있는 스킬에만 적용합니다. 서드파티 스킬에는 요구하지 않습니다):
+**SSL-lite 스멜** (스킬의 선언된 이름이나 노출된 디렉터리/별칭이 `oma-`로 시작하면 `## Scheduling` 헤딩이 없어도 SSL-lite 검증이 필수입니다. 접두사가 없는 별칭으로 선언된 `oma-` 이름을 우회할 수 없습니다. 일반적인 접두사 없는 스킬은 `## Scheduling`을 포함해 형식을 선택합니다):
 
 | 스멜 | 심각도 | 의미 |
 |:------|:---------|:--------|

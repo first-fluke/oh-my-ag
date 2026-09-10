@@ -1789,7 +1789,7 @@ Chi tiết của mục này được áp dụng theo cấu hình hiện tại.
 | `template-placeholder` | Nội dung tương ứng | `{Placeholder}` |
 | `broken-reference` | Nội dung tương ứng | `resources/` `config/` `scripts/` `assets/` |
 
-Chi tiết của mục này được áp dụng theo cấu hình hiện tại. `## Scheduling`
+**Dấu hiệu SSL-lite** (việc kiểm tra SSL-lite là bắt buộc khi tên khai báo của skill hoặc tên thư mục/bí danh được công bố bắt đầu bằng `oma-`, kể cả khi không có `## Scheduling`; bí danh không có tiền tố không thể bỏ qua tên khai báo `oma-`. Các skill thông thường không có tiền tố chọn dùng định dạng này bằng cách thêm `## Scheduling`):
 
 | Nội dung tương ứng | Nội dung tương ứng | Nội dung tương ứng |
 |:------|:---------|:--------|

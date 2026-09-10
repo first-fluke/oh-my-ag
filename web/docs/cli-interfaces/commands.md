@@ -1789,7 +1789,7 @@ oma skill lint [--skill <id>] [--json] [--output <format>]
 | `template-placeholder` | warn | leftover `{Placeholder}` text outside code spans |
 | `broken-reference` | fail | references a `resources/`, `config/`, `scripts/`, or `assets/` file that does not exist |
 
-**SSL-lite smells** (only for skills that opt into the format, i.e. have a `## Scheduling` heading — third-party skills are not held to it):
+**SSL-lite smells** (SSL-lite validation is required when a skill's declared name or exposed directory/alias starts with `oma-`, even without `## Scheduling`; an unprefixed alias cannot bypass a declared `oma-` name. Ordinary unprefixed skills opt in by including `## Scheduling`):
 
 | Smell | Severity | Meaning |
 |:------|:---------|:--------|
