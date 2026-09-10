@@ -1,5 +1,12 @@
 # Changelog
 
+## [14.7.10](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.9...cli-v14.7.10) (2026-09-10)
+
+
+### Bug Fixes
+
+* **qwen:** skip project timeout pin when user settings own modelProviders ([423e72f](https://github.com/first-fluke/oh-my-agent/commit/423e72f8b4aa0b79f608b201d8a4b12566fe895e))
+
 ## [14.7.9](https://github.com/first-fluke/oh-my-agent/compare/cli-v14.7.8...cli-v14.7.9) (2026-09-09)
 
 
