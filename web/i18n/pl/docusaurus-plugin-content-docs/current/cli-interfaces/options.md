@@ -461,7 +461,7 @@ oma describe "agent spawn" | jq '.command.options[] | {flags, description}'
 ```
 ## Pełny publiczny rejestr opcji
 
-Poniższa macierz jest generowana ze sprawdzonego publicznego rejestru poleceń (186 ścieżek w 42 rodzinach). To indeks pokrycia tej strony: wiersz z `—` nie ma opcji właściwych poleceniu, a współdzielone flagi główne i aliasy pomocy opisano powyżej. Uruchom `oma describe "<path>"`, aby sprawdzić pomoc runtime, gdy zmieni się gramatyka wartości.
+Poniższa macierz jest generowana ze sprawdzonego publicznego rejestru poleceń. To indeks pokrycia tej strony: wiersz z `—` nie ma opcji właściwych poleceniu, a współdzielone flagi główne i aliasy pomocy opisano powyżej. Uruchom `oma describe "<path>"`, aby sprawdzić pomoc runtime, gdy zmieni się gramatyka wartości.
 
 | Ścieżka polecenia | Publiczne opcje | Cel |
 | --- | --- | --- |

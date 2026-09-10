@@ -26,7 +26,7 @@ Thông tin của mục này được giữ theo registry hiện tại.
 | Nội dung tương ứng | `oma slide create --output-dir <dir>` | Nội dung tương ứng |
 | Nội dung tương ứng | `oma docs verify --json` | Nội dung tương ứng |
 
-Thông tin của mục này được giữ theo registry hiện tại. `14.7.9` `oma describe` `slide new` `slide viewer` `image list-vendors` `video list-providers`
+Registry đã được commit trong kho mã là nguồn cho bản đồ lệnh này. Các tên khám phá chuẩn bên dưới là các đường dẫn do `oma describe` trả về; trợ giúp tương tác có thể hiển thị các bí danh tương thích như `slide new`, `slide viewer`, `image list-vendors` hoặc `video list-providers`.
 
 ## Bề mặt lệnh hiện tại
 

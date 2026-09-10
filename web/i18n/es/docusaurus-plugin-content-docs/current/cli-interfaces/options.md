@@ -461,7 +461,7 @@ oma describe "agent spawn" | jq '.command.options[] | {flags, description}'
 ```
 ## Registro completo de opciones públicas {#complete-public-option-registry}
 
-La siguiente matriz se genera a partir del registro público de comandos incluido en el repositorio (186 rutas en 42 familias). Es el índice de cobertura de esta página: una fila con `—` no tiene opciones específicas del comando, mientras que los flags raíz compartidos y los alias de ayuda se describen arriba. Ejecuta `oma describe "<path>"` para inspeccionar la ayuda del runtime cuando cambie la gramática de un valor.
+La siguiente matriz se genera a partir del registro público de comandos incluido en el repositorio. Es el índice de cobertura de esta página: una fila con `—` no tiene opciones específicas del comando, mientras que los flags raíz compartidos y los alias de ayuda se describen arriba. Ejecuta `oma describe "<path>"` para inspeccionar la ayuda del runtime cuando cambie la gramática de un valor.
 
 | Ruta del comando | Opciones públicas | Propósito |
 |---|---|---|

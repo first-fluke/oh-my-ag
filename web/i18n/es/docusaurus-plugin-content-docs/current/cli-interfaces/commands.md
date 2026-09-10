@@ -26,7 +26,7 @@ Elige el comando más pequeño que responda a tu pregunta. Cada comando de abajo
 | Crear una presentación | `oma slide create --output-dir <dir>` | Un directorio de trabajo que se puede escribir, validar, empaquetar y exportar. |
 | Revisar el drift de la documentación | `oma docs verify --json` | Un informe estructurado de referencias rotas y un índice de referencias regenerado. |
 
-El registro expone actualmente 42 familias de comandos públicos (versión `14.7.9` cuando se comprobó esta página). Los nombres canónicos de descubrimiento de abajo son las rutas que devuelve `oma describe`; la ayuda interactiva puede mostrar alias de compatibilidad como `slide new`, `slide viewer`, `image list-vendors` o `video list-providers`.
+El registro incluido en el repositorio es la fuente de este mapa de comandos. Los nombres canónicos de descubrimiento de abajo proceden de `oma describe`; la ayuda interactiva puede mostrar alias de compatibilidad como `slide new`, `slide viewer`, `image list-vendors` o `video list-providers`.
 
 ## Superficie actual de comandos {#current-command-surface}
 

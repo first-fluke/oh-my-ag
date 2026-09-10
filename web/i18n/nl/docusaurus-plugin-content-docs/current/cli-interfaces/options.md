@@ -462,7 +462,7 @@ oma describe "agent spawn" | jq '.command.options[] | {flags, description}'
 
 ## Volledig openbare optieregister
 
-De volgende matrix is gegenereerd uit het openbare commandoregister in de repository (186 paden over 42 families). Dit is de dekkingsindex voor deze pagina: een rij met `—` heeft geen opties die specifiek zijn voor het commando; de gedeelde rootflags en helpaliassen staan hierboven beschreven. Voer `oma describe "<path>"` uit om runtime-help te bekijken wanneer de grammaticaregels van een waarde veranderen.
+De volgende matrix is gegenereerd uit het openbare commandoregister in de repository. Dit is de dekkingsindex voor deze pagina: een rij met `—` heeft geen opties die specifiek zijn voor het commando; de gedeelde rootflags en helpaliassen staan hierboven beschreven. Voer `oma describe "<path>"` uit om runtime-help te bekijken wanneer de grammaticaregels van een waarde veranderen.
 
 | Commandopad | Openbare opties | Doel |
 |---|---|---|

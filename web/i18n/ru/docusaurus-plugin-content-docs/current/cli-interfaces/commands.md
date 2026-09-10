@@ -29,7 +29,7 @@ description: "Полный справочник всех команд CLI oh-my-
 | Build a slide deck | `oma slide create --output-dir <dir>` | A working directory that can be authored, validated, bundled, and exported.  <!-- Перевод на русский -->|
 | Review documentation drift | `oma docs verify --json` | A structured broken-reference report and regenerated reference index.  <!-- Перевод на русский -->|
 
-Текущий реестр содержит 42 public command families (version `14.7.9` at the time this page was checked). Канонические имена обнаружения ниже — это пути, возвращаемые `oma describe`; the interactive help may show compatibility aliases such as `slide new`, `slide viewer`, `image list-vendors`, or `video list-providers`.
+Проверенный в репозитории реестр — источник этой карты команд. Канонические имена для обнаружения ниже поступают из `oma describe`; интерактивная справка может показывать алиасы совместимости, например `slide new`, `slide viewer`, `image list-vendors` или `video list-providers`.
 
 ## Текущий набор команд
 

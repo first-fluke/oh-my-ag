@@ -27,7 +27,7 @@ sidebar_label: CLI 命令
 |构建一个幻灯片deck | `oma slide create --output-dir <dir>` |一个可用目录该可以是已编写, validated,打包,和exported. |
 |审查documentation漂移| `oma docs verify --json` |一个structured broken-参考报告和regenerated参考索引. |
 
-当前注册表公开42公共命令命令族(版本`14.7.9`在该时间这page是检查时).下面的规范发现名称是由以下命令返回的路径： `oma describe`;该交互式帮助可能显示兼容性别名例如作为`slide new`, `slide viewer`, `image list-vendors`,或`video list-providers`.
+已签入的注册表是此命令映射的来源。下面的规范发现名称来自 `oma describe` 返回的路径；交互式帮助可能显示兼容性别名，例如 `slide new`、`slide viewer`、`image list-vendors` 或 `video list-providers`。
 
 ## 当前命令范围
 

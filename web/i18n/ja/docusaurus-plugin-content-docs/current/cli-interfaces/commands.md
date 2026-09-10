@@ -26,7 +26,7 @@ description: oh-my-agent CLIの全コマンドを対象に、構文、オプシ�
 | スライドデッキを作る | `oma slide create --output-dir <dir>` | 作成、検証、バンドル、エクスポートができる作業ディレクトリ。 |
 | ドキュメントのずれを確認する | `oma docs verify --json` | 壊れた参照の構造化レポートと再生成された参照インデックス。 |
 
-レジストリには現在 42 個の公開コマンドファミリーがあります（このページの確認時点のバージョンは `14.7.9`）。以下の正規名は `oma describe` が返すパスです。インタラクティブヘルプには `slide new`、`slide viewer`、`image list-vendors`、`video list-providers` などの互換エイリアスが表示される場合があります。
+このコマンド一覧の情報源は、リポジトリに固定されたレジストリです。以下の正規の検出名は `oma describe` が返すパスです。インタラクティブヘルプには `slide new`、`slide viewer`、`image list-vendors`、`video list-providers` などの互換エイリアスが表示される場合があります。
 
 ## 現在のコマンド一覧 {#current-command-surface}
 

@@ -26,7 +26,7 @@ Choisissez la plus petite commande qui répond à votre question. Chaque command
 | Créer une présentation | `oma slide create --output-dir <dir>` | Répertoire de travail pouvant être écrit, validé, regroupé et exporté. |
 | Examiner la dérive documentaire | `oma docs verify --json` | Rapport structuré des références rompues et index de références régénéré. |
 
-Le registre expose actuellement 42 familles de commandes publiques (version `14.7.9` au moment de la vérification de cette page). Les noms canoniques de découverte ci-dessous sont les chemins renvoyés par `oma describe` ; l’aide interactive peut afficher des alias de compatibilité comme `slide new`, `slide viewer`, `image list-vendors` ou `video list-providers`.
+Le registre présent dans le dépôt est la source de cette carte des commandes. Les noms canoniques de découverte ci-dessous proviennent de `oma describe` ; l’aide interactive peut afficher des alias de compatibilité comme `slide new`, `slide viewer`, `image list-vendors` ou `video list-providers`.
 
 ## Surface actuelle des commandes
 

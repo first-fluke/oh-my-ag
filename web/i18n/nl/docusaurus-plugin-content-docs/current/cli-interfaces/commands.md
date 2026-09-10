@@ -26,7 +26,7 @@ Kies het kleinste commando dat je vraag beantwoordt. Elk commando hieronder prin
 | Een slide deck bouwen | `oma slide create --output-dir <dir>` | Een werkmap die je kunt schrijven, valideren, bundelen en exporteren. |
 | Documentatiedrift controleren | `oma docs verify --json` | Een gestructureerd rapport met gebroken verwijzingen en een opnieuw gegenereerde verwijzingsindex. |
 
-Het register bevat momenteel 42 openbare commandofamilies (versie `14.7.9` toen deze pagina werd gecontroleerd). De canonieke ontdekkingsnamen hieronder zijn de paden die `oma describe` teruggeeft; interactieve help kan compatibiliteitsaliassen tonen zoals `slide new`, `slide viewer`, `image list-vendors` of `video list-providers`.
+Deze commandokaart gebruikt het vastgelegde register als bron. De canonieke ontdekkingsnamen hieronder komen uit `oma describe`; interactieve help kan compatibiliteitsaliassen tonen zoals `slide new`, `slide viewer`, `image list-vendors` of `video list-providers`.
 
 ## Huidig commandolandschap
 

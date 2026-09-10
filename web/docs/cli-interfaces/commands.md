@@ -26,7 +26,7 @@ Choose the smallest command that answers the question you have. Each command bel
 | Build a slide deck | `oma slide create --output-dir <dir>` | A working directory that can be authored, validated, bundled, and exported. |
 | Review documentation drift | `oma docs verify --json` | A structured broken-reference report and regenerated reference index. |
 
-The registry currently exposes 42 public command families (version `14.7.9` at the time this page was checked). The canonical discovery names below are the paths returned by `oma describe`; the interactive help may show compatibility aliases such as `slide new`, `slide viewer`, `image list-vendors`, or `video list-providers`.
+The checked-in registry is the source for this command map. The canonical discovery names below come from `oma describe`; interactive help may show compatibility aliases such as `slide new`, `slide viewer`, `image list-vendors`, or `video list-providers`.
 
 ## Current command surface
 

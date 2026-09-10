@@ -461,7 +461,7 @@ oma describe "agent spawn" | jq '.command.options[] | {flags, description}'
 ```
 ## Registry tùy chọn public đầy đủ
 
-Thông tin của mục này được giữ theo registry hiện tại. `—` `oma describe "<path>"`
+Ma trận sau được tạo từ registry lệnh công khai đã được commit trong kho mã. Đây là chỉ mục bao phủ của trang này: hàng có `—` không có tùy chọn dành riêng cho lệnh, còn các cờ gốc dùng chung và bí danh trợ giúp được mô tả ở trên. Chạy `oma describe "<path>"` để xem trợ giúp thời gian chạy khi cú pháp giá trị thay đổi.
 
 | Nội dung tương ứng | Nội dung tương ứng | Mục đích |
 |---|---|---|

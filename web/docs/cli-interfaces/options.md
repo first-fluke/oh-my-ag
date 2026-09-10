@@ -461,7 +461,7 @@ oma describe "agent spawn" | jq '.command.options[] | {flags, description}'
 ```
 ## Complete public option registry
 
-The following matrix is generated from the checked-in public command registry (186 paths across 42 families). It is the coverage index for this page: a row with `—` has no command-specific options, while shared root flags and help aliases are described above. Run `oma describe "<path>"` to inspect runtime help when a value grammar changes.
+The following matrix is generated from the checked-in public command registry. It is the coverage index for this page: a row with `—` has no command-specific options, while shared root flags and help aliases are described above. Run `oma describe "<path>"` to inspect runtime help when a value grammar changes.
 
 | Command path | Public options | Purpose |
 |---|---|---|

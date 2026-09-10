@@ -26,7 +26,7 @@ Wybierz najmniejsze polecenie, które odpowiada na Twoje pytanie. Każde z poni�
 | Utworzenie prezentacji | `oma slide create --output-dir <dir>` | Katalog roboczy, który można wypełnić, zweryfikować, zbundlować i wyeksportować. |
 | Przegląd rozbieżności dokumentacji | `oma docs verify --json` | Ustrukturyzowany raport uszkodzonych odwołań i odtworzony indeks referencji. |
 
-Rejestr udostępnia obecnie 42 publiczne rodziny poleceń (w chwili sprawdzania tej strony wersja to `14.7.9`). Poniższe kanoniczne nazwy wykrywania są ścieżkami zwracanymi przez `oma describe`; pomoc interaktywna może pokazywać aliasy zgodności, takie jak `slide new`, `slide viewer`, `image list-vendors` lub `video list-providers`.
+Zapisany w repozytorium rejestr jest źródłem tej mapy poleceń. Poniższe kanoniczne nazwy wykrywania pochodzą z `oma describe`; pomoc interaktywna może pokazywać aliasy zgodności, takie jak `slide new`, `slide viewer`, `image list-vendors` lub `video list-providers`.
 
 ## Bieżąca lista poleceń
 

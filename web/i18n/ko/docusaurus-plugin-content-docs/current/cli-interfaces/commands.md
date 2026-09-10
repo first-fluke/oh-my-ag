@@ -27,7 +27,7 @@ description: 모든 oh-my-agent CLI 명령어의 종합 레퍼런스입니다. �
 | 슬라이드 덱 만들기 | `oma slide create --output-dir <dir>` | 작성, 검증, 번들링, 내보내기에 사용할 작업 디렉토리입니다. |
 | 문서 드리프트 검토 | `oma docs verify --json` | 깨진 참조와 재생성된 참조 인덱스를 담은 구조화 보고서입니다. |
 
-현재 레지스트리는 42개 공개 명령 계열을 노출합니다. 아래의 표준 발견 이름은 `oma describe`가 반환하는 경로입니다. 대화형 도움말에는 `slide new`, `slide viewer`, `image list-vendors`, `video list-providers` 같은 호환 별칭이 표시될 수 있습니다.
+이 명령 표의 기준은 체크인된 레지스트리입니다. 아래의 표준 발견 이름은 `oma describe`가 반환하는 경로입니다. 대화형 도움말에는 `slide new`, `slide viewer`, `image list-vendors`, `video list-providers` 같은 호환 별칭이 표시될 수 있습니다.
 
 ## 현재 지원하는 명령 {#current-command-surface}
 

@@ -26,7 +26,7 @@ Wähle den kleinsten Befehl, der deine Frage beantwortet. Jeder unten aufgeführ
 | Ein Slide-Deck erstellen | `oma slide create --output-dir <dir>` | Ein Arbeitsverzeichnis, das erstellt, validiert, gebündelt und exportiert werden kann. |
 | Dokumentationsdrift prüfen | `oma docs verify --json` | Ein strukturierter Bericht über defekte Referenzen und ein neu erzeugter Referenzindex. |
 
-Die Registry stellt derzeit 42 öffentliche Befehlsfamilien bereit (Version `14.7.9` zum Zeitpunkt der Prüfung). Die kanonischen Discovery-Namen unten sind die von `oma describe` zurückgegebenen Pfade; die interaktive Hilfe kann Kompatibilitätsaliase wie `slide new`, `slide viewer`, `image list-vendors` oder `video list-providers` anzeigen.
+Die eingecheckte Registry ist die Quelle für diese Befehlsübersicht. Die kanonischen Discovery-Namen unten stammen aus `oma describe`; die interaktive Hilfe kann Kompatibilitätsaliase wie `slide new`, `slide viewer`, `image list-vendors` oder `video list-providers` anzeigen.
 
 ## Aktuelle Befehlsoberfläche
 

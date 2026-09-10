@@ -460,7 +460,7 @@ oma describe "agent spawn" | jq '.command.options[] | {flags, description}'
 
 ## 전체 공개 옵션 레지스트리 {#complete-public-option-registry}
 
-다음 매트릭스는 체크인된 공개 명령 레지스트리에서 생성한 것입니다(42개 계열의 186개 경로). 이 표가 이 페이지의 적용 범위 인덱스입니다. `없음`은 명령별 옵션이 없다는 뜻이며, 공유 루트 플래그와 도움말 별칭은 위에서 설명했습니다. 값 문법이 바뀌면 `oma describe "<path>"`로 런타임 도움말을 확인합니다.
+다음 매트릭스는 체크인된 공개 명령 레지스트리에서 생성한 것입니다. 이 표가 이 페이지의 적용 범위 인덱스입니다. `없음`은 명령별 옵션이 없다는 뜻이며, 공유 루트 플래그와 도움말 별칭은 위에서 설명했습니다. 값 문법이 바뀌면 `oma describe "<path>"`로 런타임 도움말을 확인합니다.
 
 `docs sync`는 기본 diff 범위로 staged 변경을 선택할 때 내부 git 옵션 `--cached`도 인식하며, `market run`에는 `market.save_dir`에서 온 `--save-dir`가 추가될 수 있습니다. 이 값은 각 위임 도구의 도움말과 함께 해석합니다.
 

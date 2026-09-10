@@ -462,7 +462,7 @@ oma describe "agent spawn" | jq '.command.options[] | {flags, description}'
 
 ## Registre public complet des options
 
-La matrice suivante est générée depuis le registre public des commandes versionné (186 chemins répartis dans 42 familles). Elle sert d’index de couverture de cette page : une ligne contenant `—` n’a pas d’option propre à la commande, tandis que les indicateurs racine partagés et les alias d’aide sont décrits plus haut. Lancez `oma describe "<path>"` pour examiner l’aide d’exécution lorsqu’une grammaire de valeur change.
+La matrice suivante est générée depuis le registre public des commandes présent dans le dépôt. Elle sert d’index de couverture de cette page : une ligne contenant `—` n’a pas d’option propre à la commande, tandis que les indicateurs racine partagés et les alias d’aide sont décrits plus haut. Lancez `oma describe "<path>"` pour examiner l’aide d’exécution lorsqu’une grammaire de valeur change.
 
 | Chemin de commande | Options publiques | Rôle |
 |---|---|---|

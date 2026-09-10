@@ -464,7 +464,7 @@ oma describe "agent spawn" | jq '.command.options[] | {flags, description}'
 ```
 ## Полный реестр публичных опций
 
-Следующая матрица сгенерирована from the checked-in public command registry (186 paths across 42 families). Это индекс покрытия этой страницы: a row with `—` has no command-specific options, while shared root flags and help aliases are described above. Run `oma describe "<path>"` to inspect runtime help when a value grammar changes.
+Следующая матрица сгенерирована из проверенного в репозитории публичного реестра команд. Это индекс покрытия этой страницы: строка с `—` не содержит параметров, специфичных для команды, а общие корневые флаги и алиасы справки описаны выше. Запустите `oma describe "<path>"`, чтобы просмотреть справку во время выполнения, если изменится грамматика значения.
 
 | Путь команды | Публичные опции | Назначение |
 |---|---|--- <!-- Перевод на русский -->|

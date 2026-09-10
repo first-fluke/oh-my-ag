@@ -462,7 +462,7 @@ oma describe "agent spawn" | jq '.command.options[] | {flags, description}'
 
 ## Vollständige öffentliche Optionsregistry
 
-Die folgende Matrix wird aus der eingecheckten öffentlichen Befehlsregistry erzeugt (186 Pfade über 42 Familien). Sie dient als Abdeckungsindex für diese Seite: Eine Zeile mit `—` hat keine befehlsspezifischen Optionen; gemeinsame Root-Flags und Hilfealiase werden oben beschrieben. Führe `oma describe "<path>"` aus, um die Laufzeithilfe zu prüfen, wenn sich eine Wertsyntax ändert.
+Die folgende Matrix wird aus der eingecheckten öffentlichen Befehlsregistry erzeugt. Sie dient als Abdeckungsindex für diese Seite: Eine Zeile mit `—` hat keine befehlsspezifischen Optionen; gemeinsame Root-Flags und Hilfealiase werden oben beschrieben. Führe `oma describe "<path>"` aus, um die Laufzeithilfe zu prüfen, wenn sich eine Wertsyntax ändert.
 
 | Befehlspfad | Öffentliche Optionen | Zweck |
 |---|---|---|
