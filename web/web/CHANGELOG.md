@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.3.4](https://github.com/first-fluke/oh-my-agent/compare/web-v6.3.3...web-v6.3.4) (2026-09-10)
+
+
+### Documentation
+
+* **web:** expand guides across all locales ([e2852d5](https://github.com/first-fluke/oh-my-agent/commit/e2852d516b045929576fcecc1e560c700dd2d9ac))
+
 ## [6.3.3](https://github.com/first-fluke/oh-my-agent/compare/web-v6.3.2...web-v6.3.3) (2026-09-09)
 
 
