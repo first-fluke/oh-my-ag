@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.3.5](https://github.com/first-fluke/oh-my-agent/compare/web-v6.3.4...web-v6.3.5) (2026-09-10)
+
+
+### Documentation
+
+* **cli:** remove command count and version snapshots ([4a9c1d9](https://github.com/first-fluke/oh-my-agent/commit/4a9c1d92b5c44ef41878870ecc704e3b25428557))
+
 ## [6.3.4](https://github.com/first-fluke/oh-my-agent/compare/web-v6.3.3...web-v6.3.4) (2026-09-10)
 
 
